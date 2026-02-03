@@ -1,0 +1,12 @@
+package com.exe.AparcaYA.Service;
+
+import com.exe.AparcaYA.Entity.Usuario;
+
+import java.io.ByteArrayOutputStream;
+import java.util.List;
+
+public interface ReporteService {
+
+        ByteArrayOutputStream generarReportePDF(List<Usuario> usuarios) throws Exception;
+        ByteArrayOutputStream generarReporteExcel(List<Usuario> usuarios) throws Exception;
+    }

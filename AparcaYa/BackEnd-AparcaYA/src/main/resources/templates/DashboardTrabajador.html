@@ -1,0 +1,488 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Dashboard Trabajador - AparcaYA</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdn.jsdelivr.net/npm/daisyui@4.12.10/dist/full.min.css" rel="stylesheet" />
+    <link rel="stylesheet" href="/Css/Trabajador.css">
+</head>
+<body>
+
+<!-- SIDEBAR -->
+<aside class="sidebar">
+    <div class="sidebar-header">
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M8.25 18.75a1.5 1.5 0 01-3 0V15a6 6 0 0112 0v3.75a1.5 1.5 0 01-3 0V15a3 3 0 00-6 0v3.75zM12 9a3 3 0 100-6 3 3 0 000 6z" />
+        </svg>
+        <h1>AparcaYA</h1>
+    </div>
+    <nav class="sidebar-nav">
+        <a href="#" class="active" data-tab="inicio">🏠 Inicio</a>
+        <a href="#" data-tab="gestion">🚗 Gestión Vehículos</a>
+        <a href="#" data-tab="historial">📊 Historial</a>
+        <a href="#" data-tab="reservaciones">📅 Reservaciones</a>
+        <a href="#" data-tab="cargamasiva">📤 Carga Masiva</a>
+    </nav>
+</aside>
+
+<!-- HEADER -->
+<header class="page-header">
+    <div class="logo-section">
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M8.25 18.75a1.5 1.5 0 01-3 0V15a6 6 0 0112 0v3.75a1.5 1.5 0 01-3 0V15a3 3 0 00-6 0v3.75zM12 9a3 3 0 100-6 3 3 0 000 6z" />
+        </svg>
+        <h1>AparcaYA - <span id="sedeNombre">Parqueadero</span></h1>
+    </div>
+    <div class="profile-menu">
+        <button id="profileBtn" class="profile-btn" type="button">
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 6a3.75 3.75 0 11-7.5 0 3.75 3.75 0 017.5 0zM4.501 20.118a7.5 7.5 0 0114.998 0A17.933 17.933 0 0112 21.75c-2.676 0-5.216-.584-7.499-1.632z" />
+            </svg>
+        </button>
+        <menu id="profileDropdown" class="dropdown-menu">
+            <button type="button" onclick="handleLogout()"> Cerrar sesión</button>
+        </menu>
+    </div>
+</header>
+
+<!-- MAIN CONTENT -->
+<main class="dashboard">
+
+    <!-- ==================== SECCIÓN INICIO ==================== -->
+    <section id="inicio" class="content-section">
+        <h2 class="section-title">🏠 Panel de Control</h2>
+
+        <div class="indicator-cards">
+            <div class="indicator-card" id="cardOcupacion">
+                <div class="indicator-title">Ocupación</div>
+                <div class="indicator-value" id="ocupacionActual">0/0</div>
+                <div class="indicator-subtitle" id="porcentajeOcupacion">0%</div>
+            </div>
+            <div class="indicator-card">
+                <div class="indicator-title">Cupos Libres</div>
+                <div class="indicator-value" id="cuposLibres">0</div>
+            </div>
+            <div class="indicator-card">
+                <div class="indicator-title">Vehículos Hoy</div>
+                <div class="indicator-value" id="vehiculosHoy">0</div>
+            </div>
+            <div class="indicator-card">
+                <div class="indicator-title">Ingresos Día</div>
+                <div class="indicator-value" id="ingresosDia">$0</div>
+            </div>
+            <div class="indicator-card">
+                <div class="indicator-title">Pend. Cobro</div>
+                <div class="indicator-value" id="pendientesCobro">0</div>
+            </div>
+            <div class="indicator-card">
+                <div class="indicator-title">Tarifas</div>
+                <div class="indicator-value" style="font-size: 0.7rem; line-height: 1.4;">
+                    <div id="tarifaDisplay">Cargando...</div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ==================== SECCIÓN GESTIÓN VEHÍCULOS ==================== -->
+    <section id="gestion" class="content-section hidden">
+        <h2 class="section-title">🚗 Gestión de Vehículos</h2>
+
+        <!-- Formulario Registro Entrada - Con validaciones mejoradas -->
+        <div class="sub-section">
+            <h3 class="sub-section-title">➕ Registrar Entrada de Vehículo</h3>
+
+            <!-- Buscar por placa -->
+            <div style="margin-bottom: 1rem; display: flex; gap: 0.5rem;">
+                <input type="text" id="buscarPlaca" placeholder="Buscar por placa..."
+                       style="padding: 0.5rem; border: 1px solid #cbd5e1; border-radius: 0.5rem; flex: 1;">
+                <button class="btn-primary" type="button" onclick="buscarPorPlacaIntegrado()">🔍 Buscar</button>
+            </div>
+
+            <!-- Formulario con validaciones -->
+            <form id="registroEntradaForm" novalidate>
+                <!-- Campo oculto para rol CLIENTE -->
+                <input type="hidden" name="rol" value="CLIENTE">
+
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+                    <!-- DATOS DEL CLIENTE -->
+                    <div class="form-group">
+                        <label>Nombre Cliente *</label>
+                        <input type="text" id="nombre" name="nombre" required
+                               minlength="2" maxlength="100" autocomplete="name"
+                               style="padding: 0.6rem; border: 1px solid #cbd5e1; border-radius: 0.5rem; width: 100%;">
+                        <span id="nombre-error" class="error-message" aria-live="polite"></span>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Teléfono *</label>
+                        <input type="tel" id="telefono" name="telefono" required
+                               pattern="[0-9]{10}" title="Ingresa un número de 10 dígitos"
+                               autocomplete="tel"
+                               style="padding: 0.6rem; border: 1px solid #cbd5e1; border-radius: 0.5rem; width: 100%;">
+                        <span id="telefono-error" class="error-message" aria-live="polite"></span>
+                        <span id="telefono-success" class="success-message" aria-live="polite"></span>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Email *</label>
+                        <input type="email" id="correo" name="correo" required
+                               autocomplete="email"
+                               style="padding: 0.6rem; border: 1px solid #cbd5e1; border-radius: 0.5rem; width: 100%;">
+                        <span id="correo-error" class="error-message" aria-live="polite"></span>
+                        <span id="correo-success" class="success-message" aria-live="polite"></span>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Cédula *</label>
+                        <input type="text" id="cedula" name="cedula" required
+                               pattern="[0-9]{10}" title="Ingresa una cédula de 10 dígitos"
+                               autocomplete="off"
+                               style="padding: 0.6rem; border: 1px solid #cbd5e1; border-radius: 0.5rem; width: 100%;">
+                        <span id="cedula-error" class="error-message" aria-live="polite"></span>
+                        <span id="cedula-success" class="success-message" aria-live="polite"></span>
+                    </div>
+
+                    <!-- Contraseñas generadas automáticamente (ocultas) -->
+                    <input type="hidden" id="contrasena" name="contrasena" value="">
+                    <input type="hidden" id="confirmarContrasena" name="confirmarContrasena" value="">
+
+                    <!-- DATOS DEL VEHÍCULO -->
+                    <div class="form-group">
+                        <label>Placa *</label>
+                        <input type="text" id="placa" name="placa" required
+                               maxlength="6" pattern="[A-Z]{3}[0-9]{3}"
+                               title="Formato: 3 letras mayúsculas seguidas de 3 números (ej. ABC123)"
+                               style="text-transform: uppercase; padding: 0.6rem; border: 1px solid #cbd5e1; border-radius: 0.5rem; width: 100%;"
+                               oninput="this.value = this.value.toUpperCase().replace(/[^A-Z0-9]/g, '').substring(0,6);">
+                        <span id="placa-error" class="error-message" aria-live="polite"></span>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Tipo Vehículo *</label>
+                        <select id="tipoVehiculo" name="tipoVehiculo" required
+                                style="padding: 0.6rem; border: 1px solid #cbd5e1; border-radius: 0.5rem; width: 100%;">
+                            <option value="">Selecciona un tipo</option>
+                            <option value="CARRO">Carro</option>
+                            <option value="MOTO">Moto</option>
+                            <option value="BICICLETA">Bicicleta</option>
+                            <option value="OTRO">Otro</option>
+                        </select>
+                        <span id="tipoVehiculo-error" class="error-message" aria-live="polite"></span>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Marca *</label>
+                        <select id="marca" name="marca" required
+                                style="padding: 0.6rem; border: 1px solid #cbd5e1; border-radius: 0.5rem; width: 100%;">
+                            <option value="">Selecciona una marca</option>
+                        </select>
+                        <span id="marca-error" class="error-message" aria-live="polite"></span>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Color</label>
+                        <input type="text" id="color" name="color"
+                               placeholder="Rojo"
+                               style="padding: 0.6rem; border: 1px solid #cbd5e1; border-radius: 0.5rem; width: 100%;">
+                    </div>
+
+                    <div class="form-group">
+                        <label>Año</label>
+                        <input type="number" id="anio" name="anio"
+                               min="2000" max="2025" placeholder="2020"
+                               style="padding: 0.6rem; border: 1px solid #cbd5e1; border-radius: 0.5rem; width: 100%;">
+                    </div>
+                </div>
+
+                <div style="margin-top: 1rem; display: flex; gap: 0.5rem;">
+                    <button type="submit" class="btn-success">✅ Registrar Entrada</button>
+                    <button type="button" class="btn-secondary" onclick="limpiarFormularioEntrada()">🔄 Limpiar</button>
+                </div>
+            </form>
+        </div>
+
+        <!-- Vehículos Activos (Temporizando) -->
+        <div class="sub-section">
+            <h3 class="sub-section-title">⏱️ Vehículos en Parqueadero (Temporizando)</h3>
+            <table>
+                <thead>
+                <tr>
+                    <th>Placa</th>
+                    <th>Tipo</th>
+                    <th>Cliente</th>
+                    <th>Teléfono</th>
+                    <th>Hora Entrada</th>
+                    <th>Tiempo</th>
+                    <th>Cobro Est.</th>
+                    <th>Acción</th>
+                </tr>
+                </thead>
+                <tbody id="vehiculosActivosBody">
+                <tr><td colspan="8" style="text-align:center;">Cargando...</td></tr>
+                </tbody>
+            </table>
+        </div>
+
+        <!-- Vehículos Pendientes de Cobro -->
+        <div class="sub-section">
+            <h3 class="sub-section-title">💰 Pendientes de Cobro</h3>
+            <table>
+                <thead>
+                <tr>
+                    <th>Placa</th>
+                    <th>Cliente</th>
+                    <th>Entrada</th>
+                    <th>Salida</th>
+                    <th>Tiempo Total</th>
+                    <th>Total a Pagar</th>
+                    <th>Acción</th>
+                </tr>
+                </thead>
+                <tbody id="pendientesCobroBody">
+                <tr><td colspan="7" style="text-align:center;">No hay vehículos pendientes</td></tr>
+                </tbody>
+            </table>
+        </div>
+    </section>
+
+    <!-- ==================== SECCIÓN HISTORIAL ==================== -->
+    <section id="historial" class="content-section hidden">
+        <h2 class="section-title">📊 Historial de Registros</h2>
+
+        <div class="filter-bar">
+            <input type="date" id="filtroFecha">
+            <select id="filtroEstado">
+                <option value="">Todos los estados</option>
+                <option value="ACTIVO">Activo</option>
+                <option value="FINALIZADO">Pendiente Cobro</option>
+                <option value="COBRADO">Cobrado</option>
+            </select>
+            <button class="btn-primary" onclick="loadHistorial()">🔍 Filtrar</button>
+        </div>
+
+        <table>
+            <thead>
+            <tr>
+                <th>Placa</th>
+                <th>Tipo</th>
+                <th>Cliente</th>
+                <th>Teléfono</th>
+                <th>Entrada</th>
+                <th>Salida</th>
+                <th>Tiempo</th>
+                <th>Precio</th>
+                <th>Estado</th>
+            </tr>
+            </thead>
+            <tbody id="historialBody">
+            <tr><td colspan="9" style="text-align:center;">Seleccione filtros y presione Filtrar</td></tr>
+            </tbody>
+        </table>
+    </section>
+
+    <!-- ==================== SECCIÓN RESERVACIONES ==================== -->
+    <section id="reservaciones" class="content-section hidden">
+        <h2 class="section-title">📅 Reservaciones Pendientes</h2>
+
+        <table>
+            <thead>
+            <tr>
+                <th>Cliente</th>
+                <th>Teléfono</th>
+                <th>Placa</th>
+                <th>Tipo</th>
+                <th>Fecha Inicio</th>
+                <th>Fecha Fin</th>
+                <th>Cupo</th>
+                <th>Acciones</th>
+            </tr>
+            </thead>
+            <tbody id="reservacionesBody">
+            <tr><td colspan="8" style="text-align:center;">Cargando...</td></tr>
+            </tbody>
+        </table>
+    </section>
+
+    <!-- ==================== SECCIÓN CARGA MASIVA ==================== -->
+    <section id="cargamasiva" class="content-section hidden">
+        <h2 class="section-title">📤 Carga Masiva desde Excel</h2>
+
+        <!-- Descargar Plantilla -->
+        <div class="sub-section">
+            <h3 class="sub-section-title">📥 Paso 1: Descargar Plantilla</h3>
+            <p style="margin-bottom: 1rem; color: #64748b; font-size: 0.9rem;">
+                Descarga la plantilla de Excel y completa los datos según el tipo de registro que necesites.
+            </p>
+
+            <div style="display: flex; gap: 1rem; flex-wrap: wrap; margin-bottom: 1rem;">
+                <button class="btn-primary" onclick="descargarPlantillaCompleta()" style="display: flex; align-items: center; gap: 0.5rem;">
+                    <span>📥</span>
+                    <span>Plantilla Completa (Clientes, Vehículos)</span>
+                </button>
+                <button class="btn-info" onclick="descargarPlantillaVehiculosSolo()" style="display: flex; align-items: center; gap: 0.5rem;">
+                    <span>🚗</span>
+                    <span>Solo Vehículos</span>
+                </button>
+            </div>
+
+            <!-- Información sobre el formato -->
+            <div style="margin-top: 1rem; padding: 1rem; background: #f1f5f9; border-radius: 0.5rem; border-left: 4px solid #3b82f6;">
+                <strong style="color: #1e40af;">📋 Formato de la Plantilla:</strong>
+
+                <details style="margin-top: 0.5rem;" open>
+                    <summary style="cursor: pointer; font-weight: 600; color: #059669; padding: 0.5rem 0;">🧑‍💼 Registrar Cliente</summary>
+                    <ul style="margin: 0.5rem 0 0 1.5rem; color: #475569; font-size: 0.9rem;">
+                        <li><strong>Tipo:</strong> "Cliente"</li>
+                        <li><strong>Nombre:</strong> Nombre completo (ej: Juan Pérez)</li>
+                        <li><strong>Teléfono:</strong> 10 dígitos (ej: 0987654321)</li>
+                        <li><strong>Email:</strong> correo@example.com</li>
+                        <li><strong>Cédula:</strong> 10 dígitos (ej: 1234567890)</li>
+                    </ul>
+                </details>
+
+                <details style="margin-top: 0.5rem;">
+                    <summary style="cursor: pointer; font-weight: 600; color: #2563eb; padding: 0.5rem 0;">🚗 Registrar Vehículo</summary>
+                    <ul style="margin: 0.5rem 0 0 1.5rem; color: #475569; font-size: 0.9rem;">
+                        <li><strong>Tipo:</strong> "Vehiculo" o "Vehículo"</li>
+                        <li><strong>Placa:</strong> 3 letras + 3 números (ej: ABC123)</li>
+                        <li><strong>Tipo Vehículo:</strong> CARRO, MOTO, BICICLETA, OTRO</li>
+                        <li><strong>Marca:</strong> TOYOTA, CHEVROLET, MAZDA, KIA, NISSAN, HONDA, FORD, HYUNDAI, SUZUKI</li>
+                        <li><strong>Color:</strong> Color del vehículo (ej: Blanco, Negro)</li>
+                        <li><strong>Año:</strong> Año del vehículo (2000-2025)</li>
+                        <li><strong>Email Cliente:</strong> Email del propietario (debe estar registrado primero)</li>
+                    </ul>
+                </details>
+
+                <div style="margin-top: 1rem; padding: 0.75rem; background: #fef3c7; border-radius: 0.5rem; border-left: 3px solid #f59e0b;">
+                    <strong style="color: #92400e;">⚠️ Orden importante:</strong>
+                    <p style="margin: 0.25rem 0 0 0; color: #78350f; font-size: 0.85rem;">
+                        1. Primero registra los Clientes<br>
+                        2. Luego registra los Vehículos (necesitan el email del cliente)<br>
+                    </p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Subir Archivo -->
+        <div class="sub-section">
+            <h3 class="sub-section-title">📁 Paso 2: Subir Archivo Excel</h3>
+            <p style="margin-bottom: 1rem; color: #64748b; font-size: 0.9rem;">
+                Selecciona el archivo Excel con los datos completados y haz clic en "Cargar Excel".
+            </p>
+            <div style="display: flex; gap: 1rem; align-items: center; flex-wrap: wrap;">
+                <div style="flex: 1; min-width: 250px;">
+                    <input type="file"
+                           id="excelFile"
+                           accept=".xlsx,.xls"
+                           style="width: 100%; padding: 0.75rem; border: 2px dashed #cbd5e1; border-radius: 0.5rem; cursor: pointer;"
+                           onchange="mostrarArchivoSeleccionado()">
+                </div>
+                <button class="btn-success" onclick="cargarExcel()" style="white-space: nowrap;">
+                    📤 Cargar Excel
+                </button>
+            </div>
+            <div id="archivoSeleccionado" style="margin-top: 0.5rem; font-size: 0.85rem; color: #64748b;"></div>
+        </div>
+
+        <!-- Barra de Progreso -->
+        <div id="progressContainer" class="sub-section" style="display: none;">
+            <div style="background: #f1f5f9; border-radius: 0.5rem; padding: 0.5rem; margin-bottom: 0.5rem;">
+                <div id="progressBar" style="height: 1.5rem; background: linear-gradient(90deg, #3b82f6, #2563eb); border-radius: 0.25rem; width: 0%; transition: width 0.3s ease; display: flex; align-items: center; justify-content: center; color: white; font-size: 0.85rem; font-weight: 600;"></div>
+            </div>
+            <p id="progressText" style="text-align: center; color: #64748b; font-size: 0.9rem;"></p>
+        </div>
+
+        <!-- Resultados de la carga -->
+        <div class="sub-section" id="resultadosCarga" style="display: none;">
+            <h3 class="sub-section-title">📋 Resultados de la Carga</h3>
+
+            <!-- Resumen -->
+            <div id="resumenCarga" style="margin-bottom: 1.5rem;"></div>
+
+            <!-- Errores (si los hay) -->
+            <div id="erroresContainer" style="display: none; margin-bottom: 1.5rem;">
+                <div style="background: #fef2f2; border-left: 4px solid #ef4444; padding: 1rem; border-radius: 0.5rem;">
+                    <h4 style="color: #dc2626; margin: 0 0 0.5rem 0;">⚠️ Errores Encontrados:</h4>
+                    <ul id="listaErrores" style="margin: 0; padding-left: 1.5rem; color: #7f1d1d; font-size: 0.9rem;"></ul>
+                </div>
+            </div>
+
+            <!-- Tabla de registros -->
+            <div style="overflow-x: auto;">
+                <table>
+                    <thead>
+                    <tr>
+                        <th>Tipo</th>
+                        <th>Detalle Principal</th>
+                        <th>Información Adicional</th>
+                        <th>Estado</th>
+                    </tr>
+                    </thead>
+                    <tbody id="resultadosCargaBody"></tbody>
+                </table>
+            </div>
+        </div>
+    </section>
+
+</main>
+
+<!-- ==================== MODAL COBRO ==================== -->
+<div id="cobroModal" class="modal">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h2>💰 Confirmar Cobro</h2>
+            <span class="close" onclick="cerrarModalCobro()">&times;</span>
+        </div>
+        <div style="margin-bottom: 1rem;">
+            <p><strong>Cliente:</strong> <span id="cobroCliente"></span></p>
+            <p><strong>Placa:</strong> <span id="cobroPlaca"></span></p>
+            <p><strong>Tiempo Total:</strong> <span id="cobroTiempo"></span></p>
+            <p style="font-size: 1.5rem; color: #059669; font-weight: 700; margin-top: 1rem;">
+                Total: $<span id="cobroPrecio"></span> COP
+            </p>
+        </div>
+        <div class="form-group">
+            <label>Método de Pago</label>
+            <select id="metodoPago">
+                <option value="EFECTIVO">Efectivo</option>
+                <option value="TARJETA">Tarjeta</option>
+                <option value="TRANSFERENCIA">Transferencia</option>
+                <option value="NEQUI">Nequi</option>
+                <option value="DAVIPLATA">Daviplata</option>
+            </select>
+        </div>
+        <div style="display: flex; gap: 1rem; margin-top: 1rem;">
+            <button class="btn-success" onclick="procesarCobro()" style="flex: 1;">✅ Confirmar Cobro</button>
+            <button class="btn-danger" onclick="cerrarModalCobro()" style="flex: 1;">❌ Cancelar</button>
+        </div>
+    </div>
+</div>
+
+<!-- ==================== MODAL SALIDA ==================== -->
+<div id="salidaModal" class="modal">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h2>🚗 Registrar Salida</h2>
+            <span class="close" onclick="cerrarModalSalida()">&times;</span>
+        </div>
+        <div style="margin-bottom: 1rem;">
+            <p><strong>Placa:</strong> <span id="salidaPlaca"></span></p>
+            <p><strong>Cliente:</strong> <span id="salidaCliente"></span></p>
+            <p><strong>Hora Entrada:</strong> <span id="salidaHoraEntrada"></span></p>
+            <p><strong>Tiempo Transcurrido:</strong> <span id="salidaTiempo"></span></p>
+            <p style="font-size: 1.25rem; color: #0369a1; font-weight: 700; margin-top: 1rem;">
+                Cobro Estimado: $<span id="salidaCobroEstimado"></span> COP
+            </p>
+        </div>
+        <div style="display: flex; gap: 1rem; margin-top: 1rem;">
+            <button class="btn-warning" onclick="confirmarSalida()" style="flex: 1;">✅ Confirmar Salida</button>
+            <button class="btn-danger" onclick="cerrarModalSalida()" style="flex: 1;">❌ Cancelar</button>
+        </div>
+    </div>
+</div>
+<script src="/Script/TrabajadorD.js"></script>
+!-- <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script> -->
+</body>
+</html>

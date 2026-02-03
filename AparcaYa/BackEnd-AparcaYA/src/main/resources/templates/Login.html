@@ -1,0 +1,313 @@
+<!DOCTYPE html>
+<html lang="es" data-theme="light">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Inicio de Sesión - Aparca Ya</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdn.jsdelivr.net/npm/daisyui@4.12.10/dist/full.min.css" rel="stylesheet" />
+    <style>
+        .animate-fade-in-up {
+            opacity: 0;
+            transform: translateY(20px);
+            animation: fadeInUp 0.8s ease-out forwards;
+        }
+        @keyframes fadeInUp {
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        .error-message {
+            color: #dc2626;
+            font-size: 0.875rem;
+            margin-top: 0.25rem;
+        }
+        .password-toggle {
+            cursor: pointer;
+            position: absolute;
+            right: 10px;
+            top: 50%;
+            transform: translateY(-50%);
+        }
+    </style>
+</head>
+<body class="bg-gradient-to-br from-blue-50 to-white min-h-screen flex items-center justify-center p-6">
+<section class="w-full max-w-md bg-white rounded-lg shadow-lg p-8 animate-fade-in-up">
+    <header class="flex justify-center mb-6">
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-16 w-16 text-blue-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5" >
+            <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 6a3.75 3.75 0 11-7.5 0 3.75 3.75 0 017.5 0z" />
+            <path stroke-linecap="round" stroke-linejoin="round" d="M4.5 20.118a7.5 7.5 0 0115 0c0-2-3-4.5-7.5-4.5S4.5 18.118 4.5 20.118z" />
+        </svg>
+    </header>
+
+    <h1 class="text-3xl font-bold text-blue-900 text-center mb-2">Inicio de Sesión</h1>
+    <p class="text-blue-600 text-center mb-8">Accede a tu cuenta para gestionar tus reservas y más</p>
+
+    <!-- Mostrar error si ?error está presente -->
+    <div id="error-msg" class="error-message text-center mb-4 hidden">Correo o contraseña incorrectos.</div>
+
+    <form action="/login" method="post" novalidate class="space-y-6" id="login-form">
+        <div>
+            <label for="correo" class="block text-sm font-medium text-blue-800">Correo electrónico</label>
+            <input type="email" name="username" id="correo" required autocomplete="email" placeholder="tu@ejemplo.com" class="input input-bordered w-full border-blue-300 focus:border-blue-500 focus:ring-blue-500"/>
+            <div id="correo-error" class="error-message hidden">Por favor ingresa un correo válido.</div>
+        </div>
+
+        <div class="relative">
+            <label for="contrasena" class="block text-sm font-medium text-blue-800">Contraseña</label>
+            <input type="password" name="password" id="contrasena" required autocomplete="current-password" placeholder="••••••••" class="input input-bordered w-full border-blue-300 focus:border-blue-500 focus:ring-blue-500 pr-10"/>
+            <svg id="toggle-password" xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-blue-600 password-toggle" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                <path stroke-linecap="round" stroke-linejoin="round" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+            </svg>
+            <div id="contrasena-error" class="error-message hidden">La contraseña es requerida.</div>
+        </div>
+
+        <div class="flex items-center">
+            <input type="checkbox" id="terms" name="aceptaTerminos" class="checkbox checkbox-primary mr-2"/>
+            <label for="terms" class="text-sm text-blue-700 select-none cursor-pointer">Acepto los términos y condiciones</label>
+        </div>
+        <div id="terms-error" class="error-message hidden"></div>
+
+        <button type="submit" class="btn btn-primary btn-block btn-pulse">Iniciar Sesión</button>
+
+        <div class="text-center mt-4">
+            <a href="#" id="forgot-password-link" class="link link-primary hover:underline">¿Olvidaste tu contraseña?</a>
+        </div>
+
+        <div class="divider mt-6 mb-1">O</div>
+
+        <div class="text-center">
+            <a href="/registro" class="btn btn-primary w-full">Crear cuenta nueva</a>
+        </div>
+    </form>
+</section>
+
+<!-- Modal para recuperación de contraseña -->
+<div id="forgot-password-modal" class="modal">
+    <div class="modal-box">
+        <h3 class="font-bold text-lg">Recuperar Contraseña</h3>
+        <div id="step-1" class="py-4">
+            <p class="mb-4">Ingresa tu correo electrónico para recibir un token de recuperación.</p>
+            <input type="email" id="reset-email" placeholder="tu@ejemplo.com" class="input input-bordered w-full mb-2" />
+            <div id="reset-email-error" class="error-message hidden">Correo inválido.</div>
+            <button id="send-token-btn" class="btn btn-primary w-full">Enviar Token</button>
+        </div>
+        <div id="step-2" class="py-4 hidden">
+            <p class="mb-4">Ingresa el token recibido y tu nueva contraseña.</p>
+            <input type="text" id="reset-token" placeholder="Token de 8 caracteres" maxlength="8" class="input input-bordered w-full mb-2" />
+            <input type="password" id="new-password" placeholder="Nueva contraseña" class="input input-bordered w-full mb-2" />
+            <input type="password" id="confirm-password" placeholder="Confirmar contraseña" class="input input-bordered w-full mb-2" />
+            <div id="reset-error" class="error-message hidden">Error en la recuperación.</div>
+            <button id="reset-password-btn" class="btn btn-primary w-full">Actualizar Contraseña</button>
+        </div>
+        <div class="modal-action">
+            <button id="close-modal" class="btn">Cerrar</button>
+        </div>
+    </div>
+</div>
+
+<script>
+    // Validación del formulario de login antes de enviar
+    document.getElementById('login-form').addEventListener('submit', function(e) {
+        let isValid = true;
+
+        // Validar correo
+        const correo = document.getElementById('correo').value.trim();
+        const correoError = document.getElementById('correo-error');
+        if (!correo) {
+            correoError.textContent = 'El correo es obligatorio.';
+            correoError.classList.remove('hidden');
+            isValid = false;
+        } else if (!/\S+@\S+\.\S+/.test(correo)) {
+            correoError.textContent = 'Ingresa un correo válido.';
+            correoError.classList.remove('hidden');
+            isValid = false;
+        } else {
+            correoError.classList.add('hidden');
+        }
+
+        // Validar contraseña
+        const contrasena = document.getElementById('contrasena').value.trim();
+        const contrasenaError = document.getElementById('contrasena-error');
+        if (!contrasena) {
+            contrasenaError.textContent = 'La contraseña es obligatoria.';
+            contrasenaError.classList.remove('hidden');
+            isValid = false;
+        } else {
+            contrasenaError.classList.add('hidden');
+        }
+
+        // Validar checkbox de términos
+        const terms = document.getElementById('terms').checked;
+        const termsError = document.getElementById('terms-error');
+        if (!terms) {
+            termsError.textContent = 'Debes aceptar los términos y condiciones.';
+            termsError.classList.remove('hidden');
+            isValid = false;
+        } else {
+            termsError.classList.add('hidden');
+        }
+
+        // Si no es válido, prevenir envío
+        if (!isValid) {
+            e.preventDefault();
+        }
+    });
+
+    // Toggle visibilidad de contraseña - CORREGIDO
+    const togglePassword = document.getElementById('toggle-password');
+    if (togglePassword) {
+        togglePassword.addEventListener('click', function() {
+            const passwordInput = document.getElementById('contrasena');
+            if (passwordInput.type === 'password') {
+                passwordInput.type = 'text';
+                // Cambiar icono a "ojo cerrado"
+                this.innerHTML = `<path stroke-linecap="round" stroke-linejoin="round" d="M3.98 8.223A10.477 10.477 0 001.934 12C3.226 16.338 7.244 19.5 12 19.5c.993 0 1.953-.138 2.863-.395M6.228 6.228A10.45 10.45 0 0112 4.5c4.756 0 8.773 3.162 10.065 7.498a10.523 10.523 0 01-4.293 5.774M6.228 6.228L3 3m3.228 3.228l3.65 3.65m7.894 7.894L21 21m-3.228-3.228l-3.65-3.65m0 0a3 3 0 10-4.243-4.243m4.242 4.242L9.88 9.88" />`;
+            } else {
+                passwordInput.type = 'password';
+                // Cambiar icono a "ojo abierto"
+                this.innerHTML = `<path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                <path stroke-linecap="round" stroke-linejoin="round" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />`;
+            }
+        });
+    }
+
+    // Manejo del modal de recuperación de contraseña
+    const modal = document.getElementById('forgot-password-modal');
+    const link = document.getElementById('forgot-password-link');
+    const closeBtn = document.getElementById('close-modal');
+    const step1 = document.getElementById('step-1');
+    const step2 = document.getElementById('step-2');
+
+    // Abrir modal al hacer clic en "¿Olvidaste tu contraseña?"
+    if (link) {
+        link.addEventListener('click', (e) => {
+            e.preventDefault();
+            modal.classList.add('modal-open');
+            step1.classList.remove('hidden');
+            step2.classList.add('hidden');
+        });
+    }
+
+    // Cerrar modal
+    if (closeBtn) {
+        closeBtn.addEventListener('click', () => {
+            modal.classList.remove('modal-open');
+        });
+    }
+
+    // Paso 1: Enviar token por email
+    const sendTokenBtn = document.getElementById('send-token-btn');
+    if (sendTokenBtn) {
+        sendTokenBtn.addEventListener('click', async () => {
+            const email = document.getElementById('reset-email').value.trim();
+            const errorElement = document.getElementById('reset-email-error');
+            sendTokenBtn.disabled = true;
+
+            if (!email || !/\S+@\S+\.\S+/.test(email)) {
+                errorElement.textContent = 'Por favor ingresa un correo válido.';
+                errorElement.classList.remove('hidden');
+                sendTokenBtn.disabled = false;
+                return;
+            }
+            errorElement.classList.add('hidden');
+
+            try {
+                const response = await fetch('/api/auth/forgot-password', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ email })
+                });
+                const data = await response.json();
+
+                if (response.ok) {
+                    step1.classList.add('hidden');
+                    step2.classList.remove('hidden');
+                    alert('Token enviado. Revisa tu correo.');
+                } else {
+                    errorElement.textContent = data.message || 'Error al enviar token.';
+                    errorElement.classList.remove('hidden');
+                }
+            } catch (error) {
+                console.error('Error de red:', error);
+                errorElement.textContent = 'Error de conexión. Intenta de nuevo.';
+                errorElement.classList.remove('hidden');
+            } finally {
+                sendTokenBtn.disabled = false;
+            }
+        });
+    }
+
+    // Paso 2: Resetear contraseña con token
+    const resetPasswordBtn = document.getElementById('reset-password-btn');
+    if (resetPasswordBtn) {
+        resetPasswordBtn.addEventListener('click', async () => {
+            const token = document.getElementById('reset-token').value.trim();
+            const newPassword = document.getElementById('new-password').value.trim();
+            const confirmPassword = document.getElementById('confirm-password').value.trim();
+            const errorElement = document.getElementById('reset-error');
+            resetPasswordBtn.disabled = true;
+
+            if (!token || token.length < 8 || !/^[a-zA-Z0-9-]+$/.test(token)) {
+                errorElement.textContent = 'Ingresa un token válido (al menos 8 caracteres alfanuméricos).';
+                errorElement.classList.remove('hidden');
+                resetPasswordBtn.disabled = false;
+                return;
+            }
+            if (!newPassword || newPassword.length < 6) {
+                errorElement.textContent = 'La contraseña debe tener al menos 6 caracteres.';
+                errorElement.classList.remove('hidden');
+                resetPasswordBtn.disabled = false;
+                return;
+            }
+            if (newPassword !== confirmPassword) {
+                errorElement.textContent = 'Las contraseñas no coinciden.';
+                errorElement.classList.remove('hidden');
+                resetPasswordBtn.disabled = false;
+                return;
+            }
+            errorElement.classList.add('hidden');
+
+            try {
+                const response = await fetch('/api/auth/reset-password', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ token, newPassword })
+                });
+                const data = await response.json();
+
+                if (response.ok) {
+                    alert('Contraseña actualizada exitosamente.');
+                    modal.classList.remove('modal-open');
+                    document.getElementById('reset-token').value = '';
+                    document.getElementById('new-password').value = '';
+                    document.getElementById('confirm-password').value = '';
+                } else {
+                    errorElement.textContent = data.message || 'Token inválido o expirado.';
+                    errorElement.classList.remove('hidden');
+                }
+            } catch (error) {
+                console.error('Error de red:', error);
+                errorElement.textContent = 'Error de conexión. Intenta de nuevo.';
+                errorElement.classList.remove('hidden');
+            } finally {
+                resetPasswordBtn.disabled = false;
+            }
+        });
+    }
+
+    // Mostrar mensaje de error si viene en URL (?error=1)
+    window.addEventListener('DOMContentLoaded', () => {
+        const urlParams = new URLSearchParams(window.location.search);
+        if (urlParams.get('error')) {
+            const errorMsg = document.getElementById('error-msg');
+            if (errorMsg) {
+                errorMsg.classList.remove('hidden');
+            }
+        }
+    });
+</script>
+</body>
+</html>

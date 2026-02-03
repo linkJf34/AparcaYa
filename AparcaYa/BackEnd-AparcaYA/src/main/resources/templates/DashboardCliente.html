@@ -1,0 +1,256 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Dashboard Cliente - AparcaYA</title>
+
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdn.jsdelivr.net/npm/daisyui@4.12.10/dist/full.min.css" rel="stylesheet" />
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <link rel="stylesheet" href="/Css/Cliente.css">
+
+    <!-- ⬇️ ESTILOS ADICIONALES PARA MODALES -->
+    <style>
+        .modal {
+            display: none;
+            position: fixed;
+            inset: 0;
+            background: rgba(0,0,0,0.5);
+            z-index: 999;
+            align-items: center;
+            justify-content: center;
+        }
+        .modal.show,
+        .modal.modal-open {
+            display: flex;
+        }
+        .modal-box {
+            background: white;
+            border-radius: 1rem;
+            padding: 2rem;
+            max-width: 600px;
+            width: 90%;
+            max-height: 90vh;
+            overflow-y: auto;
+        }
+        .info-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 1rem;
+        }
+        .info-item {
+            padding: 0.75rem;
+            background: #f8fafc;
+            border-radius: 0.5rem;
+        }
+        .info-item.info-full {
+            grid-column: 1 / -1;
+        }
+        .info-label {
+            font-size: 0.875rem;
+            font-weight: 600;
+            color: #64748b;
+            margin-bottom: 0.25rem;
+        }
+        .info-value {
+            font-size: 1rem;
+            color: #0f172a;
+        }
+        .badge {
+            padding: 4px 12px;
+            border-radius: 12px;
+            font-size: 0.875rem;
+            font-weight: 600;
+        }
+        .badge-activo {
+            background: #22c55e;
+            color: white;
+        }
+        .badge-inactivo {
+            background: #ef4444;
+            color: white;
+        }
+        .hidden {
+            display: none !important;
+        }
+    </style>
+</head>
+<body>
+
+<aside class="sidebar">
+    <div class="sidebar-header">
+        <h1>AparcaYa</h1>
+    </div>
+    <nav class="sidebar-nav">
+        <a href="#" class="active" data-tab="perfil">Mi Perfil</a>
+        <a href="#" data-tab="misreservas">Mis Reservas</a>
+        <a href="#" data-tab="pagos">Pagos</a>
+        <a href="#" data-tab="ayuda">Ayuda</a>
+    </nav>
+</aside>
+
+<header class="page-header">
+    <div class="logo-section">
+        <h1>AparcaYa</h1>
+    </div>
+    <div class="profile-menu">
+        <button id="profileBtn" class="profile-btn" type="button">
+            <span th:text="${nombreUsuario}">Usuario</span> ▾
+        </button>
+        <menu id="profileDropdown" class="dropdown-menu">
+            <button type="button">Configuración</button>
+            <button type="button">Ayuda</button>
+            <button type="button" onclick="window.location.href='/cliente/logout'">Cerrar sesión</button>
+        </menu>
+    </div>
+</header>
+
+<main class="dashboard">
+    <!-- Perfil y Mapa -->
+    <section id="perfil" class="content-section">
+        <div class="welcome-section">
+            <h2 th:text="'Bienvenido, ' + ${nombreUsuario}">Bienvenido, Usuario</h2>
+            <p>Revisa tus reservas y realiza pagos fácilmente desde aquí.</p>
+        </div>
+
+        <div class="user-reservas-section">
+            <h2>Mapa de Sedes</h2>
+            <div class="search-bar">
+                <input type="text" id="searchInput" placeholder="Buscar dirección (e.g., Calle Principal, Ciudad)">
+                <button id="searchBtn">Buscar</button>
+            </div>
+            <h3 class="font-bold text-xl mb-4">Encuentra tu parqueadero</h3>
+            <div id="map-container" style="height: 400px; width: 100%; border: 1px solid #ccc; border-radius: 8px;"></div>
+        </div>
+    </section>
+
+    <!-- Mis Reservas -->
+    <section id="misreservas" class="content-section hidden">
+        <h2 style="font-size: 1.75rem; font-weight: 700; margin-bottom: 1.5rem;">Mis Reservas</h2>
+        <div class="user-reservas-section">
+            <table>
+                <thead>
+                <tr>
+                    <th>Fecha</th>
+                    <th>Sede</th>
+                    <th>Hora Inicio</th>
+                    <th>Hora Fin</th>
+                    <th>Estado</th>
+                    <th>Acciones</th>
+                </tr>
+                </thead>
+                <tbody id="reservasTableBody">
+                <tr><td colspan="6" style="text-align:center;">Cargando...</td></tr>
+                </tbody>
+            </table>
+        </div>
+    </section>
+
+    <!-- Pagos -->
+    <section id="pagos" class="content-section hidden">
+        <h2 style="font-size: 1.75rem; font-weight: 700; margin-bottom: 1.5rem;">Historial de Pagos</h2>
+        <div class="user-reservas-section">
+            <table>
+                <thead>
+                <tr>
+                    <th>Fecha</th>
+                    <th>Reserva</th>
+                    <th>Monto</th>
+                    <th>Método</th>
+                    <th>Estado</th>
+                </tr>
+                </thead>
+                <tbody id="pagosTableBody">
+                <tr><td colspan="5" style="text-align:center;">Cargando...</td></tr>
+                </tbody>
+            </table>
+        </div>
+    </section>
+
+    <!-- Ayuda -->
+    <section id="ayuda" class="content-section hidden">
+        <h2>Ayuda y Soporte</h2>
+        <div class="user-reservas-section">
+            <p style="margin-bottom: 1rem;">¿Necesitas ayuda? Contáctanos:</p>
+            <p><strong>📧 Email:</strong> soporte@aparcaya.com</p>
+            <p><strong>📞 Teléfono:</strong> +57 310 123 4567</p>
+            <p><strong>⏰ Horario:</strong> Lunes a Viernes, 8:00 AM - 6:00 PM</p>
+        </div>
+    </section>
+</main>
+
+<!-- Modal detalles de sede -->
+<div id="modalSede" class="modal">
+    <div class="modal-box">
+        <h3 class="font-bold text-lg mb-4" id="modalSedeTitle">Detalles de la Sede</h3>
+        <div id="modalSedeBody">
+            <!-- Se llena dinámicamente con JavaScript -->
+        </div>
+    </div>
+</div>
+
+<!-- Modal de reserva -->
+<div id="reservaModal" class="modal">
+    <div class="modal-box">
+        <h3 class="font-bold text-lg mb-4">Hacer Reserva</h3>
+        <div style="margin-bottom: 1.5rem;">
+            <p style="margin-bottom: 1rem;">
+                <strong>Sede seleccionada:</strong> <span id="reservaSedeNombre"></span>
+            </p>
+
+            <div style="margin-bottom: 1rem;">
+                <label for="fechaInicio" style="display:block;margin-bottom:0.5rem;font-weight:600;">Fecha y Hora de Inicio:</label>
+                <input type="datetime-local" id="fechaInicio" required
+                       style="width:100%;padding:0.75rem;border:1px solid #d1d5db;border-radius:0.5rem;font-size:1rem;">
+            </div>
+
+            <div style="margin-bottom: 1rem;">
+                <label for="fechaFin" style="display:block;margin-bottom:0.5rem;font-weight:600;">Fecha y Hora de Fin:</label>
+                <input type="datetime-local" id="fechaFin" required
+                       style="width:100%;padding:0.75rem;border:1px solid #d1d5db;border-radius:0.5rem;font-size:1rem;">
+            </div>
+
+            <div style="margin-bottom: 1rem;">
+                <label for="placa" style="display:block;margin-bottom:0.5rem;font-weight:600;">Placa del Vehículo:</label>
+                <input type="text" id="placa" placeholder="ABC-123" required
+                       style="width:100%;padding:0.75rem;border:1px solid #d1d5db;border-radius:0.5rem;font-size:1rem;text-transform:uppercase;">
+            </div>
+        </div>
+
+        <div style="display:flex;gap:1rem;justify-content:flex-end;">
+            <button id="reservarBtn"
+                    style="background:#00BFFF;color:white;padding:0.75rem 1.5rem;border:none;border-radius:0.5rem;cursor:pointer;font-weight:600;">
+                Confirmar Reserva
+            </button>
+            <button onclick="window.closeReservaModal()"
+                    style="background:#64748b;color:white;padding:0.75rem 1.5rem;border:none;border-radius:0.5rem;cursor:pointer;font-weight:600;">
+                Cancelar
+            </button>
+        </div>
+    </div>
+</div>
+
+<!-- Pasar datos del servidor a JavaScript -->
+<script th:inline="javascript">
+    /*<![CDATA[*/
+    window.userId = /*[[${userId}]]*/ 1;
+    window.nombreUsuario = /*[[${nombreUsuario}]]*/ 'Usuario';
+    window.sedesData = /*[[${sedes}]]*/ [];
+
+    sessionStorage.setItem('userId', window.userId);
+    sessionStorage.setItem('nombreUsuario', window.nombreUsuario);
+
+    console.log('✅ Datos cargados desde servidor:', {
+        userId: window.userId,
+        nombreUsuario: window.nombreUsuario,
+        sedesCount: window.sedesData.length
+    });
+    /*]]>*/
+</script>
+
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script src="/Script/ClienteD.js"></script>
+
+</body>
+</html>

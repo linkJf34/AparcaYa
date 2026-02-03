@@ -1,0 +1,1242 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Dashboard Administrador de Sede - AparcaYA</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+
+        /* ==================== ANIMACIONES ==================== */
+        .animate-fade-in-up {
+            opacity: 0;
+            transform: translateY(20px);
+            animation: fadeInUp 0.8s ease forwards;
+        }
+
+        @keyframes fadeInUp {
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        /* ==================== SIDEBAR ==================== */
+        .sidebar {
+            background: #00BFFF;
+            color: white;
+            height: 100vh;
+            width: 220px;
+            padding: 2rem 1rem;
+            display: flex;
+            flex-direction: column;
+            box-shadow: 2px 0 12px rgba(0,0,0,0.1);
+            position: fixed;
+            left: 0;
+            top: 0;
+            transition: transform 0.3s ease;
+            z-index: 30;
+        }
+
+        .sidebar.hidden {
+            transform: translateX(-100%);
+        }
+
+        .sidebar-header {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            margin-bottom: 2.5rem;
+        }
+
+        .sidebar-header svg {
+            width: 56px;
+            height: 56px;
+            color: white;
+        }
+
+        .sidebar-header h1 {
+            font-size: 1.75rem;
+            font-weight: 700;
+            letter-spacing: 3px;
+            margin-top: 0.5rem;
+        }
+
+        nav.sidebar-nav {
+            display: flex;
+            flex-direction: column;
+            gap: 1.25rem;
+        }
+
+        nav.sidebar-nav a {
+            font-weight: 600;
+            text-decoration: none;
+            color: white;
+            padding: 0.75rem 0.5rem;
+            border-left: 4px solid transparent;
+            transition: background-color 0.3s, border-color 0.3s;
+            cursor: pointer;
+            user-select: none;
+        }
+
+        nav.sidebar-nav a:hover,
+        nav.sidebar-nav a.active {
+            background-color: rgba(255, 255, 255, 0.25);
+            border-left-color: white;
+        }
+
+        /* ==================== HEADER ==================== */
+        header.page-header {
+            position: fixed;
+            top: 0;
+            left: 220px;
+            right: 0;
+            height: 64px;
+            background: white;
+            border-bottom: 1px solid #e2e8f0;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 1.5rem;
+            z-index: 40;
+            transition: left 0.3s ease;
+        }
+
+        header.page-header.sidebar-hidden {
+            left: 0;
+        }
+
+        .logo-section {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+
+        .logo-section svg {
+            color: #00BFFF;
+            width: 40px;
+            height: 40px;
+        }
+
+        .logo-section h1 {
+            font-weight: 700;
+            font-size: 1.75rem;
+            color: #0369a1;
+            user-select: none;
+        }
+
+        /* ==================== PROFILE MENU ==================== */
+        .profile-menu {
+            position: relative;
+        }
+
+        .profile-btn {
+            background: transparent;
+            border: none;
+            cursor: pointer;
+            padding: 0.25rem;
+            border-radius: 9999px;
+            outline: none;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: background-color 0.2s;
+        }
+
+        .profile-btn:hover {
+            background-color: #e0f2fe;
+        }
+
+        .profile-btn svg {
+            width: 36px;
+            height: 36px;
+            color: #00BFFF;
+        }
+
+        .dropdown-menu {
+            position: absolute;
+            top: calc(100% + 0.5rem);
+            right: 0;
+            background: white;
+            border-radius: 0.5rem;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.15);
+            min-width: 180px;
+            display: none;
+            flex-direction: column;
+            padding: 0.5rem 0;
+            font-weight: 600;
+            z-index: 50;
+        }
+
+        .dropdown-menu.show {
+            display: flex;
+        }
+
+        .dropdown-menu button {
+            background: transparent;
+            border: none;
+            text-align: left;
+            padding: 0.75rem 1.5rem;
+            width: 100%;
+            cursor: pointer;
+            transition: background-color 0.2s;
+            font-size: 1rem;
+            color: #334155;
+        }
+
+        .dropdown-menu button:hover {
+            background-color: #e0f2fe;
+            color: #0284c7;
+        }
+
+        /* ==================== MAIN CONTENT ==================== */
+        main.dashboard {
+            margin-left: 220px;
+            margin-top: 64px;
+            background: #f9fafb;
+            min-height: calc(100vh - 64px);
+            padding: 2rem 2.5rem;
+            transition: margin-left 0.3s ease;
+        }
+
+        main.dashboard.sidebar-hidden {
+            margin-left: 0;
+        }
+
+        section.content-section {
+            background: white;
+            border-radius: 1rem;
+            padding: 2rem 2.5rem;
+            box-shadow: 0 15px 36px rgba(0, 191, 255, 0.07);
+            margin-bottom: 2rem;
+        }
+
+        /* ==================== INDICATORS ==================== */
+        .user-indicators {
+            display: flex;
+            justify-content: center;
+            gap: 2rem;
+            margin-bottom: 2rem;
+            flex-wrap: wrap;
+        }
+
+        .stats-card {
+            width: 170px;
+            height: 170px;
+            border-radius: 50%;
+            background: #d9f0e8;
+            box-shadow: 0 10px 25px rgba(0, 191, 255, 0.1);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            user-select: none;
+            position: relative;
+        }
+
+        .stats-label {
+            font-size: 1.15rem;
+            font-weight: 700;
+            color: #256d43;
+            margin-bottom: 1.25rem;
+            text-align: center;
+        }
+
+        .donut-container {
+            position: relative;
+            width: 110px;
+            height: 110px;
+        }
+
+        .donut-svg {
+            transform: rotate(-90deg);
+        }
+
+        .donut-ring {
+            fill: none;
+            stroke: #a3d9b1;
+            stroke-width: 14;
+            opacity: 0.5;
+        }
+
+        .donut-segment {
+            fill: none;
+            stroke-width: 14;
+            stroke-linecap: round;
+            transition: stroke-dashoffset 0.5s ease;
+        }
+
+        .usuario-segment {
+            stroke: #34a853;
+        }
+
+        .cuota-segment {
+            stroke: #00bfa5;
+        }
+
+        .donut-text {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-weight: 700;
+            font-size: 2.5rem;
+            color: #34a853;
+            user-select: none;
+        }
+
+        /* ==================== TABLES ==================== */
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.05);
+        }
+
+        th, td {
+            padding: 1rem 1.25rem;
+            border-bottom: 1px solid #e2e8f0;
+            color: #334155;
+            text-align: left;
+        }
+
+        th {
+            background-color: #ecfdf5;
+            font-weight: 700;
+            font-size: 0.875rem;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+
+        tbody tr {
+            transition: background-color 0.2s;
+        }
+
+        tbody tr:hover {
+            background-color: #bbf7d0;
+        }
+
+        /* ==================== BUTTONS ==================== */
+        .btn-primary {
+            background-color: #00BFFF;
+            color: white;
+            padding: 0.5rem 1.5rem;
+            border-radius: 0.375rem;
+            border: none;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-weight: 600;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .btn-primary:hover {
+            background-color: #0099cc;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0, 191, 255, 0.3);
+        }
+
+        .btn-outline {
+            border: 2px solid #00BFFF;
+            color: #00BFFF;
+            padding: 0.5rem 1rem;
+            border-radius: 0.375rem;
+            background: transparent;
+            cursor: pointer;
+            transition: all 0.3s;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.25rem;
+            font-weight: 600;
+        }
+
+        .btn-outline:hover {
+            background-color: #00BFFF;
+            color: white;
+            transform: translateY(-2px);
+        }
+
+        .btn-danger {
+            background-color: #dc3545;
+            color: white;
+            padding: 0.5rem 1rem;
+            border-radius: 0.375rem;
+            border: none;
+            cursor: pointer;
+            transition: all 0.3s;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.25rem;
+            font-weight: 600;
+        }
+
+        .btn-danger:hover {
+            background-color: #c82333;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(220, 53, 69, 0.3);
+        }
+
+        /* ==================== TABS ==================== */
+        .tabs {
+            display: flex;
+            gap: 1rem;
+            border-bottom: 3px solid #e0f2fe;
+            margin-bottom: 1.75rem;
+        }
+
+        .tabs button {
+            padding: 0.75rem 1.5rem;
+            border: none;
+            background: transparent;
+            font-weight: 700;
+            font-size: 1rem;
+            cursor: pointer;
+            border-bottom: 4px solid transparent;
+            color: #0284c7;
+            transition: all 0.3s;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .tabs button.active {
+            border-color: #0284c7;
+            color: #0369a1;
+        }
+
+        .tabs button:hover:not(.active) {
+            color: #06b6d4;
+            background-color: rgba(224, 242, 254, 0.5);
+        }
+
+        /* ==================== MODAL ==================== */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.6);
+            z-index: 99999;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+            overflow-y: auto;
+        }
+
+        .modal.open {
+            display: flex !important;
+            align-items: center;
+            justify-content: center;
+            opacity: 1;
+        }
+
+        .modal-box {
+            background: white;
+            border-radius: 0.75rem;
+            padding: 2rem;
+            max-width: 500px;
+            width: 90%;
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.3), 0 10px 10px -5px rgba(0, 0, 0, 0.2);
+            transform: scale(0.9);
+            transition: transform 0.3s ease;
+            position: relative;
+            z-index: 100000;
+            max-height: 90vh;
+            overflow-y: auto;
+        }
+
+        .modal.open .modal-box {
+            transform: scale(1);
+        }
+
+        .modal-box h3 {
+            font-size: 1.5rem;
+            font-weight: 700;
+            margin-bottom: 1.5rem;
+            color: #0369a1;
+        }
+
+        .modal-box label {
+            display: block;
+            margin-top: 1rem;
+            font-weight: 600;
+            color: #334155;
+            margin-bottom: 0.5rem;
+            font-size: 0.875rem;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+
+        .modal-box input {
+            width: 100%;
+            padding: 0.75rem;
+            border: 2px solid #cbd5e1;
+            border-radius: 0.375rem;
+            font-size: 1rem;
+            transition: border-color 0.2s;
+            background: white !important;
+            color: #000 !important;
+        }
+
+        .modal-box input:focus {
+            outline: none !important;
+            border-color: #00BFFF !important;
+            box-shadow: 0 0 0 3px rgba(0, 191, 255, 0.1) !important;
+        }
+
+        .modal-action {
+            display: flex;
+            justify-content: flex-end;
+            gap: 1rem;
+            margin-top: 2rem;
+        }
+
+        /* ==================== FORMS ==================== */
+        .form-control {
+            margin-bottom: 1rem;
+        }
+
+        .form-control label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-weight: 600;
+            color: #334155;
+        }
+
+        .form-control input,
+        .form-control textarea,
+        .form-control select {
+            width: 100%;
+            padding: 0.75rem;
+            border: 2px solid #cbd5e1;
+            border-radius: 0.375rem;
+            font-size: 1rem;
+            transition: border-color 0.2s;
+        }
+
+        .form-control input:focus,
+        .form-control textarea:focus,
+        .form-control select:focus {
+            outline: none;
+            border-color: #00BFFF;
+            box-shadow: 0 0 0 3px rgba(0, 191, 255, 0.1);
+        }
+
+        /* ==================== RESPONSIVE ==================== */
+        @media (max-width: 768px) {
+            .sidebar {
+                position: fixed;
+                height: auto;
+                width: 100%;
+                bottom: 0;
+                left: 0;
+                top: auto;
+                flex-direction: row;
+                justify-content: space-around;
+                padding: 0.75rem 0;
+                z-index: 50;
+            }
+
+            .sidebar-header {
+                display: none;
+            }
+
+            nav.sidebar-nav {
+                flex-direction: row;
+                width: 100%;
+                justify-content: space-around;
+            }
+
+            nav.sidebar-nav a {
+                border-left: none;
+                border-top: 4px solid transparent;
+                padding: 0.5rem 1rem;
+                text-align: center;
+            }
+
+            nav.sidebar-nav a:hover,
+            nav.sidebar-nav a.active {
+                border-left-color: transparent;
+                border-top-color: white;
+            }
+
+            header.page-header {
+                left: 0 !important;
+            }
+
+            main.dashboard {
+                margin-left: 0 !important;
+                margin-top: 64px;
+                margin-bottom: 80px;
+                padding: 1rem;
+            }
+
+            .user-indicators {
+                justify-content: center;
+            }
+
+            .stats-card {
+                width: 140px;
+                height: 140px;
+            }
+
+            .modal-box {
+                width: 95%;
+                padding: 1.5rem;
+            }
+        }
+
+    </style>
+</head>
+<body>
+
+<!-- ==================== SIDEBAR ==================== -->
+<aside class="sidebar animate-fade-in-up" id="sidebar">
+    <div class="sidebar-header">
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M8.25 18.75a1.5 1.5 0 01-3 0V15a6 6 0 0112 0v3.75a1.5 1.5 0 01-3 0V15a3 3 0 00-6 0v3.75zM12 9a3 3 0 100-6 3 3 0 000 6z" />
+        </svg>
+        <h1>AparcaYa</h1>
+    </div>
+    <nav class="sidebar-nav">
+        <a href="#" class="active" data-tab="usuarios">Usuarios</a>
+        <a href="#" data-tab="correo">Enviar correo</a>
+        <a href="#" data-tab="graficas">Gráficas</a>
+        <a href="#" data-tab="gestion">🚗 Gestión Vehículos</a>
+        <a href="#" data-tab="historial">📊 Historial</a>
+        <a href="#" data-tab="reservaciones">📅 Reservaciones</a>
+        <a href="#" data-tab="cargamasiva">📤 Carga Masiva</a>
+    </nav>
+</aside>
+
+<!-- ==================== HEADER ==================== -->
+<header class="page-header animate-fade-in-up" id="pageHeader">
+    <div class="logo-section">
+        <button id="sidebarToggle" class="btn btn-ghost btn-circle mr-3">
+            <svg xmlns="http://www.w3.org/2000/svg" class="inline-block w-6 h-6 stroke-current" fill="none" viewBox="0 0 24 24" stroke-width="2">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M4 6h16M4 12h16M4 18h16"/>
+            </svg>
+        </button>
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M8.25 18.75a1.5 1.5 0 01-3 0V15a6 6 0 0112 0v3.75a1.5 1.5 0 01-3 0V15a3 3 0 00-6 0v3.75zM12 9a3 3 0 100-6 3 3 0 000 6z" />
+        </svg>
+        <h1>AparcaYa</h1>
+    </div>
+
+    <div class="profile-menu">
+        <button id="profileBtn" class="profile-btn" aria-label="Menú de perfil" aria-expanded="false">
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 6a3.75 3.75 0 11-7.5 0 3.75 3.75 0 017.5 0zM4.501 20.118a7.5 7.5 0 0114.998 0A17.933 17.933 0 0112 21.75c-2.676 0-5.216-.584-7.499-1.632z" />
+            </svg>
+        </button>
+        <div id="profileDropdown" class="dropdown-menu">
+            <button type="button">Configuración</button>
+            <button type="button">Ayuda</button>
+            <button type="button">Cerrar sesión</button>
+        </div>
+    </div>
+</header>
+
+<!-- ==================== MAIN CONTENT ==================== -->
+<main class="dashboard animate-fade-in-up" id="mainContent">
+
+    <!-- ========== SECCIÓN DE USUARIOS ========== -->
+    <section id="usuarios" class="content-section">
+
+        <!-- Indicadores circulares -->
+        <div class="user-indicators">
+            <article class="stats-card">
+                <div class="stats-label">Usuarios Conectados</div>
+                <div class="donut-container">
+                    <svg class="donut-svg" width="110" height="110" viewBox="0 0 42 42">
+                        <circle class="donut-ring" cx="21" cy="21" r="15.9155" />
+                        <circle class="donut-segment usuario-segment" cx="21" cy="21" r="15.9155" stroke-dasharray="53 100" stroke-dashoffset="0" />
+                    </svg>
+                    <div class="donut-text">53%</div>
+                </div>
+            </article>
+
+            <article class="stats-card">
+                <div class="stats-label">Cuota de Sedes</div>
+                <div class="donut-container">
+                    <svg class="donut-svg" width="110" height="110" viewBox="0 0 42 42">
+                        <circle class="donut-ring" cx="21" cy="21" r="15.9155" />
+                        <circle class="donut-segment cuota-segment" cx="21" cy="21" r="15.9155" stroke-dasharray="75 100" stroke-dashoffset="0" />
+                    </svg>
+                    <div class="donut-text">75%</div>
+                </div>
+            </article>
+        </div>
+
+        <!-- Botón registrar trabajador -->
+        <div class="flex justify-end mb-4">
+            <button class="btn-primary" onclick="openRegistrarTrabajadorModal()">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
+                </svg>
+                Registrar Trabajador
+            </button>
+        </div>
+
+        <!-- Pestañas Usuarios/Sedes -->
+        <div class="tabs">
+            <button id="btnUsuarios" class="active">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"/>
+                </svg>
+                <span>Usuarios</span>
+            </button>
+            <button id="btnSedes">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/>
+                </svg>
+                <span>Sedes</span>
+            </button>
+        </div>
+
+        <!-- Botones de reporte -->
+        <div class="flex justify-end mb-4 gap-4 flex-wrap">
+            <button class="btn-outline" onclick="generarPDF()">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z" />
+                </svg>
+                Generar PDF
+            </button>
+            <button class="btn-outline" onclick="generarExcel()">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                </svg>
+                Generar Excel
+            </button>
+        </div>
+
+        <!-- Barra de búsqueda y filtro -->
+        <div class="flex justify-between items-center mb-6 gap-4 flex-wrap">
+            <div class="flex items-center w-full md:w-1/2 border-2 border-gray-300 rounded-lg px-3 py-2 focus-within:border-blue-500 transition-colors">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                </svg>
+                <input id="busquedaInput" type="text" placeholder="Buscar por nombre, correo o rol..." class="ml-2 w-full focus:outline-none">
+            </div>
+            <select id="filtroEstado" class="border-2 border-gray-300 rounded-lg px-4 py-2 text-gray-700 w-full md:w-auto focus:outline-none focus:border-blue-500">
+                <option value="">Todos los estados</option>
+                <option value="activo">Activo</option>
+                <option value="inactivo">Inactivo</option>
+            </select>
+        </div>
+
+        <!-- Tabla de Usuarios -->
+        <div id="tablaUsuarios" class="overflow-x-auto">
+            <table>
+                <thead>
+                <tr>
+                    <th>Nombre</th>
+                    <th>Correo</th>
+                    <th>Rol</th>
+                    <th>Estado</th>
+                    <th>Acciones</th>
+                </tr>
+                </thead>
+                <tbody id="usuariosTableBody">
+                <tr>
+                    <td colspan="5" class="text-center py-8 text-gray-500">Cargando usuarios...</td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <!-- Tabla de Sedes -->
+        <div id="tablaSedes" class="overflow-x-auto hidden">
+            <table>
+                <thead>
+                <tr>
+                    <th>Nombre</th>
+                    <th>Dirección</th>
+                    <th>Capacidad</th>
+                    <th>Estado</th>
+                    <th>Acciones</th>
+                </tr>
+                </thead>
+                <tbody id="sedesTableBody">
+                <tr>
+                    <td colspan="5" class="text-center py-8 text-gray-500">Cargando sedes...</td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
+    </section>
+    <!-- ========== SECCIÓN DE CORREO ========== -->
+    <section id="correo" class="content-section hidden">
+        <h2 class="text-2xl font-semibold text-blue-700 mb-6">Enviar Correo</h2>
+
+        <!-- Tabs de correo -->
+        <div class="tabs">
+            <button id="tab-mailuno" class="active">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+                </svg>
+                Correo Uno a Uno
+            </button>
+            <button id="tab-mailmasivo">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
+                </svg>
+                Correo Masivo
+            </button>
+        </div>
+
+        <!-- Formulario Correo Uno a Uno -->
+        <div id="correoUno">
+            <form onsubmit="event.preventDefault(); enviarCorreoUno();">
+                <div class="form-control">
+                    <label for="emailSingle">Correo del destinatario</label>
+                    <input type="email" id="emailSingle" placeholder="ejemplo@correo.com" required>
+                </div>
+
+                <div class="form-control">
+                    <label for="subjectSingle">Asunto</label>
+                    <input type="text" id="subjectSingle" placeholder="Asunto del correo" required>
+                </div>
+
+                <div class="form-control">
+                    <label for="messageSingle">Mensaje</label>
+                    <textarea id="messageSingle" placeholder="Escribe el contenido del correo..." rows="6" required></textarea>
+                </div>
+
+                <button type="submit" class="btn-primary">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8" />
+                    </svg>
+                    Enviar Correo
+                </button>
+            </form>
+        </div>
+
+        <!-- Formulario Correo Masivo -->
+        <div id="correoMasivo" hidden>
+            <form onsubmit="event.preventDefault(); enviarCorreoMasivo();">
+                <div class="form-control">
+                    <label for="emailsMassive">Lista de correos (separados por coma)</label>
+                    <textarea id="emailsMassive" placeholder="correo1@ejemplo.com, correo2@ejemplo.com, ..." rows="4" required></textarea>
+                </div>
+
+                <div class="form-control">
+                    <label for="subjectMassive">Asunto</label>
+                    <input type="text" id="subjectMassive" placeholder="Asunto del correo" required>
+                </div>
+
+                <div class="form-control">
+                    <label for="messageMassive">Mensaje</label>
+                    <textarea id="messageMassive" placeholder="Escribe el contenido del correo..." rows="6" required></textarea>
+                </div>
+
+                <button type="submit" class="btn-primary">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8" />
+                    </svg>
+                    Enviar Masivamente
+                </button>
+            </form>
+        </div>
+    </section>
+
+    <!-- ========== SECCIÓN DE GRÁFICAS ========== -->
+    <section id="graficas" class="content-section hidden">
+        <h2 class="text-2xl font-semibold text-blue-700 mb-6">Gráficas y Estadísticas</h2>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            <article class="p-6 bg-white rounded-lg shadow-lg">
+                <h3 class="font-semibold text-lg text-center mb-4 text-gray-700">Ocupación de Sedes</h3>
+                <div class="flex justify-center">
+                    <svg width="150" height="150" viewBox="0 0 42 42">
+                        <circle cx="21" cy="21" r="15.9155" stroke="#90ee90" stroke-width="10" fill="none" opacity="0.5"/>
+                        <circle cx="21" cy="21" r="15.9155" stroke="#32cd32" stroke-width="10" fill="none" stroke-linecap="round" stroke-dasharray="53 100" stroke-dashoffset="0" transform="rotate(-90 21 21)"/>
+                        <text x="50%" y="50%" dominant-baseline="middle" text-anchor="middle" fill="#32cd32" font-size="8" font-weight="bold">53%</text>
+                    </svg>
+                </div>
+            </article>
+        </div>
+    </section>
+
+    <!-- ==================== SECCIÓN GESTIÓN VEHÍCULOS ==================== -->
+    <section id="gestion" class="content-section hidden">
+        <h2 class="section-title">🚗 Gestión de Vehículos</h2>
+
+        <!-- Formulario Registro Entrada - Con validaciones mejoradas -->
+        <div class="sub-section">
+            <h3 class="sub-section-title">➕ Registrar Entrada de Vehículo</h3>
+
+            <!-- Buscar por placa -->
+            <div style="margin-bottom: 1rem; display: flex; gap: 0.5rem;">
+                <input type="text" id="buscarPlaca" placeholder="Buscar por placa..."
+                       style="padding: 0.5rem; border: 1px solid #cbd5e1; border-radius: 0.5rem; flex: 1;">
+                <button class="btn-primary" type="button" onclick="buscarPorPlacaIntegrado()">🔍 Buscar</button>
+            </div>
+
+            <!-- Formulario con validaciones -->
+            <form id="registroEntradaForm" novalidate>
+                <!-- Campo oculto para rol CLIENTE -->
+                <input type="hidden" name="rol" value="CLIENTE">
+
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+                    <!-- DATOS DEL CLIENTE -->
+                    <div class="form-group">
+                        <label>Nombre Cliente *</label>
+                        <input type="text" id="nombre" name="nombre" required
+                               minlength="2" maxlength="100" autocomplete="name"
+                               style="padding: 0.6rem; border: 1px solid #cbd5e1; border-radius: 0.5rem; width: 100%;">
+                        <span id="nombre-error" class="error-message" aria-live="polite"></span>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Teléfono *</label>
+                        <input type="tel" id="telefono" name="telefono" required
+                               pattern="[0-9]{10}" title="Ingresa un número de 10 dígitos"
+                               autocomplete="tel"
+                               style="padding: 0.6rem; border: 1px solid #cbd5e1; border-radius: 0.5rem; width: 100%;">
+                        <span id="telefono-error" class="error-message" aria-live="polite"></span>
+                        <span id="telefono-success" class="success-message" aria-live="polite"></span>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Email *</label>
+                        <input type="email" id="correo1" name="correo" required
+                               autocomplete="email"
+                               style="padding: 0.6rem; border: 1px solid #cbd5e1; border-radius: 0.5rem; width: 100%;">
+                        <span id="correo-error" class="error-message" aria-live="polite"></span>
+                        <span id="correo-success" class="success-message" aria-live="polite"></span>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Cédula *</label>
+                        <input type="text" id="cedula" name="cedula" required
+                               pattern="[0-9]{10}" title="Ingresa una cédula de 10 dígitos"
+                               autocomplete="off"
+                               style="padding: 0.6rem; border: 1px solid #cbd5e1; border-radius: 0.5rem; width: 100%;">
+                        <span id="cedula-error" class="error-message" aria-live="polite"></span>
+                        <span id="cedula-success" class="success-message" aria-live="polite"></span>
+                    </div>
+
+                    <!-- Contraseñas generadas automáticamente (ocultas) -->
+                    <input type="hidden" id="contrasena" name="contrasena" value="">
+                    <input type="hidden" id="confirmarContrasena" name="confirmarContrasena" value="">
+
+                    <!-- DATOS DEL VEHÍCULO -->
+                    <div class="form-group">
+                        <label>Placa *</label>
+                        <input type="text" id="placa" name="placa" required
+                               maxlength="6" pattern="[A-Z]{3}[0-9]{3}"
+                               title="Formato: 3 letras mayúsculas seguidas de 3 números (ej. ABC123)"
+                               style="text-transform: uppercase; padding: 0.6rem; border: 1px solid #cbd5e1; border-radius: 0.5rem; width: 100%;"
+                               oninput="this.value = this.value.toUpperCase().replace(/[^A-Z0-9]/g, '').substring(0,6);">
+                        <span id="placa-error" class="error-message" aria-live="polite"></span>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Tipo Vehículo *</label>
+                        <select id="tipoVehiculo" name="tipoVehiculo" required
+                                style="padding: 0.6rem; border: 1px solid #cbd5e1; border-radius: 0.5rem; width: 100%;">
+                            <option value="">Selecciona un tipo</option>
+                            <option value="CARRO">Carro</option>
+                            <option value="MOTO">Moto</option>
+                            <option value="BICICLETA">Bicicleta</option>
+                            <option value="OTRO">Otro</option>
+                        </select>
+                        <span id="tipoVehiculo-error" class="error-message" aria-live="polite"></span>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Marca *</label>
+                        <select id="marca" name="marca" required
+                                style="padding: 0.6rem; border: 1px solid #cbd5e1; border-radius: 0.5rem; width: 100%;">
+                            <option value="">Selecciona una marca</option>
+                        </select>
+                        <span id="marca-error" class="error-message" aria-live="polite"></span>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Color</label>
+                        <input type="text" id="color" name="color"
+                               placeholder="Rojo"
+                               style="padding: 0.6rem; border: 1px solid #cbd5e1; border-radius: 0.5rem; width: 100%;">
+                    </div>
+
+                    <div class="form-group">
+                        <label>Año</label>
+                        <input type="number" id="anio" name="anio"
+                               min="2000" max="2025" placeholder="2020"
+                               style="padding: 0.6rem; border: 1px solid #cbd5e1; border-radius: 0.5rem; width: 100%;">
+                    </div>
+                </div>
+
+                <div style="margin-top: 1rem; display: flex; gap: 0.5rem;">
+                    <button type="submit" class="btn-success">✅ Registrar Entrada</button>
+                    <button type="button" class="btn-secondary" onclick="limpiarFormularioEntrada()">🔄 Limpiar</button>
+                </div>
+            </form>
+        </div>
+
+        <!-- Vehículos Activos (Temporizando) -->
+        <div class="sub-section">
+            <h3 class="sub-section-title">⏱️ Vehículos en Parqueadero (Temporizando)</h3>
+            <table>
+                <thead>
+                <tr>
+                    <th>Placa</th>
+                    <th>Tipo</th>
+                    <th>Cliente</th>
+                    <th>Teléfono</th>
+                    <th>Hora Entrada</th>
+                    <th>Tiempo</th>
+                    <th>Cobro Est.</th>
+                    <th>Acción</th>
+                </tr>
+                </thead>
+                <tbody id="vehiculosActivosBody">
+                <tr><td colspan="8" style="text-align:center;">Cargando...</td></tr>
+                </tbody>
+            </table>
+        </div>
+
+        <!-- Vehículos Pendientes de Cobro -->
+        <div class="sub-section">
+            <h3 class="sub-section-title">💰 Pendientes de Cobro</h3>
+            <table>
+                <thead>
+                <tr>
+                    <th>Placa</th>
+                    <th>Cliente</th>
+                    <th>Entrada</th>
+                    <th>Salida</th>
+                    <th>Tiempo Total</th>
+                    <th>Total a Pagar</th>
+                    <th>Acción</th>
+                </tr>
+                </thead>
+                <tbody id="pendientesCobroBody">
+                <tr><td colspan="7" style="text-align:center;">No hay vehículos pendientes</td></tr>
+                </tbody>
+            </table>
+        </div>
+    </section>
+
+    <!-- ==================== SECCIÓN HISTORIAL ==================== -->
+    <section id="historial" class="content-section hidden">
+        <h2 class="section-title">📊 Historial de Registros</h2>
+
+        <div class="filter-bar">
+            <input type="date" id="filtroFecha">
+            <select id="filtroEstado1">
+                <option value="">Todos los estados</option>
+                <option value="ACTIVO">Activo</option>
+                <option value="FINALIZADO">Pendiente Cobro</option>
+                <option value="COBRADO">Cobrado</option>
+            </select>
+            <button class="btn-primary" onclick="loadHistorial()">🔍 Filtrar</button>
+        </div>
+
+        <table>
+            <thead>
+            <tr>
+                <th>Placa</th>
+                <th>Tipo</th>
+                <th>Cliente</th>
+                <th>Teléfono</th>
+                <th>Entrada</th>
+                <th>Salida</th>
+                <th>Tiempo</th>
+                <th>Precio</th>
+                <th>Estado</th>
+            </tr>
+            </thead>
+            <tbody id="historialBody">
+            <tr><td colspan="9" style="text-align:center;">Seleccione filtros y presione Filtrar</td></tr>
+            </tbody>
+        </table>
+    </section>
+
+    <!-- ==================== SECCIÓN RESERVACIONES ==================== -->
+    <section id="reservaciones" class="content-section hidden">
+        <h2 class="section-title">📅 Reservaciones Pendientes</h2>
+
+        <table>
+            <thead>
+            <tr>
+                <th>Cliente</th>
+                <th>Teléfono</th>
+                <th>Placa</th>
+                <th>Tipo</th>
+                <th>Fecha Inicio</th>
+                <th>Fecha Fin</th>
+                <th>Cupo</th>
+                <th>Acciones</th>
+            </tr>
+            </thead>
+            <tbody id="reservacionesBody">
+            <tr><td colspan="8" style="text-align:center;">Cargando...</td></tr>
+            </tbody>
+        </table>
+    </section>
+
+    <!-- ==================== SECCIÓN CARGA MASIVA ==================== -->
+    <section id="cargamasiva" class="content-section hidden">
+        <h2 class="section-title">📤 Carga Masiva desde Excel</h2>
+
+        <!-- Descargar Plantilla -->
+        <div class="sub-section">
+            <h3 class="sub-section-title">📥 Paso 1: Descargar Plantilla</h3>
+            <p style="margin-bottom: 1rem; color: #64748b; font-size: 0.9rem;">
+                Descarga la plantilla de Excel y completa los datos según el tipo de registro que necesites.
+            </p>
+
+            <div style="display: flex; gap: 1rem; flex-wrap: wrap; margin-bottom: 1rem;">
+                <button class="btn-primary" onclick="descargarPlantillaCompleta()" style="display: flex; align-items: center; gap: 0.5rem;">
+                    <span>📥</span>
+                    <span>Plantilla Completa (Clientes, Vehículos)</span>
+                </button>
+                <button class="btn-info" onclick="descargarPlantillaVehiculosSolo()" style="display: flex; align-items: center; gap: 0.5rem;">
+                    <span>🚗</span>
+                    <span>Solo Vehículos</span>
+                </button>
+            </div>
+
+            <!-- Información sobre el formato -->
+            <div style="margin-top: 1rem; padding: 1rem; background: #f1f5f9; border-radius: 0.5rem; border-left: 4px solid #3b82f6;">
+                <strong style="color: #1e40af;">📋 Formato de la Plantilla:</strong>
+
+                <details style="margin-top: 0.5rem;" open>
+                    <summary style="cursor: pointer; font-weight: 600; color: #059669; padding: 0.5rem 0;">🧑‍💼 Registrar Cliente</summary>
+                    <ul style="margin: 0.5rem 0 0 1.5rem; color: #475569; font-size: 0.9rem;">
+                        <li><strong>Tipo:</strong> "Cliente"</li>
+                        <li><strong>Nombre:</strong> Nombre completo (ej: Juan Pérez)</li>
+                        <li><strong>Teléfono:</strong> 10 dígitos (ej: 0987654321)</li>
+                        <li><strong>Email:</strong> correo@example.com</li>
+                        <li><strong>Cédula:</strong> 10 dígitos (ej: 1234567890)</li>
+                    </ul>
+                </details>
+
+                <details style="margin-top: 0.5rem;">
+                    <summary style="cursor: pointer; font-weight: 600; color: #2563eb; padding: 0.5rem 0;">🚗 Registrar Vehículo</summary>
+                    <ul style="margin: 0.5rem 0 0 1.5rem; color: #475569; font-size: 0.9rem;">
+                        <li><strong>Tipo:</strong> "Vehiculo" o "Vehículo"</li>
+                        <li><strong>Placa:</strong> 3 letras + 3 números (ej: ABC123)</li>
+                        <li><strong>Tipo Vehículo:</strong> CARRO, MOTO, BICICLETA, OTRO</li>
+                        <li><strong>Marca:</strong> TOYOTA, CHEVROLET, MAZDA, KIA, NISSAN, HONDA, FORD, HYUNDAI, SUZUKI</li>
+                        <li><strong>Color:</strong> Color del vehículo (ej: Blanco, Negro)</li>
+                        <li><strong>Año:</strong> Año del vehículo (2000-2025)</li>
+                        <li><strong>Email Cliente:</strong> Email del propietario (debe estar registrado primero)</li>
+                    </ul>
+                </details>
+
+                <div style="margin-top: 1rem; padding: 0.75rem; background: #fef3c7; border-radius: 0.5rem; border-left: 3px solid #f59e0b;">
+                    <strong style="color: #92400e;">⚠️ Orden importante:</strong>
+                    <p style="margin: 0.25rem 0 0 0; color: #78350f; font-size: 0.85rem;">
+                        1. Primero registra los Clientes<br>
+                        2. Luego registra los Vehículos (necesitan el email del cliente)<br>
+                    </p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Subir Archivo -->
+        <div class="sub-section">
+            <h3 class="sub-section-title">📁 Paso 2: Subir Archivo Excel</h3>
+            <p style="margin-bottom: 1rem; color: #64748b; font-size: 0.9rem;">
+                Selecciona el archivo Excel con los datos completados y haz clic en "Cargar Excel".
+            </p>
+            <div style="display: flex; gap: 1rem; align-items: center; flex-wrap: wrap;">
+                <div style="flex: 1; min-width: 250px;">
+                    <input type="file"
+                           id="excelFile"
+                           accept=".xlsx,.xls"
+                           style="width: 100%; padding: 0.75rem; border: 2px dashed #cbd5e1; border-radius: 0.5rem; cursor: pointer;"
+                           onchange="mostrarArchivoSeleccionado()">
+                </div>
+                <button class="btn-success" onclick="cargarExcel()" style="white-space: nowrap;">
+                    📤 Cargar Excel
+                </button>
+            </div>
+            <div id="archivoSeleccionado" style="margin-top: 0.5rem; font-size: 0.85rem; color: #64748b;"></div>
+        </div>
+
+        <!-- Barra de Progreso -->
+        <div id="progressContainer" class="sub-section" style="display: none;">
+            <div style="background: #f1f5f9; border-radius: 0.5rem; padding: 0.5rem; margin-bottom: 0.5rem;">
+                <div id="progressBar" style="height: 1.5rem; background: linear-gradient(90deg, #3b82f6, #2563eb); border-radius: 0.25rem; width: 0%; transition: width 0.3s ease; display: flex; align-items: center; justify-content: center; color: white; font-size: 0.85rem; font-weight: 600;"></div>
+            </div>
+            <p id="progressText" style="text-align: center; color: #64748b; font-size: 0.9rem;"></p>
+        </div>
+
+        <!-- Resultados de la carga -->
+        <div class="sub-section" id="resultadosCarga" style="display: none;">
+            <h3 class="sub-section-title">📋 Resultados de la Carga</h3>
+
+            <!-- Resumen -->
+            <div id="resumenCarga" style="margin-bottom: 1.5rem;"></div>
+
+            <!-- Errores (si los hay) -->
+            <div id="erroresContainer" style="display: none; margin-bottom: 1.5rem;">
+                <div style="background: #fef2f2; border-left: 4px solid #ef4444; padding: 1rem; border-radius: 0.5rem;">
+                    <h4 style="color: #dc2626; margin: 0 0 0.5rem 0;">⚠️ Errores Encontrados:</h4>
+                    <ul id="listaErrores" style="margin: 0; padding-left: 1.5rem; color: #7f1d1d; font-size: 0.9rem;"></ul>
+                </div>
+            </div>
+
+            <!-- Tabla de registros -->
+            <div style="overflow-x: auto;">
+                <table>
+                    <thead>
+                    <tr>
+                        <th>Tipo</th>
+                        <th>Detalle Principal</th>
+                        <th>Información Adicional</th>
+                        <th>Estado</th>
+                    </tr>
+                    </thead>
+                    <tbody id="resultadosCargaBody"></tbody>
+                </table>
+            </div>
+        </div>
+    </section>
+
+</main>
+
+<!-- ==================== MODAL REGISTRAR TRABAJADOR ==================== -->
+<div id="registrarTrabajadorModal" class="modal">
+    <div class="modal-box">
+        <h3>Registrar Trabajador</h3>
+
+        <label>Nombre Completo</label>
+        <input type="text" id="trabajadorNombre" placeholder="Ej: Juan Pérez">
+
+        <label>Correo Electrónico</label>
+        <input type="email" id="trabajadorCorreo" placeholder="juan@ejemplo.com">
+
+        <label>Teléfono</label>
+        <input type="text" id="trabajadorTelefono" placeholder="3001234567">
+
+        <label>Cédula</label>
+        <input type="text" id="trabajadorCedula" placeholder="1234567890">
+
+        <label>Contraseña</label>
+        <input type="password" id="trabajadorContrasena" placeholder="Mínimo 6 caracteres">
+
+        <div class="modal-action">
+            <button class="btn-primary" onclick="registrarTrabajador()">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+                </svg>
+                Registrar
+            </button>
+            <button class="btn-outline" onclick="closeRegistrarTrabajadorModal()">Cancelar</button>
+        </div>
+    </div>
+</div>
+
+<script src="/Script/SedeD.js"></script>
+
+</body>
+</html>

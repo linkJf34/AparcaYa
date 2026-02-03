@@ -1,0 +1,333 @@
+/* ============================================
+   ESTILOS GENERALES
+   ============================================ */
+body {
+    background-color: #f9fafb;
+    margin: 0;
+    font-family: system-ui, -apple-system, sans-serif;
+}
+
+/* ============================================
+   SIDEBAR
+   ============================================ */
+.sidebar {
+    background: #00BFFF;
+    color: white;
+    height: 100vh;
+    width: 180px;
+    padding: 2rem 1rem;
+    position: fixed;
+    top: 0;
+    left: 0;
+    box-shadow: 2px 0 12px rgba(0,0,0,0.1);
+    display: flex;
+    flex-direction: column;
+}
+
+.sidebar-header {
+    text-align: center;
+    margin-bottom: 2rem;
+}
+
+.sidebar-header h1 {
+    font-weight: 700;
+    font-size: 1.5rem;
+    letter-spacing: 2px;
+}
+
+nav.sidebar-nav a {
+    font-weight: 600;
+    color: white;
+    padding: 0.75rem 0.5rem;
+    border-left: 4px solid transparent;
+    display: block;
+    margin-bottom: 1rem;
+    cursor: pointer;
+    text-decoration: none;
+    transition: all 0.3s;
+}
+
+nav.sidebar-nav a.active,
+nav.sidebar-nav a:hover {
+    background-color: rgba(255, 255, 255, 0.25);
+    border-left-color: white;
+}
+
+/* ============================================
+   HEADER
+   ============================================ */
+header.page-header {
+    position: fixed;
+    top: 0;
+    left: 180px;
+    right: 0;
+    height: 64px;
+    background: #fff;
+    border-bottom: 1px solid #e2e8f0;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 1.5rem;
+    z-index: 40;
+}
+
+.logo-section {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+}
+
+.logo-section h1 {
+    font-weight: 700;
+    font-size: 1.5rem;
+    color: #0369a1;
+}
+
+.profile-menu {
+    position: relative;
+}
+
+.profile-btn {
+    background: transparent;
+    border: none;
+    cursor: pointer;
+    padding: 0.5rem 1rem;
+    border-radius: 0.5rem;
+    font-weight: 600;
+    color: #0369a1;
+}
+
+.profile-btn:hover {
+    background: #e0f2fe;
+}
+
+.dropdown-menu {
+    position: absolute;
+    top: calc(100% + 0.5rem);
+    right: 0;
+    background: white;
+    border-radius: 0.5rem;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.15);
+    min-width: 180px;
+    display: none;
+    flex-direction: column;
+    padding: 0.5rem 0;
+    z-index: 50;
+}
+
+.dropdown-menu.show {
+    display: flex;
+}
+
+.dropdown-menu button {
+    background: transparent;
+    border: none;
+    text-align: left;
+    padding: 0.6rem 1.5rem;
+    width: 100%;
+    cursor: pointer;
+    transition: background-color 0.2s;
+}
+
+.dropdown-menu button:hover {
+    background-color: #e0f2fe;
+    color: #0284c7;
+}
+
+/* ============================================
+   MAIN DASHBOARD
+   ============================================ */
+main.dashboard {
+    margin-left: 180px;
+    margin-top: 64px;
+    padding: 1.5rem 2rem;
+    min-height: calc(100vh - 64px);
+}
+
+.welcome-section {
+    background: white;
+    border-radius: 1rem;
+    padding: 2rem;
+    margin-bottom: 2.5rem;
+    box-shadow: 0 15px 36px rgba(0, 191, 255, 0.07);
+    text-align: center;
+}
+
+.welcome-section h2 {
+    font-weight: 700;
+    font-size: 2rem;
+    margin-bottom: 1rem;
+    color: #0f172a;
+}
+
+.welcome-section p {
+    font-size: 1.125rem;
+    color: #475569;
+}
+
+.user-reservas-section {
+    background: white;
+    border-radius: 1rem;
+    padding: 2rem;
+    box-shadow: 0 10px 25px rgba(0, 191, 255, 0.1);
+    margin-bottom: 2rem;
+}
+
+.user-reservas-section h2 {
+    font-weight: 700;
+    font-size: 1.75rem;
+    margin-bottom: 1.5rem;
+    color: #256d43;
+}
+
+/* ============================================
+   TABLAS
+   ============================================ */
+table {
+    width: 100%;
+    border-collapse: collapse;
+    background: white;
+    border-radius: 8px;
+}
+
+th, td {
+    padding: 1rem 1.25rem;
+    border-bottom: 1px solid #e2e8f0;
+    text-align: left;
+    color: #334155;
+}
+
+th {
+    background-color: #ecfdf5;
+    font-weight: 700;
+}
+
+tbody tr:hover {
+    background-color: #bbf7d0;
+}
+
+/* ============================================
+   BARRA DE BÚSQUEDA
+   ============================================ */
+.search-bar {
+    margin-bottom: 1rem;
+    display: flex;
+    gap: 0.5rem;
+}
+
+.search-bar input {
+    flex: 1;
+    padding: 0.5rem;
+    border: 1px solid #d1d5db;
+    border-radius: 0.5rem;
+}
+
+.search-bar button {
+    padding: 0.5rem 1rem;
+    background: #00BFFF;
+    color: white;
+    border: none;
+    border-radius: 0.5rem;
+    cursor: pointer;
+    font-weight: 600;
+}
+
+.search-bar button:hover {
+    background: #0284c7;
+}
+
+/* ============================================
+   MODALES
+   ============================================ */
+.modal {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.5);
+    z-index: 999;
+    align-items: center;
+    justify-content: center;
+}
+
+.modal.show,
+.modal.modal-open {
+    display: flex;
+}
+
+.modal-box {
+    background: white;
+    border-radius: 1rem;
+    padding: 2rem;
+    max-width: 600px;
+    width: 90%;
+    max-height: 90vh;
+    overflow-y: auto;
+}
+
+/* ============================================
+   INFO GRID (PARA MODAL DE DETALLES)
+   ============================================ */
+.info-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 1rem;
+}
+
+.info-item {
+    padding: 0.75rem;
+    background: #f8fafc;
+    border-radius: 0.5rem;
+}
+
+.info-item.info-full {
+    grid-column: 1 / -1;
+}
+
+.info-label {
+    font-size: 0.875rem;
+    font-weight: 600;
+    color: #64748b;
+    margin-bottom: 0.25rem;
+}
+
+.info-value {
+    font-size: 1rem;
+    color: #0f172a;
+}
+
+/* ============================================
+   BADGES
+   ============================================ */
+.badge {
+    padding: 4px 12px;
+    border-radius: 12px;
+    font-size: 0.875rem;
+    font-weight: 600;
+    display: inline-block;
+}
+
+.badge-activo {
+    background: #22c55e;
+    color: white;
+}
+
+.badge-inactivo {
+    background: #ef4444;
+    color: white;
+}
+
+/* ============================================
+   UTILIDADES
+   ============================================ */
+.hidden {
+    display: none !important;
+}
+
+.content-section {
+    animation: fadeIn 0.3s ease-in;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}

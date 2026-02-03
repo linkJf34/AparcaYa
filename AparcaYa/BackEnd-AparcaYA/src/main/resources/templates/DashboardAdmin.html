@@ -1,0 +1,625 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Dashboard Administrador General - AparcaYA</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdn.jsdelivr.net/npm/daisyui@4.12.10/dist/full.min.css" rel="stylesheet" />
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+
+    <link rel="stylesheet" href="/Css/Admin.css">
+</head>
+<body>
+
+<aside class="sidebar" aria-label="Menú principal">
+    <div class="sidebar-header" role="banner">
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" aria-hidden="true">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M8.25 18.75a1.5 1.5 0 01-3 0V15a6 6 0 0112 0v3.75a1.5 1.5 0 01-3 0V15a3 3 0 00-6 0v3.75zM12 9a3 3 0 100-6 3 3 0 000 6z" />
+        </svg>
+        <h1>AparcaYa</h1>
+    </div>
+    <nav class="sidebar-nav" role="navigation">
+        <a href="#" class="active" data-tab="usuarios">Usuarios</a>
+        <a href="#" data-tab="sedes">Sedes</a>
+        <a href="#" data-tab="correos">Envíos de Correos</a>
+        <a href="#" data-tab="graficas">Gráficas</a>
+        <a href="#" data-tab="configuracion">Configuración</a>
+    </nav>
+</aside>
+
+<header class="page-header">
+    <div class="logo-section">
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M8.25 18.75a1.5 1.5 0 01-3 0V15a6 6 0 0112 0v3.75a1.5 1.5 0 01-3 0V15a3 3 0 00-6 0v3.75zM12 9a3 3 0 100-6 3 3 0 000 6z" />
+        </svg>
+        <h1>AparcaYa</h1>
+    </div>
+    <div class="profile-menu">
+        <button id="profileBtn" aria-label="Menú perfil" class="profile-btn" aria-haspopup="true" aria-controls="profileDropdown" aria-expanded="false" type="button">
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 6a3.75 3.75 0 11-7.5 0 3.75 3.75 0 017.5 0zM4.501 20.118a7.5 7.5 0 0114.998 0A17.933 17.933 0 0112 21.75c-2.676 0-5.216-.584-7.499-1.632z" />
+            </svg>
+        </button>
+        <menu id="profileDropdown" class="dropdown-menu" role="menu" aria-label="Opciones perfil">
+            <button role="menuitem" type="button" onclick="irConfiguracion()">Configuración</button>
+            <button role="menuitem" type="button" onclick="irAyuda()">Ayuda</button>
+            <button role="menuitem" type="button" onclick="cerrarSesion()">Cerrar sesión</button>
+        </menu>
+    </div>
+</header>
+
+<main class="dashboard">
+    <div class="stat-indicators" aria-label="Indicadores generales">
+        <article class="stats-card" aria-label="Total usuarios">
+            <div class="stats-label">Total Usuarios</div>
+            <div class="donut-container" role="img">
+                <svg class="donut-svg" viewBox="0 0 42 42" width="120" height="120" aria-hidden="true">
+                    <circle class="donut-ring" cx="21" cy="21" r="15.9155" />
+                    <circle class="donut-segment usuario-segment" cx="21" cy="21" r="15.9155" stroke-dasharray="0 100"></circle>
+                </svg>
+                <div class="donut-text">0</div>
+            </div>
+        </article>
+        <article class="stats-card" aria-label="Total sedes">
+            <div class="stats-label">Total Sedes</div>
+            <div class="donut-container" role="img">
+                <svg class="donut-svg" viewBox="0 0 42 42" width="120" height="120" aria-hidden="true">
+                    <circle class="donut-ring" cx="21" cy="21" r="15.9155" />
+                    <circle class="donut-segment cuota-segment" cx="21" cy="21" r="15.9155" stroke-dasharray="0 100"></circle>
+                </svg>
+                <div class="donut-text">0</div>
+            </div>
+        </article>
+        <article class="stats-card" aria-label="Ingresos totales">
+            <div class="stats-label">Ingresos Totales</div>
+            <div class="donut-container" role="img">
+                <svg class="donut-svg" viewBox="0 0 42 42" width="120" height="120" aria-hidden="true">
+                    <circle class="donut-ring" cx="21" cy="21" r="15.9155" />
+                    <circle class="donut-segment ingresos-segment" cx="21" cy="21" r="15.9155" stroke-dasharray="0 100"></circle>
+                </svg>
+                <div class="donut-text">$0</div>
+            </div>
+        </article>
+    </div>
+
+    <!-- Updated HTML with additional filters and table fields -->
+
+    <!-- SECCIÓN USUARIOS -->
+    <section id="usuarios" class="content-section">
+        <h2>Gestión de Usuarios</h2>
+
+        <div class="flex justify-end mb-4 space-x-4">
+            <button class="btn-outline" onclick="generarPDF()">Generar PDF</button>
+            <button class="btn-outline" onclick="generarExcel()">Generar Excel</button>
+        </div>
+
+        <!-- NUEVOS FILTROS SIMPLIFICADOS -->
+        <div class="flex flex-col md:flex-row justify-between items-center mb-6 gap-4">
+            <!-- ÚNICA BARRA DE BÚSQUEDA GENERAL -->
+            <div class="flex items-center w-full md:w-1/2 border border-gray-300 rounded-md px-3 py-2">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                </svg>
+                <input id="busquedaInput" type="text" placeholder="Buscar usuarios por nombre, correo, teléfono, rol, localidad o barrio..." class="ml-2 w-full focus:outline-none" />
+            </div>
+
+            <!-- SELECTS DE FILTRO -->
+            <div class="flex gap-4 w-full md:w-auto">
+                <select id="filtroUnificado" class="border border-gray-300 rounded-md px-3 py-2 text-gray-700">
+                    <option value="">Todos</option>
+                    <option value="estado:activo"> Activos</option>
+                    <option value="estado:inactivo"> Inactivos</option>
+                    <option value="rol:administrador_sede"> Administrador de Sede</option>
+                    <option value="rol:operario"> Operario</option>
+                    <option value="rol:cliente"> Cliente</option>
+                </select>
+            </div>
+        </div>
+
+        <div class="overflow-x-auto">
+            <table id="tablaUsuarios">
+                <thead>
+                <tr>
+                    <th>Nombre</th>
+                    <th>Correo</th>
+                    <th>Teléfono</th>
+                    <th>Rol</th>
+                    <th>Estado</th>
+                    <th>Acciones</th>
+                </tr>
+                </thead>
+                <tbody id="tbodyUsuarios">
+                <tr><td colspan="7" class="loading">Cargando usuarios...</td></tr>
+                </tbody>
+            </table>
+        </div>
+    </section>
+
+    <!-- ============================================ -->
+    <!-- MODAL DE EDICIÓN DE USUARIO -->
+    <!-- ============================================ -->
+    <dialog id="modal_editar_usuario" class="modal">
+        <div class="modal-box w-11/12 max-w-3xl">
+            <!-- Header del Modal -->
+            <div class="flex items-center justify-between mb-6 pb-4 border-b border-gray-200">
+                <div class="flex items-center gap-3">
+                    <div class="bg-primary/10 p-3 rounded-lg">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-primary" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                        </svg>
+                    </div>
+                    <div>
+                        <h3 class="font-bold text-2xl text-gray-800">Editar Usuario</h3>
+                        <p class="text-sm text-gray-500">Actualiza la información del usuario</p>
+                    </div>
+                </div>
+                <button
+                        onclick="cerrarModalEdicion()"
+                        class="btn btn-sm btn-circle btn-ghost hover:bg-gray-200"
+                        title="Cerrar"
+                >
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                    </svg>
+                </button>
+            </div>
+
+            <!-- Formulario de Edición -->
+            <form onsubmit="event.preventDefault(); guardarEdicion();">
+                <!-- Campo oculto para el ID -->
+                <input type="hidden" id="edit_usuario_id">
+
+                <!-- Grid de Campos -->
+                <div class="space-y-4">
+                    <!-- Fila 1: Nombre y Email -->
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <!-- Nombre -->
+                        <div class="form-control">
+                            <label class="label">
+                        <span class="label-text font-semibold text-gray-700">
+                            <span class="text-error">*</span> Nombre Completo
+                        </span>
+                            </label>
+                            <input
+                                    type="text"
+                                    id="edit_nombre"
+                                    placeholder="Ej: Juan Pérez García"
+                                    class="input input-bordered w-full focus:input-primary"
+                                    required
+                            >
+                        </div>
+
+                        <!-- Email -->
+                        <div class="form-control">
+                            <label class="label">
+                        <span class="label-text font-semibold text-gray-700">
+                            <span class="text-error">*</span> Correo Electrónico
+                        </span>
+                            </label>
+                            <input
+                                    type="email"
+                                    id="edit_email"
+                                    placeholder="ejemplo@correo.com"
+                                    class="input input-bordered w-full focus:input-primary"
+                                    required
+                            >
+                        </div>
+                    </div>
+
+                    <!-- Fila 2: Teléfono -->
+                    <div class="form-control">
+                        <label class="label">
+                    <span class="label-text font-semibold text-gray-700">
+                        Teléfono
+                    </span>
+                        </label>
+                        <input
+                                type="tel"
+                                id="edit_telefono"
+                                placeholder="Ej: +57 300 123 4567"
+                                class="input input-bordered w-full focus:input-primary"
+                        >
+                    </div>
+
+                    <!-- Fila 3: Rol y Estado -->
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <!-- Rol - CORREGIDO CON LOS VALORES DEL ENUM -->
+                        <div class="form-control">
+                            <label class="label">
+                            <span class="label-text font-semibold text-gray-700">
+                                <span class="text-error">*</span> Rol
+                            </span>
+                            </label>
+                            <select id="edit_rol" class="select select-bordered w-full focus:select-primary" required>
+                                <option value="ADMIN">Administrador</option>
+                                <option value="ADMINISTRADOR_SEDE">Administrador de Sede</option>
+                                <option value="OPERARIO">Operario</option>
+                                <option value="CLIENTE">Cliente</option>
+                            </select>
+                        </div>
+
+                        <!-- Estado -->
+                        <div class="form-control">
+                            <label class="label">
+                                <span class="label-text font-semibold text-gray-700">Estado</span>
+                            </label>
+                            <select id="edit_estado" class="select select-bordered w-full focus:select-primary">
+                                <option value="ACTIVO">Activo</option>
+                                <option value="INACTIVO">Inactivo</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Nota informativa -->
+                <div class="alert alert-info mt-6 shadow-sm">
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" class="stroke-current shrink-0 w-6 h-6">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                    </svg>
+                    <span>
+                Los campos marcados con <span class="text-error font-bold">*</span> son obligatorios
+            </span>
+                </div>
+
+                <!-- Botones de Acción -->
+                <div class="modal-action mt-6 pt-4 border-t border-gray-200">
+                    <button
+                            type="button"
+                            onclick="cerrarModalEdicion()"
+                            class="btn btn-ghost"
+                    >
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                        </svg>
+                        Cancelar
+                    </button>
+                    <button
+                            type="submit"
+                            class="btn btn-primary"
+                    >
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+                        </svg>
+                        Guardar Cambios
+                    </button>
+                </div>
+            </form>
+        </div>
+
+        <!-- Backdrop para cerrar al hacer clic fuera -->
+        <form method="dialog" class="modal-backdrop">
+            <button>close</button>
+        </form>
+    </dialog>
+
+    <!-- ============================================ -->
+    <!-- MODAL DE EDICIÓN DE SEDE -->
+    <!-- ============================================ -->
+    <dialog id="modal_editar_sede" class="modal">
+        <div class="modal-box w-11/12 max-w-3xl">
+            <!-- Header del Modal -->
+            <div class="flex items-center justify-between mb-6 pb-4 border-b border-gray-200">
+                <div class="flex items-center gap-3">
+                    <div class="bg-primary/10 p-3 rounded-lg">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-primary" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
+                        </svg>
+                    </div>
+                    <div>
+                        <h3 class="font-bold text-2xl text-gray-800">Editar Sede</h3>
+                        <p class="text-sm text-gray-500">Actualiza la información de la sede</p>
+                    </div>
+                </div>
+                <button
+                        onclick="cerrarModalEdicionSede()"
+                        class="btn btn-sm btn-circle btn-ghost hover:bg-gray-200"
+                        title="Cerrar"
+                >
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                    </svg>
+                </button>
+            </div>
+
+            <!-- Formulario de Edición -->
+            <form onsubmit="event.preventDefault(); guardarEdicionSede();">
+                <!-- Campo oculto para el ID -->
+                <input type="hidden" id="edit_sede_id">
+
+                <!-- Grid de Campos -->
+                <div class="space-y-4">
+                    <!-- Fila 1: Nombre de la Sede -->
+                    <div class="form-control">
+                        <label class="label">
+                        <span class="label-text font-semibold text-gray-700">
+                            <span class="text-error">*</span> Nombre de la Sede
+                        </span>
+                        </label>
+                        <input
+                                type="text"
+                                id="edit_sede_nombre"
+                                placeholder="Ej: Sede Norte"
+                                class="input input-bordered w-full focus:input-primary"
+                                required
+                        >
+                    </div>
+
+                    <!-- Fila 2: Dirección -->
+                    <div class="form-control">
+                        <label class="label">
+                        <span class="label-text font-semibold text-gray-700">
+                            <span class="text-error">*</span> Dirección
+                        </span>
+                        </label>
+                        <input
+                                type="text"
+                                id="edit_sede_direccion"
+                                placeholder="Ej: Calle 123 #45-67"
+                                class="input input-bordered w-full focus:input-primary"
+                                required
+                        >
+                    </div>
+
+                    <!-- Fila 3: Capacidad y Estado -->
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <!-- Capacidad -->
+                        <div class="form-control">
+                            <label class="label">
+                            <span class="label-text font-semibold text-gray-700">
+                                <span class="text-error">*</span> Capacidad
+                            </span>
+                            </label>
+                            <input
+                                    type="number"
+                                    id="edit_sede_capacidad"
+                                    placeholder="Ej: 100"
+                                    min="1"
+                                    class="input input-bordered w-full focus:input-primary"
+                                    required
+                            >
+                            <label class="label">
+                                <span class="label-text-alt text-gray-500">Número de espacios disponibles</span>
+                            </label>
+                        </div>
+
+                        <!-- Estado -->
+                        <div class="form-control">
+                            <label class="label">
+                            <span class="label-text font-semibold text-gray-700">
+                                <span class="text-error">*</span> Estado
+                            </span>
+                            </label>
+                            <select id="edit_sede_estado" class="select select-bordered w-full focus:select-primary" required>
+                                <option value="ACTIVO">Activo</option>
+                                <option value="INACTIVO">Inactivo</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Nota informativa -->
+                <div class="alert alert-info mt-6 shadow-sm">
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" class="stroke-current shrink-0 w-6 h-6">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                    </svg>
+                    <span>
+                    Los campos marcados con <span class="text-error font-bold">*</span> son obligatorios
+                </span>
+                </div>
+
+                <!-- Botones de Acción -->
+                <div class="modal-action mt-6 pt-4 border-t border-gray-200">
+                    <button
+                            type="button"
+                            onclick="cerrarModalEdicionSede()"
+                            class="btn btn-ghost"
+                    >
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                        </svg>
+                        Cancelar
+                    </button>
+                    <button
+                            type="submit"
+                            class="btn btn-primary"
+                    >
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+                        </svg>
+                        Guardar Cambios
+                    </button>
+                </div>
+            </form>
+        </div>
+
+        <!-- Backdrop para cerrar al hacer clic fuera -->
+        <form method="dialog" class="modal-backdrop">
+            <button>close</button>
+        </form>
+    </dialog>
+
+
+    <!-- SECCIÓN SEDES -->
+    <section id="sedes" class="content-section hidden">
+        <h2>Gestión de Sedes</h2>
+
+
+        <!-- FILTROS SIMPLIFICADOS PARA SEDES -->
+        <div class="flex flex-col md:flex-row justify-between items-center mb-6 gap-4">
+
+            <!-- ÚNICA BARRA DE BÚSQUEDA PARA TODO -->
+            <div class="flex items-center w-full md:w-1/2 border border-gray-300 rounded-md px-3 py-2">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                </svg>
+                <input id="busquedaSedes" type="text" placeholder="Buscar sedes por nombre, dirección, localidad, barrio, capacidad o estado..." class="ml-2 w-full focus:outline-none" />
+            </div>
+
+            <!-- SELECT UNIFICADO SIMPLE -->
+            <div class="flex gap-4 w-full md:w-auto">
+                <select id="filtroUnificadoSedes" class="border border-gray-300 rounded-md px-3 py-2 text-gray-700">
+                    <option value="">Todos</option>
+                    <option value="estado:activo">Activas</option>
+                    <option value="estado:inactivo">Inactivas</option>
+                </select>
+            </div>
+        </div>
+
+        <div class="overflow-x-auto mb-6">
+            <table id="tablaSedes">
+                <thead>
+                <tr>
+                    <th>Nombre</th>
+                    <th>Dirección</th>
+                    <th>Capacidad</th>
+                    <th>Localidad</th>
+                    <th>Barrio</th>
+                    <th>Estado</th>
+                    <th>Acciones</th>
+                </tr>
+                </thead>
+                <tbody id="tbodySedes">
+                <tr><td colspan="6" class="loading">Cargando sedes...</td></tr>
+                </tbody>
+            </table>
+        </div>
+
+        <h3 class="font-bold text-xl mb-4">Mapa de Sedes</h3>
+        <div id="map-container" style="height: 400px; width: 100%; border: 1px solid #ccc; border-radius: 8px;"></div>
+    </section>
+
+
+    <!-- SECCIÓN CORREOS -->
+    <section id="correos" class="content-section hidden">
+        <h2 class="text-2xl font-semibold text-blue-700 mb-6">Enviar Correo</h2>
+
+        <!-- Tabs de correo -->
+        <div class="tabs">
+            <button id="tab-correounitario" class="active">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+                </svg>
+                Correo Uno a Uno
+            </button>
+            <button id="tab-correomasivo">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
+                </svg>
+                Correo Masivo
+            </button>
+        </div>
+
+        <!-- Formulario Correo Uno a Uno -->
+        <div id="correoUnitario">
+            <form id="formCorreoUnitario">
+                <div class="form-control">
+                    <label for="emailSingle">Correo del destinatario</label>
+                    <input type="email" id="emailSingle" placeholder="ejemplo@correo.com" required>
+                </div>
+
+                <div class="form-control">
+                    <label for="subjectSingle">Asunto</label>
+                    <input type="text" id="subjectSingle" placeholder="Asunto del correo" required>
+                </div>
+
+                <div class="form-control">
+                    <label for="messageSingle">Mensaje</label>
+                    <textarea id="messageSingle" placeholder="Escribe el contenido del correo..." rows="6" required></textarea>
+                </div>
+
+                <button type="submit" class="btn-primary">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8" />
+                    </svg>
+                    Enviar Correo
+                </button>
+            </form>
+        </div>
+
+        <!-- Formulario Correo Masivo -->
+        <div id="correoMasivo" hidden>
+            <form id="formCorreoMasivo">
+                <div class="form-control">
+                    <label for="emailsMassive">Lista de correos (separados por coma)</label>
+                    <textarea id="emailsMassive" placeholder="correo1@ejemplo.com, correo2@ejemplo.com, ..." rows="4" required></textarea>
+                </div>
+
+                <div class="form-control">
+                    <label for="subjectMassive">Asunto</label>
+                    <input type="text" id="subjectMassive" placeholder="Asunto del correo" required>
+                </div>
+
+                <div class="form-control">
+                    <label for="messageMassive">Mensaje</label>
+                    <textarea id="messageMassive" placeholder="Escribe el contenido del correo..." rows="6" required></textarea>
+                </div>
+
+                <button type="submit" class="btn-primary">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8" />
+                    </svg>
+                    Enviar Masivamente
+                </button>
+            </form>
+        </div>
+    </section>
+
+    <!-- SECCIÓN GRÁFICAS -->
+    <section id="graficas" class="content-section hidden">
+        <h2>Estadísticas y Gráficas</h2>
+
+        <div class="chart-container">
+            <h3 class="text-center font-bold mb-4">Ingresos Mensuales</h3>
+            <canvas id="chartIngresos"></canvas>
+        </div>
+
+        <div class="chart-container">
+            <h3 class="text-center font-bold mb-4">Usuarios por Rol</h3>
+            <canvas id="chartUsuarios"></canvas>
+        </div>
+
+        <div class="chart-container">
+            <h3 class="text-center font-bold mb-4">Capacidad de Sedes</h3>
+            <canvas id="chartSedes"></canvas>
+        </div>
+    </section>
+
+    <!-- SECCIÓN CONFIGURACIÓN -->
+    <section id="configuracion" class="content-section hidden">
+        <h2>Configuración del Sistema</h2>
+        <div class="space-y-4">
+            <div class="p-4 bg-gray-50 rounded">
+                <h3 class="font-bold mb-2">Configuración General</h3>
+                <p class="text-gray-600">Opciones de configuración del sistema (próximamente)</p>
+            </div>
+            <div class="p-4 bg-gray-50 rounded">
+                <h3 class="font-bold mb-2">Gestión de Permisos</h3>
+                <p class="text-gray-600">Control de roles y permisos (próximamente)</p>
+            </div>
+            <div class="p-4 bg-gray-50 rounded">
+                <h3 class="font-bold mb-2">Respaldos</h3>
+                <p class="text-gray-600">Configuración de backups automáticos (próximamente)</p>
+            </div>
+        </div>
+    </section>
+</main>
+
+<!-- Modal para detalles de sede -->
+<div id="modalSede" class="modal-overlay" role="dialog" aria-labelledby="modalSedeTitle" aria-hidden="true">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h3 id="modalSedeTitle">Información de la Sede</h3>
+            <button class="modal-close" onclick="cerrarModalSede()" aria-label="Cerrar modal" type="button">&times;</button>
+        </div>
+        <div class="modal-body" id="modalSedeBody">
+            <!-- El contenido se llenará dinámicamente -->
+        </div>
+    </div>
+</div>
+
+<script src="/Script/AdminD.js"></script>
+</body>
+</html>
