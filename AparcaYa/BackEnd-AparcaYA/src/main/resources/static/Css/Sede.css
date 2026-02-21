@@ -1,581 +1,1017 @@
-/* ==================== ANIMACIONES ==================== */
+/* ================================================
+   SEDE.CSS — AparcaYA
+   Parte 1/3: Layout Base (Animaciones, Sidebar,
+   Header, Dashboard, Indicadores, Secciones)
+   ================================================
+   PROBLEMA ORIGINAL: Todo el CSS estaba dentro
+   de una etiqueta <style> en el HTML. Esto:
+   ❌ Impide reutilizar estilos entre páginas
+   ❌ Mezcla contenido con presentación
+   ❌ Dificulta el mantenimiento
+   SOLUCIÓN: Extraído a este archivo externo.
+
+   CONFLICTOS CORREGIDOS vs versión anterior:
+   ✅ table, th, td (globales) → .sede-table
+   ✅ .modal                  → .sede-modal
+   ✅ .modal-box              → .sede-modal-box
+   ✅ .modal-action           → .sede-modal-action
+   ✅ .btn-primary            → .sede-btn-primary
+   ✅ .btn-outline            → .sede-btn-outline
+   ✅ .btn-danger             → .sede-btn-danger
+   ✅ .btn-success            → .sede-btn-success
+   ✅ .btn-secondary          → .sede-btn-secondary
+   ✅ .btn-info               → .sede-btn-info
+   ✅ .tabs                   → .sede-tabs
+   ✅ .form-control           → .sede-form-control
+   ✅ .form-group             → .sede-form-group
+   ✅ .dropdown-menu          → .sede-dropdown
+   ✅ Clases faltantes añadidas:
+      .sub-section, .sub-section-title,
+      .section-title, .filter-bar,
+      .error-message, .success-message
+
+   PREFIJO USADO: "sede-" para este módulo
+   ================================================ */
+
+
+/* ================================================
+   1. ANIMACIONES
+   Con prefijo sede- para no interferir con
+   animaciones de Tailwind o DaisyUI
+   ================================================ */
+
+/* Clase que se agrega a elementos para que aparezcan
+   subiendo desde abajo con fundido al cargar la página */
 .animate-fade-in-up {
-    opacity: 0;
-    transform: translateY(20px);
-    animation: fadeInUp 0.8s ease forwards;
+    opacity: 0;                                 /* Empieza invisible */
+    transform: translateY(20px);                /* Empieza 20px más abajo de su posición */
+    animation: sede-fadeInUp 0.8s ease forwards; /* Ejecuta la animación una sola vez */
 }
 
-@keyframes fadeInUp {
+/* Definición de la animación: el elemento sube y aparece */
+@keyframes sede-fadeInUp {
     to {
-        opacity: 1;
-        transform: translateY(0);
+        opacity: 1;                             /* Termina completamente visible */
+        transform: translateY(0);               /* Termina en su posición correcta */
     }
 }
 
-/* ==================== SIDEBAR ==================== */
+
+/* ================================================
+   2. SIDEBAR — Barra lateral izquierda fija
+   ================================================ */
+
 .sidebar {
-    background: #00BFFF;
-    color: white;
-    height: 100vh;
-    width: 220px;
-    padding: 2rem 1rem;
-    display: flex;
-    flex-direction: column;
-    box-shadow: 2px 0 12px rgba(0,0,0,0.1);
-    position: fixed;
-    left: 0;
-    top: 0;
-    transition: transform 0.3s ease;
-    z-index: 30;
+    background: #00BFFF;                        /* Color azul principal de AparcaYA */
+    color: white;                               /* Todo el texto dentro del sidebar en blanco */
+    height: 100vh;                              /* Ocupa el 100% de la altura visible */
+    width: 220px;                               /* Ancho fijo de la barra lateral */
+    padding: 2rem 1rem;                         /* Espacio interior: 2rem arriba/abajo, 1rem lados */
+    display: flex;                              /* Flexbox para organizar hijos en columna */
+    flex-direction: column;                     /* Logo arriba, navegación abajo */
+    box-shadow: 2px 0 12px rgba(0, 0, 0, 0.1); /* Sombra suave hacia la derecha */
+    position: fixed;                            /* Se queda fijo aunque el usuario haga scroll */
+    left: 0;                                    /* Pegado al borde izquierdo */
+    top: 0;                                     /* Pegado al borde superior */
+    transition: transform 0.3s ease;            /* Animación suave al mostrar/ocultar */
+    z-index: 30;                                /* Capa 30: encima del contenido normal */
 }
 
+/* Estado oculto del sidebar en móvil
+   JavaScript agrega/quita esta clase con el botón toggle */
 .sidebar.hidden {
-    transform: translateX(-100%);
+    transform: translateX(-100%);               /* Mueve el sidebar fuera de la pantalla hacia la izquierda */
 }
 
 .sidebar-header {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    margin-bottom: 2.5rem;
+    display: flex;                              /* Flexbox para apilar ícono y texto */
+    flex-direction: column;                     /* Ícono arriba, texto abajo */
+    align-items: center;                        /* Centra horizontalmente */
+    margin-bottom: 2.5rem;                      /* Espacio entre el header y la navegación */
 }
 
 .sidebar-header svg {
-    width: 56px;
-    height: 56px;
-    color: white;
+    width: 56px;                                /* Ancho del ícono del logo */
+    height: 56px;                               /* Alto del ícono del logo */
+    color: white;                               /* Color del SVG */
 }
 
 .sidebar-header h1 {
-    font-size: 1.75rem;
-    font-weight: 700;
-    letter-spacing: 3px;
-    margin-top: 0.5rem;
+    font-size: 1.75rem;                         /* Tamaño del texto "AparcaYa" */
+    font-weight: 700;                           /* Negrita */
+    letter-spacing: 3px;                        /* Espaciado entre letras para estilo moderno */
+    margin-top: 0.5rem;                         /* Espacio entre el ícono y el texto */
 }
 
 nav.sidebar-nav {
-    display: flex;
-    flex-direction: column;
-    gap: 1.25rem;
+    display: flex;                              /* Flexbox para los links de navegación */
+    flex-direction: column;                     /* Links apilados verticalmente */
+    gap: 1.25rem;                               /* Espacio entre cada link */
 }
 
 nav.sidebar-nav a {
-    font-weight: 600;
-    text-decoration: none;
-    color: white;
-    padding: 0.75rem 0.5rem;
-    border-left: 4px solid transparent;
-    transition: background-color 0.3s, border-color 0.3s;
-    cursor: pointer;
-    user-select: none;
+    font-weight: 600;                           /* Semi-negrita */
+    text-decoration: none;                      /* Sin subrayado */
+    color: white;                               /* Texto blanco */
+    padding: 0.75rem 0.5rem;                    /* Espacio interior del link */
+    border-left: 4px solid transparent;         /* Borde izquierdo invisible por defecto */
+    transition: background-color 0.3s,          /* Suaviza el cambio de fondo */
+                border-color 0.3s;              /* Suaviza el cambio del borde */
+    cursor: pointer;                            /* Cursor de mano */
+    user-select: none;                          /* Evita selección accidental del texto */
+    border-radius: 0 0.25rem 0.25rem 0;        /* Esquinas redondeadas solo en la derecha */
 }
 
-nav.sidebar-nav a:hover,
-nav.sidebar-nav a.active {
-    background-color: rgba(255, 255, 255, 0.25);
-    border-left-color: white;
+nav.sidebar-nav a:hover,                       /* Al pasar el mouse */
+nav.sidebar-nav a.active {                     /* Link activo (sección actual) */
+    background-color: rgba(255, 255, 255, 0.25); /* Fondo blanco semitransparente */
+    border-left-color: white;                   /* Línea blanca visible en el borde izquierdo */
 }
 
-/* ==================== HEADER ==================== */
+
+/* ================================================
+   3. HEADER — Barra superior fija
+   ================================================ */
+
 header.page-header {
-    position: fixed;
-    top: 0;
-    left: 220px;
-    right: 0;
-    height: 64px;
-    background: white;
-    border-bottom: 1px solid #e2e8f0;
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    padding: 0 1.5rem;
-    z-index: 40;
-    transition: left 0.3s ease;
+    position: fixed;                            /* Fijo en la parte superior al hacer scroll */
+    top: 0;                                     /* Pegado al borde superior */
+    left: 220px;                                /* Empieza donde termina el sidebar (220px) */
+    right: 0;                                   /* Se extiende hasta el borde derecho */
+    height: 64px;                               /* Altura fija del header */
+    background: white;                          /* Fondo blanco */
+    border-bottom: 1px solid #e2e8f0;           /* Línea gris clara en la parte inferior */
+    display: flex;                              /* Flexbox para alinear logo y perfil */
+    align-items: center;                        /* Centra verticalmente */
+    justify-content: space-between;             /* Logo a la izquierda, perfil a la derecha */
+    padding: 0 1.5rem;                          /* Espacio interior horizontal */
+    z-index: 40;                                /* Capa 40: encima del sidebar (z-index 30) */
+    transition: left 0.3s ease;                 /* Animación al colapsar/expandir sidebar */
 }
 
+/* Estado cuando el sidebar está oculto:
+   el header se extiende desde el borde izquierdo */
 header.page-header.sidebar-hidden {
-    left: 0;
+    left: 0;                                    /* Ocupa todo el ancho de la pantalla */
 }
 
 .logo-section {
-    display: flex;
-    align-items: center;
-    gap: 0.75rem;
+    display: flex;                              /* Flexbox para alinear botón toggle + ícono + texto */
+    align-items: center;                        /* Centra verticalmente todos los elementos */
+    gap: 0.75rem;                               /* Espacio entre cada elemento */
 }
 
 .logo-section svg {
-    color: #00BFFF;
-    width: 40px;
+    color: #00BFFF;                             /* Color azul para el ícono del header */
+    width: 40px;                                /* Tamaño del ícono */
     height: 40px;
 }
 
 .logo-section h1 {
-    font-weight: 700;
-    font-size: 1.75rem;
-    color: #0369a1;
-    user-select: none;
+    font-weight: 700;                           /* Negrita */
+    font-size: 1.75rem;                         /* Tamaño del texto del logo */
+    color: #0369a1;                             /* Azul oscuro sobre fondo blanco */
+    user-select: none;                          /* Evita selección accidental */
 }
 
-/* ==================== PROFILE MENU ==================== */
+
+/* ================================================
+   4. MENÚ DE PERFIL (DROPDOWN)
+   CAMBIO: era .dropdown-menu → ahora .sede-dropdown
+   Razón: DaisyUI usa .dropdown internamente y puede
+   generar conflictos de display y z-index
+   ================================================ */
+
 .profile-menu {
-    position: relative;
+    position: relative;                         /* Para posicionar el dropdown respecto a este */
 }
 
 .profile-btn {
-    background: transparent;
-    border: none;
-    cursor: pointer;
-    padding: 0.25rem;
-    border-radius: 9999px;
-    outline: none;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    transition: background-color 0.2s;
+    background: transparent;                    /* Sin fondo visible */
+    border: none;                               /* Sin borde */
+    cursor: pointer;                            /* Cursor de mano */
+    padding: 0.25rem;                           /* Pequeño espacio interior */
+    border-radius: 9999px;                      /* Completamente redondo */
+    outline: none;                              /* Sin borde de focus predeterminado */
+    display: flex;                              /* Para centrar el ícono */
+    align-items: center;                        /* Centra verticalmente */
+    justify-content: center;                    /* Centra horizontalmente */
+    transition: background-color 0.2s;          /* Suaviza el cambio de fondo */
 }
 
 .profile-btn:hover {
-    background-color: #e0f2fe;
+    background-color: #e0f2fe;                  /* Fondo azul muy claro al pasar el mouse */
 }
 
 .profile-btn svg {
-    width: 36px;
+    width: 36px;                                /* Tamaño del ícono de usuario */
     height: 36px;
-    color: #00BFFF;
+    color: #00BFFF;                             /* Color azul del ícono */
 }
 
-.dropdown-menu {
-    position: absolute;
-    top: calc(100% + 0.5rem);
-    right: 0;
-    background: white;
-    border-radius: 0.5rem;
-    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.15);
-    min-width: 180px;
-    display: none;
-    flex-direction: column;
-    padding: 0.5rem 0;
-    font-weight: 600;
-    z-index: 50;
+.sede-dropdown {
+    position: absolute;                         /* Se posiciona respecto al .profile-menu */
+    top: calc(100% + 0.5rem);                   /* Justo debajo del botón de perfil */
+    right: 0;                                   /* Alineado al borde derecho */
+    background: white;                          /* Fondo blanco */
+    border-radius: 0.5rem;                      /* Esquinas redondeadas */
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.15); /* Sombra para dar profundidad */
+    min-width: 180px;                           /* Ancho mínimo del menú */
+    display: none;                              /* Oculto por defecto */
+    flex-direction: column;                     /* Opciones en columna */
+    padding: 0.5rem 0;                          /* Espacio interior arriba y abajo */
+    font-weight: 600;                           /* Semi-negrita */
+    z-index: 50;                                /* Por encima de todo */
 }
 
-.dropdown-menu.show {
-    display: flex;
+.sede-dropdown.show {
+    display: flex;                              /* JavaScript agrega .show para mostrarlo */
 }
 
-.dropdown-menu button {
-    background: transparent;
-    border: none;
-    text-align: left;
-    padding: 0.75rem 1.5rem;
-    width: 100%;
-    cursor: pointer;
-    transition: background-color 0.2s;
-    font-size: 1rem;
-    color: #334155;
+.sede-dropdown button {
+    background: transparent;                    /* Sin fondo */
+    border: none;                               /* Sin borde */
+    text-align: left;                           /* Texto a la izquierda */
+    padding: 0.75rem 1.5rem;                    /* Espacio interior de cada opción */
+    width: 100%;                                /* Ocupa todo el ancho */
+    cursor: pointer;                            /* Cursor de mano */
+    transition: background-color 0.2s;          /* Suaviza el cambio de color */
+    font-size: 1rem;                            /* Tamaño del texto */
+    color: #334155;                             /* Gris oscuro para el texto */
 }
 
-.dropdown-menu button:hover {
-    background-color: #e0f2fe;
-    color: #0284c7;
+.sede-dropdown button:hover {
+    background-color: #e0f2fe;                  /* Fondo azul muy claro al pasar el mouse */
+    color: #0284c7;                             /* Texto azul al pasar el mouse */
 }
 
-/* ==================== MAIN CONTENT ==================== */
+
+/* ================================================
+   5. ÁREA PRINCIPAL (DASHBOARD)
+   ================================================ */
+
 main.dashboard {
-    margin-left: 220px;
-    margin-top: 64px;
-    background: #f9fafb;
-    min-height: calc(100vh - 64px);
-    padding: 2rem 2.5rem;
-    transition: margin-left 0.3s ease;
+    margin-left: 220px;                         /* Deja espacio para el sidebar */
+    margin-top: 64px;                           /* Deja espacio para el header */
+    background: #f9fafb;                        /* Fondo gris muy claro */
+    min-height: calc(100vh - 64px);             /* Mínimo: pantalla completa menos el header */
+    padding: 2rem 2.5rem;                       /* Espacio interior generoso */
+    transition: margin-left 0.3s ease;          /* Animación al colapsar el sidebar */
 }
 
+/* Cuando el sidebar está oculto: el contenido
+   se expande para ocupar todo el ancho */
 main.dashboard.sidebar-hidden {
-    margin-left: 0;
+    margin-left: 0;                             /* Sin margen izquierdo */
 }
+
+
+/* ================================================
+   6. SECCIONES DE CONTENIDO
+   Cada pantalla del dashboard vive en un
+   content-section. JavaScript las muestra/oculta
+   ================================================ */
 
 section.content-section {
-    background: white;
-    border-radius: 1rem;
-    padding: 2rem 2.5rem;
-    box-shadow: 0 15px 36px rgba(0, 191, 255, 0.07);
-    margin-bottom: 2rem;
+    background: white;                          /* Fondo blanco sobre el gris del dashboard */
+    border-radius: 1rem;                        /* Esquinas muy redondeadas */
+    padding: 2rem 2.5rem;                       /* Espacio interior */
+    box-shadow: 0 15px 36px rgba(0, 191, 255, 0.07); /* Sombra azul muy sutil */
+    margin-bottom: 2rem;                        /* Espacio entre secciones */
 }
 
-/* ==================== INDICATORS ==================== */
+/* Título de cada sección (ej: "🚗 Gestión de Vehículos") */
+.section-title {
+    font-size: 1.25rem;                         /* Tamaño del título */
+    font-weight: 700;                           /* Negrita */
+    color: #0369a1;                             /* Azul oscuro */
+    margin-bottom: 1rem;                        /* Espacio debajo del título */
+}
+
+
+/* ================================================
+   7. SUBSECCIONES
+   Contenedores internos dentro de una sección
+   (ej: "Registrar Entrada", "Vehículos Activos")
+   ================================================ */
+
+.sub-section {
+    background: white;                          /* Fondo blanco */
+    padding: 1.5rem;                            /* Espacio interior */
+    border-radius: 0.75rem;                     /* Esquinas redondeadas */
+    margin-bottom: 1.5rem;                      /* Espacio entre subsecciones */
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05); /* Sombra muy suave */
+}
+
+/* Título de cada subsección con línea azul decorativa */
+.sub-section-title {
+    font-size: 1rem;                            /* Tamaño del título */
+    font-weight: 700;                           /* Negrita */
+    color: #334155;                             /* Gris oscuro */
+    margin-bottom: 1rem;                        /* Espacio debajo del título */
+    padding-bottom: 0.5rem;                     /* Espacio interior debajo del texto */
+    border-bottom: 2px solid #00BFFF;           /* Línea azul decorativa como separador */
+}
+
+
+/* ================================================
+   8. INDICADORES CIRCULARES (DONUTS)
+   Panel de estadísticas de la sede
+   ================================================ */
+
 .user-indicators {
-    display: flex;
-    justify-content: center;
-    gap: 2rem;
-    margin-bottom: 2rem;
-    flex-wrap: wrap;
+    display: flex;                              /* Las tarjetas se muestran en fila */
+    justify-content: center;                    /* Centradas horizontalmente */
+    gap: 2rem;                                  /* Espacio entre tarjetas */
+    margin-bottom: 2rem;                        /* Espacio debajo de los indicadores */
+    flex-wrap: wrap;                            /* Se adaptan a varias filas si no caben */
 }
 
 .stats-card {
-    width: 170px;
-    height: 170px;
-    border-radius: 50%;
-    background: #d9f0e8;
-    box-shadow: 0 10px 25px rgba(0, 191, 255, 0.1);
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    user-select: none;
-    position: relative;
+    width: 170px;                               /* Ancho fijo de la tarjeta circular */
+    height: 170px;                              /* Alto igual al ancho para forma circular */
+    border-radius: 50%;                         /* Completamente redondo */
+    background: #d9f0e8;                        /* Fondo verde muy claro */
+    box-shadow: 0 10px 25px rgba(0, 191, 255, 0.1); /* Sombra azul suave */
+    display: flex;                              /* Flexbox para apilar label y donut */
+    flex-direction: column;                     /* Texto arriba, gráfico abajo */
+    align-items: center;                        /* Centra horizontalmente */
+    justify-content: center;                    /* Centra verticalmente */
+    user-select: none;                          /* Evita selección accidental */
+    position: relative;                         /* Para posicionar el número central */
 }
 
 .stats-label {
-    font-size: 1.15rem;
-    font-weight: 700;
-    color: #256d43;
-    margin-bottom: 1.25rem;
-    text-align: center;
+    font-size: 1.15rem;                         /* Tamaño del texto del título */
+    font-weight: 700;                           /* Negrita */
+    color: #256d43;                             /* Verde oscuro para el texto */
+    margin-bottom: 1.25rem;                     /* Espacio entre el label y el donut */
+    text-align: center;                         /* Centrado */
 }
 
 .donut-container {
-    position: relative;
-    width: 110px;
-    height: 110px;
+    position: relative;                         /* Para posicionar el número al centro */
+    width: 110px;                               /* Ancho del contenedor del SVG */
+    height: 110px;                              /* Alto del contenedor del SVG */
 }
 
 .donut-svg {
-    transform: rotate(-90deg);
+    transform: rotate(-90deg);                  /* Rota para que el arco empiece desde arriba */
 }
 
 .donut-ring {
-    fill: none;
-    stroke: #a3d9b1;
-    stroke-width: 14;
-    opacity: 0.5;
+    fill: none;                                 /* Sin relleno */
+    stroke: #a3d9b1;                            /* Verde claro para el anillo de fondo */
+    stroke-width: 14;                           /* Grosor del anillo */
+    opacity: 0.5;                               /* Semitransparente para que sea sutil */
 }
 
 .donut-segment {
-    fill: none;
-    stroke-width: 14;
-    stroke-linecap: round;
-    transition: stroke-dashoffset 0.5s ease;
+    fill: none;                                 /* Sin relleno */
+    stroke-width: 14;                           /* Mismo grosor que el anillo */
+    stroke-linecap: round;                      /* Extremos redondeados del arco */
+    transition: stroke-dashoffset 0.5s ease;    /* Animación suave al cambiar el valor */
 }
 
-.usuario-segment {
-    stroke: #34a853;
-}
-
-.cuota-segment {
-    stroke: #00bfa5;
-}
+/* Colores de los segmentos del donut */
+.usuario-segment { stroke: #34a853; }          /* Verde para usuarios conectados */
+.cuota-segment   { stroke: #00bfa5; }          /* Verde azulado para cuota de sedes */
 
 .donut-text {
-    position: absolute;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
-    font-weight: 700;
-    font-size: 2.5rem;
-    color: #34a853;
-    user-select: none;
+    position: absolute;                         /* Se posiciona sobre el SVG */
+    top: 50%;                                   /* 50% desde arriba */
+    left: 50%;                                  /* 50% desde la izquierda */
+    transform: translate(-50%, -50%);           /* Centra perfectamente */
+    font-weight: 700;                           /* Negrita */
+    font-size: 2.5rem;                          /* Número grande */
+    color: #34a853;                             /* Verde para el número */
+    user-select: none;                          /* Evita selección accidental */
 }
 
-/* ==================== TABLES ==================== */
-table {
-    width: 100%;
-    border-collapse: collapse;
-    border-radius: 8px;
-    overflow: hidden;
-    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.05);
-}
 
-th, td {
-    padding: 1rem 1.25rem;
-    border-bottom: 1px solid #e2e8f0;
-    color: #334155;
-    text-align: left;
-}
+/* ================================================
+   9. RESPONSIVE — ADAPTACIÓN A MÓVIL
+   En móvil el sidebar se convierte en una barra
+   de navegación inferior (como una app móvil)
+   ================================================ */
 
-th {
-    background-color: #ecfdf5;
-    font-weight: 700;
-    font-size: 0.875rem;
-    text-transform: uppercase;
-    letter-spacing: 0.05em;
-}
+@media (max-width: 768px) {                     /* Se aplica en pantallas menores a 768px */
 
-tbody tr {
-    transition: background-color 0.2s;
-}
-
-tbody tr:hover {
-    background-color: #bbf7d0;
-}
-
-/* ==================== BUTTONS ==================== */
-.btn-primary {
-    background-color: #00BFFF;
-    color: white;
-    padding: 0.5rem 1.5rem;
-    border-radius: 0.375rem;
-    border: none;
-    cursor: pointer;
-    transition: all 0.3s;
-    font-weight: 600;
-    display: inline-flex;
-    align-items: center;
-    gap: 0.5rem;
-}
-
-.btn-primary:hover {
-    background-color: #0099cc;
-    transform: translateY(-2px);
-    box-shadow: 0 4px 12px rgba(0, 191, 255, 0.3);
-}
-
-.btn-outline {
-    border: 2px solid #00BFFF;
-    color: #00BFFF;
-    padding: 0.5rem 1rem;
-    border-radius: 0.375rem;
-    background: transparent;
-    cursor: pointer;
-    transition: all 0.3s;
-    display: inline-flex;
-    align-items: center;
-    gap: 0.25rem;
-    font-weight: 600;
-}
-
-.btn-outline:hover {
-    background-color: #00BFFF;
-    color: white;
-    transform: translateY(-2px);
-}
-
-.btn-danger {
-    background-color: #dc3545;
-    color: white;
-    padding: 0.5rem 1rem;
-    border-radius: 0.375rem;
-    border: none;
-    cursor: pointer;
-    transition: all 0.3s;
-    display: inline-flex;
-    align-items: center;
-    gap: 0.25rem;
-    font-weight: 600;
-}
-
-.btn-danger:hover {
-    background-color: #c82333;
-    transform: translateY(-2px);
-    box-shadow: 0 4px 12px rgba(220, 53, 69, 0.3);
-}
-
-/* ==================== TABS ==================== */
-.tabs {
-    display: flex;
-    gap: 1rem;
-    border-bottom: 3px solid #e0f2fe;
-    margin-bottom: 1.75rem;
-}
-
-.tabs button {
-    padding: 0.75rem 1.5rem;
-    border: none;
-    background: transparent;
-    font-weight: 700;
-    font-size: 1rem;
-    cursor: pointer;
-    border-bottom: 4px solid transparent;
-    color: #0284c7;
-    transition: all 0.3s;
-    display: flex;
-    align-items: center;
-    gap: 0.5rem;
-}
-
-.tabs button.active {
-    border-color: #0284c7;
-    color: #0369a1;
-}
-
-.tabs button:hover:not(.active) {
-    color: #06b6d4;
-    background-color: rgba(224, 242, 254, 0.5);
-}
-
-/* ==================== MODAL ==================== */
-.modal {
-    display: none;
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background: rgba(0, 0, 0, 0.6);
-    z-index: 99999;
-    opacity: 0;
-    transition: opacity 0.3s ease;
-    overflow-y: auto;
-}
-
-.modal.open {
-    display: flex !important;
-    align-items: center;
-    justify-content: center;
-    opacity: 1;
-}
-
-.modal-box {
-    background: white;
-    border-radius: 0.75rem;
-    padding: 2rem;
-    max-width: 500px;
-    width: 90%;
-    box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.3), 0 10px 10px -5px rgba(0, 0, 0, 0.2);
-    transform: scale(0.9);
-    transition: transform 0.3s ease;
-    position: relative;
-    z-index: 100000;
-    max-height: 90vh;
-    overflow-y: auto;
-}
-
-.modal.open .modal-box {
-    transform: scale(1);
-}
-
-.modal-box h3 {
-    font-size: 1.5rem;
-    font-weight: 700;
-    margin-bottom: 1.5rem;
-    color: #0369a1;
-}
-
-.modal-box label {
-    display: block;
-    margin-top: 1rem;
-    font-weight: 600;
-    color: #334155;
-    margin-bottom: 0.5rem;
-    font-size: 0.875rem;
-    text-transform: uppercase;
-    letter-spacing: 0.05em;
-}
-
-.modal-box input {
-    width: 100%;
-    padding: 0.75rem;
-    border: 2px solid #cbd5e1;
-    border-radius: 0.375rem;
-    font-size: 1rem;
-    transition: border-color 0.2s;
-    background: white !important;
-    color: #000 !important;
-}
-
-.modal-box input:focus {
-    outline: none !important;
-    border-color: #00BFFF !important;
-    box-shadow: 0 0 0 3px rgba(0, 191, 255, 0.1) !important;
-}
-
-.modal-action {
-    display: flex;
-    justify-content: flex-end;
-    gap: 1rem;
-    margin-top: 2rem;
-}
-
-/* ==================== FORMS ==================== */
-.form-control {
-    margin-bottom: 1rem;
-}
-
-.form-control label {
-    display: block;
-    margin-bottom: 0.5rem;
-    font-weight: 600;
-    color: #334155;
-}
-
-.form-control input,
-.form-control textarea,
-.form-control select {
-    width: 100%;
-    padding: 0.75rem;
-    border: 2px solid #cbd5e1;
-    border-radius: 0.375rem;
-    font-size: 1rem;
-    transition: border-color 0.2s;
-}
-
-.form-control input:focus,
-.form-control textarea:focus,
-.form-control select:focus {
-    outline: none;
-    border-color: #00BFFF;
-    box-shadow: 0 0 0 3px rgba(0, 191, 255, 0.1);
-}
-
-/* ==================== RESPONSIVE ==================== */
-@media (max-width: 768px) {
     .sidebar {
-        position: fixed;
-        height: auto;
-        width: 100%;
-        bottom: 0;
+        position: fixed;                        /* Sigue siendo fijo */
+        height: auto;                           /* Alto automático según el contenido */
+        width: 100%;                            /* Ocupa todo el ancho de la pantalla */
+        bottom: 0;                              /* Se ubica en la PARTE INFERIOR */
         left: 0;
-        top: auto;
-        flex-direction: row;
-        justify-content: space-around;
-        padding: 0.75rem 0;
-        z-index: 50;
+        top: auto;                              /* Cancela el top: 0 del modo escritorio */
+        flex-direction: row;                    /* Los elementos se organizan en fila */
+        justify-content: space-around;          /* Links espaciados uniformemente */
+        padding: 0.75rem 0;                     /* Espacio interior reducido */
+        z-index: 50;                            /* Por encima del contenido */
     }
 
     .sidebar-header {
-        display: none;
+        display: none;                          /* Oculta el logo en móvil (no cabe en la barra) */
     }
 
     nav.sidebar-nav {
-        flex-direction: row;
-        width: 100%;
-        justify-content: space-around;
+        flex-direction: row;                    /* Links en fila horizontal */
+        width: 100%;                            /* Ocupa todo el ancho */
+        justify-content: space-around;          /* Links distribuidos uniformemente */
     }
 
     nav.sidebar-nav a {
-        border-left: none;
-        border-top: 4px solid transparent;
-        padding: 0.5rem 1rem;
-        text-align: center;
+        border-left: none;                      /* Sin borde izquierdo en móvil */
+        border-top: 4px solid transparent;      /* El indicador activo va ARRIBA del link */
+        padding: 0.5rem 1rem;                   /* Espacio interior más compacto */
+        text-align: center;                     /* Texto centrado */
     }
 
     nav.sidebar-nav a:hover,
     nav.sidebar-nav a.active {
-        border-left-color: transparent;
-        border-top-color: white;
+        border-left-color: transparent;         /* Elimina el borde izquierdo */
+        border-top-color: white;                /* El indicador activo es una línea blanca arriba */
     }
 
     header.page-header {
-        left: 0 !important;
+        left: 0 !important;                     /* El header ocupa todo el ancho */
     }
 
     main.dashboard {
-        margin-left: 0 !important;
-        margin-top: 64px;
-        margin-bottom: 80px;
-        padding: 1rem;
+        margin-left: 0 !important;              /* Sin margen izquierdo */
+        margin-top: 64px;                       /* Mantiene el espacio del header */
+        margin-bottom: 80px;                    /* Deja espacio para la barra de navegación inferior */
+        padding: 1rem;                          /* Reduce el espacio interior */
     }
 
     .user-indicators {
-        justify-content: center;
+        justify-content: center;                /* Centra los indicadores */
     }
 
     .stats-card {
-        width: 140px;
+        width: 140px;                           /* Tarjetas más pequeñas en móvil */
         height: 140px;
     }
+}
 
-    .modal-box {
-        width: 95%;
-        padding: 1.5rem;
+/* ================================================
+   SEDE.CSS — AparcaYA
+   Parte 2/3: Tablas, Botones, Formularios,
+   Tabs, Filtros y Utilidades
+   ================================================ */
+
+
+/* ================================================
+   10. TABLA DE DATOS
+   CAMBIO CRÍTICO: era "table, th, td" (selectores
+   globales que afectaban TODO el HTML incluyendo
+   tablas internas de DaisyUI)
+   AHORA: .sede-table (solo afecta nuestras tablas)
+   ================================================ */
+
+.sede-table {
+    width: 100%;                                /* Ocupa todo el ancho disponible */
+    border-collapse: collapse;                  /* Elimina el espacio doble entre celdas */
+    border-radius: 8px;                         /* Esquinas redondeadas */
+    overflow: hidden;                           /* Necesario para que border-radius funcione */
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.05); /* Sombra suave */
+    background: white;                          /* Fondo blanco */
+}
+
+.sede-table th,                                /* Encabezados de columna */
+.sede-table td {                               /* Celdas de datos */
+    padding: 1rem 1.25rem;                      /* Espacio interior de cada celda */
+    border-bottom: 1px solid #e2e8f0;           /* Línea gris clara entre filas */
+    color: #334155;                             /* Gris oscuro para el texto */
+    text-align: left;                           /* Texto alineado a la izquierda */
+}
+
+.sede-table th {
+    background-color: #ecfdf5;                  /* Verde muy claro para los encabezados */
+    font-weight: 700;                           /* Negrita */
+    font-size: 0.875rem;                        /* Texto ligeramente más pequeño */
+    text-transform: uppercase;                  /* ENCABEZADOS EN MAYÚSCULAS */
+    letter-spacing: 0.05em;                     /* Ligero espaciado entre letras */
+}
+
+.sede-table tbody tr {
+    transition: background-color 0.2s;          /* Suaviza el cambio de color al pasar el mouse */
+}
+
+.sede-table tbody tr:hover {
+    background-color: #bbf7d0;                  /* Verde claro al pasar el mouse */
+}
+
+
+/* ================================================
+   11. BOTONES PROPIOS
+   TODOS renombrados con prefijo sede- para no
+   chocar con los botones de DaisyUI:
+   (.btn, .btn-primary, .btn-outline, .btn-danger,
+    .btn-success, .btn-ghost, .btn-circle, etc.)
+
+   NOTA: En el HTML hay un botón con class="btn btn-ghost
+   btn-circle" que es de DaisyUI (el toggle del sidebar).
+   ESE botón NO se toca y funciona con DaisyUI.
+   ================================================ */
+
+/* Estilos base compartidos por todos los botones */
+.sede-btn-primary,
+.sede-btn-outline,
+.sede-btn-danger,
+.sede-btn-success,
+.sede-btn-secondary,
+.sede-btn-info {
+    padding: 0.5rem 1rem;                       /* Espacio interior */
+    border-radius: 0.375rem;                    /* Esquinas redondeadas */
+    cursor: pointer;                            /* Cursor de mano */
+    font-weight: 600;                           /* Semi-negrita */
+    display: inline-flex;                       /* Para alinear íconos + texto */
+    align-items: center;                        /* Centra verticalmente */
+    gap: 0.5rem;                                /* Espacio entre ícono y texto */
+    transition: all 0.3s;                       /* Suaviza todos los cambios visuales */
+    border: none;                               /* Sin borde por defecto (excepto outline) */
+    font-size: 0.9rem;                          /* Tamaño de texto consistente */
+}
+
+/* --- Botón Principal (Azul AparcaYA) ---
+   CAMBIO: era .btn-primary → ahora .sede-btn-primary */
+.sede-btn-primary {
+    background-color: #00BFFF;                  /* Azul principal de AparcaYA */
+    color: white;                               /* Texto blanco */
+    padding: 0.5rem 1.5rem;                     /* Un poco más de padding horizontal */
+}
+
+.sede-btn-primary:hover {
+    background-color: #0099cc;                  /* Azul más oscuro al pasar el mouse */
+    transform: translateY(-2px);                /* Efecto de levantamiento */
+    box-shadow: 0 4px 12px rgba(0, 191, 255, 0.3); /* Sombra azul al pasar el mouse */
+}
+
+/* --- Botón Outline (Borde azul) ---
+   CAMBIO: era .btn-outline → ahora .sede-btn-outline */
+.sede-btn-outline {
+    border: 2px solid #00BFFF;                  /* Borde azul de 2px */
+    color: #00BFFF;                             /* Texto azul */
+    background: transparent;                    /* Sin fondo */
+}
+
+.sede-btn-outline:hover {
+    background-color: #00BFFF;                  /* Se rellena de azul al pasar el mouse */
+    color: white;                               /* Texto cambia a blanco */
+    transform: translateY(-2px);                /* Efecto de levantamiento */
+}
+
+/* --- Botón Peligro (Rojo) ---
+   CAMBIO: era .btn-danger → ahora .sede-btn-danger */
+.sede-btn-danger {
+    background-color: #dc3545;                  /* Rojo para acciones peligrosas */
+    color: white;                               /* Texto blanco */
+}
+
+.sede-btn-danger:hover {
+    background-color: #c82333;                  /* Rojo más oscuro al pasar el mouse */
+    transform: translateY(-2px);                /* Efecto de levantamiento */
+    box-shadow: 0 4px 12px rgba(220, 53, 69, 0.3); /* Sombra roja */
+}
+
+/* --- Botón Éxito (Verde) ---
+   CAMBIO: era .btn-success → ahora .sede-btn-success */
+.sede-btn-success {
+    background-color: #10b981;                  /* Verde para acciones positivas */
+    color: white;                               /* Texto blanco */
+}
+
+.sede-btn-success:hover {
+    background-color: #059669;                  /* Verde más oscuro al pasar el mouse */
+    transform: translateY(-2px);                /* Efecto de levantamiento */
+}
+
+/* --- Botón Secundario (Gris) ---
+   CAMBIO: era .btn-secondary → ahora .sede-btn-secondary */
+.sede-btn-secondary {
+    background-color: #64748b;                  /* Gris para acciones neutras */
+    color: white;                               /* Texto blanco */
+}
+
+.sede-btn-secondary:hover {
+    background-color: #475569;                  /* Gris más oscuro al pasar el mouse */
+    transform: translateY(-2px);                /* Efecto de levantamiento */
+}
+
+/* --- Botón Información (Azul medio) ---
+   CAMBIO: era .btn-info → ahora .sede-btn-info */
+.sede-btn-info {
+    background-color: #3b82f6;                  /* Azul para acciones informativas */
+    color: white;                               /* Texto blanco */
+}
+
+.sede-btn-info:hover {
+    background-color: #2563eb;                  /* Azul más oscuro al pasar el mouse */
+    transform: translateY(-2px);                /* Efecto de levantamiento */
+}
+
+
+/* ================================================
+   12. TABS (PESTAÑAS)
+   CAMBIO: era .tabs y .tabs button (conflicto con
+   DaisyUI que tiene .tabs, .tab, .tabs-boxed, etc.)
+   AHORA: .sede-tabs y .sede-tabs button
+   ================================================ */
+
+.sede-tabs {
+    display: flex;                              /* Las pestañas se muestran en fila */
+    gap: 1rem;                                  /* Espacio entre pestañas */
+    border-bottom: 3px solid #e0f2fe;           /* Línea azul claro debajo */
+    margin-bottom: 1.75rem;                     /* Espacio entre pestañas y contenido */
+}
+
+.sede-tabs button {
+    padding: 0.75rem 1.5rem;                    /* Espacio interior de cada pestaña */
+    border: none;                               /* Sin borde exterior */
+    background: transparent;                    /* Sin fondo */
+    font-weight: 700;                           /* Negrita */
+    font-size: 1rem;                            /* Tamaño del texto */
+    cursor: pointer;                            /* Cursor de mano */
+    border-bottom: 4px solid transparent;       /* Borde inferior invisible por defecto */
+    color: #0284c7;                             /* Azul para el texto */
+    transition: all 0.3s;                       /* Suaviza cambios visuales */
+    display: flex;                              /* Para alinear ícono + texto */
+    align-items: center;                        /* Centra verticalmente */
+    gap: 0.5rem;                                /* Espacio entre ícono y texto */
+    margin-bottom: -3px;                        /* Superpone el borde con el del contenedor */
+}
+
+.sede-tabs button.active {
+    border-color: #0284c7;                      /* Muestra el borde azul en la pestaña activa */
+    color: #0369a1;                             /* Azul más oscuro en la pestaña activa */
+}
+
+.sede-tabs button:hover:not(.active) {
+    color: #06b6d4;                             /* Azul cian al pasar el mouse */
+    background-color: rgba(224, 242, 254, 0.5); /* Fondo azul muy suave */
+}
+
+
+/* ================================================
+   13. FORMULARIOS PROPIOS
+   CAMBIO: era .form-control (conflicto con DaisyUI)
+   AHORA: .sede-form-control
+   También se añade .sede-form-group para los
+   campos del formulario de gestión de vehículos
+   ================================================ */
+
+/* Contenedor de campo de formulario — secciones de correo */
+.sede-form-control {
+    margin-bottom: 1rem;                        /* Espacio entre cada campo */
+}
+
+.sede-form-control label {
+    display: block;                             /* El label ocupa toda la fila */
+    margin-bottom: 0.5rem;                      /* Espacio entre label e input */
+    font-weight: 600;                           /* Semi-negrita */
+    color: #334155;                             /* Gris oscuro */
+}
+
+.sede-form-control input,                      /* Inputs de texto */
+.sede-form-control textarea,                   /* Áreas de texto */
+.sede-form-control select {                    /* Listas desplegables */
+    width: 100%;                               /* Ocupa todo el ancho */
+    padding: 0.75rem;                          /* Espacio interior */
+    border: 2px solid #cbd5e1;                 /* Borde gris claro */
+    border-radius: 0.375rem;                   /* Esquinas redondeadas */
+    font-size: 1rem;                           /* Tamaño de texto */
+    transition: border-color 0.2s;             /* Suaviza el cambio de borde */
+    background: white;                         /* Fondo blanco */
+}
+
+.sede-form-control input:focus,
+.sede-form-control textarea:focus,
+.sede-form-control select:focus {
+    outline: none;                             /* Sin borde de focus del navegador */
+    border-color: #00BFFF;                     /* Borde azul al enfocar */
+    box-shadow: 0 0 0 3px rgba(0, 191, 255, 0.1); /* Halo azul suave */
+}
+
+/* Contenedor de campo — formulario de gestión vehículos
+   CAMBIO: era .form-group → ahora .sede-form-group */
+.sede-form-group {
+    margin-bottom: 1rem;                        /* Espacio entre campos */
+}
+
+.sede-form-group label {
+    display: block;                             /* Ocupa toda la fila */
+    font-weight: 600;                           /* Semi-negrita */
+    margin-bottom: 0.4rem;                      /* Espacio entre label e input */
+    color: #334155;                             /* Gris oscuro */
+    font-size: 0.9rem;                          /* Texto ligeramente más pequeño */
+}
+
+.sede-form-group input,
+.sede-form-group select {
+    width: 100%;                               /* Ocupa todo el ancho */
+    padding: 0.6rem;                           /* Espacio interior compacto */
+    border: 1px solid #cbd5e1;                 /* Borde gris claro */
+    border-radius: 0.5rem;                     /* Esquinas redondeadas */
+    font-size: 0.9rem;                         /* Tamaño de texto */
+    transition: border-color 0.2s,
+                box-shadow 0.2s;               /* Suaviza cambios al enfocar */
+    background: white;                         /* Fondo blanco */
+}
+
+.sede-form-group input:focus,
+.sede-form-group select:focus {
+    outline: none;                             /* Sin borde de focus del navegador */
+    border-color: #00BFFF;                     /* Borde azul al enfocar */
+    box-shadow: 0 0 0 3px rgba(0, 191, 255, 0.2); /* Halo azul suave */
+}
+
+
+/* ================================================
+   14. MENSAJES DE VALIDACIÓN
+   Aparecen debajo de los campos del formulario
+   de gestión de vehículos en tiempo real
+   ================================================ */
+
+.error-message {
+    display: block;                             /* Ocupa su propia línea */
+    color: #ef4444;                             /* Rojo para errores */
+    font-size: 0.78rem;                         /* Texto muy pequeño */
+    margin-top: 0.25rem;                        /* Espacio encima del mensaje */
+    min-height: 1rem;                           /* Altura mínima para no saltar el layout */
+}
+
+.success-message {
+    display: block;                             /* Ocupa su propia línea */
+    color: #10b981;                             /* Verde para éxito */
+    font-size: 0.78rem;                         /* Texto muy pequeño */
+    margin-top: 0.25rem;                        /* Espacio encima del mensaje */
+    min-height: 1rem;                           /* Altura mínima para no saltar el layout */
+}
+
+
+/* ================================================
+   15. BARRA DE FILTROS
+   Usada en la sección de Historial
+   ================================================ */
+
+.filter-bar {
+    display: flex;                              /* Los filtros se muestran en fila */
+    gap: 1rem;                                  /* Espacio entre cada filtro */
+    margin-bottom: 1rem;                        /* Espacio debajo de los filtros */
+    flex-wrap: wrap;                            /* Si no caben, pasan a la siguiente fila */
+    align-items: center;                        /* Centra verticalmente */
+}
+
+.filter-bar input,                             /* Input de fecha */
+.filter-bar select {                           /* Select de estado */
+    padding: 0.5rem;                           /* Espacio interior */
+    border: 1px solid #cbd5e1;                 /* Borde gris claro */
+    border-radius: 0.5rem;                     /* Esquinas redondeadas */
+    font-size: 0.85rem;                        /* Texto pequeño */
+    background: white;                         /* Fondo blanco */
+    transition: border-color 0.2s;             /* Suaviza el cambio de borde */
+}
+
+.filter-bar input:focus,
+.filter-bar select:focus {
+    outline: none;                             /* Sin borde de focus del navegador */
+    border-color: #00BFFF;                     /* Borde azul al enfocar */
+}
+
+
+/* ================================================
+   16. TIEMPO ACTIVO — Temporizador de vehículos
+   Muestra el tiempo en formato monoespaciado
+   ================================================ */
+
+.tiempo-activo {
+    font-family: monospace;                     /* Fuente de ancho fijo para que los números no "salten" */
+    font-size: 0.9rem;                          /* Tamaño estándar */
+    font-weight: 700;                           /* Negrita */
+    color: #0369a1;                             /* Azul oscuro */
+    background: #e0f2fe;                        /* Fondo azul muy claro */
+    padding: 0.2rem 0.4rem;                     /* Espacio interior compacto */
+    border-radius: 0.25rem;                     /* Esquinas ligeramente redondeadas */
+}
+
+/* ================================================
+   SEDE.CSS — AparcaYA
+   Parte 3/3: Modal Propio y Animaciones
+   ================================================
+   CONFLICTO ORIGINAL MÁS GRAVE:
+   El CSS original definía .modal, .modal-box y
+   .modal-action con display:none, opacity:0 y
+   z-index:99999. Estos son EXACTAMENTE los mismos
+   nombres que DaisyUI usa para sus <dialog>.
+
+   Resultado: los modales de DaisyUI quedaban
+   completamente rotos porque nuestro CSS los
+   pisaba con display:none y opacity:0.
+
+   SOLUCIÓN: Renombrar TODO con prefijo sede-
+   y usar .show en lugar de .open para el estado
+   activo, dejando los nombres de DaisyUI libres.
+   ================================================ */
+
+
+/* ================================================
+   17. MODAL PROPIO — Registrar Trabajador
+   Este es el <div id="registrarTrabajadorModal">
+   que NO usa el sistema <dialog> de DaisyUI.
+   Es un modal tipo <div> controlado por JavaScript.
+
+   CAMBIO: era .modal → ahora .sede-modal
+   CAMBIO: era .modal-box → ahora .sede-modal-box
+   CAMBIO: era .modal-action → ahora .sede-modal-action
+   CAMBIO: la clase activa era .open → ahora .show
+   ================================================ */
+
+.sede-modal {
+    display: none;                              /* Oculto por defecto */
+    position: fixed;                            /* Cubre toda la pantalla */
+    top: 0;                                     /* Desde el borde superior */
+    left: 0;                                    /* Desde el borde izquierdo */
+    width: 100%;                                /* Todo el ancho */
+    height: 100%;                               /* Todo el alto */
+    background: rgba(0, 0, 0, 0.6);             /* Fondo negro semitransparente */
+    z-index: 99999;                             /* Capa muy alta, encima de todo */
+    opacity: 0;                                 /* Empieza transparente para la animación */
+    transition: opacity 0.3s ease;              /* Suaviza la aparición */
+    overflow-y: auto;                           /* Permite scroll si el contenido es largo */
+}
+
+/* Estado activo del modal
+   CAMBIO: era .modal.open → ahora .sede-modal.show
+   JavaScript agrega/quita la clase .show */
+.sede-modal.show {
+    display: flex !important;                   /* Muestra el modal como flexbox */
+    align-items: center;                        /* Centra el contenido verticalmente */
+    justify-content: center;                    /* Centra el contenido horizontalmente */
+    opacity: 1;                                 /* Completamente visible */
+}
+
+
+/* ================================================
+   18. CAJA DE CONTENIDO DEL MODAL
+   CAMBIO: era .modal-box → ahora .sede-modal-box
+   ================================================ */
+
+.sede-modal-box {
+    background: white;                          /* Fondo blanco del contenido */
+    border-radius: 0.75rem;                     /* Esquinas redondeadas */
+    padding: 2rem;                              /* Espacio interior generoso */
+    max-width: 500px;                           /* Ancho máximo */
+    width: 90%;                                 /* 90% del ancho de la pantalla */
+    box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.3),  /* Sombra principal profunda */
+                0 10px 10px -5px rgba(0, 0, 0, 0.2);   /* Sombra secundaria suave */
+    transform: scale(0.9);                      /* Empieza un poco más pequeño */
+    transition: transform 0.3s ease;            /* Animación de escala al aparecer */
+    position: relative;                         /* Para posicionar elementos internos */
+    z-index: 100000;                            /* Un nivel por encima del overlay */
+    max-height: 90vh;                           /* Máximo 90% de la pantalla */
+    overflow-y: auto;                           /* Scroll si el contenido es largo */
+}
+
+/* Cuando el modal está activo, la caja llega a su tamaño normal */
+.sede-modal.show .sede-modal-box {
+    transform: scale(1);                        /* Tamaño original (efecto pop-in) */
+}
+
+/* Título del modal */
+.sede-modal-box h3 {
+    font-size: 1.5rem;                          /* Tamaño grande para el título */
+    font-weight: 700;                           /* Negrita */
+    margin-bottom: 1.5rem;                      /* Espacio debajo del título */
+    color: #0369a1;                             /* Azul oscuro */
+}
+
+/* Labels de los campos del modal */
+.sede-modal-box label {
+    display: block;                             /* Ocupa toda la fila */
+    margin-top: 1rem;                           /* Espacio encima del label */
+    font-weight: 600;                           /* Semi-negrita */
+    color: #334155;                             /* Gris oscuro */
+    margin-bottom: 0.5rem;                      /* Espacio entre label e input */
+    font-size: 0.875rem;                        /* Texto ligeramente más pequeño */
+    text-transform: uppercase;                  /* ETIQUETAS EN MAYÚSCULAS */
+    letter-spacing: 0.05em;                     /* Ligero espaciado entre letras */
+}
+
+/* Inputs dentro del modal */
+.sede-modal-box input {
+    width: 100%;                               /* Ocupa todo el ancho */
+    padding: 0.75rem;                          /* Espacio interior */
+    border: 2px solid #cbd5e1;                 /* Borde gris claro */
+    border-radius: 0.375rem;                   /* Esquinas redondeadas */
+    font-size: 1rem;                           /* Tamaño de texto */
+    transition: border-color 0.2s;             /* Suaviza el cambio de borde */
+    background: white !important;              /* Fondo blanco (evita que el navegador ponga amarillo) */
+    color: #000 !important;                    /* Texto negro siempre visible */
+}
+
+.sede-modal-box input:focus {
+    outline: none !important;                  /* Sin borde de focus del navegador */
+    border-color: #00BFFF !important;          /* Borde azul al enfocar */
+    box-shadow: 0 0 0 3px rgba(0, 191, 255, 0.1) !important; /* Halo azul suave */
+}
+
+
+/* ================================================
+   19. ACCIONES DEL MODAL (Fila de botones)
+   CAMBIO: era .modal-action → ahora .sede-modal-action
+   ================================================ */
+
+.sede-modal-action {
+    display: flex;                              /* Botones en fila */
+    justify-content: flex-end;                  /* Alineados a la derecha */
+    gap: 1rem;                                  /* Espacio entre botones */
+    margin-top: 2rem;                           /* Espacio encima de los botones */
+}
+
+
+/* ================================================
+   20. MODAL RESPONSIVE
+   ================================================ */
+
+@media (max-width: 768px) {
+    .sede-modal-box {
+        width: 95%;                             /* Más ancho en móvil para aprovechar el espacio */
+        padding: 1.5rem;                        /* Menos padding en pantallas pequeñas */
     }
 }
+
+
+/* ================================================
+   FIN DEL ARCHIVO Sede.css
+   ================================================
+
+   RESUMEN — Clases propias del módulo Sede:
+   ┌──────────────────────┬───────────────────────┐
+   │ Sección              │ Clases                │
+   ├──────────────────────┼───────────────────────┤
+   │ Animaciones          │ .animate-fade-in-up   │
+   │                      │ sede-fadeInUp         │
+   ├──────────────────────┼───────────────────────┤
+   │ Layout               │ .sidebar              │
+   │                      │ .sidebar-header       │
+   │                      │ .sidebar-nav          │
+   │                      │ .page-header          │
+   │                      │ .logo-section         │
+   │                      │ .profile-menu         │
+   │                      │ .profile-btn          │
+   │                      │ .dashboard            │
+   ├──────────────────────┼───────────────────────┤
+   │ Dropdown             │ .sede-dropdown        │
+   ├──────────────────────┼───────────────────────┤
+   │ Secciones            │ .content-section      │
+   │                      │ .section-title        │
+   │                      │ .sub-section          │
+   │                      │ .sub-section-title    │
+   ├──────────────────────┼───────────────────────┤
+   │ Indicadores          │ .user-indicators      │
+   │                      │ .stats-card           │
+   │                      │ .stats-label          │
+   │                      │ .donut-container      │
+   │                      │ .donut-svg            │
+   │                      │ .donut-ring           │
+   │                      │ .donut-segment        │
+   │                      │ .usuario-segment      │
+   │                      │ .cuota-segment        │
+   │                      │ .donut-text           │
+   ├──────────────────────┼───────────────────────┤
+   │ Tabla                │ .sede-table           │
+   ├──────────────────────┼───────────────────────┤
+   │ Botones              │ .sede-btn-primary     │
+   │                      │ .sede-btn-outline     │
+   │                      │ .sede-btn-danger      │
+   │                      │ .sede-btn-success     │
+   │                      │ .sede-btn-secondary   │
+   │                      │ .sede-btn-info        │
+   ├──────────────────────┼───────────────────────┤
+   │ Tabs                 │ .sede-tabs            │
+   ├──────────────────────┼───────────────────────┤
+   │ Formularios          │ .sede-form-control    │
+   │                      │ .sede-form-group      │
+   │                      │ .error-message        │
+   │                      │ .success-message      │
+   │                      │ .filter-bar           │
+   ├──────────────────────┼───────────────────────┤
+   │ Utilidades           │ .tiempo-activo        │
+   ├──────────────────────┼───────────────────────┤
+   │ Modal propio         │ .sede-modal           │
+   │                      │ .sede-modal-box       │
+   │                      │ .sede-modal-action    │
+   └──────────────────────┴───────────────────────┘
+
+   Clases de DaisyUI que NO se tocan aquí:
+   .btn, .btn-ghost, .btn-circle (toggle sidebar)
+   .modal, .modal-box, .modal-action (DaisyUI dialogs)
+   .tabs, .tab (DaisyUI tabs)
+   .form-control, .input (DaisyUI forms)
+
+   IMPORTANTE — DaisyUI no estaba cargado:
+   El HTML original no tenía la etiqueta de DaisyUI
+   pero usaba clases como .btn, .btn-ghost, .btn-circle.
+   Se añade la importación en el HTML corregido.
+   ================================================ */

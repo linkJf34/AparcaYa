@@ -1,333 +1,694 @@
-/* ============================================
-   ESTILOS GENERALES
-   ============================================ */
+/* ================================================
+   CLIENTE.CSS — AparcaYA
+   Parte 1/3: Layout Base (Body, Sidebar, Header,
+   Dashboard, Secciones de Bienvenida y Reservas)
+   ================================================
+   PROBLEMAS ORIGINALES CORREGIDOS:
+
+   1. CSS DUPLICADO: Los estilos de .modal, .modal-box,
+      .info-grid, .badge y .hidden estaban definidos
+      tanto en este archivo como en un <style> dentro
+      del HTML. Se elimina el <style> del HTML y todo
+      vive aquí.
+
+   2. CONFLICTOS con DaisyUI corregidos:
+   ✅ table, th, td (globales) → .cli-table
+   ✅ .modal                   → .cli-modal
+   ✅ .modal-box               → .cli-modal-box
+   ✅ .badge                   → .cli-badge
+   ✅ .badge-activo            → .cli-badge-activo
+   ✅ .badge-inactivo          → .cli-badge-inactivo
+   ✅ .dropdown-menu           → .cli-dropdown
+   ✅ .hidden                  → eliminada (Tailwind la tiene)
+
+   3. Clases que NO tenían conflicto y se mantienen:
+      .sidebar, .sidebar-header, .sidebar-nav,
+      .page-header, .logo-section, .profile-menu,
+      .profile-btn, .dashboard, .welcome-section,
+      .user-reservas-section, .search-bar,
+      .info-grid, .info-item, .info-label,
+      .info-value, .content-section
+
+   PREFIJO USADO: "cli-" para este módulo
+   ================================================ */
+
+
+/* ================================================
+   1. ESTILOS GENERALES DEL BODY
+   ================================================ */
+
 body {
-    background-color: #f9fafb;
-    margin: 0;
-    font-family: system-ui, -apple-system, sans-serif;
+    background-color: #f9fafb;                  /* Fondo gris muy claro en toda la página */
+    margin: 0;                                  /* Elimina el margen predeterminado del navegador */
+    font-family: system-ui, -apple-system, sans-serif; /* Fuente del sistema operativo del usuario */
 }
 
-/* ============================================
-   SIDEBAR
-   ============================================ */
+
+/* ================================================
+   2. SIDEBAR — Barra lateral izquierda fija
+   Más angosta que los otros dashboards (180px
+   vs 220px) porque el cliente tiene menos opciones
+   ================================================ */
+
 .sidebar {
-    background: #00BFFF;
-    color: white;
-    height: 100vh;
-    width: 180px;
-    padding: 2rem 1rem;
-    position: fixed;
-    top: 0;
-    left: 0;
-    box-shadow: 2px 0 12px rgba(0,0,0,0.1);
-    display: flex;
-    flex-direction: column;
+    background: #00BFFF;                        /* Color azul principal de AparcaYA */
+    color: white;                               /* Todo el texto dentro del sidebar en blanco */
+    height: 100vh;                              /* Ocupa el 100% de la altura visible */
+    width: 180px;                               /* Más angosto que Admin/Trabajador (220px) */
+    padding: 2rem 1rem;                         /* Espacio interior: 2rem arriba/abajo, 1rem lados */
+    position: fixed;                            /* Se queda fijo aunque el usuario haga scroll */
+    top: 0;                                     /* Pegado al borde superior */
+    left: 0;                                    /* Pegado al borde izquierdo */
+    box-shadow: 2px 0 12px rgba(0, 0, 0, 0.1); /* Sombra suave hacia la derecha */
+    display: flex;                              /* Flexbox para organizar hijos en columna */
+    flex-direction: column;                     /* Logo arriba, navegación abajo */
 }
 
 .sidebar-header {
-    text-align: center;
-    margin-bottom: 2rem;
+    text-align: center;                         /* Centra el texto del logo */
+    margin-bottom: 2rem;                        /* Espacio entre el header y la navegación */
 }
 
 .sidebar-header h1 {
-    font-weight: 700;
-    font-size: 1.5rem;
-    letter-spacing: 2px;
+    font-weight: 700;                           /* Negrita */
+    font-size: 1.5rem;                          /* Tamaño del texto "AparcaYa" */
+    letter-spacing: 2px;                        /* Espaciado entre letras */
 }
 
 nav.sidebar-nav a {
-    font-weight: 600;
-    color: white;
-    padding: 0.75rem 0.5rem;
-    border-left: 4px solid transparent;
-    display: block;
-    margin-bottom: 1rem;
-    cursor: pointer;
-    text-decoration: none;
-    transition: all 0.3s;
+    font-weight: 600;                           /* Semi-negrita */
+    color: white;                               /* Texto blanco */
+    padding: 0.75rem 0.5rem;                    /* Espacio interior del link */
+    border-left: 4px solid transparent;         /* Borde izquierdo invisible por defecto */
+    display: block;                             /* Cada link ocupa toda la fila */
+    margin-bottom: 1rem;                        /* Espacio entre links */
+    cursor: pointer;                            /* Cursor de mano */
+    text-decoration: none;                      /* Sin subrayado */
+    transition: all 0.3s;                       /* Suaviza todos los cambios visuales */
+    border-radius: 0 0.25rem 0.25rem 0;        /* Esquinas redondeadas solo en la derecha */
 }
 
-nav.sidebar-nav a.active,
-nav.sidebar-nav a:hover {
-    background-color: rgba(255, 255, 255, 0.25);
-    border-left-color: white;
+nav.sidebar-nav a.active,                      /* Link de la sección activa */
+nav.sidebar-nav a:hover {                      /* Link al pasar el mouse */
+    background-color: rgba(255, 255, 255, 0.25); /* Fondo blanco semitransparente */
+    border-left-color: white;                   /* Línea blanca visible en el borde izquierdo */
 }
 
-/* ============================================
-   HEADER
-   ============================================ */
+
+/* ================================================
+   3. HEADER — Barra superior fija
+   También ajustada al ancho del sidebar (180px)
+   ================================================ */
+
 header.page-header {
-    position: fixed;
-    top: 0;
-    left: 180px;
-    right: 0;
-    height: 64px;
-    background: #fff;
-    border-bottom: 1px solid #e2e8f0;
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    padding: 0 1.5rem;
-    z-index: 40;
+    position: fixed;                            /* Fijo en la parte superior */
+    top: 0;                                     /* Pegado al borde superior */
+    left: 180px;                                /* Empieza donde termina el sidebar (180px) */
+    right: 0;                                   /* Se extiende hasta el borde derecho */
+    height: 64px;                               /* Altura fija del header */
+    background: #fff;                           /* Fondo blanco */
+    border-bottom: 1px solid #e2e8f0;           /* Línea gris clara en la parte inferior */
+    display: flex;                              /* Flexbox para alinear logo y perfil */
+    align-items: center;                        /* Centra verticalmente */
+    justify-content: space-between;             /* Logo a la izquierda, perfil a la derecha */
+    padding: 0 1.5rem;                          /* Espacio interior horizontal */
+    z-index: 40;                                /* Capa 40: encima del sidebar (z-index 30) */
 }
 
 .logo-section {
-    display: flex;
-    align-items: center;
-    gap: 0.75rem;
+    display: flex;                              /* Flexbox para alinear elementos */
+    align-items: center;                        /* Centra verticalmente */
+    gap: 0.75rem;                               /* Espacio entre elementos */
 }
 
 .logo-section h1 {
-    font-weight: 700;
-    font-size: 1.5rem;
-    color: #0369a1;
+    font-weight: 700;                           /* Negrita */
+    font-size: 1.5rem;                          /* Tamaño del texto del logo */
+    color: #0369a1;                             /* Azul oscuro */
 }
 
+
+/* ================================================
+   4. MENÚ DE PERFIL (DROPDOWN)
+   CAMBIO: era .dropdown-menu → ahora .cli-dropdown
+   Razón: DaisyUI tiene .dropdown internamente
+   y puede generar conflictos de display y z-index
+   ================================================ */
+
 .profile-menu {
-    position: relative;
+    position: relative;                         /* Para posicionar el dropdown respecto a este */
 }
 
 .profile-btn {
-    background: transparent;
-    border: none;
-    cursor: pointer;
-    padding: 0.5rem 1rem;
-    border-radius: 0.5rem;
-    font-weight: 600;
-    color: #0369a1;
+    background: transparent;                    /* Sin fondo visible */
+    border: none;                               /* Sin borde */
+    cursor: pointer;                            /* Cursor de mano */
+    padding: 0.5rem 1rem;                       /* Espacio interior más grande que otros dashboards */
+    border-radius: 0.5rem;                      /* Esquinas redondeadas */
+    font-weight: 600;                           /* Semi-negrita */
+    color: #0369a1;                             /* Azul oscuro */
+    transition: background-color 0.2s;          /* Suaviza el cambio de fondo */
 }
 
 .profile-btn:hover {
-    background: #e0f2fe;
+    background: #e0f2fe;                        /* Fondo azul muy claro al pasar el mouse */
 }
 
-.dropdown-menu {
-    position: absolute;
-    top: calc(100% + 0.5rem);
-    right: 0;
-    background: white;
-    border-radius: 0.5rem;
-    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.15);
-    min-width: 180px;
-    display: none;
-    flex-direction: column;
-    padding: 0.5rem 0;
-    z-index: 50;
+/* CAMBIO: era .dropdown-menu → .cli-dropdown */
+.cli-dropdown {
+    position: absolute;                         /* Se posiciona respecto al .profile-menu */
+    top: calc(100% + 0.5rem);                   /* Justo debajo del botón de perfil */
+    right: 0;                                   /* Alineado al borde derecho */
+    background: white;                          /* Fondo blanco */
+    border-radius: 0.5rem;                      /* Esquinas redondeadas */
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.15); /* Sombra para dar profundidad */
+    min-width: 180px;                           /* Ancho mínimo del menú */
+    display: none;                              /* Oculto por defecto */
+    flex-direction: column;                     /* Opciones apiladas en columna */
+    padding: 0.5rem 0;                          /* Espacio interior arriba y abajo */
+    z-index: 50;                                /* Por encima de todo el contenido */
 }
 
-.dropdown-menu.show {
-    display: flex;
+.cli-dropdown.show {
+    display: flex;                              /* JavaScript agrega .show para mostrarlo */
 }
 
-.dropdown-menu button {
-    background: transparent;
-    border: none;
-    text-align: left;
-    padding: 0.6rem 1.5rem;
-    width: 100%;
-    cursor: pointer;
-    transition: background-color 0.2s;
+.cli-dropdown button {
+    background: transparent;                    /* Sin fondo */
+    border: none;                               /* Sin borde */
+    text-align: left;                           /* Texto a la izquierda */
+    padding: 0.6rem 1.5rem;                     /* Espacio interior de cada opción */
+    width: 100%;                                /* Ocupa todo el ancho del menú */
+    cursor: pointer;                            /* Cursor de mano */
+    transition: background-color 0.2s;          /* Suaviza el cambio de color */
+    font-size: 1rem;                            /* Tamaño del texto */
+    color: #334155;                             /* Gris oscuro */
 }
 
-.dropdown-menu button:hover {
-    background-color: #e0f2fe;
-    color: #0284c7;
+.cli-dropdown button:hover {
+    background-color: #e0f2fe;                  /* Fondo azul muy claro al pasar el mouse */
+    color: #0284c7;                             /* Texto azul al pasar el mouse */
 }
 
-/* ============================================
-   MAIN DASHBOARD
-   ============================================ */
+
+/* ================================================
+   5. ÁREA PRINCIPAL (DASHBOARD)
+   margin-left: 180px → ajustado al ancho del sidebar
+   ================================================ */
+
 main.dashboard {
-    margin-left: 180px;
-    margin-top: 64px;
-    padding: 1.5rem 2rem;
-    min-height: calc(100vh - 64px);
+    margin-left: 180px;                         /* Deja espacio para el sidebar (180px) */
+    margin-top: 64px;                           /* Deja espacio para el header */
+    padding: 1.5rem 2rem;                       /* Espacio interior de toda el área */
+    min-height: calc(100vh - 64px);             /* Mínimo: pantalla completa menos el header */
 }
+
+
+/* ================================================
+   6. SECCIÓN DE BIENVENIDA
+   Tarjeta blanca con saludo y descripción
+   ================================================ */
 
 .welcome-section {
-    background: white;
-    border-radius: 1rem;
-    padding: 2rem;
-    margin-bottom: 2.5rem;
-    box-shadow: 0 15px 36px rgba(0, 191, 255, 0.07);
-    text-align: center;
+    background: white;                          /* Fondo blanco */
+    border-radius: 1rem;                        /* Esquinas muy redondeadas */
+    padding: 2rem;                              /* Espacio interior generoso */
+    margin-bottom: 2.5rem;                      /* Espacio debajo de la sección */
+    box-shadow: 0 15px 36px rgba(0, 191, 255, 0.07); /* Sombra azul muy sutil */
+    text-align: center;                         /* Texto centrado */
 }
 
 .welcome-section h2 {
-    font-weight: 700;
-    font-size: 2rem;
-    margin-bottom: 1rem;
-    color: #0f172a;
+    font-weight: 700;                           /* Negrita */
+    font-size: 2rem;                            /* Título grande de bienvenida */
+    margin-bottom: 1rem;                        /* Espacio debajo del título */
+    color: #0f172a;                             /* Casi negro para el título */
 }
 
 .welcome-section p {
-    font-size: 1.125rem;
-    color: #475569;
+    font-size: 1.125rem;                        /* Texto ligeramente más grande */
+    color: #475569;                             /* Gris medio para el subtítulo */
 }
 
+
+/* ================================================
+   7. SECCIÓN DE RESERVAS Y CONTENIDO GENERAL
+   Contenedor blanco con sombra azul para
+   tablas de reservas, pagos y mapa
+   ================================================ */
+
 .user-reservas-section {
-    background: white;
-    border-radius: 1rem;
-    padding: 2rem;
-    box-shadow: 0 10px 25px rgba(0, 191, 255, 0.1);
-    margin-bottom: 2rem;
+    background: white;                          /* Fondo blanco */
+    border-radius: 1rem;                        /* Esquinas muy redondeadas */
+    padding: 2rem;                              /* Espacio interior */
+    box-shadow: 0 10px 25px rgba(0, 191, 255, 0.1); /* Sombra azul suave */
+    margin-bottom: 2rem;                        /* Espacio entre secciones */
 }
 
 .user-reservas-section h2 {
-    font-weight: 700;
-    font-size: 1.75rem;
-    margin-bottom: 1.5rem;
-    color: #256d43;
+    font-weight: 700;                           /* Negrita */
+    font-size: 1.75rem;                         /* Tamaño del título de la sección */
+    margin-bottom: 1.5rem;                      /* Espacio debajo del título */
+    color: #256d43;                             /* Verde oscuro para el título */
 }
 
-/* ============================================
-   TABLAS
-   ============================================ */
-table {
-    width: 100%;
-    border-collapse: collapse;
-    background: white;
-    border-radius: 8px;
+
+/* ================================================
+   8. ANIMACIÓN DE SECCIONES
+   Aparecen suavemente al cambiar de pestaña
+   ================================================ */
+
+.content-section {
+    animation: cli-fadeIn 0.3s ease-in;         /* Fundido suave al aparecer */
 }
 
-th, td {
-    padding: 1rem 1.25rem;
-    border-bottom: 1px solid #e2e8f0;
-    text-align: left;
-    color: #334155;
+/* CAMBIO: era @keyframes fadeIn (nombre genérico que
+   podría colisionar con animaciones de Tailwind/DaisyUI)
+   AHORA: @keyframes cli-fadeIn (prefijo propio) */
+@keyframes cli-fadeIn {
+    from { opacity: 0; }                        /* Empieza invisible */
+    to   { opacity: 1; }                        /* Termina completamente visible */
 }
 
-th {
-    background-color: #ecfdf5;
-    font-weight: 700;
+/* ================================================
+   CLIENTE.CSS — AparcaYA
+   Parte 2/3: Tablas, Barra de Búsqueda, Modales,
+   Info Grid, Badges y Responsive
+   ================================================ */
+
+
+/* ================================================
+   9. TABLA DE DATOS
+   CAMBIO CRÍTICO: era "table, th, td" (selectores
+   globales que afectaban TODA la página incluidas
+   las tablas internas de DaisyUI y Leaflet)
+   AHORA: .cli-table (solo afecta nuestras tablas)
+   ================================================ */
+
+.cli-table {
+    width: 100%;                                /* Ocupa todo el ancho disponible */
+    border-collapse: collapse;                  /* Elimina el espacio doble entre celdas */
+    background: white;                          /* Fondo blanco */
+    border-radius: 8px;                         /* Esquinas redondeadas */
+    overflow: hidden;                           /* Necesario para que border-radius funcione */
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04); /* Sombra muy suave */
 }
 
-tbody tr:hover {
-    background-color: #bbf7d0;
+.cli-table th,                                 /* Encabezados de columna */
+.cli-table td {                                /* Celdas de datos */
+    padding: 1rem 1.25rem;                      /* Espacio interior generoso */
+    border-bottom: 1px solid #e2e8f0;           /* Línea gris clara entre filas */
+    text-align: left;                           /* Texto alineado a la izquierda */
+    color: #334155;                             /* Gris oscuro para el texto */
 }
 
-/* ============================================
-   BARRA DE BÚSQUEDA
-   ============================================ */
+.cli-table th {
+    background-color: #ecfdf5;                  /* Verde muy claro para los encabezados */
+    font-weight: 700;                           /* Negrita */
+}
+
+.cli-table tbody tr {
+    transition: background-color 0.2s;          /* Suaviza el cambio de color */
+}
+
+.cli-table tbody tr:hover {
+    background-color: #bbf7d0;                  /* Verde claro al pasar el mouse */
+}
+
+
+/* ================================================
+   10. BARRA DE BÚSQUEDA
+   Usada en la sección del mapa para buscar
+   direcciones de parqueaderos
+   ================================================ */
+
 .search-bar {
-    margin-bottom: 1rem;
-    display: flex;
-    gap: 0.5rem;
+    margin-bottom: 1rem;                        /* Espacio debajo de la barra */
+    display: flex;                              /* El input y el botón se muestran en fila */
+    gap: 0.5rem;                                /* Espacio entre el input y el botón */
 }
 
 .search-bar input {
-    flex: 1;
-    padding: 0.5rem;
-    border: 1px solid #d1d5db;
-    border-radius: 0.5rem;
+    flex: 1;                                    /* El input ocupa todo el espacio disponible */
+    padding: 0.5rem;                            /* Espacio interior del input */
+    border: 1px solid #d1d5db;                  /* Borde gris claro */
+    border-radius: 0.5rem;                      /* Esquinas redondeadas */
+    font-size: 0.9rem;                          /* Tamaño del texto */
+    transition: border-color 0.2s;              /* Suaviza el cambio de borde */
+}
+
+.search-bar input:focus {
+    outline: none;                              /* Sin borde de focus del navegador */
+    border-color: #00BFFF;                      /* Borde azul al enfocar */
 }
 
 .search-bar button {
-    padding: 0.5rem 1rem;
-    background: #00BFFF;
-    color: white;
-    border: none;
-    border-radius: 0.5rem;
-    cursor: pointer;
-    font-weight: 600;
+    padding: 0.5rem 1rem;                       /* Espacio interior del botón */
+    background: #00BFFF;                        /* Azul principal de AparcaYA */
+    color: white;                               /* Texto blanco */
+    border: none;                               /* Sin borde */
+    border-radius: 0.5rem;                      /* Esquinas redondeadas */
+    cursor: pointer;                            /* Cursor de mano */
+    font-weight: 600;                           /* Semi-negrita */
+    transition: background-color 0.2s;          /* Suaviza el cambio de color */
 }
 
 .search-bar button:hover {
-    background: #0284c7;
+    background: #0284c7;                        /* Azul más oscuro al pasar el mouse */
 }
 
-/* ============================================
-   MODALES
-   ============================================ */
-.modal {
-    display: none;
-    position: fixed;
-    inset: 0;
-    background: rgba(0, 0, 0, 0.5);
-    z-index: 999;
-    align-items: center;
-    justify-content: center;
+
+/* ================================================
+   11. MODALES PROPIOS — Detalles de Sede y Reserva
+   CAMBIO CRÍTICO: era .modal y .modal-box que son
+   exactamente los nombres que DaisyUI usa para sus
+   <dialog>. Nuestro CSS los redefinía con display:none
+   y rompía AMBOS sistemas.
+
+   ADEMÁS: estos estilos estaban DUPLICADOS:
+   - Una vez en Cliente.css
+   - Otra vez en un <style> dentro del HTML
+   Se elimina el <style> del HTML y todo queda aquí.
+
+   AHORA:
+   .modal      → .cli-modal
+   .modal-box  → .cli-modal-box
+   La clase activa: .show (se mantiene igual)
+   ================================================ */
+
+.cli-modal {
+    display: none;                              /* Oculto por defecto */
+    position: fixed;                            /* Cubre toda la pantalla */
+    inset: 0;                                   /* Shorthand de top:0, right:0, bottom:0, left:0 */
+    background: rgba(0, 0, 0, 0.5);             /* Fondo negro semitransparente */
+    z-index: 999;                               /* Capa alta, encima de casi todo */
+    align-items: center;                        /* Centra el contenido verticalmente */
+    justify-content: center;                    /* Centra el contenido horizontalmente */
 }
 
-.modal.show,
-.modal.modal-open {
-    display: flex;
+/* Estado activo: JavaScript agrega .show para mostrar el modal */
+.cli-modal.show {
+    display: flex;                              /* Muestra el modal centrado */
 }
 
-.modal-box {
-    background: white;
-    border-radius: 1rem;
-    padding: 2rem;
-    max-width: 600px;
-    width: 90%;
-    max-height: 90vh;
-    overflow-y: auto;
+/* Compatibilidad con código legacy que use .modal-open
+   Permite que el modal funcione si el JS usa cualquiera de las dos clases */
+.cli-modal.cli-modal-open {
+    display: flex;                              /* Alternativa para compatibilidad */
 }
 
-/* ============================================
-   INFO GRID (PARA MODAL DE DETALLES)
-   ============================================ */
+
+/* ================================================
+   12. CAJA DE CONTENIDO DEL MODAL
+   CAMBIO: era .modal-box → ahora .cli-modal-box
+   ================================================ */
+
+.cli-modal-box {
+    background: white;                          /* Fondo blanco del contenido */
+    border-radius: 1rem;                        /* Esquinas muy redondeadas */
+    padding: 2rem;                              /* Espacio interior generoso */
+    max-width: 600px;                           /* Ancho máximo (más grande que otros dashboards) */
+    width: 90%;                                 /* 90% del ancho de la pantalla */
+    max-height: 90vh;                           /* Máximo 90% de la altura visible */
+    overflow-y: auto;                           /* Scroll si el contenido es muy largo */
+    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.2); /* Sombra profunda para el modal */
+    animation: cli-slideUp 0.3s ease;           /* El cuadro aparece subiendo suavemente */
+}
+
+/* Animación del cuadro del modal */
+@keyframes cli-slideUp {
+    from {
+        transform: translateY(30px);            /* Empieza 30px más abajo */
+        opacity: 0;                             /* Empieza invisible */
+    }
+    to {
+        transform: translateY(0);               /* Llega a su posición */
+        opacity: 1;                             /* Completamente visible */
+    }
+}
+
+
+/* ================================================
+   13. INFO GRID — Para el modal de detalles de sede
+   Muestra la información en un grid de 2 columnas
+   (nombre, dirección, capacidad, tarifas, etc.)
+   ================================================ */
+
 .info-grid {
-    display: grid;
-    grid-template-columns: repeat(2, 1fr);
-    gap: 1rem;
+    display: grid;                              /* Layout en cuadrícula */
+    grid-template-columns: repeat(2, 1fr);      /* 2 columnas de igual ancho */
+    gap: 1rem;                                  /* Espacio entre cada celda del grid */
 }
 
 .info-item {
-    padding: 0.75rem;
-    background: #f8fafc;
-    border-radius: 0.5rem;
+    padding: 0.75rem;                           /* Espacio interior de cada celda */
+    background: #f8fafc;                        /* Fondo gris muy claro */
+    border-radius: 0.5rem;                      /* Esquinas redondeadas */
 }
 
+/* Elemento que ocupa las 2 columnas completas
+   Usado para campos más largos como la dirección */
 .info-item.info-full {
-    grid-column: 1 / -1;
+    grid-column: 1 / -1;                        /* Desde la columna 1 hasta la última */
 }
 
 .info-label {
-    font-size: 0.875rem;
-    font-weight: 600;
-    color: #64748b;
-    margin-bottom: 0.25rem;
+    font-size: 0.875rem;                        /* Texto pequeño para la etiqueta */
+    font-weight: 600;                           /* Semi-negrita */
+    color: #64748b;                             /* Gris medio */
+    margin-bottom: 0.25rem;                     /* Pequeño espacio entre label y valor */
 }
 
 .info-value {
-    font-size: 1rem;
-    color: #0f172a;
+    font-size: 1rem;                            /* Tamaño estándar para el valor */
+    color: #0f172a;                             /* Casi negro para el valor */
 }
 
-/* ============================================
-   BADGES
-   ============================================ */
-.badge {
-    padding: 4px 12px;
-    border-radius: 12px;
-    font-size: 0.875rem;
-    font-weight: 600;
-    display: inline-block;
+
+/* ================================================
+   14. BADGES DE ESTADO
+   CAMBIO: era .badge, .badge-activo, .badge-inactivo
+   DaisyUI tiene su propio .badge y sus variantes
+   (.badge-success, .badge-error, etc.)
+   AHORA: .cli-badge, .cli-badge-activo, .cli-badge-inactivo
+
+   ADEMÁS estaban DUPLICADOS (en CSS y en <style> del HTML)
+   ================================================ */
+
+.cli-badge {
+    padding: 4px 12px;                          /* Espacio interior: más horizontal que vertical */
+    border-radius: 12px;                        /* Muy redondeado (forma píldora) */
+    font-size: 0.875rem;                        /* Texto pequeño */
+    font-weight: 600;                           /* Semi-negrita para que sea legible */
+    display: inline-block;                      /* Se comporta como texto con padding */
 }
 
-.badge-activo {
-    background: #22c55e;
-    color: white;
+/* Estado ACTIVO: verde con texto blanco */
+.cli-badge-activo {
+    background: #22c55e;                        /* Verde brillante */
+    color: white;                               /* Texto blanco para contraste */
 }
 
-.badge-inactivo {
-    background: #ef4444;
-    color: white;
+/* Estado INACTIVO: rojo con texto blanco */
+.cli-badge-inactivo {
+    background: #ef4444;                        /* Rojo para estados inactivos */
+    color: white;                               /* Texto blanco para contraste */
 }
 
-/* ============================================
-   UTILIDADES
-   ============================================ */
-.hidden {
-    display: none !important;
+
+/* ================================================
+   15. MAPA DE LEAFLET
+   Contenedor del mapa interactivo de sedes.
+   Leaflet requiere que el contenedor tenga altura
+   explícita, de lo contrario el mapa no se renderiza.
+   Los estilos base se ponen aquí pero el id="map-container"
+   también tiene style inline en el HTML como respaldo.
+   ================================================ */
+
+#map-container {
+    height: 400px;                              /* Altura fija requerida por Leaflet */
+    width: 100%;                                /* Ocupa todo el ancho disponible */
+    border: 1px solid #ccc;                     /* Borde gris claro alrededor del mapa */
+    border-radius: 8px;                         /* Esquinas ligeramente redondeadas */
+    z-index: 1;                                 /* Z-index bajo para que los modales queden encima */
 }
 
-.content-section {
-    animation: fadeIn 0.3s ease-in;
+
+/* ================================================
+   16. RESPONSIVE — ADAPTACIÓN A MÓVIL
+   ================================================ */
+
+@media (max-width: 768px) {                     /* Se aplica en pantallas menores a 768px */
+
+    .sidebar {
+        /* En móvil el sidebar se convierte en barra inferior
+           igual que en el dashboard de sede */
+        position: fixed;
+        height: auto;                           /* Alto automático */
+        width: 100%;                            /* Todo el ancho */
+        bottom: 0;                              /* En la parte inferior */
+        left: 0;
+        top: auto;                              /* Cancela el top: 0 */
+        flex-direction: row;                    /* Links en fila horizontal */
+        justify-content: space-around;          /* Distribuidos uniformemente */
+        padding: 0.75rem 0;                     /* Espacio reducido */
+        z-index: 50;                            /* Por encima del contenido */
+    }
+
+    .sidebar-header {
+        display: none;                          /* Oculta el logo en móvil */
+    }
+
+    nav.sidebar-nav {
+        display: flex;                          /* Flexbox horizontal */
+        flex-direction: row;                    /* Links en fila */
+        width: 100%;                            /* Todo el ancho */
+        justify-content: space-around;          /* Distribuidos uniformemente */
+        margin: 0;                              /* Sin márgenes */
+    }
+
+    nav.sidebar-nav a {
+        border-left: none;                      /* Sin borde izquierdo en móvil */
+        border-top: 4px solid transparent;      /* El indicador activo va ARRIBA */
+        padding: 0.5rem;                        /* Espacio reducido */
+        margin-bottom: 0;                       /* Sin espacio entre links */
+        text-align: center;                     /* Texto centrado */
+        font-size: 0.75rem;                     /* Texto más pequeño en móvil */
+    }
+
+    nav.sidebar-nav a.active,
+    nav.sidebar-nav a:hover {
+        border-left-color: transparent;         /* Sin borde izquierdo */
+        border-top-color: white;                /* Indicador arriba en blanco */
+    }
+
+    header.page-header {
+        left: 0;                                /* El header ocupa todo el ancho */
+    }
+
+    main.dashboard {
+        margin-left: 0;                         /* Sin margen izquierdo */
+        margin-top: 64px;                       /* Mantiene el espacio del header */
+        margin-bottom: 80px;                    /* Deja espacio para la barra inferior */
+        padding: 1rem;                          /* Reduce el espacio interior */
+    }
+
+    .info-grid {
+        grid-template-columns: 1fr;             /* Una sola columna en móvil */
+    }
+
+    .cli-modal-box {
+        width: 95%;                             /* Más ancho para aprovechar el espacio */
+        padding: 1.5rem;                        /* Menos padding */
+    }
 }
 
-@keyframes fadeIn {
-    from { opacity: 0; }
-    to { opacity: 1; }
-}
+/* ================================================
+   CLIENTE.CSS — AparcaYA
+   Parte 3/3: Resumen, Notas de Integración
+   y Tabla de Clases
+   ================================================ */
+
+
+/* ================================================
+   FIN DEL ARCHIVO Cliente.css
+   ================================================
+
+   TABLA COMPLETA DE CLASES — Módulo Cliente
+   ┌────────────────────────┬──────────────────────┐
+   │ Sección                │ Clases               │
+   ├────────────────────────┼──────────────────────┤
+   │ Body                   │ body                 │
+   ├────────────────────────┼──────────────────────┤
+   │ Sidebar                │ .sidebar             │
+   │                        │ .sidebar-header      │
+   │                        │ .sidebar-nav         │
+   ├────────────────────────┼──────────────────────┤
+   │ Header                 │ .page-header         │
+   │                        │ .logo-section        │
+   │                        │ .profile-menu        │
+   │                        │ .profile-btn         │
+   ├────────────────────────┼──────────────────────┤
+   │ Dropdown               │ .cli-dropdown        │
+   ├────────────────────────┼──────────────────────┤
+   │ Dashboard              │ .dashboard           │
+   │                        │ .welcome-section     │
+   │                        │ .user-reservas-section│
+   │                        │ .content-section     │
+   ├────────────────────────┼──────────────────────┤
+   │ Tabla                  │ .cli-table           │
+   ├────────────────────────┼──────────────────────┤
+   │ Búsqueda               │ .search-bar          │
+   ├────────────────────────┼──────────────────────┤
+   │ Modal propio           │ .cli-modal           │
+   │                        │ .cli-modal-box       │
+   │                        │ .cli-modal-open      │
+   ├────────────────────────┼──────────────────────┤
+   │ Info Grid              │ .info-grid           │
+   │                        │ .info-item           │
+   │                        │ .info-item.info-full │
+   │                        │ .info-label          │
+   │                        │ .info-value          │
+   ├────────────────────────┼──────────────────────┤
+   │ Mapa                   │ #map-container       │
+   ├────────────────────────┼──────────────────────┤
+   │ Badges                 │ .cli-badge           │
+   │                        │ .cli-badge-activo    │
+   │                        │ .cli-badge-inactivo  │
+   ├────────────────────────┼──────────────────────┤
+   │ Animaciones            │ cli-fadeIn           │
+   │                        │ cli-slideUp          │
+   └────────────────────────┴──────────────────────┘
+
+   Clases de DaisyUI que NO se tocan aquí:
+   .modal, .modal-box (DaisyUI <dialog>)
+   .badge, .badge-success (DaisyUI badges)
+   .btn, .btn-primary (DaisyUI buttons)
+   .dropdown, .dropdown-content (DaisyUI dropdown)
+
+   Clases de Tailwind que NO se redefinen aquí:
+   .hidden (display: none → Tailwind ya la tiene)
+   .flex, .grid, .gap-4, .p-4, .text-center, etc.
+
+   ================================================
+   NOTAS IMPORTANTES PARA clienteD.js
+   ================================================
+
+   1. DROPDOWN del perfil:
+      Era:  document.querySelector('.dropdown-menu')
+      Ahora: document.querySelector('.cli-dropdown')
+      O por ID: document.getElementById('profileDropdown')
+
+   2. MODALES — abrir:
+      Era:  modal.classList.add('show')
+            modal.classList.add('modal-open')
+      Ahora: modal.classList.add('show')
+             o modal.classList.add('cli-modal-open')
+      (ambas formas funcionan con el nuevo CSS)
+
+   3. BADGES — en HTML generado por JS:
+      Era:  `<span class="badge badge-activo">Activo</span>`
+      Ahora: `<span class="cli-badge cli-badge-activo">Activo</span>`
+
+   4. TABLAS — las tablas del JS deben generar:
+      Era:  <table> (sin clase)
+      Ahora: <table class="cli-table">
+
+   ================================================
+   NOTAS DE INTEGRACIÓN CON SPRING BOOT / THYMELEAF
+   ================================================
+
+   El HTML usa th:text y th:inline="javascript" para
+   pasar datos del servidor al cliente. El bloque de
+   script de Thymeleaf estaba COMENTADO en el original,
+   lo que impedía que funcionara. Se descomenta en el
+   HTML corregido.
+
+   Ruta del archivo CSS en Spring Boot:
+   src/main/resources/static/css/cliente.css
+   Referenciado en HTML como: /css/cliente.css
+
+   Ruta del archivo JS en Spring Boot:
+   src/main/resources/static/js/clienteD.js
+   Referenciado en HTML como: /js/clienteD.js
+   ================================================ */

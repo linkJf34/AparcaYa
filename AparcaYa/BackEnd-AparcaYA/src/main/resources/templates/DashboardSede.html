@@ -4,733 +4,411 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>Dashboard Administrador de Sede - AparcaYA</title>
+
+    <!-- =====================================================
+         LIBRERÍAS EXTERNAS
+         Orden de carga importante:
+         1. Tailwind primero (clases utilitarias base)
+         2. DaisyUI después (componentes sobre Tailwind)
+         3. Nuestro CSS al final (prioridad sobre frameworks)
+
+         CORRECCIÓN: El HTML original NO tenía DaisyUI
+         pero usaba clases como .btn, .btn-ghost, .btn-circle
+         en el botón toggle del sidebar. Se añade aquí.
+         ===================================================== -->
+
+    <!-- Tailwind CSS: clases utilitarias como flex, grid,
+         hidden, text-gray-500, md:w-1/2, gap-4, etc. -->
     <script src="https://cdn.tailwindcss.com"></script>
-    <style>
 
-        /* ==================== ANIMACIONES ==================== */
-        .animate-fade-in-up {
-            opacity: 0;
-            transform: translateY(20px);
-            animation: fadeInUp 0.8s ease forwards;
-        }
-
-        @keyframes fadeInUp {
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
-        }
-
-        /* ==================== SIDEBAR ==================== */
-        .sidebar {
-            background: #00BFFF;
-            color: white;
-            height: 100vh;
-            width: 220px;
-            padding: 2rem 1rem;
-            display: flex;
-            flex-direction: column;
-            box-shadow: 2px 0 12px rgba(0,0,0,0.1);
-            position: fixed;
-            left: 0;
-            top: 0;
-            transition: transform 0.3s ease;
-            z-index: 30;
-        }
-
-        .sidebar.hidden {
-            transform: translateX(-100%);
-        }
-
-        .sidebar-header {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            margin-bottom: 2.5rem;
-        }
-
-        .sidebar-header svg {
-            width: 56px;
-            height: 56px;
-            color: white;
-        }
-
-        .sidebar-header h1 {
-            font-size: 1.75rem;
-            font-weight: 700;
-            letter-spacing: 3px;
-            margin-top: 0.5rem;
-        }
-
-        nav.sidebar-nav {
-            display: flex;
-            flex-direction: column;
-            gap: 1.25rem;
-        }
-
-        nav.sidebar-nav a {
-            font-weight: 600;
-            text-decoration: none;
-            color: white;
-            padding: 0.75rem 0.5rem;
-            border-left: 4px solid transparent;
-            transition: background-color 0.3s, border-color 0.3s;
-            cursor: pointer;
-            user-select: none;
-        }
-
-        nav.sidebar-nav a:hover,
-        nav.sidebar-nav a.active {
-            background-color: rgba(255, 255, 255, 0.25);
-            border-left-color: white;
-        }
-
-        /* ==================== HEADER ==================== */
-        header.page-header {
-            position: fixed;
-            top: 0;
-            left: 220px;
-            right: 0;
-            height: 64px;
-            background: white;
-            border-bottom: 1px solid #e2e8f0;
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            padding: 0 1.5rem;
-            z-index: 40;
-            transition: left 0.3s ease;
-        }
-
-        header.page-header.sidebar-hidden {
-            left: 0;
-        }
-
-        .logo-section {
-            display: flex;
-            align-items: center;
-            gap: 0.75rem;
-        }
-
-        .logo-section svg {
-            color: #00BFFF;
-            width: 40px;
-            height: 40px;
-        }
-
-        .logo-section h1 {
-            font-weight: 700;
-            font-size: 1.75rem;
-            color: #0369a1;
-            user-select: none;
-        }
-
-        /* ==================== PROFILE MENU ==================== */
-        .profile-menu {
-            position: relative;
-        }
-
-        .profile-btn {
-            background: transparent;
-            border: none;
-            cursor: pointer;
-            padding: 0.25rem;
-            border-radius: 9999px;
-            outline: none;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            transition: background-color 0.2s;
-        }
-
-        .profile-btn:hover {
-            background-color: #e0f2fe;
-        }
-
-        .profile-btn svg {
-            width: 36px;
-            height: 36px;
-            color: #00BFFF;
-        }
-
-        .dropdown-menu {
-            position: absolute;
-            top: calc(100% + 0.5rem);
-            right: 0;
-            background: white;
-            border-radius: 0.5rem;
-            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.15);
-            min-width: 180px;
-            display: none;
-            flex-direction: column;
-            padding: 0.5rem 0;
-            font-weight: 600;
-            z-index: 50;
-        }
-
-        .dropdown-menu.show {
-            display: flex;
-        }
-
-        .dropdown-menu button {
-            background: transparent;
-            border: none;
-            text-align: left;
-            padding: 0.75rem 1.5rem;
-            width: 100%;
-            cursor: pointer;
-            transition: background-color 0.2s;
-            font-size: 1rem;
-            color: #334155;
-        }
-
-        .dropdown-menu button:hover {
-            background-color: #e0f2fe;
-            color: #0284c7;
-        }
-
-        /* ==================== MAIN CONTENT ==================== */
-        main.dashboard {
-            margin-left: 220px;
-            margin-top: 64px;
-            background: #f9fafb;
-            min-height: calc(100vh - 64px);
-            padding: 2rem 2.5rem;
-            transition: margin-left 0.3s ease;
-        }
-
-        main.dashboard.sidebar-hidden {
-            margin-left: 0;
-        }
-
-        section.content-section {
-            background: white;
-            border-radius: 1rem;
-            padding: 2rem 2.5rem;
-            box-shadow: 0 15px 36px rgba(0, 191, 255, 0.07);
-            margin-bottom: 2rem;
-        }
-
-        /* ==================== INDICATORS ==================== */
-        .user-indicators {
-            display: flex;
-            justify-content: center;
-            gap: 2rem;
-            margin-bottom: 2rem;
-            flex-wrap: wrap;
-        }
-
-        .stats-card {
-            width: 170px;
-            height: 170px;
-            border-radius: 50%;
-            background: #d9f0e8;
-            box-shadow: 0 10px 25px rgba(0, 191, 255, 0.1);
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            user-select: none;
-            position: relative;
-        }
-
-        .stats-label {
-            font-size: 1.15rem;
-            font-weight: 700;
-            color: #256d43;
-            margin-bottom: 1.25rem;
-            text-align: center;
-        }
-
-        .donut-container {
-            position: relative;
-            width: 110px;
-            height: 110px;
-        }
-
-        .donut-svg {
-            transform: rotate(-90deg);
-        }
-
-        .donut-ring {
-            fill: none;
-            stroke: #a3d9b1;
-            stroke-width: 14;
-            opacity: 0.5;
-        }
-
-        .donut-segment {
-            fill: none;
-            stroke-width: 14;
-            stroke-linecap: round;
-            transition: stroke-dashoffset 0.5s ease;
-        }
-
-        .usuario-segment {
-            stroke: #34a853;
-        }
-
-        .cuota-segment {
-            stroke: #00bfa5;
-        }
-
-        .donut-text {
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            font-weight: 700;
-            font-size: 2.5rem;
-            color: #34a853;
-            user-select: none;
-        }
-
-        /* ==================== TABLES ==================== */
-        table {
-            width: 100%;
-            border-collapse: collapse;
-            border-radius: 8px;
-            overflow: hidden;
-            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.05);
-        }
-
-        th, td {
-            padding: 1rem 1.25rem;
-            border-bottom: 1px solid #e2e8f0;
-            color: #334155;
-            text-align: left;
-        }
-
-        th {
-            background-color: #ecfdf5;
-            font-weight: 700;
-            font-size: 0.875rem;
-            text-transform: uppercase;
-            letter-spacing: 0.05em;
-        }
-
-        tbody tr {
-            transition: background-color 0.2s;
-        }
-
-        tbody tr:hover {
-            background-color: #bbf7d0;
-        }
-
-        /* ==================== BUTTONS ==================== */
-        .btn-primary {
-            background-color: #00BFFF;
-            color: white;
-            padding: 0.5rem 1.5rem;
-            border-radius: 0.375rem;
-            border: none;
-            cursor: pointer;
-            transition: all 0.3s;
-            font-weight: 600;
-            display: inline-flex;
-            align-items: center;
-            gap: 0.5rem;
-        }
-
-        .btn-primary:hover {
-            background-color: #0099cc;
-            transform: translateY(-2px);
-            box-shadow: 0 4px 12px rgba(0, 191, 255, 0.3);
-        }
-
-        .btn-outline {
-            border: 2px solid #00BFFF;
-            color: #00BFFF;
-            padding: 0.5rem 1rem;
-            border-radius: 0.375rem;
-            background: transparent;
-            cursor: pointer;
-            transition: all 0.3s;
-            display: inline-flex;
-            align-items: center;
-            gap: 0.25rem;
-            font-weight: 600;
-        }
-
-        .btn-outline:hover {
-            background-color: #00BFFF;
-            color: white;
-            transform: translateY(-2px);
-        }
-
-        .btn-danger {
-            background-color: #dc3545;
-            color: white;
-            padding: 0.5rem 1rem;
-            border-radius: 0.375rem;
-            border: none;
-            cursor: pointer;
-            transition: all 0.3s;
-            display: inline-flex;
-            align-items: center;
-            gap: 0.25rem;
-            font-weight: 600;
-        }
-
-        .btn-danger:hover {
-            background-color: #c82333;
-            transform: translateY(-2px);
-            box-shadow: 0 4px 12px rgba(220, 53, 69, 0.3);
-        }
-
-        /* ==================== TABS ==================== */
-        .tabs {
-            display: flex;
-            gap: 1rem;
-            border-bottom: 3px solid #e0f2fe;
-            margin-bottom: 1.75rem;
-        }
-
-        .tabs button {
-            padding: 0.75rem 1.5rem;
-            border: none;
-            background: transparent;
-            font-weight: 700;
-            font-size: 1rem;
-            cursor: pointer;
-            border-bottom: 4px solid transparent;
-            color: #0284c7;
-            transition: all 0.3s;
-            display: flex;
-            align-items: center;
-            gap: 0.5rem;
-        }
-
-        .tabs button.active {
-            border-color: #0284c7;
-            color: #0369a1;
-        }
-
-        .tabs button:hover:not(.active) {
-            color: #06b6d4;
-            background-color: rgba(224, 242, 254, 0.5);
-        }
-
-        /* ==================== MODAL ==================== */
-        .modal {
-            display: none;
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: rgba(0, 0, 0, 0.6);
-            z-index: 99999;
-            opacity: 0;
-            transition: opacity 0.3s ease;
-            overflow-y: auto;
-        }
-
-        .modal.open {
-            display: flex !important;
-            align-items: center;
-            justify-content: center;
-            opacity: 1;
-        }
-
-        .modal-box {
-            background: white;
-            border-radius: 0.75rem;
-            padding: 2rem;
-            max-width: 500px;
-            width: 90%;
-            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.3), 0 10px 10px -5px rgba(0, 0, 0, 0.2);
-            transform: scale(0.9);
-            transition: transform 0.3s ease;
-            position: relative;
-            z-index: 100000;
-            max-height: 90vh;
-            overflow-y: auto;
-        }
-
-        .modal.open .modal-box {
-            transform: scale(1);
-        }
-
-        .modal-box h3 {
-            font-size: 1.5rem;
-            font-weight: 700;
-            margin-bottom: 1.5rem;
-            color: #0369a1;
-        }
-
-        .modal-box label {
-            display: block;
-            margin-top: 1rem;
-            font-weight: 600;
-            color: #334155;
-            margin-bottom: 0.5rem;
-            font-size: 0.875rem;
-            text-transform: uppercase;
-            letter-spacing: 0.05em;
-        }
-
-        .modal-box input {
-            width: 100%;
-            padding: 0.75rem;
-            border: 2px solid #cbd5e1;
-            border-radius: 0.375rem;
-            font-size: 1rem;
-            transition: border-color 0.2s;
-            background: white !important;
-            color: #000 !important;
-        }
-
-        .modal-box input:focus {
-            outline: none !important;
-            border-color: #00BFFF !important;
-            box-shadow: 0 0 0 3px rgba(0, 191, 255, 0.1) !important;
-        }
-
-        .modal-action {
-            display: flex;
-            justify-content: flex-end;
-            gap: 1rem;
-            margin-top: 2rem;
-        }
-
-        /* ==================== FORMS ==================== */
-        .form-control {
-            margin-bottom: 1rem;
-        }
-
-        .form-control label {
-            display: block;
-            margin-bottom: 0.5rem;
-            font-weight: 600;
-            color: #334155;
-        }
-
-        .form-control input,
-        .form-control textarea,
-        .form-control select {
-            width: 100%;
-            padding: 0.75rem;
-            border: 2px solid #cbd5e1;
-            border-radius: 0.375rem;
-            font-size: 1rem;
-            transition: border-color 0.2s;
-        }
-
-        .form-control input:focus,
-        .form-control textarea:focus,
-        .form-control select:focus {
-            outline: none;
-            border-color: #00BFFF;
-            box-shadow: 0 0 0 3px rgba(0, 191, 255, 0.1);
-        }
-
-        /* ==================== RESPONSIVE ==================== */
-        @media (max-width: 768px) {
-            .sidebar {
-                position: fixed;
-                height: auto;
-                width: 100%;
-                bottom: 0;
-                left: 0;
-                top: auto;
-                flex-direction: row;
-                justify-content: space-around;
-                padding: 0.75rem 0;
-                z-index: 50;
-            }
-
-            .sidebar-header {
-                display: none;
-            }
-
-            nav.sidebar-nav {
-                flex-direction: row;
-                width: 100%;
-                justify-content: space-around;
-            }
-
-            nav.sidebar-nav a {
-                border-left: none;
-                border-top: 4px solid transparent;
-                padding: 0.5rem 1rem;
-                text-align: center;
-            }
-
-            nav.sidebar-nav a:hover,
-            nav.sidebar-nav a.active {
-                border-left-color: transparent;
-                border-top-color: white;
-            }
-
-            header.page-header {
-                left: 0 !important;
-            }
-
-            main.dashboard {
-                margin-left: 0 !important;
-                margin-top: 64px;
-                margin-bottom: 80px;
-                padding: 1rem;
-            }
-
-            .user-indicators {
-                justify-content: center;
-            }
-
-            .stats-card {
-                width: 140px;
-                height: 140px;
-            }
-
-            .modal-box {
-                width: 95%;
-                padding: 1.5rem;
-            }
-        }
-
-    </style>
+    <!-- DaisyUI: componentes preconstruidos.
+         DEBE cargarse DESPUÉS de Tailwind.
+         Provee: .btn, .btn-ghost, .btn-circle
+         que usa el botón toggle del sidebar -->
+    <link href="https://cdn.jsdelivr.net/npm/daisyui@4.12.10/dist/full.min.css"
+          rel="stylesheet" />
+
+    <!-- =====================================================
+         CSS PROPIO DEL MÓDULO SEDE
+         CAMBIO ESTRUCTURAL: el CSS original estaba dentro
+         de una etiqueta <style> en este mismo archivo.
+         Ahora vive en su propio archivo externo Sede.css
+         para poder reutilizarse y mantenerse más fácil.
+
+         Ruta en minúsculas para Spring Boot en Linux
+         (el sistema de archivos de Linux distingue
+         mayúsculas de minúsculas en las rutas)
+         ===================================================== -->
+    <link rel="stylesheet" href="/Css/Sede.css">
 </head>
 <body>
 
-<!-- ==================== SIDEBAR ==================== -->
-<aside class="sidebar animate-fade-in-up" id="sidebar">
-    <div class="sidebar-header">
-        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
-            <path stroke-linecap="round" stroke-linejoin="round" d="M8.25 18.75a1.5 1.5 0 01-3 0V15a6 6 0 0112 0v3.75a1.5 1.5 0 01-3 0V15a3 3 0 00-6 0v3.75zM12 9a3 3 0 100-6 3 3 0 000 6z" />
+<!-- =====================================================
+     SIDEBAR — Barra lateral izquierda fija
+     id="sidebar" → JavaScript lo referencia para
+     agregar/quitar la clase .hidden al hacer toggle
+     .animate-fade-in-up → animación de entrada
+     definida en sede.css Parte 1
+     ===================================================== -->
+<aside class="sidebar animate-fade-in-up" id="sidebar"
+       aria-label="Menú principal">
+
+    <!-- Logo y nombre de la aplicación -->
+    <div class="sidebar-header" role="banner">
+        <!-- Ícono SVG del logo de AparcaYA -->
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none"
+             viewBox="0 0 24 24" stroke-width="1.5"
+             stroke="currentColor" aria-hidden="true">
+            <path stroke-linecap="round" stroke-linejoin="round"
+                  d="M8.25 18.75a1.5 1.5 0 01-3 0V15a6 6 0 0112
+                  0v3.75a1.5 1.5 0 01-3 0V15a3 3 0 00-6
+                  0v3.75zM12 9a3 3 0 100-6 3 3 0 000 6z" />
         </svg>
         <h1>AparcaYa</h1>
     </div>
-    <nav class="sidebar-nav">
-        <a href="#" class="active" data-tab="usuarios">Usuarios</a>
-        <a href="#" data-tab="correo">Enviar correo</a>
-        <a href="#" data-tab="graficas">Gráficas</a>
-        <a href="#" data-tab="gestion">🚗 Gestión Vehículos</a>
-        <a href="#" data-tab="historial">📊 Historial</a>
-        <a href="#" data-tab="reservaciones">📅 Reservaciones</a>
-        <a href="#" data-tab="cargamasiva">📤 Carga Masiva</a>
+
+    <!-- Navegación del sidebar
+         data-tab="X" → JavaScript usa este atributo
+         para mostrar/ocultar la sección correspondiente
+         class="active" → marca la sección visible actualmente -->
+    <nav class="sidebar-nav" role="navigation">
+        <a href="#" class="active" data-tab="usuarios">
+            Usuarios
+        </a>
+        <a href="#" data-tab="correo">
+            Enviar correo
+        </a>
+        <a href="#" data-tab="graficas">
+            Gráficas
+        </a>
+        <a href="#" data-tab="gestion">
+            🚗 Gestión Vehículos
+        </a>
+        <a href="#" data-tab="historial">
+            📊 Historial
+        </a>
+        <a href="#" data-tab="reservaciones">
+            📅 Reservaciones
+        </a>
+        <a href="#" data-tab="cargamasiva">
+            📤 Carga Masiva
+        </a>
     </nav>
 </aside>
 
-<!-- ==================== HEADER ==================== -->
+
+<!-- =====================================================
+     HEADER — Barra superior fija
+     id="pageHeader" → JavaScript agrega/quita
+     .sidebar-hidden cuando se colapsa el sidebar
+     .animate-fade-in-up → animación de entrada
+     ===================================================== -->
 <header class="page-header animate-fade-in-up" id="pageHeader">
+
+    <!-- Sección izquierda: toggle + logo -->
     <div class="logo-section">
-        <button id="sidebarToggle" class="btn btn-ghost btn-circle mr-3">
-            <svg xmlns="http://www.w3.org/2000/svg" class="inline-block w-6 h-6 stroke-current" fill="none" viewBox="0 0 24 24" stroke-width="2">
-                <path stroke-linecap="round" stroke-linejoin="round" d="M4 6h16M4 12h16M4 18h16"/>
+
+        <!-- Botón toggle del sidebar
+             NOTA: Este botón usa clases de DaisyUI:
+             .btn .btn-ghost .btn-circle → por eso DaisyUI
+             DEBE estar cargado en el <head>
+             JavaScript escucha el clic para mostrar/ocultar
+             el sidebar agregando .hidden al <aside> y
+             .sidebar-hidden al <header> y <main> -->
+        <button id="sidebarToggle"
+                class="btn btn-ghost btn-circle mr-3"
+                aria-label="Mostrar/ocultar menú lateral"
+                type="button">
+            <!-- Ícono de hamburguesa (tres líneas) -->
+            <svg xmlns="http://www.w3.org/2000/svg"
+                 class="inline-block w-6 h-6 stroke-current"
+                 fill="none" viewBox="0 0 24 24" stroke-width="2"
+                 aria-hidden="true">
+                <path stroke-linecap="round" stroke-linejoin="round"
+                      d="M4 6h16M4 12h16M4 18h16"/>
             </svg>
         </button>
-        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
-            <path stroke-linecap="round" stroke-linejoin="round" d="M8.25 18.75a1.5 1.5 0 01-3 0V15a6 6 0 0112 0v3.75a1.5 1.5 0 01-3 0V15a3 3 0 00-6 0v3.75zM12 9a3 3 0 100-6 3 3 0 000 6z" />
+
+        <!-- Ícono SVG del logo en el header -->
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none"
+             viewBox="0 0 24 24" stroke-width="1.5"
+             stroke="currentColor" aria-hidden="true">
+            <path stroke-linecap="round" stroke-linejoin="round"
+                  d="M8.25 18.75a1.5 1.5 0 01-3 0V15a6 6 0 0112
+                  0v3.75a1.5 1.5 0 01-3 0V15a3 3 0 00-6
+                  0v3.75zM12 9a3 3 0 100-6 3 3 0 000 6z" />
         </svg>
         <h1>AparcaYa</h1>
     </div>
 
+    <!-- Menú de perfil del administrador de sede
+         Usa clases propias: .profile-menu, .profile-btn
+         CAMBIO: el dropdown era .dropdown-menu
+         AHORA: .sede-dropdown (sede.css Parte 1) -->
     <div class="profile-menu">
-        <button id="profileBtn" class="profile-btn" aria-label="Menú de perfil" aria-expanded="false">
-            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
-                <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 6a3.75 3.75 0 11-7.5 0 3.75 3.75 0 017.5 0zM4.501 20.118a7.5 7.5 0 0114.998 0A17.933 17.933 0 0112 21.75c-2.676 0-5.216-.584-7.499-1.632z" />
+
+        <!-- Botón circular con ícono de usuario
+             aria-expanded → JavaScript lo cambia a "true"
+             cuando el dropdown está abierto -->
+        <button id="profileBtn"
+                class="profile-btn"
+                type="button"
+                aria-label="Menú de perfil"
+                aria-expanded="false"
+                aria-haspopup="true"
+                aria-controls="profileDropdown">
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none"
+                 viewBox="0 0 24 24" stroke-width="1.5"
+                 stroke="currentColor" aria-hidden="true">
+                <path stroke-linecap="round" stroke-linejoin="round"
+                      d="M15.75 6a3.75 3.75 0 11-7.5 0 3.75
+                      3.75 0 017.5 0zM4.501 20.118a7.5 7.5 0
+                      0114.998 0A17.933 17.933 0 0112 21.75
+                      c-2.676 0-5.216-.584-7.499-1.632z" />
             </svg>
         </button>
-        <div id="profileDropdown" class="dropdown-menu">
-            <button type="button">Configuración</button>
-            <button type="button">Ayuda</button>
-            <button type="button">Cerrar sesión</button>
+
+        <!-- Dropdown del perfil
+             CAMBIO: era class="dropdown-menu" (conflicto con DaisyUI)
+             AHORA: class="sede-dropdown" (clase propia sin conflicto)
+             JavaScript agrega/quita .show para mostrarlo/ocultarlo -->
+        <div id="profileDropdown"
+             class="sede-dropdown"
+             role="menu"
+             aria-label="Opciones de perfil">
+            <!-- sedeD.js conecta estas funciones al backend -->
+            <button type="button" role="menuitem"
+                    onclick="irConfiguracion()">
+                Configuración
+            </button>
+            <button type="button" role="menuitem"
+                    onclick="irAyuda()">
+                Ayuda
+            </button>
+            <button type="button" role="menuitem"
+                    onclick="cerrarSesion()">
+                Cerrar sesión
+            </button>
         </div>
     </div>
 </header>
 
-<!-- ==================== MAIN CONTENT ==================== -->
+<!-- =====================================================
+     ÁREA PRINCIPAL DEL DASHBOARD
+     id="mainContent" → JavaScript agrega/quita
+     .sidebar-hidden para expandir cuando el sidebar
+     se oculta
+     .animate-fade-in-up → animación de entrada
+     ===================================================== -->
 <main class="dashboard animate-fade-in-up" id="mainContent">
 
-    <!-- ========== SECCIÓN DE USUARIOS ========== -->
+
+    <!-- =================================================
+         SECCIÓN USUARIOS
+         Activa por defecto (primer link del sidebar
+         tiene class="active")
+         ================================================= -->
     <section id="usuarios" class="content-section">
 
-        <!-- Indicadores circulares -->
-        <div class="user-indicators">
-            <article class="stats-card">
+        <!-- Indicadores circulares (donuts) de estadísticas
+             .user-indicators → contenedor flex de las tarjetas
+             .stats-card → tarjeta circular individual
+             Definidos en sede.css Parte 1 -->
+        <div class="user-indicators" aria-label="Indicadores de la sede">
+
+            <!-- Donut 1: Porcentaje de usuarios conectados
+                 stroke-dasharray="53 100" → 53% del arco relleno
+                 JavaScript puede actualizar este valor dinámicamente -->
+            <article class="stats-card" aria-label="Usuarios conectados">
                 <div class="stats-label">Usuarios Conectados</div>
                 <div class="donut-container">
-                    <svg class="donut-svg" width="110" height="110" viewBox="0 0 42 42">
+                    <!-- SVG del gráfico circular
+                         viewBox="0 0 42 42" → sistema de coordenadas interno -->
+                    <svg class="donut-svg" width="110" height="110"
+                         viewBox="0 0 42 42" aria-hidden="true">
+                        <!-- Anillo de fondo semitransparente -->
                         <circle class="donut-ring" cx="21" cy="21" r="15.9155" />
-                        <circle class="donut-segment usuario-segment" cx="21" cy="21" r="15.9155" stroke-dasharray="53 100" stroke-dashoffset="0" />
+                        <!-- Arco de color: .usuario-segment → verde (#34a853) -->
+                        <circle class="donut-segment usuario-segment"
+                                cx="21" cy="21" r="15.9155"
+                                stroke-dasharray="53 100"
+                                stroke-dashoffset="0" />
                     </svg>
+                    <!-- Número central actualizado por sedeD.js -->
                     <div class="donut-text">53%</div>
                 </div>
             </article>
 
-            <article class="stats-card">
+            <!-- Donut 2: Porcentaje de cuota de sedes ocupada -->
+            <article class="stats-card" aria-label="Cuota de sedes">
                 <div class="stats-label">Cuota de Sedes</div>
                 <div class="donut-container">
-                    <svg class="donut-svg" width="110" height="110" viewBox="0 0 42 42">
+                    <svg class="donut-svg" width="110" height="110"
+                         viewBox="0 0 42 42" aria-hidden="true">
                         <circle class="donut-ring" cx="21" cy="21" r="15.9155" />
-                        <circle class="donut-segment cuota-segment" cx="21" cy="21" r="15.9155" stroke-dasharray="75 100" stroke-dashoffset="0" />
+                        <!-- .cuota-segment → verde azulado (#00bfa5) -->
+                        <circle class="donut-segment cuota-segment"
+                                cx="21" cy="21" r="15.9155"
+                                stroke-dasharray="75 100"
+                                stroke-dashoffset="0" />
                     </svg>
                     <div class="donut-text">75%</div>
                 </div>
             </article>
         </div>
 
-        <!-- Botón registrar trabajador -->
+        <!-- Botón registrar nuevo trabajador
+             CAMBIO: era class="btn-primary" → ahora class="sede-btn-primary"
+             openRegistrarTrabajadorModal() → abre el modal de registro -->
         <div class="flex justify-end mb-4">
-            <button class="btn-primary" onclick="openRegistrarTrabajadorModal()">
-                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
+            <button class="sede-btn-primary"
+                    onclick="openRegistrarTrabajadorModal()"
+                    type="button">
+                <!-- Ícono "+" usando SVG de Tailwind -->
+                <svg xmlns="http://www.w3.org/2000/svg"
+                     class="h-5 w-5" fill="none"
+                     viewBox="0 0 24 24" stroke="currentColor"
+                     aria-hidden="true">
+                    <path stroke-linecap="round" stroke-linejoin="round"
+                          stroke-width="2" d="M12 4v16m8-8H4" />
                 </svg>
                 Registrar Trabajador
             </button>
         </div>
 
-        <!-- Pestañas Usuarios/Sedes -->
-        <div class="tabs">
-            <button id="btnUsuarios" class="active">
-                <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"/>
+        <!-- Pestañas: Usuarios / Sedes
+             CAMBIO: era class="tabs" (conflicto con DaisyUI)
+             AHORA: class="sede-tabs" (sede.css Parte 2)
+             JavaScript agrega/quita .active según la pestaña clickeada -->
+        <div class="sede-tabs" role="tablist">
+
+            <!-- Pestaña Usuarios: activa por defecto -->
+            <button id="btnUsuarios"
+                    class="active"
+                    role="tab"
+                    aria-selected="true"
+                    aria-controls="tablaUsuarios"
+                    type="button">
+                <!-- Ícono de grupo de personas -->
+                <svg xmlns="http://www.w3.org/2000/svg"
+                     class="h-6 w-6" fill="none"
+                     viewBox="0 0 24 24" stroke="currentColor"
+                     aria-hidden="true">
+                    <path stroke-linecap="round" stroke-linejoin="round"
+                          stroke-width="2"
+                          d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6
+                          6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197
+                          M13 7a4 4 0 11-8 0 4 4 0 018 0z"/>
                 </svg>
                 <span>Usuarios</span>
             </button>
-            <button id="btnSedes">
-                <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/>
+
+            <!-- Pestaña Sedes -->
+            <button id="btnSedes"
+                    role="tab"
+                    aria-selected="false"
+                    aria-controls="tablaSedes"
+                    type="button">
+                <!-- Ícono de edificio -->
+                <svg xmlns="http://www.w3.org/2000/svg"
+                     class="h-6 w-6" fill="none"
+                     viewBox="0 0 24 24" stroke="currentColor"
+                     aria-hidden="true">
+                    <path stroke-linecap="round" stroke-linejoin="round"
+                          stroke-width="2"
+                          d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2
+                          2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1
+                          4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1
+                          1 0 011 1v5m-4 0h4"/>
                 </svg>
                 <span>Sedes</span>
             </button>
         </div>
 
-        <!-- Botones de reporte -->
+        <!-- Botones de exportación de reportes
+             CAMBIO: era class="btn-outline" → ahora class="sede-btn-outline" -->
         <div class="flex justify-end mb-4 gap-4 flex-wrap">
-            <button class="btn-outline" onclick="generarPDF()">
-                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z" />
+            <button class="sede-btn-outline"
+                    onclick="generarPDF()"
+                    type="button">
+                <!-- Ícono de archivo PDF -->
+                <svg xmlns="http://www.w3.org/2000/svg"
+                     class="h-4 w-4" fill="none"
+                     viewBox="0 0 24 24" stroke="currentColor"
+                     aria-hidden="true">
+                    <path stroke-linecap="round" stroke-linejoin="round"
+                          stroke-width="2"
+                          d="M7 21h10a2 2 0 002-2V9.414a1 1 0
+                          00-.293-.707l-5.414-5.414A1 1 0
+                          0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z" />
                 </svg>
                 Generar PDF
             </button>
-            <button class="btn-outline" onclick="generarExcel()">
-                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+            <button class="sede-btn-outline"
+                    onclick="generarExcel()"
+                    type="button">
+                <!-- Ícono de archivo Excel -->
+                <svg xmlns="http://www.w3.org/2000/svg"
+                     class="h-4 w-4" fill="none"
+                     viewBox="0 0 24 24" stroke="currentColor"
+                     aria-hidden="true">
+                    <path stroke-linecap="round" stroke-linejoin="round"
+                          stroke-width="2"
+                          d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0
+                          01-2-2V5a2 2 0 012-2h5.586a1 1 0
+                          01.707.293l5.414 5.414a1 1 0
+                          01.293.707V19a2 2 0 01-2 2z" />
                 </svg>
                 Generar Excel
             </button>
         </div>
 
-        <!-- Barra de búsqueda y filtro -->
+        <!-- Barra de búsqueda y filtro de usuarios
+             Tailwind: flex, justify-between, items-center, etc.
+             Estas clases de Tailwind no interfieren con nuestro CSS -->
         <div class="flex justify-between items-center mb-6 gap-4 flex-wrap">
-            <div class="flex items-center w-full md:w-1/2 border-2 border-gray-300 rounded-lg px-3 py-2 focus-within:border-blue-500 transition-colors">
-                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+
+            <!-- Barra de búsqueda general
+                 focus-within:border-blue-500 → Tailwind cambia el borde
+                 cuando cualquier hijo recibe el foco -->
+            <div class="flex items-center w-full md:w-1/2 border-2
+                        border-gray-300 rounded-lg px-3 py-2
+                        focus-within:border-blue-500 transition-colors">
+                <!-- Ícono lupa -->
+                <svg xmlns="http://www.w3.org/2000/svg"
+                     class="h-5 w-5 text-gray-400" fill="none"
+                     viewBox="0 0 24 24" stroke="currentColor"
+                     aria-hidden="true">
+                    <path stroke-linecap="round" stroke-linejoin="round"
+                          stroke-width="2"
+                          d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
                 </svg>
-                <input id="busquedaInput" type="text" placeholder="Buscar por nombre, correo o rol..." class="ml-2 w-full focus:outline-none">
+                <!-- sedeD.js escucha keyup en este input para filtrar la tabla -->
+                <input id="busquedaInput"
+                       type="text"
+                       placeholder="Buscar por nombre, correo o rol..."
+                       class="ml-2 w-full focus:outline-none"
+                       aria-label="Buscar usuarios">
             </div>
-            <select id="filtroEstado" class="border-2 border-gray-300 rounded-lg px-4 py-2 text-gray-700 w-full md:w-auto focus:outline-none focus:border-blue-500">
+
+            <!-- Filtro por estado: Activo / Inactivo -->
+            <select id="filtroEstado"
+                    class="border-2 border-gray-300 rounded-lg px-4
+                           py-2 text-gray-700 w-full md:w-auto
+                           focus:outline-none focus:border-blue-500"
+                    aria-label="Filtrar por estado">
                 <option value="">Todos los estados</option>
                 <option value="activo">Activo</option>
                 <option value="inactivo">Inactivo</option>
             </select>
         </div>
 
-        <!-- Tabla de Usuarios -->
+        <!-- Tabla de Usuarios (visible por defecto)
+             CAMBIO: se agrega class="sede-table" a la tabla
+             para aplicar estilos de sede.css Parte 2 sin
+             afectar globalmente TODAS las tablas del HTML -->
         <div id="tablaUsuarios" class="overflow-x-auto">
-            <table>
+            <table class="sede-table">
                 <thead>
                 <tr>
                     <th>Nombre</th>
@@ -741,16 +419,21 @@
                 </tr>
                 </thead>
                 <tbody id="usuariosTableBody">
+                <!-- sedeD.js rellena con los usuarios de la sede -->
                 <tr>
-                    <td colspan="5" class="text-center py-8 text-gray-500">Cargando usuarios...</td>
+                    <td colspan="5"
+                        class="text-center py-8 text-gray-500">
+                        Cargando usuarios...
+                    </td>
                 </tr>
                 </tbody>
             </table>
         </div>
 
-        <!-- Tabla de Sedes -->
+        <!-- Tabla de Sedes (oculta por defecto)
+             .hidden → Tailwind la oculta hasta que se active la pestaña Sedes -->
         <div id="tablaSedes" class="overflow-x-auto hidden">
-            <table>
+            <table class="sede-table">
                 <thead>
                 <tr>
                     <th>Nombre</th>
@@ -761,81 +444,160 @@
                 </tr>
                 </thead>
                 <tbody id="sedesTableBody">
+                <!-- sedeD.js rellena con las sedes del administrador -->
                 <tr>
-                    <td colspan="5" class="text-center py-8 text-gray-500">Cargando sedes...</td>
+                    <td colspan="5"
+                        class="text-center py-8 text-gray-500">
+                        Cargando sedes...
+                    </td>
                 </tr>
                 </tbody>
             </table>
         </div>
     </section>
-    <!-- ========== SECCIÓN DE CORREO ========== -->
-    <section id="correo" class="content-section hidden">
-        <h2 class="text-2xl font-semibold text-blue-700 mb-6">Enviar Correo</h2>
 
-        <!-- Tabs de correo -->
-        <div class="tabs">
-            <button id="tab-mailuno" class="active">
-                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+
+    <!-- =================================================
+         SECCIÓN CORREO
+         class="content-section hidden" → oculta por defecto
+         JavaScript la muestra al hacer clic en "Enviar correo"
+         ================================================= -->
+    <section id="correo" class="content-section hidden">
+        <h2 class="text-2xl font-semibold text-blue-700 mb-6">
+            Enviar Correo
+        </h2>
+
+        <!-- Pestañas: Correo individual / Correo masivo
+             CAMBIO: era class="tabs" → ahora class="sede-tabs" -->
+        <div class="sede-tabs" role="tablist">
+
+            <!-- Pestaña correo individual: activa por defecto -->
+            <button id="tab-mailuno"
+                    class="active"
+                    role="tab"
+                    aria-selected="true"
+                    type="button">
+                <svg xmlns="http://www.w3.org/2000/svg"
+                     class="h-5 w-5" fill="none"
+                     viewBox="0 0 24 24" stroke="currentColor"
+                     aria-hidden="true">
+                    <path stroke-linecap="round" stroke-linejoin="round"
+                          stroke-width="2"
+                          d="M3 8l7.89 5.26a2 2 0 002.22 0L21
+                          8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5
+                          a2 2 0 00-2 2v10a2 2 0 002 2z" />
                 </svg>
                 Correo Uno a Uno
             </button>
-            <button id="tab-mailmasivo">
-                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
+
+            <!-- Pestaña correo masivo -->
+            <button id="tab-mailmasivo"
+                    role="tab"
+                    aria-selected="false"
+                    type="button">
+                <svg xmlns="http://www.w3.org/2000/svg"
+                     class="h-5 w-5" fill="none"
+                     viewBox="0 0 24 24" stroke="currentColor"
+                     aria-hidden="true">
+                    <path stroke-linecap="round" stroke-linejoin="round"
+                          stroke-width="2"
+                          d="M17 20h5v-2a3 3 0 00-5.356-1.857M17
+                          20H7m10 0v-2c0-.656-.126-1.283-.356-1.857
+                          M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2
+                          c0-.656.126-1.283.356-1.857m0 0a5.002
+                          5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3
+                          0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0z
+                          M7 10a2 2 0 11-4 0 2 2 0 014 0z" />
                 </svg>
                 Correo Masivo
             </button>
         </div>
 
-        <!-- Formulario Correo Uno a Uno -->
+        <!-- Formulario Correo Uno a Uno (visible por defecto)
+             CAMBIO: era class="form-control" → ahora class="sede-form-control"
+             Evita conflicto con .form-control de DaisyUI -->
         <div id="correoUno">
             <form onsubmit="event.preventDefault(); enviarCorreoUno();">
-                <div class="form-control">
+
+                <div class="sede-form-control">
                     <label for="emailSingle">Correo del destinatario</label>
-                    <input type="email" id="emailSingle" placeholder="ejemplo@correo.com" required>
+                    <input type="email"
+                           id="emailSingle"
+                           placeholder="ejemplo@correo.com"
+                           required>
                 </div>
 
-                <div class="form-control">
+                <div class="sede-form-control">
                     <label for="subjectSingle">Asunto</label>
-                    <input type="text" id="subjectSingle" placeholder="Asunto del correo" required>
+                    <input type="text"
+                           id="subjectSingle"
+                           placeholder="Asunto del correo"
+                           required>
                 </div>
 
-                <div class="form-control">
+                <div class="sede-form-control">
                     <label for="messageSingle">Mensaje</label>
-                    <textarea id="messageSingle" placeholder="Escribe el contenido del correo..." rows="6" required></textarea>
+                    <textarea id="messageSingle"
+                              placeholder="Escribe el contenido del correo..."
+                              rows="6"
+                              required></textarea>
                 </div>
 
-                <button type="submit" class="btn-primary">
-                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8" />
+                <!-- CAMBIO: era class="btn-primary" → ahora class="sede-btn-primary" -->
+                <button type="submit" class="sede-btn-primary">
+                    <svg xmlns="http://www.w3.org/2000/svg"
+                         class="h-5 w-5" fill="none"
+                         viewBox="0 0 24 24" stroke="currentColor"
+                         aria-hidden="true">
+                        <path stroke-linecap="round" stroke-linejoin="round"
+                              stroke-width="2"
+                              d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8" />
                     </svg>
                     Enviar Correo
                 </button>
             </form>
         </div>
 
-        <!-- Formulario Correo Masivo -->
+        <!-- Formulario Correo Masivo (oculto por defecto)
+             hidden → atributo HTML nativo que oculta el elemento -->
         <div id="correoMasivo" hidden>
             <form onsubmit="event.preventDefault(); enviarCorreoMasivo();">
-                <div class="form-control">
-                    <label for="emailsMassive">Lista de correos (separados por coma)</label>
-                    <textarea id="emailsMassive" placeholder="correo1@ejemplo.com, correo2@ejemplo.com, ..." rows="4" required></textarea>
+
+                <div class="sede-form-control">
+                    <label for="emailsMassive">
+                        Lista de correos (separados por coma)
+                    </label>
+                    <textarea id="emailsMassive"
+                              placeholder="correo1@ejemplo.com, correo2@ejemplo.com, ..."
+                              rows="4"
+                              required></textarea>
                 </div>
 
-                <div class="form-control">
+                <div class="sede-form-control">
                     <label for="subjectMassive">Asunto</label>
-                    <input type="text" id="subjectMassive" placeholder="Asunto del correo" required>
+                    <input type="text"
+                           id="subjectMassive"
+                           placeholder="Asunto del correo"
+                           required>
                 </div>
 
-                <div class="form-control">
+                <div class="sede-form-control">
                     <label for="messageMassive">Mensaje</label>
-                    <textarea id="messageMassive" placeholder="Escribe el contenido del correo..." rows="6" required></textarea>
+                    <textarea id="messageMassive"
+                              placeholder="Escribe el contenido del correo..."
+                              rows="6"
+                              required></textarea>
                 </div>
 
-                <button type="submit" class="btn-primary">
-                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8" />
+                <!-- CAMBIO: era class="btn-primary" → ahora class="sede-btn-primary" -->
+                <button type="submit" class="sede-btn-primary">
+                    <svg xmlns="http://www.w3.org/2000/svg"
+                         class="h-5 w-5" fill="none"
+                         viewBox="0 0 24 24" stroke="currentColor"
+                         aria-hidden="true">
+                        <path stroke-linecap="round" stroke-linejoin="round"
+                              stroke-width="2"
+                              d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8" />
                     </svg>
                     Enviar Masivamente
                 </button>
@@ -843,146 +605,291 @@
         </div>
     </section>
 
-    <!-- ========== SECCIÓN DE GRÁFICAS ========== -->
-    <section id="graficas" class="content-section hidden">
-        <h2 class="text-2xl font-semibold text-blue-700 mb-6">Gráficas y Estadísticas</h2>
 
+    <!-- =================================================
+         SECCIÓN GRÁFICAS
+         ================================================= -->
+    <section id="graficas" class="content-section hidden">
+        <h2 class="text-2xl font-semibold text-blue-700 mb-6">
+            Gráficas y Estadísticas
+        </h2>
+
+        <!-- Grid de gráficas usando Tailwind
+             grid-cols-1 en móvil, 2 en tablet, 3 en desktop -->
         <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+
+            <!-- Tarjeta de gráfica: Ocupación de sedes
+                 Este SVG es estático, sedeD.js puede actualizarlo
+                 con datos reales del backend -->
             <article class="p-6 bg-white rounded-lg shadow-lg">
-                <h3 class="font-semibold text-lg text-center mb-4 text-gray-700">Ocupación de Sedes</h3>
+                <h3 class="font-semibold text-lg text-center mb-4 text-gray-700">
+                    Ocupación de Sedes
+                </h3>
                 <div class="flex justify-center">
-                    <svg width="150" height="150" viewBox="0 0 42 42">
-                        <circle cx="21" cy="21" r="15.9155" stroke="#90ee90" stroke-width="10" fill="none" opacity="0.5"/>
-                        <circle cx="21" cy="21" r="15.9155" stroke="#32cd32" stroke-width="10" fill="none" stroke-linecap="round" stroke-dasharray="53 100" stroke-dashoffset="0" transform="rotate(-90 21 21)"/>
-                        <text x="50%" y="50%" dominant-baseline="middle" text-anchor="middle" fill="#32cd32" font-size="8" font-weight="bold">53%</text>
+                    <!-- SVG de donut inline para la gráfica
+                         A diferencia de los otros donuts, este usa
+                         transform="rotate(-90 21 21)" directamente
+                         en el elemento en vez de en el contenedor -->
+                    <svg width="150" height="150" viewBox="0 0 42 42"
+                         aria-label="Gráfica de ocupación: 53%">
+                        <!-- Anillo de fondo verde claro semitransparente -->
+                        <circle cx="21" cy="21" r="15.9155"
+                                stroke="#90ee90" stroke-width="10"
+                                fill="none" opacity="0.5"/>
+                        <!-- Arco de color verde con 53% de ocupación -->
+                        <circle cx="21" cy="21" r="15.9155"
+                                stroke="#32cd32" stroke-width="10"
+                                fill="none" stroke-linecap="round"
+                                stroke-dasharray="53 100"
+                                stroke-dashoffset="0"
+                                transform="rotate(-90 21 21)"/>
+                        <!-- Texto del porcentaje centrado en el SVG -->
+                        <text x="50%" y="50%"
+                              dominant-baseline="middle"
+                              text-anchor="middle"
+                              fill="#32cd32"
+                              font-size="8"
+                              font-weight="bold">
+                            53%
+                        </text>
                     </svg>
                 </div>
             </article>
+
+            <!-- Más tarjetas de gráficas pueden añadirse aquí
+                 sedeD.js puede inyectar gráficas adicionales dinámicamente -->
         </div>
     </section>
-
-    <!-- ==================== SECCIÓN GESTIÓN VEHÍCULOS ==================== -->
+    <!-- =================================================
+         SECCIÓN GESTIÓN DE VEHÍCULOS
+         El administrador de sede también puede registrar
+         entradas/salidas igual que el trabajador
+         ================================================= -->
     <section id="gestion" class="content-section hidden">
         <h2 class="section-title">🚗 Gestión de Vehículos</h2>
 
-        <!-- Formulario Registro Entrada - Con validaciones mejoradas -->
+
+        <!-- ---------------------------------------------
+             SUBSECCIÓN: Registrar Entrada de Vehículo
+             --------------------------------------------- -->
         <div class="sub-section">
             <h3 class="sub-section-title">➕ Registrar Entrada de Vehículo</h3>
 
-            <!-- Buscar por placa -->
+            <!-- Buscador rápido por placa
+                 CAMBIO: era class="btn-primary" → ahora class="sede-btn-primary" -->
             <div style="margin-bottom: 1rem; display: flex; gap: 0.5rem;">
-                <input type="text" id="buscarPlaca" placeholder="Buscar por placa..."
-                       style="padding: 0.5rem; border: 1px solid #cbd5e1; border-radius: 0.5rem; flex: 1;">
-                <button class="btn-primary" type="button" onclick="buscarPorPlacaIntegrado()">🔍 Buscar</button>
+                <input type="text"
+                       id="buscarPlaca"
+                       placeholder="Buscar por placa..."
+                       style="padding: 0.5rem; border: 1px solid #cbd5e1;
+                              border-radius: 0.5rem; flex: 1;"
+                       aria-label="Buscar por placa">
+                <button class="sede-btn-primary"
+                        type="button"
+                        onclick="buscarPorPlacaIntegrado()">
+                    🔍 Buscar
+                </button>
             </div>
 
-            <!-- Formulario con validaciones -->
+            <!-- Formulario de registro de entrada
+                 novalidate → validaciones manejadas por sedeD.js -->
             <form id="registroEntradaForm" novalidate>
-                <!-- Campo oculto para rol CLIENTE -->
+
+                <!-- Campo oculto: indica al backend que es un CLIENTE -->
                 <input type="hidden" name="rol" value="CLIENTE">
 
+                <!-- Grid de 2 columnas para los campos -->
                 <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
-                    <!-- DATOS DEL CLIENTE -->
-                    <div class="form-group">
-                        <label>Nombre Cliente *</label>
-                        <input type="text" id="nombre" name="nombre" required
-                               minlength="2" maxlength="100" autocomplete="name"
-                               style="padding: 0.6rem; border: 1px solid #cbd5e1; border-radius: 0.5rem; width: 100%;">
-                        <span id="nombre-error" class="error-message" aria-live="polite"></span>
+
+                    <!-- ===== DATOS DEL CLIENTE ===== -->
+
+                    <!-- CAMBIO: era class="form-group" → ahora class="sede-form-group"
+                         Evita conflicto con .form-control de DaisyUI -->
+                    <div class="sede-form-group">
+                        <label for="nombre">Nombre Cliente *</label>
+                        <input type="text"
+                               id="nombre"
+                               name="nombre"
+                               required
+                               minlength="2"
+                               maxlength="100"
+                               autocomplete="name"
+                               placeholder="Ej: Juan Pérez"
+                               style="padding: 0.6rem; border: 1px solid #cbd5e1;
+                                      border-radius: 0.5rem; width: 100%;">
+                        <!-- .error-message → aparece si el campo no es válido -->
+                        <span id="nombre-error"
+                              class="error-message"
+                              aria-live="polite"></span>
                     </div>
 
-                    <div class="form-group">
-                        <label>Teléfono *</label>
-                        <input type="tel" id="telefono" name="telefono" required
-                               pattern="[0-9]{10}" title="Ingresa un número de 10 dígitos"
+                    <div class="sede-form-group">
+                        <label for="telefono">Teléfono *</label>
+                        <input type="tel"
+                               id="telefono"
+                               name="telefono"
+                               required
+                               pattern="[0-9]{10}"
+                               title="Ingresa un número de 10 dígitos"
                                autocomplete="tel"
-                               style="padding: 0.6rem; border: 1px solid #cbd5e1; border-radius: 0.5rem; width: 100%;">
-                        <span id="telefono-error" class="error-message" aria-live="polite"></span>
-                        <span id="telefono-success" class="success-message" aria-live="polite"></span>
+                               placeholder="Ej: 3001234567"
+                               style="padding: 0.6rem; border: 1px solid #cbd5e1;
+                                      border-radius: 0.5rem; width: 100%;">
+                        <span id="telefono-error"
+                              class="error-message"
+                              aria-live="polite"></span>
+                        <!-- .success-message → aparece cuando el campo es válido -->
+                        <span id="telefono-success"
+                              class="success-message"
+                              aria-live="polite"></span>
                     </div>
 
-                    <div class="form-group">
-                        <label>Email *</label>
-                        <input type="email" id="correo1" name="correo" required
+                    <div class="sede-form-group">
+                        <label for="correo1">Email *</label>
+                        <!-- id="correo1" para no colisionar con el #correo
+                             del formulario de envío de correos de esta misma página -->
+                        <input type="email"
+                               id="correo1"
+                               name="correo"
+                               required
                                autocomplete="email"
-                               style="padding: 0.6rem; border: 1px solid #cbd5e1; border-radius: 0.5rem; width: 100%;">
-                        <span id="correo-error" class="error-message" aria-live="polite"></span>
-                        <span id="correo-success" class="success-message" aria-live="polite"></span>
+                               placeholder="ejemplo@correo.com"
+                               style="padding: 0.6rem; border: 1px solid #cbd5e1;
+                                      border-radius: 0.5rem; width: 100%;">
+                        <span id="correo-error"
+                              class="error-message"
+                              aria-live="polite"></span>
+                        <span id="correo-success"
+                              class="success-message"
+                              aria-live="polite"></span>
                     </div>
 
-                    <div class="form-group">
-                        <label>Cédula *</label>
-                        <input type="text" id="cedula" name="cedula" required
-                               pattern="[0-9]{10}" title="Ingresa una cédula de 10 dígitos"
+                    <div class="sede-form-group">
+                        <label for="cedula">Cédula *</label>
+                        <input type="text"
+                               id="cedula"
+                               name="cedula"
+                               required
+                               pattern="[0-9]{10}"
+                               title="Ingresa una cédula de 10 dígitos"
                                autocomplete="off"
-                               style="padding: 0.6rem; border: 1px solid #cbd5e1; border-radius: 0.5rem; width: 100%;">
-                        <span id="cedula-error" class="error-message" aria-live="polite"></span>
-                        <span id="cedula-success" class="success-message" aria-live="polite"></span>
+                               placeholder="Ej: 1234567890"
+                               style="padding: 0.6rem; border: 1px solid #cbd5e1;
+                                      border-radius: 0.5rem; width: 100%;">
+                        <span id="cedula-error"
+                              class="error-message"
+                              aria-live="polite"></span>
+                        <span id="cedula-success"
+                              class="success-message"
+                              aria-live="polite"></span>
                     </div>
 
-                    <!-- Contraseñas generadas automáticamente (ocultas) -->
+                    <!-- Contraseña generada automáticamente por sedeD.js -->
                     <input type="hidden" id="contrasena" name="contrasena" value="">
-                    <input type="hidden" id="confirmarContrasena" name="confirmarContrasena" value="">
+                    <input type="hidden" id="confirmarContrasena"
+                           name="confirmarContrasena" value="">
 
-                    <!-- DATOS DEL VEHÍCULO -->
-                    <div class="form-group">
-                        <label>Placa *</label>
-                        <input type="text" id="placa" name="placa" required
-                               maxlength="6" pattern="[A-Z]{3}[0-9]{3}"
-                               title="Formato: 3 letras mayúsculas seguidas de 3 números (ej. ABC123)"
-                               style="text-transform: uppercase; padding: 0.6rem; border: 1px solid #cbd5e1; border-radius: 0.5rem; width: 100%;"
-                               oninput="this.value = this.value.toUpperCase().replace(/[^A-Z0-9]/g, '').substring(0,6);">
-                        <span id="placa-error" class="error-message" aria-live="polite"></span>
+                    <!-- ===== DATOS DEL VEHÍCULO ===== -->
+
+                    <div class="sede-form-group">
+                        <label for="placa">Placa *</label>
+                        <input type="text"
+                               id="placa"
+                               name="placa"
+                               required
+                               maxlength="6"
+                               pattern="[A-Z]{3}[0-9]{3}"
+                               title="Formato: 3 letras mayúsculas + 3 números (ej: ABC123)"
+                               placeholder="ABC123"
+                               style="text-transform: uppercase; padding: 0.6rem;
+                                      border: 1px solid #cbd5e1; border-radius: 0.5rem;
+                                      width: 100%;"
+                               oninput="this.value = this.value.toUpperCase()
+                                        .replace(/[^A-Z0-9]/g, '')
+                                        .substring(0, 6);">
+                        <span id="placa-error"
+                              class="error-message"
+                              aria-live="polite"></span>
                     </div>
 
-                    <div class="form-group">
-                        <label>Tipo Vehículo *</label>
-                        <select id="tipoVehiculo" name="tipoVehiculo" required
-                                style="padding: 0.6rem; border: 1px solid #cbd5e1; border-radius: 0.5rem; width: 100%;">
+                    <div class="sede-form-group">
+                        <label for="tipoVehiculo">Tipo Vehículo *</label>
+                        <select id="tipoVehiculo"
+                                name="tipoVehiculo"
+                                required
+                                style="padding: 0.6rem; border: 1px solid #cbd5e1;
+                                       border-radius: 0.5rem; width: 100%;">
                             <option value="">Selecciona un tipo</option>
                             <option value="CARRO">Carro</option>
                             <option value="MOTO">Moto</option>
                             <option value="BICICLETA">Bicicleta</option>
                             <option value="OTRO">Otro</option>
                         </select>
-                        <span id="tipoVehiculo-error" class="error-message" aria-live="polite"></span>
+                        <span id="tipoVehiculo-error"
+                              class="error-message"
+                              aria-live="polite"></span>
                     </div>
 
-                    <div class="form-group">
-                        <label>Marca *</label>
-                        <select id="marca" name="marca" required
-                                style="padding: 0.6rem; border: 1px solid #cbd5e1; border-radius: 0.5rem; width: 100%;">
+                    <div class="sede-form-group">
+                        <label for="marca">Marca *</label>
+                        <!-- Las opciones las carga sedeD.js según el tipo de vehículo -->
+                        <select id="marca"
+                                name="marca"
+                                required
+                                style="padding: 0.6rem; border: 1px solid #cbd5e1;
+                                       border-radius: 0.5rem; width: 100%;">
                             <option value="">Selecciona una marca</option>
                         </select>
-                        <span id="marca-error" class="error-message" aria-live="polite"></span>
+                        <span id="marca-error"
+                              class="error-message"
+                              aria-live="polite"></span>
                     </div>
 
-                    <div class="form-group">
-                        <label>Color</label>
-                        <input type="text" id="color" name="color"
-                               placeholder="Rojo"
-                               style="padding: 0.6rem; border: 1px solid #cbd5e1; border-radius: 0.5rem; width: 100%;">
+                    <div class="sede-form-group">
+                        <label for="color">Color</label>
+                        <input type="text"
+                               id="color"
+                               name="color"
+                               placeholder="Ej: Rojo"
+                               style="padding: 0.6rem; border: 1px solid #cbd5e1;
+                                      border-radius: 0.5rem; width: 100%;">
                     </div>
 
-                    <div class="form-group">
-                        <label>Año</label>
-                        <input type="number" id="anio" name="anio"
-                               min="2000" max="2025" placeholder="2020"
-                               style="padding: 0.6rem; border: 1px solid #cbd5e1; border-radius: 0.5rem; width: 100%;">
+                    <div class="sede-form-group">
+                        <label for="anio">Año</label>
+                        <input type="number"
+                               id="anio"
+                               name="anio"
+                               min="2000"
+                               max="2025"
+                               placeholder="Ej: 2020"
+                               style="padding: 0.6rem; border: 1px solid #cbd5e1;
+                                      border-radius: 0.5rem; width: 100%;">
                     </div>
                 </div>
 
+                <!-- Botones del formulario
+                     CAMBIO: btn-success → sede-btn-success
+                             btn-secondary → sede-btn-secondary -->
                 <div style="margin-top: 1rem; display: flex; gap: 0.5rem;">
-                    <button type="submit" class="btn-success">✅ Registrar Entrada</button>
-                    <button type="button" class="btn-secondary" onclick="limpiarFormularioEntrada()">🔄 Limpiar</button>
+                    <button type="submit" class="sede-btn-success">
+                        ✅ Registrar Entrada
+                    </button>
+                    <button type="button"
+                            class="sede-btn-secondary"
+                            onclick="limpiarFormularioEntrada()">
+                        🔄 Limpiar
+                    </button>
                 </div>
             </form>
         </div>
 
-        <!-- Vehículos Activos (Temporizando) -->
+
+        <!-- Tabla: Vehículos activos con temporizador -->
         <div class="sub-section">
             <h3 class="sub-section-title">⏱️ Vehículos en Parqueadero (Temporizando)</h3>
-            <table>
+            <!-- CAMBIO: se agrega class="sede-table" -->
+            <table class="sede-table">
                 <thead>
                 <tr>
                     <th>Placa</th>
@@ -990,21 +897,28 @@
                     <th>Cliente</th>
                     <th>Teléfono</th>
                     <th>Hora Entrada</th>
+                    <!-- Las celdas de esta columna usan .tiempo-activo
+                         para mostrar el cronómetro en fuente monoespaciada -->
                     <th>Tiempo</th>
                     <th>Cobro Est.</th>
                     <th>Acción</th>
                 </tr>
                 </thead>
                 <tbody id="vehiculosActivosBody">
-                <tr><td colspan="8" style="text-align:center;">Cargando...</td></tr>
+                <tr>
+                    <td colspan="8"
+                        style="text-align: center; padding: 1rem; color: #64748b;">
+                        Cargando...
+                    </td>
+                </tr>
                 </tbody>
             </table>
         </div>
 
-        <!-- Vehículos Pendientes de Cobro -->
+        <!-- Tabla: Vehículos pendientes de cobro -->
         <div class="sub-section">
             <h3 class="sub-section-title">💰 Pendientes de Cobro</h3>
-            <table>
+            <table class="sede-table">
                 <thead>
                 <tr>
                     <th>Placa</th>
@@ -1017,28 +931,47 @@
                 </tr>
                 </thead>
                 <tbody id="pendientesCobroBody">
-                <tr><td colspan="7" style="text-align:center;">No hay vehículos pendientes</td></tr>
+                <tr>
+                    <td colspan="7"
+                        style="text-align: center; padding: 1rem; color: #64748b;">
+                        No hay vehículos pendientes
+                    </td>
+                </tr>
                 </tbody>
             </table>
         </div>
     </section>
 
-    <!-- ==================== SECCIÓN HISTORIAL ==================== -->
+
+    <!-- =================================================
+         SECCIÓN HISTORIAL
+         ================================================= -->
     <section id="historial" class="content-section hidden">
         <h2 class="section-title">📊 Historial de Registros</h2>
 
+        <!-- Barra de filtros: .filter-bar definida en sede.css Parte 2
+             NOTA: id="filtroEstado1" para no colisionar con el
+             #filtroEstado del filtro de usuarios de la sección Usuarios -->
         <div class="filter-bar">
-            <input type="date" id="filtroFecha">
-            <select id="filtroEstado1">
+            <input type="date"
+                   id="filtroFecha"
+                   aria-label="Filtrar por fecha">
+            <select id="filtroEstado1"
+                    aria-label="Filtrar por estado">
                 <option value="">Todos los estados</option>
                 <option value="ACTIVO">Activo</option>
                 <option value="FINALIZADO">Pendiente Cobro</option>
                 <option value="COBRADO">Cobrado</option>
             </select>
-            <button class="btn-primary" onclick="loadHistorial()">🔍 Filtrar</button>
+            <!-- CAMBIO: btn-primary → sede-btn-primary -->
+            <button class="sede-btn-primary"
+                    onclick="loadHistorial()"
+                    type="button">
+                🔍 Filtrar
+            </button>
         </div>
 
-        <table>
+        <table class="sede-table">
             <thead>
             <tr>
                 <th>Placa</th>
@@ -1053,16 +986,24 @@
             </tr>
             </thead>
             <tbody id="historialBody">
-            <tr><td colspan="9" style="text-align:center;">Seleccione filtros y presione Filtrar</td></tr>
+            <tr>
+                <td colspan="9"
+                    style="text-align: center; padding: 1rem; color: #64748b;">
+                    Seleccione filtros y presione Filtrar
+                </td>
+            </tr>
             </tbody>
         </table>
     </section>
 
-    <!-- ==================== SECCIÓN RESERVACIONES ==================== -->
+
+    <!-- =================================================
+         SECCIÓN RESERVACIONES
+         ================================================= -->
     <section id="reservaciones" class="content-section hidden">
         <h2 class="section-title">📅 Reservaciones Pendientes</h2>
 
-        <table>
+        <table class="sede-table">
             <thead>
             <tr>
                 <th>Cliente</th>
@@ -1076,40 +1017,58 @@
             </tr>
             </thead>
             <tbody id="reservacionesBody">
-            <tr><td colspan="8" style="text-align:center;">Cargando...</td></tr>
+            <tr>
+                <td colspan="8"
+                    style="text-align: center; padding: 1rem; color: #64748b;">
+                    Cargando...
+                </td>
+            </tr>
             </tbody>
         </table>
     </section>
 
-    <!-- ==================== SECCIÓN CARGA MASIVA ==================== -->
+
+    <!-- =================================================
+         SECCIÓN CARGA MASIVA
+         ================================================= -->
     <section id="cargamasiva" class="content-section hidden">
         <h2 class="section-title">📤 Carga Masiva desde Excel</h2>
 
-        <!-- Descargar Plantilla -->
+        <!-- PASO 1: Descargar plantilla -->
         <div class="sub-section">
             <h3 class="sub-section-title">📥 Paso 1: Descargar Plantilla</h3>
             <p style="margin-bottom: 1rem; color: #64748b; font-size: 0.9rem;">
-                Descarga la plantilla de Excel y completa los datos según el tipo de registro que necesites.
+                Descarga la plantilla de Excel y completa los datos
+                según el tipo de registro que necesites.
             </p>
 
+            <!-- CAMBIO: btn-primary → sede-btn-primary
+                         btn-info   → sede-btn-info -->
             <div style="display: flex; gap: 1rem; flex-wrap: wrap; margin-bottom: 1rem;">
-                <button class="btn-primary" onclick="descargarPlantillaCompleta()" style="display: flex; align-items: center; gap: 0.5rem;">
-                    <span>📥</span>
-                    <span>Plantilla Completa (Clientes, Vehículos)</span>
+                <button class="sede-btn-primary"
+                        onclick="descargarPlantillaCompleta()"
+                        type="button">
+                    📥 Plantilla Completa (Clientes + Vehículos)
                 </button>
-                <button class="btn-info" onclick="descargarPlantillaVehiculosSolo()" style="display: flex; align-items: center; gap: 0.5rem;">
-                    <span>🚗</span>
-                    <span>Solo Vehículos</span>
+                <button class="sede-btn-info"
+                        onclick="descargarPlantillaVehiculosSolo()"
+                        type="button">
+                    🚗 Solo Vehículos
                 </button>
             </div>
 
-            <!-- Información sobre el formato -->
-            <div style="margin-top: 1rem; padding: 1rem; background: #f1f5f9; border-radius: 0.5rem; border-left: 4px solid #3b82f6;">
+            <!-- Panel informativo sobre el formato -->
+            <div style="margin-top: 1rem; padding: 1rem; background: #f1f5f9;
+                        border-radius: 0.5rem; border-left: 4px solid #3b82f6;">
                 <strong style="color: #1e40af;">📋 Formato de la Plantilla:</strong>
 
                 <details style="margin-top: 0.5rem;" open>
-                    <summary style="cursor: pointer; font-weight: 600; color: #059669; padding: 0.5rem 0;">🧑‍💼 Registrar Cliente</summary>
-                    <ul style="margin: 0.5rem 0 0 1.5rem; color: #475569; font-size: 0.9rem;">
+                    <summary style="cursor: pointer; font-weight: 600;
+                                    color: #059669; padding: 0.5rem 0;">
+                        🧑‍💼 Registrar Cliente
+                    </summary>
+                    <ul style="margin: 0.5rem 0 0 1.5rem;
+                               color: #475569; font-size: 0.9rem;">
                         <li><strong>Tipo:</strong> "Cliente"</li>
                         <li><strong>Nombre:</strong> Nombre completo (ej: Juan Pérez)</li>
                         <li><strong>Teléfono:</strong> 10 dígitos (ej: 0987654321)</li>
@@ -1119,75 +1078,117 @@
                 </details>
 
                 <details style="margin-top: 0.5rem;">
-                    <summary style="cursor: pointer; font-weight: 600; color: #2563eb; padding: 0.5rem 0;">🚗 Registrar Vehículo</summary>
-                    <ul style="margin: 0.5rem 0 0 1.5rem; color: #475569; font-size: 0.9rem;">
+                    <summary style="cursor: pointer; font-weight: 600;
+                                    color: #2563eb; padding: 0.5rem 0;">
+                        🚗 Registrar Vehículo
+                    </summary>
+                    <ul style="margin: 0.5rem 0 0 1.5rem;
+                               color: #475569; font-size: 0.9rem;">
                         <li><strong>Tipo:</strong> "Vehiculo" o "Vehículo"</li>
                         <li><strong>Placa:</strong> 3 letras + 3 números (ej: ABC123)</li>
                         <li><strong>Tipo Vehículo:</strong> CARRO, MOTO, BICICLETA, OTRO</li>
-                        <li><strong>Marca:</strong> TOYOTA, CHEVROLET, MAZDA, KIA, NISSAN, HONDA, FORD, HYUNDAI, SUZUKI</li>
-                        <li><strong>Color:</strong> Color del vehículo (ej: Blanco, Negro)</li>
+                        <li><strong>Marca:</strong> TOYOTA, CHEVROLET, MAZDA, KIA,
+                            NISSAN, HONDA, FORD, HYUNDAI, SUZUKI</li>
+                        <li><strong>Color:</strong> Color del vehículo (ej: Blanco)</li>
                         <li><strong>Año:</strong> Año del vehículo (2000-2025)</li>
-                        <li><strong>Email Cliente:</strong> Email del propietario (debe estar registrado primero)</li>
+                        <li><strong>Email Cliente:</strong> Email del propietario
+                            (debe estar registrado primero)</li>
                     </ul>
                 </details>
 
-                <div style="margin-top: 1rem; padding: 0.75rem; background: #fef3c7; border-radius: 0.5rem; border-left: 3px solid #f59e0b;">
+                <!-- Advertencia del orden de registro -->
+                <div style="margin-top: 1rem; padding: 0.75rem; background: #fef3c7;
+                            border-radius: 0.5rem; border-left: 3px solid #f59e0b;">
                     <strong style="color: #92400e;">⚠️ Orden importante:</strong>
-                    <p style="margin: 0.25rem 0 0 0; color: #78350f; font-size: 0.85rem;">
+                    <p style="margin: 0.25rem 0 0; color: #78350f; font-size: 0.85rem;">
                         1. Primero registra los Clientes<br>
-                        2. Luego registra los Vehículos (necesitan el email del cliente)<br>
+                        2. Luego registra los Vehículos (necesitan el email del cliente)
                     </p>
                 </div>
             </div>
         </div>
 
-        <!-- Subir Archivo -->
+        <!-- PASO 2: Subir archivo Excel -->
         <div class="sub-section">
             <h3 class="sub-section-title">📁 Paso 2: Subir Archivo Excel</h3>
             <p style="margin-bottom: 1rem; color: #64748b; font-size: 0.9rem;">
-                Selecciona el archivo Excel con los datos completados y haz clic en "Cargar Excel".
+                Selecciona el archivo Excel con los datos completados
+                y haz clic en "Cargar Excel".
             </p>
+
             <div style="display: flex; gap: 1rem; align-items: center; flex-wrap: wrap;">
                 <div style="flex: 1; min-width: 250px;">
+                    <!-- accept=".xlsx,.xls" → solo acepta archivos Excel
+                         onchange → muestra el nombre del archivo elegido -->
                     <input type="file"
                            id="excelFile"
                            accept=".xlsx,.xls"
-                           style="width: 100%; padding: 0.75rem; border: 2px dashed #cbd5e1; border-radius: 0.5rem; cursor: pointer;"
+                           aria-label="Seleccionar archivo Excel"
+                           style="width: 100%; padding: 0.75rem;
+                                  border: 2px dashed #cbd5e1;
+                                  border-radius: 0.5rem; cursor: pointer;"
                            onchange="mostrarArchivoSeleccionado()">
                 </div>
-                <button class="btn-success" onclick="cargarExcel()" style="white-space: nowrap;">
+                <!-- CAMBIO: btn-success → sede-btn-success -->
+                <button class="sede-btn-success"
+                        onclick="cargarExcel()"
+                        style="white-space: nowrap;"
+                        type="button">
                     📤 Cargar Excel
                 </button>
             </div>
-            <div id="archivoSeleccionado" style="margin-top: 0.5rem; font-size: 0.85rem; color: #64748b;"></div>
-        </div>
 
-        <!-- Barra de Progreso -->
-        <div id="progressContainer" class="sub-section" style="display: none;">
-            <div style="background: #f1f5f9; border-radius: 0.5rem; padding: 0.5rem; margin-bottom: 0.5rem;">
-                <div id="progressBar" style="height: 1.5rem; background: linear-gradient(90deg, #3b82f6, #2563eb); border-radius: 0.25rem; width: 0%; transition: width 0.3s ease; display: flex; align-items: center; justify-content: center; color: white; font-size: 0.85rem; font-weight: 600;"></div>
+            <!-- Nombre del archivo seleccionado: sedeD.js lo actualiza -->
+            <div id="archivoSeleccionado"
+                 style="margin-top: 0.5rem; font-size: 0.85rem; color: #64748b;">
             </div>
-            <p id="progressText" style="text-align: center; color: #64748b; font-size: 0.9rem;"></p>
         </div>
 
-        <!-- Resultados de la carga -->
+        <!-- Barra de progreso de la carga
+             display:none → oculta hasta que inicia la carga -->
+        <div id="progressContainer" class="sub-section" style="display: none;">
+            <div style="background: #f1f5f9; border-radius: 0.5rem;
+                        padding: 0.5rem; margin-bottom: 0.5rem;">
+                <!-- width cambia con JavaScript de 0% a 100% -->
+                <div id="progressBar"
+                     style="height: 1.5rem;
+                            background: linear-gradient(90deg, #3b82f6, #2563eb);
+                            border-radius: 0.25rem; width: 0%;
+                            transition: width 0.3s ease;
+                            display: flex; align-items: center;
+                            justify-content: center; color: white;
+                            font-size: 0.85rem; font-weight: 600;">
+                </div>
+            </div>
+            <p id="progressText"
+               style="text-align: center; color: #64748b; font-size: 0.9rem;">
+            </p>
+        </div>
+
+        <!-- Resultados de la carga masiva -->
         <div class="sub-section" id="resultadosCarga" style="display: none;">
             <h3 class="sub-section-title">📋 Resultados de la Carga</h3>
 
-            <!-- Resumen -->
+            <!-- Resumen numérico de éxitos y fallos -->
             <div id="resumenCarga" style="margin-bottom: 1.5rem;"></div>
 
-            <!-- Errores (si los hay) -->
+            <!-- Lista de errores (solo visible si hubo errores) -->
             <div id="erroresContainer" style="display: none; margin-bottom: 1.5rem;">
-                <div style="background: #fef2f2; border-left: 4px solid #ef4444; padding: 1rem; border-radius: 0.5rem;">
-                    <h4 style="color: #dc2626; margin: 0 0 0.5rem 0;">⚠️ Errores Encontrados:</h4>
-                    <ul id="listaErrores" style="margin: 0; padding-left: 1.5rem; color: #7f1d1d; font-size: 0.9rem;"></ul>
+                <div style="background: #fef2f2; border-left: 4px solid #ef4444;
+                            padding: 1rem; border-radius: 0.5rem;">
+                    <h4 style="color: #dc2626; margin: 0 0 0.5rem;">
+                        ⚠️ Errores Encontrados:
+                    </h4>
+                    <ul id="listaErrores"
+                        style="margin: 0; padding-left: 1.5rem;
+                               color: #7f1d1d; font-size: 0.9rem;">
+                    </ul>
                 </div>
             </div>
 
-            <!-- Tabla de registros -->
+            <!-- Tabla de resultados por fila del Excel -->
             <div style="overflow-x: auto;">
-                <table>
+                <table class="sede-table">
                     <thead>
                     <tr>
                         <th>Tipo</th>
@@ -1202,40 +1203,118 @@
         </div>
     </section>
 
-</main>
+</main><!-- Cierre de <main class="dashboard"> -->
 
-<!-- ==================== MODAL REGISTRAR TRABAJADOR ==================== -->
-<div id="registrarTrabajadorModal" class="modal">
-    <div class="modal-box">
-        <h3>Registrar Trabajador</h3>
 
-        <label>Nombre Completo</label>
-        <input type="text" id="trabajadorNombre" placeholder="Ej: Juan Pérez">
+<!-- =====================================================
+     MODAL REGISTRAR TRABAJADOR
+     Este modal es un <div> propio (NO un <dialog> de DaisyUI)
 
-        <label>Correo Electrónico</label>
-        <input type="email" id="trabajadorCorreo" placeholder="juan@ejemplo.com">
+     CAMBIO CRÍTICO: En el original usaba .modal y .modal-box
+     que son los mismos nombres que DaisyUI usa internamente.
+     Esto rompía AMBOS sistemas al mismo tiempo.
 
-        <label>Teléfono</label>
-        <input type="text" id="trabajadorTelefono" placeholder="3001234567">
+     AHORA:
+       .modal       → .sede-modal
+       .modal-box   → .sede-modal-box
+       .modal-action → .sede-modal-action
+       .modal.open  → .sede-modal.show
 
-        <label>Cédula</label>
-        <input type="text" id="trabajadorCedula" placeholder="1234567890">
+     JavaScript debe usar:
+       document.getElementById('registrarTrabajadorModal')
+               .classList.add('show')    ← para abrir
+               .classList.remove('show') ← para cerrar
+     ===================================================== -->
+<div id="registrarTrabajadorModal"
+     class="sede-modal"
+     role="dialog"
+     aria-modal="true"
+     aria-labelledby="modalTrabajadorTitulo">
 
-        <label>Contraseña</label>
-        <input type="password" id="trabajadorContrasena" placeholder="Mínimo 6 caracteres">
+    <div class="sede-modal-box">
 
-        <div class="modal-action">
-            <button class="btn-primary" onclick="registrarTrabajador()">
-                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+        <!-- Título del modal -->
+        <h3 id="modalTrabajadorTitulo">Registrar Trabajador</h3>
+
+        <!-- Campos del formulario
+             Usan los estilos de .sede-modal-box label y
+             .sede-modal-box input definidos en sede.css Parte 3 -->
+        <label for="trabajadorNombre">Nombre Completo</label>
+        <input type="text"
+               id="trabajadorNombre"
+               placeholder="Ej: Juan Pérez"
+               autocomplete="name">
+
+        <label for="trabajadorCorreo">Correo Electrónico</label>
+        <input type="email"
+               id="trabajadorCorreo"
+               placeholder="juan@ejemplo.com"
+               autocomplete="email">
+
+        <label for="trabajadorTelefono">Teléfono</label>
+        <input type="tel"
+               id="trabajadorTelefono"
+               placeholder="3001234567"
+               autocomplete="tel">
+
+        <label for="trabajadorCedula">Cédula</label>
+        <input type="text"
+               id="trabajadorCedula"
+               placeholder="1234567890"
+               autocomplete="off">
+
+        <label for="trabajadorContrasena">Contraseña</label>
+        <input type="password"
+               id="trabajadorContrasena"
+               placeholder="Mínimo 6 caracteres"
+               autocomplete="new-password">
+
+        <!-- Botones de acción del modal
+             .sede-modal-action → fila de botones alineada a la derecha
+             CAMBIO: btn-primary → sede-btn-primary
+                     btn-outline → sede-btn-outline -->
+        <div class="sede-modal-action">
+            <button class="sede-btn-primary"
+                    onclick="registrarTrabajador()"
+                    type="button">
+                <!-- Ícono de check -->
+                <svg xmlns="http://www.w3.org/2000/svg"
+                     class="h-5 w-5" fill="none"
+                     viewBox="0 0 24 24" stroke="currentColor"
+                     aria-hidden="true">
+                    <path stroke-linecap="round" stroke-linejoin="round"
+                          stroke-width="2" d="M5 13l4 4L19 7" />
                 </svg>
                 Registrar
             </button>
-            <button class="btn-outline" onclick="closeRegistrarTrabajadorModal()">Cancelar</button>
+            <!-- closeRegistrarTrabajadorModal() → quita .show del modal -->
+            <button class="sede-btn-outline"
+                    onclick="closeRegistrarTrabajadorModal()"
+                    type="button">
+                Cancelar
+            </button>
         </div>
     </div>
 </div>
 
+
+<!-- =====================================================
+     SCRIPT PRINCIPAL DEL MÓDULO SEDE
+     CAMBIO: ruta corregida de /Script/SedeD.js
+     a /js/sedeD.js (minúsculas para Spring Boot en Linux)
+
+     Se carga AL FINAL del body para garantizar que todo
+     el HTML está disponible cuando el JS intente acceder
+     a los elementos del DOM.
+
+     sedeD.js debe actualizar las referencias de clases:
+     - openRegistrarTrabajadorModal() → agrega .show
+     - closeRegistrarTrabajadorModal() → quita .show
+     - Toggle sidebar → agrega/quita .hidden en <aside>
+       y .sidebar-hidden en <header> y <main>
+     - Tabs → agrega/quita .active en los botones
+     - Dropdown perfil → agrega/quita .show en .sede-dropdown
+     ===================================================== -->
 <script src="/Script/SedeD.js"></script>
 
 </body>

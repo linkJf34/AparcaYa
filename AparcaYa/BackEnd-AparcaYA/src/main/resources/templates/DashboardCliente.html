@@ -1,135 +1,227 @@
 <!DOCTYPE html>
 <html lang="es" xmlns:th="http://www.thymeleaf.org">
+<!--
+     xmlns:th → activa el namespace de Thymeleaf.
+     Permite usar atributos th:text, th:inline, etc.
+     Spring Boot procesa este HTML en el servidor
+     ANTES de enviarlo al navegador.
+-->
 <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>Dashboard Cliente - AparcaYA</title>
 
-    <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://cdn.jsdelivr.net/npm/daisyui@4.12.10/dist/full.min.css" rel="stylesheet" />
-    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
-    <link rel="stylesheet" href="/Css/Cliente.css">
+    <!-- =====================================================
+         LIBRERÍAS EXTERNAS — Orden de carga crítico:
+         1. Tailwind  → clases utilitarias base
+         2. DaisyUI   → componentes sobre Tailwind
+         3. Leaflet CSS → estilos del mapa interactivo
+         4. Cliente.css → nuestros estilos al final
+                          para tener prioridad
 
-    <!-- ⬇️ ESTILOS ADICIONALES PARA MODALES -->
-    <style>
-        .modal {
-            display: none;
-            position: fixed;
-            inset: 0;
-            background: rgba(0,0,0,0.5);
-            z-index: 999;
-            align-items: center;
-            justify-content: center;
-        }
-        .modal.show,
-        .modal.modal-open {
-            display: flex;
-        }
-        .modal-box {
-            background: white;
-            border-radius: 1rem;
-            padding: 2rem;
-            max-width: 600px;
-            width: 90%;
-            max-height: 90vh;
-            overflow-y: auto;
-        }
-        .info-grid {
-            display: grid;
-            grid-template-columns: repeat(2, 1fr);
-            gap: 1rem;
-        }
-        .info-item {
-            padding: 0.75rem;
-            background: #f8fafc;
-            border-radius: 0.5rem;
-        }
-        .info-item.info-full {
-            grid-column: 1 / -1;
-        }
-        .info-label {
-            font-size: 0.875rem;
-            font-weight: 600;
-            color: #64748b;
-            margin-bottom: 0.25rem;
-        }
-        .info-value {
-            font-size: 1rem;
-            color: #0f172a;
-        }
-        .badge {
-            padding: 4px 12px;
-            border-radius: 12px;
-            font-size: 0.875rem;
-            font-weight: 600;
-        }
-        .badge-activo {
-            background: #22c55e;
-            color: white;
-        }
-        .badge-inactivo {
-            background: #ef4444;
-            color: white;
-        }
-        .hidden {
-            display: none !important;
-        }
-    </style>
+         CORRECCIÓN: se elimina el bloque <style> que
+         existía en el HTML original duplicando los estilos
+         de .modal, .modal-box, .badge, etc.
+         Todo vive ahora en /css/cliente.css
+         ===================================================== -->
+
+    <!-- Tailwind CSS: provee clases utilitarias como
+         hidden, flex, font-bold, text-xl, mb-4, etc. -->
+    <script src="https://cdn.tailwindcss.com"></script>
+
+    <!-- DaisyUI: componentes preconstruidos.
+         Requiere que Tailwind esté cargado primero. -->
+    <link href="https://cdn.jsdelivr.net/npm/daisyui@4.12.10/dist/full.min.css"
+          rel="stylesheet" />
+
+    <!-- Leaflet CSS: estilos necesarios para renderizar
+         el mapa interactivo de sedes.
+         DEBE cargarse antes del JS de Leaflet. -->
+    <link rel="stylesheet"
+          href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+
+    <!-- =====================================================
+         CSS PROPIO DEL MÓDULO CLIENTE
+         CAMBIO: ruta corregida de /Css/Cliente.css
+         a /css/cliente.css (minúsculas para Spring Boot
+         en Linux donde las rutas son case-sensitive)
+         ===================================================== -->
+    <link rel="stylesheet" href="/Css/Cliente.css">
 </head>
 <body>
 
-<aside class="sidebar">
-    <div class="sidebar-header">
+<!-- =====================================================
+     SIDEBAR — Barra lateral izquierda fija
+     Más angosta que los demás dashboards (180px)
+     porque el cliente tiene solo 4 opciones de navegación
+     ===================================================== -->
+<aside class="sidebar" aria-label="Menú principal">
+
+    <!-- Logo de la aplicación -->
+    <div class="sidebar-header" role="banner">
+        <!-- Texto simple sin ícono SVG (diseño más limpio
+             para el cliente final) -->
         <h1>AparcaYa</h1>
     </div>
-    <nav class="sidebar-nav">
-        <a href="#" class="active" data-tab="perfil">Mi Perfil</a>
-        <a href="#" data-tab="misreservas">Mis Reservas</a>
-        <a href="#" data-tab="pagos">Pagos</a>
-        <a href="#" data-tab="ayuda">Ayuda</a>
+
+    <!-- Navegación del sidebar
+         data-tab="X" → clienteD.js usa este atributo para
+         mostrar/ocultar la sección correspondiente en el main
+         class="active" → marca la sección visible actualmente -->
+    <nav class="sidebar-nav" role="navigation">
+        <!-- Sección activa por defecto al cargar la página -->
+        <a href="#" class="active" data-tab="perfil">
+            Mi Perfil
+        </a>
+        <a href="#" data-tab="misreservas">
+            Mis Reservas
+        </a>
+        <a href="#" data-tab="pagos">
+            Pagos
+        </a>
+        <a href="#" data-tab="ayuda">
+            Ayuda
+        </a>
     </nav>
 </aside>
 
+
+<!-- =====================================================
+     HEADER — Barra superior fija
+     left: 180px → ajustado al ancho del sidebar del cliente
+     ===================================================== -->
 <header class="page-header">
+
+    <!-- Logo en el header (visible siempre) -->
     <div class="logo-section">
         <h1>AparcaYa</h1>
     </div>
+
+    <!-- Menú de perfil del cliente
+         CAMBIO: el dropdown era class="dropdown-menu"
+         AHORA: class="cli-dropdown" (evita conflicto con DaisyUI) -->
     <div class="profile-menu">
-        <button id="profileBtn" class="profile-btn" type="button">
+
+        <!-- Botón del perfil muestra el nombre del usuario
+             th:text → Thymeleaf reemplaza el contenido con
+             el nombre real del usuario desde el servidor.
+             Si el servidor no pasa el dato, muestra "Usuario" -->
+        <button id="profileBtn"
+                class="profile-btn"
+                type="button"
+                aria-label="Menú de perfil"
+                aria-haspopup="true"
+                aria-expanded="false"
+                aria-controls="profileDropdown">
             <span th:text="${nombreUsuario}">Usuario</span> ▾
         </button>
-        <menu id="profileDropdown" class="dropdown-menu">
-            <button type="button">Configuración</button>
-            <button type="button">Ayuda</button>
-            <button type="button" onclick="window.location.href='/cliente/logout'">Cerrar sesión</button>
+
+        <!-- Dropdown del perfil
+             CAMBIO: era class="dropdown-menu" (conflicto con DaisyUI)
+             AHORA: class="cli-dropdown"
+             clienteD.js agrega/quita .show para mostrarlo/ocultarlo -->
+        <menu id="profileDropdown"
+              class="cli-dropdown"
+              role="menu"
+              aria-label="Opciones de perfil">
+            <button type="button" role="menuitem">
+                Configuración
+            </button>
+            <button type="button" role="menuitem">
+                Ayuda
+            </button>
+            <!-- Redirige al endpoint de logout de Spring Boot -->
+            <button type="button"
+                    role="menuitem"
+                    onclick="window.location.href='/cliente/logout'">
+                Cerrar sesión
+            </button>
         </menu>
     </div>
 </header>
 
+<!-- =====================================================
+     ÁREA PRINCIPAL DEL DASHBOARD
+     margin-left: 180px → ajustado al sidebar del cliente
+     margin-top: 64px   → ajustado al header
+     ===================================================== -->
 <main class="dashboard">
-    <!-- Perfil y Mapa -->
+
+
+    <!-- =================================================
+         SECCIÓN PERFIL — Bienvenida y Mapa de Sedes
+         Activa por defecto (primer link del sidebar
+         tiene class="active")
+         ================================================= -->
     <section id="perfil" class="content-section">
+
+        <!-- Tarjeta de bienvenida personalizada
+             .welcome-section → fondo blanco, centrado, sombra azul -->
         <div class="welcome-section">
-            <h2 th:text="'Bienvenido, ' + ${nombreUsuario}">Bienvenido, Usuario</h2>
+            <!-- th:text → Thymeleaf inyecta el nombre real del usuario.
+                 Sintaxis: 'texto fijo ' + ${variable}
+                 Si falla el servidor, muestra el texto por defecto -->
+            <h2 th:text="'Bienvenido, ' + ${nombreUsuario}">
+                Bienvenido, Usuario
+            </h2>
             <p>Revisa tus reservas y realiza pagos fácilmente desde aquí.</p>
         </div>
 
+        <!-- Sección del mapa de sedes
+             .user-reservas-section → contenedor blanco con sombra azul -->
         <div class="user-reservas-section">
             <h2>Mapa de Sedes</h2>
+
+            <!-- Barra de búsqueda de direcciones
+                 clienteD.js escucha el clic en #searchBtn para
+                 buscar la dirección con la API de Leaflet/OpenStreetMap -->
             <div class="search-bar">
-                <input type="text" id="searchInput" placeholder="Buscar dirección (e.g., Calle Principal, Ciudad)">
-                <button id="searchBtn">Buscar</button>
+                <input type="text"
+                       id="searchInput"
+                       placeholder="Buscar dirección (e.g., Calle Principal, Ciudad)"
+                       aria-label="Buscar dirección de parqueadero">
+                <button id="searchBtn" type="button">
+                    Buscar
+                </button>
             </div>
-            <h3 class="font-bold text-xl mb-4">Encuentra tu parqueadero</h3>
-            <div id="map-container" style="height: 400px; width: 100%; border: 1px solid #ccc; border-radius: 8px;"></div>
+
+            <h3 class="font-bold text-xl mb-4">
+                Encuentra tu parqueadero
+            </h3>
+
+            <!-- Contenedor del mapa de Leaflet
+                 IMPORTANTE: Leaflet requiere que el contenedor
+                 tenga una altura definida. Se define tanto en
+                 el CSS (#map-container) como aquí con style inline
+                 como respaldo para garantizar que funcione. -->
+            <div id="map-container"
+                 style="height: 400px; width: 100%;
+                        border: 1px solid #ccc; border-radius: 8px;"
+                 aria-label="Mapa interactivo de parqueaderos">
+                <!-- Leaflet renderiza el mapa aquí cuando clienteD.js
+                     llama a L.map('map-container') -->
+            </div>
         </div>
     </section>
 
-    <!-- Mis Reservas -->
+
+    <!-- =================================================
+         SECCIÓN MIS RESERVAS
+         class="content-section hidden" → oculta por defecto
+         Tailwind .hidden = display: none !important
+         clienteD.js la muestra al hacer clic en "Mis Reservas"
+         ================================================= -->
     <section id="misreservas" class="content-section hidden">
-        <h2 style="font-size: 1.75rem; font-weight: 700; margin-bottom: 1.5rem;">Mis Reservas</h2>
+        <h2 style="font-size: 1.75rem; font-weight: 700; margin-bottom: 1.5rem;">
+            Mis Reservas
+        </h2>
+
+        <!-- Contenedor de la tabla de reservas -->
         <div class="user-reservas-section">
-            <table>
+            <!-- CAMBIO: se agrega class="cli-table" a la tabla
+                 El original tenía <table> sin clase, lo que aplicaba
+                 estilos globales que rompían tablas de DaisyUI -->
+            <table class="cli-table">
                 <thead>
                 <tr>
                     <th>Fecha</th>
@@ -141,17 +233,32 @@
                 </tr>
                 </thead>
                 <tbody id="reservasTableBody">
-                <tr><td colspan="6" style="text-align:center;">Cargando...</td></tr>
+                <!-- clienteD.js rellena esta tabla con las
+                     reservas del cliente desde el backend.
+                     Los badges de estado usarán .cli-badge-activo
+                     o .cli-badge-inactivo según corresponda -->
+                <tr>
+                    <td colspan="6"
+                        style="text-align: center; padding: 1rem; color: #64748b;">
+                        Cargando...
+                    </td>
+                </tr>
                 </tbody>
             </table>
         </div>
     </section>
 
-    <!-- Pagos -->
+
+    <!-- =================================================
+         SECCIÓN PAGOS — Historial de pagos del cliente
+         ================================================= -->
     <section id="pagos" class="content-section hidden">
-        <h2 style="font-size: 1.75rem; font-weight: 700; margin-bottom: 1.5rem;">Historial de Pagos</h2>
+        <h2 style="font-size: 1.75rem; font-weight: 700; margin-bottom: 1.5rem;">
+            Historial de Pagos
+        </h2>
+
         <div class="user-reservas-section">
-            <table>
+            <table class="cli-table">
                 <thead>
                 <tr>
                     <th>Fecha</th>
@@ -162,94 +269,290 @@
                 </tr>
                 </thead>
                 <tbody id="pagosTableBody">
-                <tr><td colspan="5" style="text-align:center;">Cargando...</td></tr>
+                <!-- clienteD.js rellena con el historial de pagos.
+                     Cada fila tendrá el estado con .cli-badge -->
+                <tr>
+                    <td colspan="5"
+                        style="text-align: center; padding: 1rem; color: #64748b;">
+                        Cargando...
+                    </td>
+                </tr>
                 </tbody>
             </table>
         </div>
     </section>
 
-    <!-- Ayuda -->
+
+    <!-- =================================================
+         SECCIÓN AYUDA — Información de contacto y soporte
+         ================================================= -->
     <section id="ayuda" class="content-section hidden">
-        <h2>Ayuda y Soporte</h2>
+        <h2 style="font-size: 1.75rem; font-weight: 700; margin-bottom: 1.5rem;">
+            Ayuda y Soporte
+        </h2>
+
         <div class="user-reservas-section">
-            <p style="margin-bottom: 1rem;">¿Necesitas ayuda? Contáctanos:</p>
-            <p><strong>📧 Email:</strong> soporte@aparcaya.com</p>
-            <p><strong>📞 Teléfono:</strong> +57 310 123 4567</p>
-            <p><strong>⏰ Horario:</strong> Lunes a Viernes, 8:00 AM - 6:00 PM</p>
+            <p style="margin-bottom: 1rem; color: #475569;">
+                ¿Necesitas ayuda? Contáctanos:
+            </p>
+            <!-- Información de contacto estática -->
+            <p style="margin-bottom: 0.75rem;">
+                <strong>📧 Email:</strong> soporte@aparcaya.com
+            </p>
+            <p style="margin-bottom: 0.75rem;">
+                <strong>📞 Teléfono:</strong> +57 310 123 4567
+            </p>
+            <p>
+                <strong>⏰ Horario:</strong> Lunes a Viernes, 8:00 AM - 6:00 PM
+            </p>
         </div>
     </section>
-</main>
 
-<!-- Modal detalles de sede -->
-<div id="modalSede" class="modal">
-    <div class="modal-box">
-        <h3 class="font-bold text-lg mb-4" id="modalSedeTitle">Detalles de la Sede</h3>
+</main><!-- Cierre de <main class="dashboard"> -->
+
+<!-- =====================================================
+     MODAL DETALLES DE SEDE
+     Se abre cuando el cliente hace clic en un
+     marcador del mapa para ver info del parqueadero.
+
+     CAMBIO CRÍTICO: era class="modal" (conflicto con DaisyUI)
+     AHORA: class="cli-modal"
+
+     CAMBIO: era class="modal-box" (conflicto con DaisyUI)
+     AHORA: class="cli-modal-box"
+
+     ADEMÁS: este modal estaba sin clase activa definida.
+     clienteD.js debe agregar .show para mostrarlo:
+       document.getElementById('modalSede').classList.add('show')
+     ===================================================== -->
+<div id="modalSede"
+     class="cli-modal"
+     role="dialog"
+     aria-modal="true"
+     aria-labelledby="modalSedeTitle">
+
+    <div class="cli-modal-box">
+
+        <!-- Título del modal: clienteD.js lo actualiza con el nombre real de la sede -->
+        <h3 class="font-bold text-lg mb-4" id="modalSedeTitle">
+            Detalles de la Sede
+        </h3>
+
+        <!-- Contenedor del contenido dinámico
+             clienteD.js rellena este div con un .info-grid
+             que contiene los datos del parqueadero:
+             nombre, dirección, capacidad, tarifas, horario.
+             Usa .info-item, .info-label, .info-value definidos
+             en cliente.css Parte 2 -->
         <div id="modalSedeBody">
-            <!-- Se llena dinámicamente con JavaScript -->
+            <!-- Contenido generado por JavaScript -->
+        </div>
+
+        <!-- Botón cerrar al pie del modal
+             window.closeModalSede() → función en clienteD.js
+             que quita .show del modal -->
+        <div style="display: flex; justify-content: flex-end; margin-top: 1.5rem;">
+            <button type="button"
+                    onclick="window.closeModalSede ? window.closeModalSede()
+                             : document.getElementById('modalSede')
+                               .classList.remove('show')"
+                    style="background: #64748b; color: white;
+                           padding: 0.6rem 1.5rem; border: none;
+                           border-radius: 0.5rem; cursor: pointer;
+                           font-weight: 600;">
+                Cerrar
+            </button>
         </div>
     </div>
 </div>
 
-<!-- Modal de reserva -->
-<div id="reservaModal" class="modal">
-    <div class="modal-box">
-        <h3 class="font-bold text-lg mb-4">Hacer Reserva</h3>
+
+<!-- =====================================================
+     MODAL DE RESERVA
+     Se abre cuando el cliente hace clic en "Reservar"
+     en el modal de detalles de una sede.
+     Permite seleccionar fecha inicio, fecha fin y placa.
+
+     CAMBIO: class="modal" → class="cli-modal"
+     CAMBIO: class="modal-box" → class="cli-modal-box"
+     ===================================================== -->
+<div id="reservaModal"
+     class="cli-modal"
+     role="dialog"
+     aria-modal="true"
+     aria-labelledby="reservaModalTitulo">
+
+    <div class="cli-modal-box">
+
+        <h3 class="font-bold text-lg mb-4" id="reservaModalTitulo">
+            Hacer Reserva
+        </h3>
+
+        <!-- Datos de la reserva
+             clienteD.js rellena #reservaSedeNombre con el
+             nombre de la sede seleccionada en el mapa -->
         <div style="margin-bottom: 1.5rem;">
             <p style="margin-bottom: 1rem;">
-                <strong>Sede seleccionada:</strong> <span id="reservaSedeNombre"></span>
+                <strong>Sede seleccionada:</strong>
+                <span id="reservaSedeNombre"></span>
             </p>
 
+            <!-- Campo: Fecha y hora de inicio
+                 type="datetime-local" → input nativo del navegador
+                 para seleccionar fecha y hora -->
             <div style="margin-bottom: 1rem;">
-                <label for="fechaInicio" style="display:block;margin-bottom:0.5rem;font-weight:600;">Fecha y Hora de Inicio:</label>
-                <input type="datetime-local" id="fechaInicio" required
-                       style="width:100%;padding:0.75rem;border:1px solid #d1d5db;border-radius:0.5rem;font-size:1rem;">
+                <label for="fechaInicio"
+                       style="display: block; margin-bottom: 0.5rem;
+                              font-weight: 600; color: #334155;">
+                    Fecha y Hora de Inicio:
+                </label>
+                <input type="datetime-local"
+                       id="fechaInicio"
+                       required
+                       aria-label="Fecha y hora de inicio de la reserva"
+                       style="width: 100%; padding: 0.75rem;
+                              border: 1px solid #d1d5db;
+                              border-radius: 0.5rem; font-size: 1rem;">
             </div>
 
+            <!-- Campo: Fecha y hora de fin -->
             <div style="margin-bottom: 1rem;">
-                <label for="fechaFin" style="display:block;margin-bottom:0.5rem;font-weight:600;">Fecha y Hora de Fin:</label>
-                <input type="datetime-local" id="fechaFin" required
-                       style="width:100%;padding:0.75rem;border:1px solid #d1d5db;border-radius:0.5rem;font-size:1rem;">
+                <label for="fechaFin"
+                       style="display: block; margin-bottom: 0.5rem;
+                              font-weight: 600; color: #334155;">
+                    Fecha y Hora de Fin:
+                </label>
+                <input type="datetime-local"
+                       id="fechaFin"
+                       required
+                       aria-label="Fecha y hora de fin de la reserva"
+                       style="width: 100%; padding: 0.75rem;
+                              border: 1px solid #d1d5db;
+                              border-radius: 0.5rem; font-size: 1rem;">
             </div>
 
+            <!-- Campo: Placa del vehículo
+                 text-transform: uppercase → convierte a mayúsculas visualmente
+                 clienteD.js también fuerza mayúsculas en el valor real -->
             <div style="margin-bottom: 1rem;">
-                <label for="placa" style="display:block;margin-bottom:0.5rem;font-weight:600;">Placa del Vehículo:</label>
-                <input type="text" id="placa" placeholder="ABC-123" required
-                       style="width:100%;padding:0.75rem;border:1px solid #d1d5db;border-radius:0.5rem;font-size:1rem;text-transform:uppercase;">
+                <label for="placa"
+                       style="display: block; margin-bottom: 0.5rem;
+                              font-weight: 600; color: #334155;">
+                    Placa del Vehículo:
+                </label>
+                <input type="text"
+                       id="placa"
+                       placeholder="ABC-123"
+                       required
+                       aria-label="Placa del vehículo"
+                       style="width: 100%; padding: 0.75rem;
+                              border: 1px solid #d1d5db;
+                              border-radius: 0.5rem; font-size: 1rem;
+                              text-transform: uppercase;">
             </div>
         </div>
 
-        <div style="display:flex;gap:1rem;justify-content:flex-end;">
+        <!-- Botones de acción del modal de reserva
+             Usan style inline porque son botones únicos
+             de este modal que no se repiten en la página -->
+        <div style="display: flex; gap: 1rem; justify-content: flex-end;">
+            <!-- Botón confirmar: clienteD.js escucha el clic en #reservarBtn
+                 para enviar la reserva al backend -->
             <button id="reservarBtn"
-                    style="background:#00BFFF;color:white;padding:0.75rem 1.5rem;border:none;border-radius:0.5rem;cursor:pointer;font-weight:600;">
+                    type="button"
+                    style="background: #00BFFF; color: white;
+                           padding: 0.75rem 1.5rem; border: none;
+                           border-radius: 0.5rem; cursor: pointer;
+                           font-weight: 600; transition: background-color 0.2s;">
                 Confirmar Reserva
             </button>
-            <button onclick="window.closeReservaModal()"
-                    style="background:#64748b;color:white;padding:0.75rem 1.5rem;border:none;border-radius:0.5rem;cursor:pointer;font-weight:600;">
+            <!-- Botón cancelar: cierra el modal sin hacer nada
+                 window.closeReservaModal() → función en clienteD.js -->
+            <button type="button"
+                    onclick="window.closeReservaModal()"
+                    style="background: #64748b; color: white;
+                           padding: 0.75rem 1.5rem; border: none;
+                           border-radius: 0.5rem; cursor: pointer;
+                           font-weight: 600;">
                 Cancelar
             </button>
         </div>
     </div>
 </div>
 
-<!-- Pasar datos del servidor a JavaScript -->
+
+<!-- =====================================================
+     SCRIPT DE THYMELEAF — Pasar datos del servidor a JS
+     th:inline="javascript" → activa el modo inline de
+     Thymeleaf para JS: permite usar [[${variable}]]
+     directamente dentro del código JavaScript.
+
+     CORRECCIÓN CRÍTICA: En el HTML original todo este
+     bloque estaba dentro de un comentario HTML ( -->)
+junto con los scripts de Leaflet y clienteD.js.
+Eso hacía que absolutamente NADA funcionara.
+Se descomenta y se separa correctamente.
+
+CDATA → necesario en Thymeleaf/XHTML para que
+los caracteres especiales de JS no rompan el XML
+===================================================== -->
 <script th:inline="javascript">
     /*<![CDATA[*/
+
+    /* userId: ID del cliente actual.
+       [[${userId}]] → Thymeleaf lo reemplaza con el valor real.
+       1 es el valor por defecto si el servidor no lo pasa. */
     window.userId = /*[[${userId}]]*/ 1;
+
+    /* nombreUsuario: nombre del cliente para el header */
     window.nombreUsuario = /*[[${nombreUsuario}]]*/ 'Usuario';
+
+    /* sedesData: lista de parqueaderos para pintar en el mapa.
+       Thymeleaf serializa el objeto Java como JSON automáticamente.
+       [] es el valor por defecto (lista vacía) */
     window.sedesData = /*[[${sedes}]]*/ [];
 
+    /* Guarda los datos en sessionStorage para que clienteD.js
+       pueda acceder a ellos sin hacer peticiones adicionales */
     sessionStorage.setItem('userId', window.userId);
     sessionStorage.setItem('nombreUsuario', window.nombreUsuario);
 
+    /* Log de confirmación en la consola del navegador */
     console.log('✅ Datos cargados desde servidor:', {
-        userId: window.userId,
+        userId:      window.userId,
         nombreUsuario: window.nombreUsuario,
-        sedesCount: window.sedesData.length
+        sedesCount:  window.sedesData.length
     });
+
     /*]]>*/
 </script>
 
+<!-- =====================================================
+     LEAFLET JS — Motor del mapa interactivo
+     Se carga DESPUÉS del HTML para que el contenedor
+     #map-container ya exista en el DOM.
+     Se carga ANTES de clienteD.js porque ese script
+     usa la librería L (objeto global de Leaflet).
+     ===================================================== -->
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+
+<!-- =====================================================
+     SCRIPT PRINCIPAL DEL MÓDULO CLIENTE
+     CAMBIO: ruta corregida de /Script/ClienteD.js
+     a /js/clienteD.js (minúsculas para Spring Boot en Linux)
+
+     Se carga AL FINAL del body para que:
+     1. Todo el HTML esté disponible en el DOM
+     2. Leaflet ya esté cargado y disponible como L
+     3. window.sedesData ya tenga los datos del servidor
+
+     clienteD.js debe actualizar referencias:
+     - .dropdown-menu  → .cli-dropdown (o #profileDropdown)
+     - .modal          → .cli-modal
+     - .modal-box      → .cli-modal-box
+     - .badge-activo   → .cli-badge .cli-badge-activo
+     - <table>         → <table class="cli-table">
+     ===================================================== -->
 <script src="/Script/ClienteD.js"></script>
 
 </body>

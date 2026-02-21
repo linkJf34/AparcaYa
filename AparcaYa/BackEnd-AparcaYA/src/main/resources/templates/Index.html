@@ -4,139 +4,318 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Aparca Ya - Reserva tu Estacionamiento Fácil</title>
+
+    <!-- 1. Tailwind CSS — clases utilitarias base -->
     <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://cdn.jsdelivr.net/npm/daisyui@4.12.10/dist/full.min.css" rel="stylesheet" type="text/css" />
-    <style>
-        .animate-fade-in-up { opacity: 0; transform: translateY(20px); animation: fadeInUp 0.8s ease-out forwards; }
-        .hero-bg { background-attachment: fixed; background-size: cover; }
-        .card-hover { transition: transform 0.3s ease, box-shadow 0.3s ease, border-color 0.3s ease; }
-        .card-hover:hover { transform: translateY(-5px); box-shadow: 0 10px 20px rgba(0,191,255,0.3); border-color: #00BFFF; } /* Azul vivo en sombra y borde */
-        .navbar-hover { transition: background-color 0.3s ease; }
-        .navbar-hover:hover { background-color: rgba(224,242,254,0.9); } /* Gris azulado */
-        .btn-pulse { animation: pulse 2s infinite; } /* Efecto pulse para botones */
-        @keyframes fadeInUp { to { opacity: 1; transform: translateY(0); } }
-        @keyframes pulse { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.05); } }
-    </style>
+
+    <!-- 2. DaisyUI — componentes sobre Tailwind
+         Provee: .navbar, .btn, .card, .hero, .alert,
+         .footer, .rating, .mask, .join, .link -->
+    <link href="https://cdn.jsdelivr.net/npm/daisyui@4.12.10/dist/full.min.css"
+          rel="stylesheet" type="text/css" />
+
+    <!-- 3. CSS propio al final para tener prioridad
+         CAMBIO: el <style> inline fue extraído a index.css
+         Ruta en minúsculas para Spring Boot en Linux -->
+    <link rel="stylesheet" href="/css/index.css">
 </head>
-<body class="bg-gradient-to-br from-gray-100 to-blue-50"> <!-- Gradiente sutil blanco-gris a azul claro para más vida -->
-<!-- Navbar Mejorado con CSS Avanzado -->
+
+<!-- bg-gradient-to-br from-gray-100 to-blue-50 → Tailwind:
+     gradiente diagonal gris muy claro a azul muy claro -->
+<body class="bg-gradient-to-br from-gray-100 to-blue-50">
+
+
+<!-- =====================================================
+     NAVBAR — Barra de navegación superior fija
+     .navbar .navbar-start .navbar-end → DaisyUI
+     .btn-ghost .btn-outline .btn-primary → DaisyUI
+     .navbar-hover → index.css: fondo azul suave al hover
+     ===================================================== -->
 <nav class="navbar bg-white shadow-xl fixed top-0 w-full z-10 navbar-hover">
     <div class="navbar-start">
-
-        <a href="/" class="btn btn-ghost normal-case text-2xl font-bold text-blue-900 flex items-center gap-2">
-            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-16 h-16 text-blue-500">
-                <path stroke-linecap="round" stroke-linejoin="round" d="M8.25 18.75a1.5 1.5 0 01-3 0V15a6 6 0 0112 0v3.75a1.5 1.5 0 01-3 0V15a3 3 0 00-6 0v3.75zM12 9a3 3 0 100-6 3 3 0 000 6z" />
-            </svg>Aparca Ya <!-- Ícono de coche único -->
+        <!-- btn btn-ghost → DaisyUI: botón sin fondo
+             normal-case → Tailwind: evita mayúsculas automáticas de DaisyUI
+             text-2xl font-bold text-blue-900 → Tailwind -->
+        <a href="/" class="btn btn-ghost normal-case text-2xl font-bold
+                           text-blue-900 flex items-center gap-2"
+           aria-label="Ir al inicio">
+            <!-- Ícono SVG del logo
+                 w-16 h-16 text-blue-500 → Tailwind: 64×64px, color azul -->
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none"
+                 viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"
+                 class="w-16 h-16 text-blue-500" aria-hidden="true">
+                <path stroke-linecap="round" stroke-linejoin="round"
+                      d="M8.25 18.75a1.5 1.5 0 01-3 0V15a6 6 0 0112
+                      0v3.75a1.5 1.5 0 01-3 0V15a3 3 0 00-6 0v3.75z
+                      M12 9a3 3 0 100-6 3 3 0 000 6z" />
+            </svg>
+            Aparca Ya
         </a>
     </div>
+
+    <!-- gap-2 sm:gap-4 → Tailwind responsive: espacio entre botones -->
     <div class="navbar-end gap-2 sm:gap-4">
-        <a href="/login" class="btn btn-outline btn-primary text-blue-900 border-blue-500 hover:bg-blue-500 hover:text-white text-sm sm:text-base">Inicio de Sesión</a> <!-- Azul vivo en borde/hover -->
-        <a href="/registro" class="btn bg-blue-600 hover:bg-blue-700 text-white text-sm sm:text-base btn-pulse">Registrarse</a> <!-- Azul vivo con pulse -->
+        <!-- btn btn-outline btn-primary → DaisyUI: borde del color primario
+             hover:bg-blue-500 hover:text-white → Tailwind: relleno al hover -->
+        <a href="/login" class="btn btn-outline btn-primary text-blue-900
+                                border-blue-500 hover:bg-blue-500
+                                hover:text-white text-sm sm:text-base">
+            Inicio de Sesión
+        </a>
+        <!-- btn-pulse → index.css: animación aparca-pulse (escala suave)
+             CORRECCIÓN: el @keyframes se renombró de pulse a aparca-pulse
+             para evitar conflicto con Tailwind que define su propio pulse -->
+        <a href="/registro" class="btn bg-blue-600 hover:bg-blue-700
+                                   text-white text-sm sm:text-base btn-pulse">
+            Registrarse
+        </a>
     </div>
 </nav>
 
-<!-- Hero Section Compacta y Responsiva -->
-<section class="hero min-h-80 sm:min-h-96 bg-gradient-to-r from-white to-blue-300 text-black hero-bg pt-20 pb-8 px-4"> <!-- Gradiente más vivo: blanco a azul cielo intenso -->
-    <div class="hero-content flex-col lg:flex-row items-center justify-between max-w-6xl w-full">
+
+<!-- =====================================================
+     HERO SECTION — Sección principal
+     .hero .hero-content → DaisyUI
+     .hero-bg → index.css: background-attachment:fixed (parallax)
+     .animate-fade-in-up → index.css: entrada con fade + slide
+     ===================================================== -->
+<!-- pt-20 → Tailwind: compensa el navbar fijo (64px + extra)
+     bg-gradient-to-r from-white to-blue-300 → Tailwind: gradiente horizontal -->
+<section class="hero min-h-80 sm:min-h-96 bg-gradient-to-r from-white
+                to-blue-300 text-black hero-bg pt-20 pb-8 px-4">
+
+    <!-- hero-content → DaisyUI: flex interno del hero
+         flex-col lg:flex-row → Tailwind responsive: columna/fila según pantalla -->
+    <div class="hero-content flex-col lg:flex-row items-center
+                justify-between max-w-6xl w-full">
+
+        <!-- Columna izquierda: título + descripción + CTA -->
         <div class="max-w-md text-center lg:text-left animate-fade-in-up mb-6 lg:mb-0">
-            <h1 class="text-3xl sm:text-4xl lg:text-5xl font-bold mb-3 text-black">Estaciona Sin Preocupaciones</h1>
-            <p class="mb-3 text-sm sm:text-base lg:text-lg text-gray-700">Reserva tu lugar de parqueo en segundos. Seguro, rápido y conveniente para carros, motos y bicicletas.</p>
-            <a href="/registro" class="btn btn-primary btn-md lg:btn-lg bg-blue-600 hover:bg-blue-800 text-white btn-pulse">¡Empieza Ahora!</a> <!-- Azul vivo con pulse -->
+            <!-- text-3xl sm:text-4xl lg:text-5xl → Tailwind responsive: escala el título -->
+            <h1 class="text-3xl sm:text-4xl lg:text-5xl font-bold mb-3 text-black">
+                Estaciona Sin Preocupaciones
+            </h1>
+            <p class="mb-3 text-sm sm:text-base lg:text-lg text-gray-700">
+                Reserva tu lugar de parqueo en segundos.
+                Seguro, rápido y conveniente para carros, motos y bicicletas.
+            </p>
+            <!-- btn btn-primary → DaisyUI
+                 btn-md lg:btn-lg → DaisyUI responsive: tamaño mediano/grande
+                 bg-blue-600 → Tailwind: override del color primario de DaisyUI
+                 btn-pulse → index.css: animación de latido -->
+            <a href="/registro" class="btn btn-primary btn-md lg:btn-lg
+                                       bg-blue-600 hover:bg-blue-800
+                                       text-white btn-pulse">
+                ¡Empieza Ahora!
+            </a>
         </div>
+
+        <!-- Columna derecha: acordeón de parqueaderos
+             Rellena dinámicamente por JavaScript -->
         <div class="w-full lg:w-auto lg:max-w-md mt-6 lg:mt-0 lg:ml-8">
-            <h3 class="text-lg sm:text-xl font-semibold mb-4 text-black">Nuestros Parqueaderos</h3>
-            <div class="join join-vertical w-full bg-white border-2 border-blue-300 rounded-lg shadow-lg" id="parking-accordion"> <!-- Borde azul vivo -->
+            <h3 class="text-lg sm:text-xl font-semibold mb-4 text-black">
+                Nuestros Parqueaderos
+            </h3>
+            <!-- join join-vertical → DaisyUI: lista vertical agrupada
+                 JS rellena este div con .join-item por cada parqueadero -->
+            <div class="join join-vertical w-full bg-white border-2
+                        border-blue-300 rounded-lg shadow-lg"
+                 id="parking-accordion"
+                 aria-label="Lista de parqueaderos disponibles">
             </div>
-            <div class="flex justify-center mt-4" id="dots-bar">
+            <!-- Puntos de paginación generados por JavaScript -->
+            <div class="flex justify-center mt-4" id="dots-bar"
+                 aria-label="Navegación del acordeón">
             </div>
         </div>
     </div>
 </section>
 
-<!-- Características Mejoradas y Responsivas -->
+
+<!-- =====================================================
+     SECCIÓN: ¿POR QUÉ ELEGIR APARCA YA?
+     .card .card-body .card-title .card-actions → DaisyUI
+     .card-hover → index.css: levitación al hover
+     ===================================================== -->
 <section class="py-8 sm:py-12 px-4 animate-fade-in-up bg-white">
     <div class="container mx-auto text-center max-w-6xl">
-        <h2 class="text-2xl sm:text-3xl font-bold mb-6 sm:mb-8 text-black">¿Por Qué Elegir Aparca Ya?</h2>
+        <h2 class="text-2xl sm:text-3xl font-bold mb-6 sm:mb-8 text-black">
+            ¿Por Qué Elegir Aparca Ya?
+        </h2>
+        <!-- grid responsive: 1 col móvil / 2 tablet / 3 desktop -->
         <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
-            <div class="card bg-gradient-to-br from-white to-blue-50 shadow-lg card-hover animate-fade-in-up p-4 sm:p-6 border border-blue-200"> <!-- Gradiente sutil blanco-azul -->
+
+            <!-- Tarjeta 1 -->
+            <div class="card bg-gradient-to-br from-white to-blue-50
+                        shadow-lg card-hover animate-fade-in-up
+                        p-4 sm:p-6 border border-blue-200">
                 <div class="card-body">
-                    <div class="card-title text-blue-700 text-lg sm:text-xl">🚗 Reserva Rápida</div> <!-- Azul vivo -->
-                    <p class="text-sm sm:text-base text-gray-700">Encuentra y reserva espacios en tiempo real desde tu dispositivo.</p>
+                    <div class="card-title text-blue-700 text-lg sm:text-xl">
+                        🚗 Reserva Rápida
+                    </div>
+                    <p class="text-sm sm:text-base text-gray-700">
+                        Encuentra y reserva espacios en tiempo real desde tu dispositivo.
+                    </p>
                 </div>
             </div>
-            <div class="card bg-gradient-to-br from-white to-blue-50 shadow-lg card-hover animate-fade-in-up p-4 sm:p-6 border border-blue-200" style="animation-delay: 0.2s;">
+
+            <!-- Tarjeta 2: animation-delay crea efecto cascada entre tarjetas -->
+            <div class="card bg-gradient-to-br from-white to-blue-50
+                        shadow-lg card-hover animate-fade-in-up
+                        p-4 sm:p-6 border border-blue-200"
+                 style="animation-delay: 0.2s;">
                 <div class="card-body">
-                    <div class="card-title text-blue-700 text-lg sm:text-xl">🔒 Pagos Seguros</div> <!-- Azul vivo -->
-                    <p class="text-sm sm:text-base text-gray-700">Métodos de pago confiables con encriptación de datos.</p>
+                    <div class="card-title text-blue-700 text-lg sm:text-xl">
+                        🔒 Pagos Seguros
+                    </div>
+                    <p class="text-sm sm:text-base text-gray-700">
+                        Métodos de pago confiables con encriptación de datos.
+                    </p>
                 </div>
             </div>
-            <div class="card bg-gradient-to-br from-white to-blue-50 shadow-lg card-hover animate-fade-in-up p-4 sm:p-6 border border-blue-200" style="animation-delay: 0.4s;">
+
+            <!-- Tarjeta 3 -->
+            <div class="card bg-gradient-to-br from-white to-blue-50
+                        shadow-lg card-hover animate-fade-in-up
+                        p-4 sm:p-6 border border-blue-200"
+                 style="animation-delay: 0.4s;">
                 <div class="card-body">
-                    <div class="card-title text-blue-700 text-lg sm:text-xl">📍 Ubicaciones Premium</div> <!-- Azul vivo -->
-                    <p class="text-sm sm:text-base text-gray-700">Parqueaderos en centros comerciales, aeropuertos y eventos.</p>
+                    <div class="card-title text-blue-700 text-lg sm:text-xl">
+                        📍 Ubicaciones Premium
+                    </div>
+                    <p class="text-sm sm:text-base text-gray-700">
+                        Parqueaderos en centros comerciales, aeropuertos y eventos.
+                    </p>
                 </div>
             </div>
         </div>
     </div>
 </section>
 
-<!-- Beneficios Mejorados y Responsivos -->
-<section class="py-8 sm:py-12 bg-gradient-to-r from-blue-700 to-blue-900 text-white px-4 animate-fade-in-up"> <!-- Gradiente azul vivo a azul oscuro para más energía -->
+
+<!-- =====================================================
+     SECCIÓN: BENEFICIOS PARA TI
+     .alert → DaisyUI: componente alerta con flex
+     .card-hover → index.css: levitación al hover
+     ===================================================== -->
+<!-- bg-gradient-to-r from-blue-700 to-blue-900 → Tailwind: fondo azul oscuro -->
+<section class="py-8 sm:py-12 bg-gradient-to-r from-blue-700 to-blue-900
+                text-white px-4 animate-fade-in-up">
     <div class="container mx-auto text-center max-w-6xl">
-        <h2 class="text-2xl sm:text-3xl font-bold mb-6 sm:mb-8">Beneficios para Ti</h2>
+        <h2 class="text-2xl sm:text-3xl font-bold mb-6 sm:mb-8">
+            Beneficios para Ti
+        </h2>
         <div class="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6">
-            <div class="alert bg-blue-500 border-blue-400 text-white animate-fade-in-up card-hover p-4 sm:p-6 rounded-lg">
-                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" class="stroke-current shrink-0 w-6 sm:w-8 h-6 sm:h-8 text-cyan-300"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg> <!-- Azul turquesa para ícono -->
-                <span class="text-sm sm:text-lg">24/7 Soporte al Cliente con Asistencia Inmediata</span>
+
+            <!-- alert → DaisyUI: flex con ícono + texto
+                 bg-blue-500 border-blue-400 → Tailwind: override del color de DaisyUI
+                 stroke-current → el trazo del SVG hereda el color del texto
+                 shrink-0 → evita que el ícono se encoja en el flex
+                 text-cyan-300 → Tailwind: color turquesa para el ícono -->
+            <div class="alert bg-blue-500 border-blue-400 text-white
+                        animate-fade-in-up card-hover p-4 sm:p-6 rounded-lg">
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none"
+                     viewBox="0 0 24 24"
+                     class="stroke-current shrink-0 w-6 sm:w-8 h-6 sm:h-8 text-cyan-300"
+                     aria-hidden="true">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                          d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                </svg>
+                <span class="text-sm sm:text-lg">
+                    24/7 Soporte al Cliente con Asistencia Inmediata
+                </span>
             </div>
-            <div class="alert bg-blue-600 border-blue-500 text-white animate-fade-in-up card-hover p-4 sm:p-6 rounded-lg" style="animation-delay: 0.2s;">
-                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" class="stroke-current shrink-0 w-6 sm:w-8 h-6 sm:h-8 text-cyan-300"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg> <!-- Azul turquesa para ícono -->
-                <span class="text-sm sm:text-lg">Cancelaciones Gratuitas Hasta 1 Hora Antes y Reembolsos Rápidos</span>
+
+            <div class="alert bg-blue-600 border-blue-500 text-white
+                        animate-fade-in-up card-hover p-4 sm:p-6 rounded-lg"
+                 style="animation-delay: 0.2s;">
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none"
+                     viewBox="0 0 24 24"
+                     class="stroke-current shrink-0 w-6 sm:w-8 h-6 sm:h-8 text-cyan-300"
+                     aria-hidden="true">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                          d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                </svg>
+                <span class="text-sm sm:text-lg">
+                    Cancelaciones Gratuitas Hasta 1 Hora Antes y Reembolsos Rápidos
+                </span>
             </div>
         </div>
     </div>
 </section>
 
-<!-- Testimonios Mejorados y Responsivos -->
-<section class="py-8 sm:py-12 px-4 animate-fade-in-up bg-gradient-to-br from-blue-50 to-white"> <!-- Gradiente sutil para vida -->
+
+<!-- =====================================================
+     SECCIÓN: TESTIMONIOS
+     .card .card-body .card-actions .card-title → DaisyUI
+     .rating .mask .mask-star-2 → DaisyUI: estrellas
+     ===================================================== -->
+<section class="py-8 sm:py-12 px-4 animate-fade-in-up
+                bg-gradient-to-br from-blue-50 to-white">
     <div class="container mx-auto text-center max-w-6xl">
-        <h2 class="text-2xl sm:text-3xl font-bold mb-6 sm:mb-8 text-black">Lo Que Dicen Nuestros Usuarios</h2>
+        <h2 class="text-2xl sm:text-3xl font-bold mb-6 sm:mb-8 text-black">
+            Lo Que Dicen Nuestros Usuarios
+        </h2>
         <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
-            <div class="card bg-white text-black shadow-lg card-hover animate-fade-in-up p-4 sm:p-6 rounded-lg border border-blue-200">
-                <div class="rating mb-3 justify-center">
-                    <input type="radio" name="rating-1" class="mask mask-star-2 bg-yellow-400" checked />
-                    <input type="radio" name="rating-1" class="mask mask-star-2 bg-yellow-400" checked />
-                    <input type="radio" name="rating-1" class="mask mask-star-2 bg-yellow-400" checked />
-                    <input type="radio" name="rating-1" class="mask mask-star-2 bg-yellow-400" checked />
-                    <input type="radio" name="rating-1" class="mask mask-star-2 bg-yellow-400" checked />
+
+            <!-- Testimonio 1
+                 rating → DaisyUI: grupo de estrellas con inputs radio
+                 mask mask-star-2 → DaisyUI: recorta el input con forma estrella
+                 bg-yellow-400 → Tailwind: color amarillo
+                 name="rating-1" → agrupa las 5 estrellas de este testimonio
+                 (cada testimonio tiene su propio name para evitar que
+                 marcar una estrella deseleccione las de otra tarjeta) -->
+            <div class="card bg-white text-black shadow-lg card-hover
+                        animate-fade-in-up p-4 sm:p-6 rounded-lg border border-blue-200">
+                <div class="rating mb-3 justify-center" aria-label="5 de 5 estrellas">
+                    <input type="radio" name="rating-1" class="mask mask-star-2 bg-yellow-400" checked aria-label="Estrella 1"/>
+                    <input type="radio" name="rating-1" class="mask mask-star-2 bg-yellow-400" checked aria-label="Estrella 2"/>
+                    <input type="radio" name="rating-1" class="mask mask-star-2 bg-yellow-400" checked aria-label="Estrella 3"/>
+                    <input type="radio" name="rating-1" class="mask mask-star-2 bg-yellow-400" checked aria-label="Estrella 4"/>
+                    <input type="radio" name="rating-1" class="mask mask-star-2 bg-yellow-400" checked aria-label="Estrella 5"/>
                 </div>
-                <p class="text-sm sm:text-base mb-4">"¡Increíble! Reservé en minutos y pagué sin problemas."</p>
+                <p class="text-sm sm:text-base mb-4">
+                    "¡Increíble! Reservé en minutos y pagué sin problemas."
+                </p>
+                <!-- card-actions justify-end → DaisyUI + Tailwind: acciones a la derecha -->
                 <div class="card-actions justify-end">
                     <cite class="text-xs sm:text-sm text-gray-600">- Ana López, Cliente</cite>
                 </div>
             </div>
-            <div class="card bg-white text-black shadow-lg card-hover animate-fade-in-up p-4 sm:p-6 rounded-lg border border-blue-200" style="animation-delay: 0.2s;">
-                <div class="rating mb-3 justify-center">
-                    <input type="radio" name="rating-2" class="mask mask-star-2 bg-yellow-400" checked />
-                    <input type="radio" name="rating-2" class="mask mask-star-2 bg-yellow-400" checked />
-                    <input type="radio" name="rating-2" class="mask mask-star-2 bg-yellow-400" checked />
-                    <input type="radio" name="rating-2" class="mask mask-star-2 bg-yellow-400" checked />
-                    <input type="radio" name="rating-2" class="mask mask-star-2 bg-yellow-400" checked />
+
+            <!-- Testimonio 2: name="rating-2" → grupo independiente -->
+            <div class="card bg-white text-black shadow-lg card-hover
+                        animate-fade-in-up p-4 sm:p-6 rounded-lg border border-blue-200"
+                 style="animation-delay: 0.2s;">
+                <div class="rating mb-3 justify-center" aria-label="5 de 5 estrellas">
+                    <input type="radio" name="rating-2" class="mask mask-star-2 bg-yellow-400" checked aria-label="Estrella 1"/>
+                    <input type="radio" name="rating-2" class="mask mask-star-2 bg-yellow-400" checked aria-label="Estrella 2"/>
+                    <input type="radio" name="rating-2" class="mask mask-star-2 bg-yellow-400" checked aria-label="Estrella 3"/>
+                    <input type="radio" name="rating-2" class="mask mask-star-2 bg-yellow-400" checked aria-label="Estrella 4"/>
+                    <input type="radio" name="rating-2" class="mask mask-star-2 bg-yellow-400" checked aria-label="Estrella 5"/>
                 </div>
-                <p class="text-sm sm:text-base mb-4">"El soporte 24/7 me salvó. Recomendado 100%."</p>
+                <p class="text-sm sm:text-base mb-4">
+                    "El soporte 24/7 me salvó. Recomendado 100%."
+                </p>
                 <div class="card-actions justify-end">
                     <cite class="text-xs sm:text-sm text-gray-600">- Carlos García, Usuario</cite>
                 </div>
             </div>
-            <div class="card bg-white text-black shadow-lg card-hover animate-fade-in-up p-4 sm:p-6 rounded-lg border border-blue-200" style="animation-delay: 0.4s;">
-                <div class="rating mb-3 justify-center">
-                    <input type="radio" name="rating-3" class="mask mask-star-2 bg-yellow-400" checked />
-                    <input type="radio" name="rating-3" class="mask mask-star-2 bg-yellow-400" checked />
-                    <input type="radio" name="rating-3" class="mask mask-star-2 bg-yellow-400" checked />
-                    <input type="radio" name="rating-3" class="mask mask-star-2 bg-yellow-400" checked />
-                    <input type="radio" name="rating-3" class="mask mask-star-2 bg-yellow-400" checked />
+
+            <!-- Testimonio 3: name="rating-3" → tercer grupo independiente -->
+            <div class="card bg-white text-black shadow-lg card-hover
+                        animate-fade-in-up p-4 sm:p-6 rounded-lg border border-blue-200"
+                 style="animation-delay: 0.4s;">
+                <div class="rating mb-3 justify-center" aria-label="5 de 5 estrellas">
+                    <input type="radio" name="rating-3" class="mask mask-star-2 bg-yellow-400" checked aria-label="Estrella 1"/>
+                    <input type="radio" name="rating-3" class="mask mask-star-2 bg-yellow-400" checked aria-label="Estrella 2"/>
+                    <input type="radio" name="rating-3" class="mask mask-star-2 bg-yellow-400" checked aria-label="Estrella 3"/>
+                    <input type="radio" name="rating-3" class="mask mask-star-2 bg-yellow-400" checked aria-label="Estrella 4"/>
+                    <input type="radio" name="rating-3" class="mask mask-star-2 bg-yellow-400" checked aria-label="Estrella 5"/>
                 </div>
-                <p class="text-sm sm:text-base mb-4">"Ubicaciones perfectas y precios justos."</p>
+                <p class="text-sm sm:text-base mb-4">
+                    "Ubicaciones perfectas y precios justos."
+                </p>
                 <div class="card-actions justify-end">
                     <cite class="text-xs sm:text-sm text-gray-600">- María Rodríguez, Cliente</cite>
                 </div>
@@ -145,17 +324,31 @@
     </div>
 </section>
 
-<!-- Footer Mejorado y Responsivo -->
-<footer class="footer p-6 sm:p-10 bg-gradient-to-r from-gray-800 to-black text-white"> <!-- Gradiente gris a negro para profundidad -->
+
+<!-- =====================================================
+     FOOTER
+     .footer .footer-title .link .link-hover → DaisyUI
+     ===================================================== -->
+<!-- bg-gradient-to-r from-gray-800 to-black → Tailwind: fondo oscuro con gradiente -->
+<footer class="footer p-6 sm:p-10 bg-gradient-to-r from-gray-800 to-black text-white">
+
+    <!-- Columna 1: nombre y descripción -->
     <div class="w-full sm:w-auto">
         <p class="font-bold text-lg">Aparca Ya</p>
         <p class="text-sm sm:text-base">Tu solución de estacionamiento confiable y moderna.</p>
     </div>
+
+    <!-- Columna 2: links
+         footer-title → DaisyUI: título de sección (uppercase + tracking)
+         link link-hover → DaisyUI: link con subrayado al hover
+         text-blue-400 hover:text-blue-300 → Tailwind: color azul claro -->
     <div class="w-full sm:w-auto">
         <span class="footer-title">Enlaces</span>
-        <a href="/registro" class="link link-hover text-blue-400 hover:text-blue-300 text-sm sm:text-base">Registrarse</a> <!-- Azul vivo en hover -->
+        <a href="/registro" class="link link-hover text-blue-400 hover:text-blue-300 text-sm sm:text-base">Registrarse</a>
         <a href="/" class="link link-hover text-blue-400 hover:text-blue-300 text-sm sm:text-base">Inicio</a>
     </div>
+
+    <!-- Columna 3: contacto -->
     <div class="w-full sm:w-auto">
         <span class="footer-title">Contacto</span>
         <p class="text-sm sm:text-base">Email: info@aparcaya.com</p>

@@ -4,165 +4,384 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>Dashboard Trabajador - AparcaYA</title>
+
+    <!-- =====================================================
+         LIBRERÍAS EXTERNAS
+         Orden de carga importante:
+         1. Tailwind primero (clases utilitarias base)
+         2. DaisyUI después (componentes sobre Tailwind)
+         3. Nuestro CSS al final (para tener prioridad)
+         ===================================================== -->
+
+    <!-- Tailwind CSS: proporciona clases utilitarias como
+         flex, grid, gap, p-4, text-gray-500, etc. -->
     <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://cdn.jsdelivr.net/npm/daisyui@4.12.10/dist/full.min.css" rel="stylesheet" />
+
+    <!-- DaisyUI: componentes preconstruidos (btn, modal,
+         alert, badge, etc.) Requiere que Tailwind ya esté cargado -->
+    <link href="https://cdn.jsdelivr.net/npm/daisyui@4.12.10/dist/full.min.css"
+          rel="stylesheet" />
+
+    <!-- =====================================================
+         CSS PROPIO DEL MÓDULO TRABAJADOR
+         CAMBIO: ruta corregida de /Css/Trabajador.css
+         a /css/trabajador.css (minúsculas para Spring Boot
+         en Linux donde las rutas son sensibles a mayúsculas)
+         Carga AL FINAL para que nuestras clases trab-*
+         tengan prioridad si hay algún conflicto residual
+         ===================================================== -->
     <link rel="stylesheet" href="/Css/Trabajador.css">
 </head>
 <body>
 
-<!-- SIDEBAR -->
-<aside class="sidebar">
-    <div class="sidebar-header">
-        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
-            <path stroke-linecap="round" stroke-linejoin="round" d="M8.25 18.75a1.5 1.5 0 01-3 0V15a6 6 0 0112 0v3.75a1.5 1.5 0 01-3 0V15a3 3 0 00-6 0v3.75zM12 9a3 3 0 100-6 3 3 0 000 6z" />
+<!-- =====================================================
+     SIDEBAR — Barra lateral izquierda fija
+     Usa clases propias definidas en trabajador.css Parte 1:
+     .sidebar, .sidebar-header, .sidebar-nav
+     ===================================================== -->
+<aside class="sidebar" aria-label="Menú principal">
+
+    <!-- Logo y nombre de la aplicación -->
+    <div class="sidebar-header" role="banner">
+        <!-- Ícono SVG del logo de AparcaYA -->
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none"
+             viewBox="0 0 24 24" stroke-width="1.5"
+             stroke="currentColor" aria-hidden="true">
+            <path stroke-linecap="round" stroke-linejoin="round"
+                  d="M8.25 18.75a1.5 1.5 0 01-3 0V15a6 6 0 0112
+                  0v3.75a1.5 1.5 0 01-3 0V15a3 3 0 00-6 0v3.75z
+                  M12 9a3 3 0 100-6 3 3 0 000 6z" />
         </svg>
         <h1>AparcaYA</h1>
     </div>
-    <nav class="sidebar-nav">
-        <a href="#" class="active" data-tab="inicio">🏠 Inicio</a>
-        <a href="#" data-tab="gestion">🚗 Gestión Vehículos</a>
-        <a href="#" data-tab="historial">📊 Historial</a>
-        <a href="#" data-tab="reservaciones">📅 Reservaciones</a>
-        <a href="#" data-tab="cargamasiva">📤 Carga Masiva</a>
+
+    <!-- Navegación del sidebar
+         data-tab="X" → JavaScript usa este atributo para
+         mostrar/ocultar la sección correspondiente en el main
+         class="active" → marca la sección visible actualmente -->
+    <nav class="sidebar-nav" role="navigation">
+        <a href="#" class="active" data-tab="inicio">
+            🏠 Inicio
+        </a>
+        <a href="#" data-tab="gestion">
+            🚗 Gestión Vehículos
+        </a>
+        <a href="#" data-tab="historial">
+            📊 Historial
+        </a>
+        <a href="#" data-tab="reservaciones">
+            📅 Reservaciones
+        </a>
+        <a href="#" data-tab="cargamasiva">
+            📤 Carga Masiva
+        </a>
     </nav>
 </aside>
 
-<!-- HEADER -->
+
+<!-- =====================================================
+     HEADER — Barra superior fija
+     Usa clases propias: .page-header, .logo-section,
+     .profile-menu, .profile-btn
+     CAMBIO: .dropdown-menu → .trab-dropdown
+     (evita conflicto con el dropdown de DaisyUI)
+     ===================================================== -->
 <header class="page-header">
+
+    <!-- Logo en el header: visible siempre, especialmente
+         en móvil cuando el sidebar está oculto -->
     <div class="logo-section">
-        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
-            <path stroke-linecap="round" stroke-linejoin="round" d="M8.25 18.75a1.5 1.5 0 01-3 0V15a6 6 0 0112 0v3.75a1.5 1.5 0 01-3 0V15a3 3 0 00-6 0v3.75zM12 9a3 3 0 100-6 3 3 0 000 6z" />
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none"
+             viewBox="0 0 24 24" stroke-width="1.5"
+             stroke="currentColor" aria-hidden="true">
+            <path stroke-linecap="round" stroke-linejoin="round"
+                  d="M8.25 18.75a1.5 1.5 0 01-3 0V15a6 6 0 0112
+                  0v3.75a1.5 1.5 0 01-3 0V15a3 3 0 00-6 0v3.75z
+                  M12 9a3 3 0 100-6 3 3 0 000 6z" />
         </svg>
+        <!-- sedeNombre: JavaScript actualiza este span con
+             el nombre real del parqueadero del trabajador -->
         <h1>AparcaYA - <span id="sedeNombre">Parqueadero</span></h1>
     </div>
+
+    <!-- Menú de perfil del trabajador -->
     <div class="profile-menu">
-        <button id="profileBtn" class="profile-btn" type="button">
-            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
-                <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 6a3.75 3.75 0 11-7.5 0 3.75 3.75 0 017.5 0zM4.501 20.118a7.5 7.5 0 0114.998 0A17.933 17.933 0 0112 21.75c-2.676 0-5.216-.584-7.499-1.632z" />
+
+        <!-- Botón circular con ícono de usuario
+             JavaScript escucha el clic para abrir/cerrar
+             el .trab-dropdown -->
+        <button id="profileBtn"
+                class="profile-btn"
+                type="button"
+                aria-label="Menú de perfil"
+                aria-haspopup="true"
+                aria-expanded="false"
+                aria-controls="profileDropdown">
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none"
+                 viewBox="0 0 24 24" stroke-width="1.5"
+                 stroke="currentColor" aria-hidden="true">
+                <path stroke-linecap="round" stroke-linejoin="round"
+                      d="M15.75 6a3.75 3.75 0 11-7.5 0 3.75 3.75 0
+                      017.5 0zM4.501 20.118a7.5 7.5 0 0114.998
+                      0A17.933 17.933 0 0112 21.75c-2.676
+                      0-5.216-.584-7.499-1.632z" />
             </svg>
         </button>
-        <menu id="profileDropdown" class="dropdown-menu">
-            <button type="button" onclick="handleLogout()"> Cerrar sesión</button>
+
+        <!-- Dropdown del perfil
+             CAMBIO: era class="dropdown-menu" (conflicto con DaisyUI)
+             AHORA: class="trab-dropdown" (clase propia sin conflicto)
+             JavaScript agrega/quita .show para mostrarlo/ocultarlo -->
+        <menu id="profileDropdown"
+              class="trab-dropdown"
+              role="menu"
+              aria-label="Opciones de perfil">
+            <!-- handleLogout() → función en trabajadorD.js
+                 que cierra la sesión del trabajador -->
+            <button type="button"
+                    role="menuitem"
+                    onclick="handleLogout()">
+                🚪 Cerrar sesión
+            </button>
         </menu>
     </div>
 </header>
 
-<!-- MAIN CONTENT -->
+<!-- =====================================================
+     ÁREA PRINCIPAL DEL DASHBOARD
+     Usa clase propia: .dashboard (trabajador.css Parte 1)
+     margin-left: 220px → deja espacio para el sidebar
+     margin-top: 64px   → deja espacio para el header
+     ===================================================== -->
 <main class="dashboard">
 
-    <!-- ==================== SECCIÓN INICIO ==================== -->
+
+    <!-- =================================================
+         SECCIÓN INICIO — Panel de Control
+         id="inicio" → activa por defecto (class="active"
+         en el link del sidebar)
+         JavaScript la muestra/oculta según navegación
+         ================================================= -->
     <section id="inicio" class="content-section">
         <h2 class="section-title">🏠 Panel de Control</h2>
 
+        <!-- Tarjetas de indicadores rápidos
+             Usa clases: .indicator-cards, .indicator-card,
+             .indicator-title, .indicator-value, .indicator-subtitle
+             (definidas en trabajador.css Parte 1)
+             JavaScript actualiza los valores en tiempo real -->
         <div class="indicator-cards">
+
+            <!-- Tarjeta 1: Ocupación actual del parqueadero -->
             <div class="indicator-card" id="cardOcupacion">
                 <div class="indicator-title">Ocupación</div>
+                <!-- Formato: "vehículos actuales / capacidad total" -->
                 <div class="indicator-value" id="ocupacionActual">0/0</div>
+                <!-- Porcentaje calculado por trabajadorD.js -->
                 <div class="indicator-subtitle" id="porcentajeOcupacion">0%</div>
             </div>
+
+            <!-- Tarjeta 2: Espacios libres disponibles -->
             <div class="indicator-card">
                 <div class="indicator-title">Cupos Libres</div>
                 <div class="indicator-value" id="cuposLibres">0</div>
             </div>
+
+            <!-- Tarjeta 3: Total de vehículos atendidos hoy -->
             <div class="indicator-card">
                 <div class="indicator-title">Vehículos Hoy</div>
                 <div class="indicator-value" id="vehiculosHoy">0</div>
             </div>
+
+            <!-- Tarjeta 4: Ingresos generados en el día -->
             <div class="indicator-card">
                 <div class="indicator-title">Ingresos Día</div>
                 <div class="indicator-value" id="ingresosDia">$0</div>
             </div>
+
+            <!-- Tarjeta 5: Vehículos que salieron pero aún no pagaron -->
             <div class="indicator-card">
                 <div class="indicator-title">Pend. Cobro</div>
                 <div class="indicator-value" id="pendientesCobro">0</div>
             </div>
+
+            <!-- Tarjeta 6: Tarifas vigentes por tipo de vehículo
+                 font-size reducido para mostrar varias tarifas -->
             <div class="indicator-card">
                 <div class="indicator-title">Tarifas</div>
-                <div class="indicator-value" style="font-size: 0.7rem; line-height: 1.4;">
+                <div class="indicator-value"
+                     style="font-size: 0.7rem; line-height: 1.4;">
+                    <!-- trabajadorD.js rellena este div con las tarifas -->
                     <div id="tarifaDisplay">Cargando...</div>
                 </div>
             </div>
         </div>
     </section>
 
-    <!-- ==================== SECCIÓN GESTIÓN VEHÍCULOS ==================== -->
+
+    <!-- =================================================
+         SECCIÓN GESTIÓN DE VEHÍCULOS
+         class="content-section hidden" → oculta por defecto
+         Tailwind .hidden = display: none !important
+         JavaScript la muestra al hacer clic en el sidebar
+         ================================================= -->
     <section id="gestion" class="content-section hidden">
         <h2 class="section-title">🚗 Gestión de Vehículos</h2>
 
-        <!-- Formulario Registro Entrada - Con validaciones mejoradas -->
+
+        <!-- ---------------------------------------------
+             SUBSECCIÓN: Registrar Entrada de Vehículo
+             Usa clase: .sub-section, .sub-section-title
+             (definidas en trabajador.css Parte 1)
+             --------------------------------------------- -->
         <div class="sub-section">
             <h3 class="sub-section-title">➕ Registrar Entrada de Vehículo</h3>
 
-            <!-- Buscar por placa -->
+            <!-- Buscador rápido por placa
+                 Permite autocompletar datos si el cliente ya existe
+                 buscarPorPlacaIntegrado() → función en trabajadorD.js -->
             <div style="margin-bottom: 1rem; display: flex; gap: 0.5rem;">
-                <input type="text" id="buscarPlaca" placeholder="Buscar por placa..."
-                       style="padding: 0.5rem; border: 1px solid #cbd5e1; border-radius: 0.5rem; flex: 1;">
-                <button class="btn-primary" type="button" onclick="buscarPorPlacaIntegrado()">🔍 Buscar</button>
+                <input type="text"
+                       id="buscarPlaca"
+                       placeholder="Buscar por placa..."
+                       style="padding: 0.5rem; border: 1px solid #cbd5e1;
+                              border-radius: 0.5rem; flex: 1;">
+                <!-- CAMBIO: era class="btn-primary" → ahora class="trab-btn-primary"
+                     Evita conflicto con .btn-primary de DaisyUI -->
+                <button class="trab-btn-primary"
+                        type="button"
+                        onclick="buscarPorPlacaIntegrado()">
+                    🔍 Buscar
+                </button>
             </div>
 
-            <!-- Formulario con validaciones -->
+            <!-- Formulario de registro de entrada
+                 novalidate → desactiva la validación nativa del navegador
+                 Las validaciones las maneja trabajadorD.js con mensajes
+                 personalizados usando .error-message y .success-message -->
             <form id="registroEntradaForm" novalidate>
-                <!-- Campo oculto para rol CLIENTE -->
+
+                <!-- Campo oculto: indica al backend que el usuario es un CLIENTE -->
                 <input type="hidden" name="rol" value="CLIENTE">
 
+                <!-- Grid de 2 columnas para los campos del formulario
+                     En móvil Tailwind lo colapsa a 1 columna automáticamente -->
                 <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
-                    <!-- DATOS DEL CLIENTE -->
-                    <div class="form-group">
-                        <label>Nombre Cliente *</label>
-                        <input type="text" id="nombre" name="nombre" required
-                               minlength="2" maxlength="100" autocomplete="name"
-                               style="padding: 0.6rem; border: 1px solid #cbd5e1; border-radius: 0.5rem; width: 100%;">
+
+                    <!-- ===== DATOS DEL CLIENTE ===== -->
+
+                    <!-- Campo: Nombre del cliente
+                         CAMBIO: era class="form-group" → ahora class="trab-form-group"
+                         Evita conflicto con .form-control de DaisyUI -->
+                    <div class="trab-form-group">
+                        <label for="nombre">Nombre Cliente *</label>
+                        <input type="text"
+                               id="nombre"
+                               name="nombre"
+                               required
+                               minlength="2"
+                               maxlength="100"
+                               autocomplete="name"
+                               placeholder="Ej: Juan Pérez"
+                               style="padding: 0.6rem; border: 1px solid #cbd5e1;
+                                      border-radius: 0.5rem; width: 100%;">
+                        <!-- Mensaje de error: trabajadorD.js escribe aquí si falla la validación -->
                         <span id="nombre-error" class="error-message" aria-live="polite"></span>
                     </div>
 
-                    <div class="form-group">
-                        <label>Teléfono *</label>
-                        <input type="tel" id="telefono" name="telefono" required
-                               pattern="[0-9]{10}" title="Ingresa un número de 10 dígitos"
+                    <!-- Campo: Teléfono del cliente
+                         pattern="[0-9]{10}" → solo acepta exactamente 10 dígitos numéricos -->
+                    <div class="trab-form-group">
+                        <label for="telefono">Teléfono *</label>
+                        <input type="tel"
+                               id="telefono"
+                               name="telefono"
+                               required
+                               pattern="[0-9]{10}"
+                               title="Ingresa un número de 10 dígitos"
                                autocomplete="tel"
-                               style="padding: 0.6rem; border: 1px solid #cbd5e1; border-radius: 0.5rem; width: 100%;">
+                               placeholder="Ej: 3001234567"
+                               style="padding: 0.6rem; border: 1px solid #cbd5e1;
+                                      border-radius: 0.5rem; width: 100%;">
                         <span id="telefono-error" class="error-message" aria-live="polite"></span>
+                        <!-- Mensaje de éxito: aparece cuando el teléfono es válido -->
                         <span id="telefono-success" class="success-message" aria-live="polite"></span>
                     </div>
 
-                    <div class="form-group">
-                        <label>Email *</label>
-                        <input type="email" id="correo" name="correo" required
+                    <!-- Campo: Correo electrónico del cliente -->
+                    <div class="trab-form-group">
+                        <label for="correo">Email *</label>
+                        <input type="email"
+                               id="correo"
+                               name="correo"
+                               required
                                autocomplete="email"
-                               style="padding: 0.6rem; border: 1px solid #cbd5e1; border-radius: 0.5rem; width: 100%;">
+                               placeholder="ejemplo@correo.com"
+                               style="padding: 0.6rem; border: 1px solid #cbd5e1;
+                                      border-radius: 0.5rem; width: 100%;">
                         <span id="correo-error" class="error-message" aria-live="polite"></span>
                         <span id="correo-success" class="success-message" aria-live="polite"></span>
                     </div>
 
-                    <div class="form-group">
-                        <label>Cédula *</label>
-                        <input type="text" id="cedula" name="cedula" required
-                               pattern="[0-9]{10}" title="Ingresa una cédula de 10 dígitos"
+                    <!-- Campo: Cédula del cliente
+                         pattern="[0-9]{10}" → solo acepta 10 dígitos -->
+                    <div class="trab-form-group">
+                        <label for="cedula">Cédula *</label>
+                        <input type="text"
+                               id="cedula"
+                               name="cedula"
+                               required
+                               pattern="[0-9]{10}"
+                               title="Ingresa una cédula de 10 dígitos"
                                autocomplete="off"
-                               style="padding: 0.6rem; border: 1px solid #cbd5e1; border-radius: 0.5rem; width: 100%;">
+                               placeholder="Ej: 1234567890"
+                               style="padding: 0.6rem; border: 1px solid #cbd5e1;
+                                      border-radius: 0.5rem; width: 100%;">
                         <span id="cedula-error" class="error-message" aria-live="polite"></span>
                         <span id="cedula-success" class="success-message" aria-live="polite"></span>
                     </div>
 
-                    <!-- Contraseñas generadas automáticamente (ocultas) -->
+                    <!-- Campos ocultos: la contraseña se genera automáticamente
+                         en trabajadorD.js para los clientes nuevos -->
                     <input type="hidden" id="contrasena" name="contrasena" value="">
                     <input type="hidden" id="confirmarContrasena" name="confirmarContrasena" value="">
 
-                    <!-- DATOS DEL VEHÍCULO -->
-                    <div class="form-group">
-                        <label>Placa *</label>
-                        <input type="text" id="placa" name="placa" required
-                               maxlength="6" pattern="[A-Z]{3}[0-9]{3}"
-                               title="Formato: 3 letras mayúsculas seguidas de 3 números (ej. ABC123)"
-                               style="text-transform: uppercase; padding: 0.6rem; border: 1px solid #cbd5e1; border-radius: 0.5rem; width: 100%;"
-                               oninput="this.value = this.value.toUpperCase().replace(/[^A-Z0-9]/g, '').substring(0,6);">
+                    <!-- ===== DATOS DEL VEHÍCULO ===== -->
+
+                    <!-- Campo: Placa del vehículo
+                         text-transform: uppercase → convierte a mayúsculas automáticamente
+                         oninput → limpia caracteres inválidos en tiempo real -->
+                    <div class="trab-form-group">
+                        <label for="placa">Placa *</label>
+                        <input type="text"
+                               id="placa"
+                               name="placa"
+                               required
+                               maxlength="6"
+                               pattern="[A-Z]{3}[0-9]{3}"
+                               title="Formato: 3 letras mayúsculas + 3 números (ej: ABC123)"
+                               placeholder="ABC123"
+                               style="text-transform: uppercase; padding: 0.6rem;
+                                      border: 1px solid #cbd5e1; border-radius: 0.5rem;
+                                      width: 100%;"
+                               oninput="this.value = this.value.toUpperCase()
+                                        .replace(/[^A-Z0-9]/g, '')
+                                        .substring(0, 6);">
+                        <!-- La expresión del oninput:
+                             1. Convierte a mayúsculas
+                             2. Elimina caracteres que no sean letras o números
+                             3. Limita a 6 caracteres -->
                         <span id="placa-error" class="error-message" aria-live="polite"></span>
                     </div>
 
-                    <div class="form-group">
-                        <label>Tipo Vehículo *</label>
-                        <select id="tipoVehiculo" name="tipoVehiculo" required
-                                style="padding: 0.6rem; border: 1px solid #cbd5e1; border-radius: 0.5rem; width: 100%;">
+                    <!-- Campo: Tipo de vehículo -->
+                    <div class="trab-form-group">
+                        <label for="tipoVehiculo">Tipo Vehículo *</label>
+                        <select id="tipoVehiculo"
+                                name="tipoVehiculo"
+                                required
+                                style="padding: 0.6rem; border: 1px solid #cbd5e1;
+                                       border-radius: 0.5rem; width: 100%;">
                             <option value="">Selecciona un tipo</option>
                             <option value="CARRO">Carro</option>
                             <option value="MOTO">Moto</option>
@@ -172,41 +391,79 @@
                         <span id="tipoVehiculo-error" class="error-message" aria-live="polite"></span>
                     </div>
 
-                    <div class="form-group">
-                        <label>Marca *</label>
-                        <select id="marca" name="marca" required
-                                style="padding: 0.6rem; border: 1px solid #cbd5e1; border-radius: 0.5rem; width: 100%;">
+                    <!-- Campo: Marca del vehículo
+                         Las opciones se cargan dinámicamente por trabajadorD.js
+                         según el tipo de vehículo seleccionado -->
+                    <div class="trab-form-group">
+                        <label for="marca">Marca *</label>
+                        <select id="marca"
+                                name="marca"
+                                required
+                                style="padding: 0.6rem; border: 1px solid #cbd5e1;
+                                       border-radius: 0.5rem; width: 100%;">
                             <option value="">Selecciona una marca</option>
+                            <!-- Opciones cargadas por JavaScript -->
                         </select>
                         <span id="marca-error" class="error-message" aria-live="polite"></span>
                     </div>
 
-                    <div class="form-group">
-                        <label>Color</label>
-                        <input type="text" id="color" name="color"
-                               placeholder="Rojo"
-                               style="padding: 0.6rem; border: 1px solid #cbd5e1; border-radius: 0.5rem; width: 100%;">
+                    <!-- Campo: Color del vehículo (opcional) -->
+                    <div class="trab-form-group">
+                        <label for="color">Color</label>
+                        <input type="text"
+                               id="color"
+                               name="color"
+                               placeholder="Ej: Rojo"
+                               style="padding: 0.6rem; border: 1px solid #cbd5e1;
+                                      border-radius: 0.5rem; width: 100%;">
                     </div>
 
-                    <div class="form-group">
-                        <label>Año</label>
-                        <input type="number" id="anio" name="anio"
-                               min="2000" max="2025" placeholder="2020"
-                               style="padding: 0.6rem; border: 1px solid #cbd5e1; border-radius: 0.5rem; width: 100%;">
+                    <!-- Campo: Año del vehículo (opcional)
+                         min/max → limita el rango de años aceptados -->
+                    <div class="trab-form-group">
+                        <label for="anio">Año</label>
+                        <input type="number"
+                               id="anio"
+                               name="anio"
+                               min="2000"
+                               max="2025"
+                               placeholder="Ej: 2020"
+                               style="padding: 0.6rem; border: 1px solid #cbd5e1;
+                                      border-radius: 0.5rem; width: 100%;">
                     </div>
                 </div>
 
+                <!-- Botones del formulario de registro -->
                 <div style="margin-top: 1rem; display: flex; gap: 0.5rem;">
-                    <button type="submit" class="btn-success">✅ Registrar Entrada</button>
-                    <button type="button" class="btn-secondary" onclick="limpiarFormularioEntrada()">🔄 Limpiar</button>
+                    <!-- CAMBIO: era class="btn-success" → ahora class="trab-btn-success"
+                         Evita conflicto con .btn-success de DaisyUI -->
+                    <button type="submit" class="trab-btn-success">
+                        ✅ Registrar Entrada
+                    </button>
+                    <!-- CAMBIO: era class="btn-secondary" → ahora class="trab-btn-secondary"
+                         limpiarFormularioEntrada() → limpia todos los campos del form -->
+                    <button type="button"
+                            class="trab-btn-secondary"
+                            onclick="limpiarFormularioEntrada()">
+                        🔄 Limpiar
+                    </button>
                 </div>
             </form>
         </div>
 
-        <!-- Vehículos Activos (Temporizando) -->
+
+        <!-- ---------------------------------------------
+             SUBSECCIÓN: Vehículos en Parqueadero
+             Muestra los vehículos activos con temporizador
+             JavaScript actualiza el tiempo cada segundo
+             --------------------------------------------- -->
         <div class="sub-section">
             <h3 class="sub-section-title">⏱️ Vehículos en Parqueadero (Temporizando)</h3>
-            <table>
+
+            <!-- CAMBIO: se agrega class="trab-table" a la tabla
+                 Aplica los estilos de trabajador.css Parte 2
+                 sin interferir con las tablas de DaisyUI -->
+            <table class="trab-table">
                 <thead>
                 <tr>
                     <th>Placa</th>
@@ -214,21 +471,33 @@
                     <th>Cliente</th>
                     <th>Teléfono</th>
                     <th>Hora Entrada</th>
+                    <!-- .tiempo-activo se aplica en las celdas de esta columna
+                         para mostrar el cronómetro en fuente monoespaciada -->
                     <th>Tiempo</th>
                     <th>Cobro Est.</th>
                     <th>Acción</th>
                 </tr>
                 </thead>
                 <tbody id="vehiculosActivosBody">
-                <tr><td colspan="8" style="text-align:center;">Cargando...</td></tr>
+                <!-- trabajadorD.js rellena esta tabla con los vehículos activos -->
+                <tr>
+                    <td colspan="8" style="text-align: center; padding: 1rem; color: #64748b;">
+                        Cargando...
+                    </td>
+                </tr>
                 </tbody>
             </table>
         </div>
 
-        <!-- Vehículos Pendientes de Cobro -->
+
+        <!-- ---------------------------------------------
+             SUBSECCIÓN: Pendientes de Cobro
+             Vehículos que ya salieron pero no han pagado
+             --------------------------------------------- -->
         <div class="sub-section">
             <h3 class="sub-section-title">💰 Pendientes de Cobro</h3>
-            <table>
+
+            <table class="trab-table">
                 <thead>
                 <tr>
                     <th>Placa</th>
@@ -241,28 +510,51 @@
                 </tr>
                 </thead>
                 <tbody id="pendientesCobroBody">
-                <tr><td colspan="7" style="text-align:center;">No hay vehículos pendientes</td></tr>
+                <!-- trabajadorD.js rellena con vehículos pendientes de cobro -->
+                <tr>
+                    <td colspan="7" style="text-align: center; padding: 1rem; color: #64748b;">
+                        No hay vehículos pendientes
+                    </td>
+                </tr>
                 </tbody>
             </table>
         </div>
     </section>
-
-    <!-- ==================== SECCIÓN HISTORIAL ==================== -->
+    <!-- =================================================
+         SECCIÓN HISTORIAL
+         Muestra todos los registros de entrada/salida
+         con filtros por fecha y estado
+         ================================================= -->
     <section id="historial" class="content-section hidden">
         <h2 class="section-title">📊 Historial de Registros</h2>
 
+        <!-- Barra de filtros
+             Usa clase: .filter-bar (trabajador.css Parte 2)
+             Los inputs y selects heredan los estilos de .filter-bar -->
         <div class="filter-bar">
-            <input type="date" id="filtroFecha">
-            <select id="filtroEstado">
+
+            <!-- Filtro por fecha: muestra solo registros de ese día -->
+            <input type="date"
+                   id="filtroFecha"
+                   aria-label="Filtrar por fecha">
+
+            <!-- Filtro por estado del registro -->
+            <select id="filtroEstado" aria-label="Filtrar por estado">
                 <option value="">Todos los estados</option>
-                <option value="ACTIVO">Activo</option>
-                <option value="FINALIZADO">Pendiente Cobro</option>
-                <option value="COBRADO">Cobrado</option>
+                <option value="ACTIVO">Activo</option>          <!-- Vehículo aún en el parqueadero -->
+                <option value="FINALIZADO">Pendiente Cobro</option> <!-- Salió pero no pagó -->
+                <option value="COBRADO">Cobrado</option>        <!-- Pagado y completado -->
             </select>
-            <button class="btn-primary" onclick="loadHistorial()">🔍 Filtrar</button>
+
+            <!-- CAMBIO: era class="btn-primary" → ahora class="trab-btn-primary"
+                 loadHistorial() → función en trabajadorD.js que aplica los filtros -->
+            <button class="trab-btn-primary" onclick="loadHistorial()">
+                🔍 Filtrar
+            </button>
         </div>
 
-        <table>
+        <!-- Tabla del historial con todos los campos del registro -->
+        <table class="trab-table">
             <thead>
             <tr>
                 <th>Placa</th>
@@ -277,16 +569,26 @@
             </tr>
             </thead>
             <tbody id="historialBody">
-            <tr><td colspan="9" style="text-align:center;">Seleccione filtros y presione Filtrar</td></tr>
+            <!-- Mensaje inicial hasta que el usuario aplique filtros -->
+            <tr>
+                <td colspan="9"
+                    style="text-align: center; padding: 1rem; color: #64748b;">
+                    Seleccione filtros y presione Filtrar
+                </td>
+            </tr>
             </tbody>
         </table>
     </section>
 
-    <!-- ==================== SECCIÓN RESERVACIONES ==================== -->
+
+    <!-- =================================================
+         SECCIÓN RESERVACIONES
+         Muestra las reservaciones pendientes de confirmar
+         ================================================= -->
     <section id="reservaciones" class="content-section hidden">
         <h2 class="section-title">📅 Reservaciones Pendientes</h2>
 
-        <table>
+        <table class="trab-table">
             <thead>
             <tr>
                 <th>Cliente</th>
@@ -300,40 +602,69 @@
             </tr>
             </thead>
             <tbody id="reservacionesBody">
-            <tr><td colspan="8" style="text-align:center;">Cargando...</td></tr>
+            <!-- trabajadorD.js rellena con las reservaciones pendientes -->
+            <tr>
+                <td colspan="8"
+                    style="text-align: center; padding: 1rem; color: #64748b;">
+                    Cargando...
+                </td>
+            </tr>
             </tbody>
         </table>
     </section>
 
-    <!-- ==================== SECCIÓN CARGA MASIVA ==================== -->
+
+    <!-- =================================================
+         SECCIÓN CARGA MASIVA
+         Permite registrar múltiples clientes y vehículos
+         cargando un archivo Excel (.xlsx o .xls)
+         ================================================= -->
     <section id="cargamasiva" class="content-section hidden">
         <h2 class="section-title">📤 Carga Masiva desde Excel</h2>
 
-        <!-- Descargar Plantilla -->
+
+        <!-- ---------------------------------------------
+             PASO 1: Descargar la plantilla Excel
+             El trabajador llena esta plantilla y luego
+             la sube en el Paso 2
+             --------------------------------------------- -->
         <div class="sub-section">
             <h3 class="sub-section-title">📥 Paso 1: Descargar Plantilla</h3>
+
             <p style="margin-bottom: 1rem; color: #64748b; font-size: 0.9rem;">
-                Descarga la plantilla de Excel y completa los datos según el tipo de registro que necesites.
+                Descarga la plantilla de Excel y completa los datos
+                según el tipo de registro que necesites.
             </p>
 
+            <!-- Botones de descarga de plantillas
+                 CAMBIO: btn-primary → trab-btn-primary
+                         btn-info    → trab-btn-info -->
             <div style="display: flex; gap: 1rem; flex-wrap: wrap; margin-bottom: 1rem;">
-                <button class="btn-primary" onclick="descargarPlantillaCompleta()" style="display: flex; align-items: center; gap: 0.5rem;">
-                    <span>📥</span>
-                    <span>Plantilla Completa (Clientes, Vehículos)</span>
+                <button class="trab-btn-primary"
+                        onclick="descargarPlantillaCompleta()">
+                    📥 Plantilla Completa (Clientes + Vehículos)
                 </button>
-                <button class="btn-info" onclick="descargarPlantillaVehiculosSolo()" style="display: flex; align-items: center; gap: 0.5rem;">
-                    <span>🚗</span>
-                    <span>Solo Vehículos</span>
+                <button class="trab-btn-info"
+                        onclick="descargarPlantillaVehiculosSolo()">
+                    🚗 Solo Vehículos
                 </button>
             </div>
 
-            <!-- Información sobre el formato -->
-            <div style="margin-top: 1rem; padding: 1rem; background: #f1f5f9; border-radius: 0.5rem; border-left: 4px solid #3b82f6;">
+            <!-- Panel informativo sobre el formato de la plantilla -->
+            <div style="margin-top: 1rem; padding: 1rem; background: #f1f5f9;
+                        border-radius: 0.5rem; border-left: 4px solid #3b82f6;">
+
                 <strong style="color: #1e40af;">📋 Formato de la Plantilla:</strong>
 
+                <!-- details/summary: acordeón nativo de HTML, sin JavaScript
+                     open → abierto por defecto -->
                 <details style="margin-top: 0.5rem;" open>
-                    <summary style="cursor: pointer; font-weight: 600; color: #059669; padding: 0.5rem 0;">🧑‍💼 Registrar Cliente</summary>
-                    <ul style="margin: 0.5rem 0 0 1.5rem; color: #475569; font-size: 0.9rem;">
+                    <summary style="cursor: pointer; font-weight: 600;
+                                    color: #059669; padding: 0.5rem 0;">
+                        🧑‍💼 Registrar Cliente
+                    </summary>
+                    <ul style="margin: 0.5rem 0 0 1.5rem;
+                               color: #475569; font-size: 0.9rem;">
                         <li><strong>Tipo:</strong> "Cliente"</li>
                         <li><strong>Nombre:</strong> Nombre completo (ej: Juan Pérez)</li>
                         <li><strong>Teléfono:</strong> 10 dígitos (ej: 0987654321)</li>
@@ -343,75 +674,132 @@
                 </details>
 
                 <details style="margin-top: 0.5rem;">
-                    <summary style="cursor: pointer; font-weight: 600; color: #2563eb; padding: 0.5rem 0;">🚗 Registrar Vehículo</summary>
-                    <ul style="margin: 0.5rem 0 0 1.5rem; color: #475569; font-size: 0.9rem;">
+                    <summary style="cursor: pointer; font-weight: 600;
+                                    color: #2563eb; padding: 0.5rem 0;">
+                        🚗 Registrar Vehículo
+                    </summary>
+                    <ul style="margin: 0.5rem 0 0 1.5rem;
+                               color: #475569; font-size: 0.9rem;">
                         <li><strong>Tipo:</strong> "Vehiculo" o "Vehículo"</li>
                         <li><strong>Placa:</strong> 3 letras + 3 números (ej: ABC123)</li>
                         <li><strong>Tipo Vehículo:</strong> CARRO, MOTO, BICICLETA, OTRO</li>
-                        <li><strong>Marca:</strong> TOYOTA, CHEVROLET, MAZDA, KIA, NISSAN, HONDA, FORD, HYUNDAI, SUZUKI</li>
-                        <li><strong>Color:</strong> Color del vehículo (ej: Blanco, Negro)</li>
+                        <li><strong>Marca:</strong> TOYOTA, CHEVROLET, MAZDA, KIA, NISSAN,
+                            HONDA, FORD, HYUNDAI, SUZUKI</li>
+                        <li><strong>Color:</strong> Color del vehículo (ej: Blanco)</li>
                         <li><strong>Año:</strong> Año del vehículo (2000-2025)</li>
-                        <li><strong>Email Cliente:</strong> Email del propietario (debe estar registrado primero)</li>
+                        <li><strong>Email Cliente:</strong> Email del propietario
+                            (debe estar registrado primero)</li>
                     </ul>
                 </details>
 
-                <div style="margin-top: 1rem; padding: 0.75rem; background: #fef3c7; border-radius: 0.5rem; border-left: 3px solid #f59e0b;">
+                <!-- Advertencia sobre el orden de registro -->
+                <div style="margin-top: 1rem; padding: 0.75rem; background: #fef3c7;
+                            border-radius: 0.5rem; border-left: 3px solid #f59e0b;">
                     <strong style="color: #92400e;">⚠️ Orden importante:</strong>
-                    <p style="margin: 0.25rem 0 0 0; color: #78350f; font-size: 0.85rem;">
+                    <p style="margin: 0.25rem 0 0; color: #78350f; font-size: 0.85rem;">
                         1. Primero registra los Clientes<br>
-                        2. Luego registra los Vehículos (necesitan el email del cliente)<br>
+                        2. Luego registra los Vehículos (necesitan el email del cliente)
                     </p>
                 </div>
             </div>
         </div>
 
-        <!-- Subir Archivo -->
+
+        <!-- ---------------------------------------------
+             PASO 2: Subir el archivo Excel completado
+             --------------------------------------------- -->
         <div class="sub-section">
             <h3 class="sub-section-title">📁 Paso 2: Subir Archivo Excel</h3>
+
             <p style="margin-bottom: 1rem; color: #64748b; font-size: 0.9rem;">
-                Selecciona el archivo Excel con los datos completados y haz clic en "Cargar Excel".
+                Selecciona el archivo Excel con los datos completados
+                y haz clic en "Cargar Excel".
             </p>
+
             <div style="display: flex; gap: 1rem; align-items: center; flex-wrap: wrap;">
+
+                <!-- Input de tipo file: solo acepta .xlsx y .xls
+                     onchange → llama a mostrarArchivoSeleccionado() para
+                     mostrar el nombre del archivo elegido -->
                 <div style="flex: 1; min-width: 250px;">
                     <input type="file"
                            id="excelFile"
                            accept=".xlsx,.xls"
-                           style="width: 100%; padding: 0.75rem; border: 2px dashed #cbd5e1; border-radius: 0.5rem; cursor: pointer;"
+                           aria-label="Seleccionar archivo Excel"
+                           style="width: 100%; padding: 0.75rem;
+                                  border: 2px dashed #cbd5e1;
+                                  border-radius: 0.5rem; cursor: pointer;"
                            onchange="mostrarArchivoSeleccionado()">
                 </div>
-                <button class="btn-success" onclick="cargarExcel()" style="white-space: nowrap;">
+
+                <!-- CAMBIO: era class="btn-success" → ahora class="trab-btn-success"
+                     cargarExcel() → lee el archivo y envía los datos al backend -->
+                <button class="trab-btn-success"
+                        onclick="cargarExcel()"
+                        style="white-space: nowrap;">
                     📤 Cargar Excel
                 </button>
             </div>
-            <div id="archivoSeleccionado" style="margin-top: 0.5rem; font-size: 0.85rem; color: #64748b;"></div>
-        </div>
 
-        <!-- Barra de Progreso -->
-        <div id="progressContainer" class="sub-section" style="display: none;">
-            <div style="background: #f1f5f9; border-radius: 0.5rem; padding: 0.5rem; margin-bottom: 0.5rem;">
-                <div id="progressBar" style="height: 1.5rem; background: linear-gradient(90deg, #3b82f6, #2563eb); border-radius: 0.25rem; width: 0%; transition: width 0.3s ease; display: flex; align-items: center; justify-content: center; color: white; font-size: 0.85rem; font-weight: 600;"></div>
+            <!-- Muestra el nombre del archivo seleccionado
+                 JavaScript actualiza este div con mostrarArchivoSeleccionado() -->
+            <div id="archivoSeleccionado"
+                 style="margin-top: 0.5rem; font-size: 0.85rem; color: #64748b;">
             </div>
-            <p id="progressText" style="text-align: center; color: #64748b; font-size: 0.9rem;"></p>
         </div>
 
-        <!-- Resultados de la carga -->
+
+        <!-- Barra de progreso de carga
+             display: none → oculta hasta que inicia la carga
+             JavaScript la muestra y actualiza el porcentaje -->
+        <div id="progressContainer" class="sub-section" style="display: none;">
+            <div style="background: #f1f5f9; border-radius: 0.5rem;
+                        padding: 0.5rem; margin-bottom: 0.5rem;">
+                <!-- La barra de progreso: width cambia con JavaScript (0% → 100%) -->
+                <div id="progressBar"
+                     style="height: 1.5rem;
+                            background: linear-gradient(90deg, #3b82f6, #2563eb);
+                            border-radius: 0.25rem; width: 0%;
+                            transition: width 0.3s ease;
+                            display: flex; align-items: center;
+                            justify-content: center; color: white;
+                            font-size: 0.85rem; font-weight: 600;">
+                </div>
+            </div>
+            <!-- Texto descriptivo del progreso (ej: "Procesando fila 3 de 10...") -->
+            <p id="progressText"
+               style="text-align: center; color: #64748b; font-size: 0.9rem;">
+            </p>
+        </div>
+
+
+        <!-- Resultados de la carga masiva
+             display: none → oculto hasta que termine la carga
+             JavaScript lo muestra con el resumen y errores -->
         <div class="sub-section" id="resultadosCarga" style="display: none;">
             <h3 class="sub-section-title">📋 Resultados de la Carga</h3>
 
-            <!-- Resumen -->
+            <!-- Resumen numérico: cuántos registros exitosos y fallidos -->
             <div id="resumenCarga" style="margin-bottom: 1.5rem;"></div>
 
-            <!-- Errores (si los hay) -->
+            <!-- Lista de errores: solo visible si hubo errores -->
             <div id="erroresContainer" style="display: none; margin-bottom: 1.5rem;">
-                <div style="background: #fef2f2; border-left: 4px solid #ef4444; padding: 1rem; border-radius: 0.5rem;">
-                    <h4 style="color: #dc2626; margin: 0 0 0.5rem 0;">⚠️ Errores Encontrados:</h4>
-                    <ul id="listaErrores" style="margin: 0; padding-left: 1.5rem; color: #7f1d1d; font-size: 0.9rem;"></ul>
+                <div style="background: #fef2f2; border-left: 4px solid #ef4444;
+                            padding: 1rem; border-radius: 0.5rem;">
+                    <h4 style="color: #dc2626; margin: 0 0 0.5rem;">
+                        ⚠️ Errores Encontrados:
+                    </h4>
+                    <!-- JavaScript agrega <li> con cada error aquí -->
+                    <ul id="listaErrores"
+                        style="margin: 0; padding-left: 1.5rem;
+                               color: #7f1d1d; font-size: 0.9rem;">
+                    </ul>
                 </div>
             </div>
 
-            <!-- Tabla de registros -->
+            <!-- Tabla detallada con el resultado de cada fila del Excel -->
             <div style="overflow-x: auto;">
-                <table>
+                <table class="trab-table">
                     <thead>
                     <tr>
                         <th>Tipo</th>
@@ -420,31 +808,66 @@
                         <th>Estado</th>
                     </tr>
                     </thead>
+                    <!-- JavaScript agrega una fila por cada registro procesado -->
                     <tbody id="resultadosCargaBody"></tbody>
                 </table>
             </div>
         </div>
     </section>
 
-</main>
+</main><!-- Cierre de <main class="dashboard"> -->
 
-<!-- ==================== MODAL COBRO ==================== -->
-<div id="cobroModal" class="modal">
-    <div class="modal-content">
-        <div class="modal-header">
-            <h2>💰 Confirmar Cobro</h2>
-            <span class="close" onclick="cerrarModalCobro()">&times;</span>
+
+<!-- =====================================================
+     MODAL CONFIRMAR COBRO
+     Se muestra cuando el trabajador hace clic en
+     "Cobrar" en la tabla de pendientes de cobro.
+
+     CAMBIO CRÍTICO: todas las clases fueron renombradas
+     para evitar el conflicto con DaisyUI:
+       .modal        → .trab-modal
+       .modal-content → .trab-modal-content
+       .modal-header  → .trab-modal-header
+       .close         → .trab-modal-close
+
+     JavaScript lo muestra/oculta con:
+       document.getElementById('cobroModal').classList.add/remove('show')
+     ===================================================== -->
+<div id="cobroModal" class="trab-modal" role="dialog" aria-modal="true"
+     aria-labelledby="cobroModalTitulo">
+
+    <div class="trab-modal-content">
+
+        <!-- Encabezado con título y botón cerrar -->
+        <div class="trab-modal-header">
+            <h2 id="cobroModalTitulo">💰 Confirmar Cobro</h2>
+            <!-- CAMBIO: era class="close" → ahora class="trab-modal-close"
+                 cerrarModalCobro() → función en trabajadorD.js -->
+            <button class="trab-modal-close"
+                    onclick="cerrarModalCobro()"
+                    aria-label="Cerrar modal de cobro"
+                    type="button">
+                &times;<!-- Símbolo × -->
+            </button>
         </div>
+
+        <!-- Resumen del cobro a confirmar
+             JavaScript rellena los spans con los datos del vehículo -->
         <div style="margin-bottom: 1rem;">
             <p><strong>Cliente:</strong> <span id="cobroCliente"></span></p>
             <p><strong>Placa:</strong> <span id="cobroPlaca"></span></p>
             <p><strong>Tiempo Total:</strong> <span id="cobroTiempo"></span></p>
-            <p style="font-size: 1.5rem; color: #059669; font-weight: 700; margin-top: 1rem;">
+            <!-- Total destacado en verde para que sea visible -->
+            <p style="font-size: 1.5rem; color: #059669;
+                      font-weight: 700; margin-top: 1rem;">
                 Total: $<span id="cobroPrecio"></span> COP
             </p>
         </div>
-        <div class="form-group">
-            <label>Método de Pago</label>
+
+        <!-- Selección del método de pago
+             CAMBIO: era class="form-group" → ahora class="trab-form-group" -->
+        <div class="trab-form-group">
+            <label for="metodoPago">Método de Pago</label>
             <select id="metodoPago">
                 <option value="EFECTIVO">Efectivo</option>
                 <option value="TARJETA">Tarjeta</option>
@@ -453,36 +876,98 @@
                 <option value="DAVIPLATA">Daviplata</option>
             </select>
         </div>
+
+        <!-- Botones de acción del modal de cobro -->
         <div style="display: flex; gap: 1rem; margin-top: 1rem;">
-            <button class="btn-success" onclick="procesarCobro()" style="flex: 1;">✅ Confirmar Cobro</button>
-            <button class="btn-danger" onclick="cerrarModalCobro()" style="flex: 1;">❌ Cancelar</button>
+            <!-- CAMBIO: btn-success → trab-btn-success
+                 procesarCobro() → guarda el pago en el backend -->
+            <button class="trab-btn-success"
+                    onclick="procesarCobro()"
+                    style="flex: 1;">
+                ✅ Confirmar Cobro
+            </button>
+            <!-- CAMBIO: btn-danger → trab-btn-danger -->
+            <button class="trab-btn-danger"
+                    onclick="cerrarModalCobro()"
+                    style="flex: 1;">
+                ❌ Cancelar
+            </button>
         </div>
     </div>
 </div>
 
-<!-- ==================== MODAL SALIDA ==================== -->
-<div id="salidaModal" class="modal">
-    <div class="modal-content">
-        <div class="modal-header">
-            <h2>🚗 Registrar Salida</h2>
-            <span class="close" onclick="cerrarModalSalida()">&times;</span>
+
+<!-- =====================================================
+     MODAL REGISTRAR SALIDA
+     Se muestra cuando el trabajador hace clic en
+     "Salida" en la tabla de vehículos activos.
+     Muestra el tiempo transcurrido y el cobro estimado
+     antes de confirmar la salida.
+     ===================================================== -->
+<div id="salidaModal" class="trab-modal" role="dialog" aria-modal="true"
+     aria-labelledby="salidaModalTitulo">
+
+    <div class="trab-modal-content">
+
+        <div class="trab-modal-header">
+            <h2 id="salidaModalTitulo">🚗 Registrar Salida</h2>
+            <!-- cerrarModalSalida() → función en trabajadorD.js -->
+            <button class="trab-modal-close"
+                    onclick="cerrarModalSalida()"
+                    aria-label="Cerrar modal de salida"
+                    type="button">
+                &times;
+            </button>
         </div>
+
+        <!-- Resumen de la salida: JavaScript rellena los spans -->
         <div style="margin-bottom: 1rem;">
             <p><strong>Placa:</strong> <span id="salidaPlaca"></span></p>
             <p><strong>Cliente:</strong> <span id="salidaCliente"></span></p>
             <p><strong>Hora Entrada:</strong> <span id="salidaHoraEntrada"></span></p>
             <p><strong>Tiempo Transcurrido:</strong> <span id="salidaTiempo"></span></p>
-            <p style="font-size: 1.25rem; color: #0369a1; font-weight: 700; margin-top: 1rem;">
+            <!-- Cobro estimado destacado en azul -->
+            <p style="font-size: 1.25rem; color: #0369a1;
+                      font-weight: 700; margin-top: 1rem;">
                 Cobro Estimado: $<span id="salidaCobroEstimado"></span> COP
             </p>
         </div>
+
+        <!-- Botones de acción del modal de salida -->
         <div style="display: flex; gap: 1rem; margin-top: 1rem;">
-            <button class="btn-warning" onclick="confirmarSalida()" style="flex: 1;">✅ Confirmar Salida</button>
-            <button class="btn-danger" onclick="cerrarModalSalida()" style="flex: 1;">❌ Cancelar</button>
+            <!-- CAMBIO: btn-warning → trab-btn-warning
+                 confirmarSalida() → registra la salida en el backend -->
+            <button class="trab-btn-warning"
+                    onclick="confirmarSalida()"
+                    style="flex: 1;">
+                ✅ Confirmar Salida
+            </button>
+            <!-- CAMBIO: btn-danger → trab-btn-danger -->
+            <button class="trab-btn-danger"
+                    onclick="cerrarModalSalida()"
+                    style="flex: 1;">
+                ❌ Cancelar
+            </button>
         </div>
     </div>
 </div>
+
+
+<!-- =====================================================
+     SCRIPT PRINCIPAL DEL MÓDULO TRABAJADOR
+     CAMBIO: ruta corregida de /Script/TrabajadorD.js
+     a /js/trabajadorD.js (minúsculas, Spring Boot Linux)
+
+     Se carga al FINAL del body para garantizar que
+     todo el HTML ya está disponible cuando el JS
+     intente acceder a los elementos del DOM
+     ===================================================== -->
 <script src="/Script/TrabajadorD.js"></script>
-!-- <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script> -->
+
+<!-- Librería XLSX para leer archivos Excel en el navegador
+     Descomentarla cuando se active la función de carga masiva
+     CORRECCIÓN: el comentario original tenía "!--" en vez de "" -->
+<!-- <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script> -->
+
 </body>
 </html>

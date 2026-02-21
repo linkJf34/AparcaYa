@@ -1,0 +1,146 @@
+/* ================================================
+   INDEX.CSS — AparcaYA
+   Estilos propios de la Landing Page (index.html)
+   ================================================
+   Este archivo contiene SOLO los estilos que no
+   provee Tailwind ni DaisyUI. Todo lo demás en el
+   HTML usa clases utilitarias de Tailwind o
+   componentes de DaisyUI directamente.
+
+   CONFLICTOS CORREGIDOS vs versión anterior
+   (que tenía todo en un <style> inline):
+
+   🔴 @keyframes pulse → CONFLICTO con Tailwind
+      Tailwind define internamente su propio
+      @keyframes pulse para .animate-pulse.
+      Tener dos en el mismo scope hace que la de
+      Tailwind gane y nuestra animación falle.
+      SOLUCIÓN: renombrado a aparca-pulse
+
+   ⚠️ @keyframes fadeInUp → nombre genérico sin
+      conflicto actual, pero renombrado a
+      aparca-fadeInUp por seguridad ante futuras
+      librerías de animación (Animate.css, GSAP).
+
+   ✅ .animate-fade-in-up → OK, nombre único
+   ✅ .hero-bg            → OK, nombre único
+   ✅ .card-hover         → OK, nombre único
+   ✅ .navbar-hover       → OK, nombre único
+   ✅ .btn-pulse          → OK, nombre único
+
+   Ruta en Spring Boot (Linux, case-sensitive):
+   src/main/resources/static/css/index.css
+   Referenciado en HTML como: /css/index.css
+   ================================================ */
+
+
+/* ================================================
+   1. ANIMACIÓN DE ENTRADA — Fade + Slide desde abajo
+   Clase: .animate-fade-in-up
+   Aplicada en: secciones completas y tarjetas
+   individuales al cargar la página
+   ================================================ */
+
+.animate-fade-in-up {
+    opacity: 0;                                 /* Empieza completamente invisible */
+    transform: translateY(20px);                /* Empieza 20px más abajo de su posición final */
+    /* Ejecuta la animación aparca-fadeInUp:
+       - 0.8s de duración total
+       - ease-out: arranca rápido y termina suave
+       - forwards: mantiene el estado final (visible y en su lugar) */
+    animation: aparca-fadeInUp 0.8s ease-out forwards;
+}
+
+/* CAMBIO: era @keyframes fadeInUp → ahora aparca-fadeInUp
+   El nombre genérico podría colisionar con librerías de
+   animación como Animate.css que define el mismo nombre */
+@keyframes aparca-fadeInUp {
+    to {
+        opacity: 1;                             /* Termina completamente visible */
+        transform: translateY(0);               /* Termina en su posición correcta */
+    }
+}
+
+
+/* ================================================
+   2. FONDO DEL HERO — Efecto Parallax
+   Clase: .hero-bg
+   Aplicada en: la sección <section class="hero ...">
+   ================================================ */
+
+.hero-bg {
+    /* fixed → el fondo permanece quieto mientras el usuario
+       hace scroll sobre el contenido, creando el efecto parallax */
+    background-attachment: fixed;
+    background-size: cover;                     /* La imagen de fondo cubre todo el área sin dejar espacios */
+}
+
+
+/* ================================================
+   3. HOVER PARA TARJETAS — Efecto de levitación
+   Clase: .card-hover
+   Aplicada en: tarjetas de características,
+   beneficios y testimonios
+   ================================================ */
+
+.card-hover {
+    /* Suaviza los cambios de transform, shadow y border
+       en 0.3s con curva ease para que sea fluido y natural */
+    transition: transform 0.3s ease,
+                box-shadow 0.3s ease,
+                border-color 0.3s ease;
+}
+
+.card-hover:hover {
+    transform: translateY(-5px);                /* La tarjeta sube 5px al pasar el mouse */
+    /* Sombra azul de 10x20px con color AparcaYA (#00BFFF) */
+    box-shadow: 0 10px 20px rgba(0, 191, 255, 0.3);
+    border-color: #00BFFF;                      /* El borde adopta el azul de AparcaYA */
+}
+
+
+/* ================================================
+   4. HOVER PARA EL NAVBAR — Fondo suave al pasar
+   Clase: .navbar-hover
+   Aplicada en: el <nav> principal
+   ================================================ */
+
+.navbar-hover {
+    transition: background-color 0.3s ease;     /* Suaviza el cambio de fondo al pasar el mouse */
+}
+
+.navbar-hover:hover {
+    /* Fondo azul grisáceo muy suave y semitransparente
+       cuando el mouse pasa sobre toda la barra de navegación */
+    background-color: rgba(224, 242, 254, 0.9);
+}
+
+
+/* ================================================
+   5. ANIMACIÓN PULSE PARA BOTONES CTA
+   Clase: .btn-pulse
+   Aplicada en: botón "¡Empieza Ahora!" y "Registrarse"
+   para captar la atención del usuario con un efecto
+   de latido/respiración suave
+
+   CAMBIO CRÍTICO: era animation: pulse 2s infinite
+   Tailwind tiene su propio @keyframes pulse para
+   .animate-pulse. Ambos en el mismo scope causan que
+   el de Tailwind sobrescriba el nuestro y la animación
+   del botón simplemente no funciona.
+   SOLUCIÓN: renombrado todo a aparca-pulse
+   ================================================ */
+
+.btn-pulse {
+    animation: aparca-pulse 2s infinite;        /* Repite la animación sin fin cada 2 segundos */
+}
+
+/* CAMBIO: era @keyframes pulse → ahora @keyframes aparca-pulse */
+@keyframes aparca-pulse {
+    0%, 100% {
+        transform: scale(1);                    /* Tamaño normal al inicio y al final del ciclo */
+    }
+    50% {
+        transform: scale(1.05);                 /* 5% más grande en el punto medio del ciclo */
+    }
+}

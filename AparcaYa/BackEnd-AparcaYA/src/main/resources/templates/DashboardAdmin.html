@@ -4,23 +4,60 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>Dashboard Administrador General - AparcaYA</title>
+
+    <!-- =====================================================
+         LIBRERÍAS EXTERNAS
+         Orden importante: DaisyUI después de Tailwind
+         ===================================================== -->
+
+    <!-- Tailwind CSS: clases utilitarias (flex, grid, p-4, etc.) -->
     <script src="https://cdn.tailwindcss.com"></script>
+
+    <!-- DaisyUI: componentes preconstruidos (modal, btn, alert, etc.)
+         DEBE cargarse DESPUÉS de Tailwind para funcionar bien -->
     <link href="https://cdn.jsdelivr.net/npm/daisyui@4.12.10/dist/full.min.css" rel="stylesheet" />
+
+    <!-- Chart.js: librería para las gráficas de barras y dona -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+    <!-- Leaflet CSS: estilos del mapa interactivo -->
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+
+    <!-- Leaflet JS: funcionalidad del mapa interactivo -->
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 
+    <!-- =====================================================
+         CSS PROPIO DEL PROYECTO
+         Se carga AL FINAL para que nuestras clases con
+         prefijo "aparca-" tengan prioridad sobre cualquier
+         estilo base de Tailwind o DaisyUI si hay conflicto
+         ===================================================== -->
     <link rel="stylesheet" href="/Css/Admin.css">
 </head>
 <body>
 
+<!-- =====================================================
+     SIDEBAR — Barra lateral izquierda fija
+     Usa clases propias: .sidebar, .sidebar-header,
+     .sidebar-nav (definidas en admin.css Parte 1)
+     ===================================================== -->
 <aside class="sidebar" aria-label="Menú principal">
+
+    <!-- Logo y nombre de la app -->
     <div class="sidebar-header" role="banner">
-        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" aria-hidden="true">
-            <path stroke-linecap="round" stroke-linejoin="round" d="M8.25 18.75a1.5 1.5 0 01-3 0V15a6 6 0 0112 0v3.75a1.5 1.5 0 01-3 0V15a3 3 0 00-6 0v3.75zM12 9a3 3 0 100-6 3 3 0 000 6z" />
+        <!-- Ícono SVG del logo (parking/usuario) -->
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
+             stroke-width="1.5" stroke="currentColor" aria-hidden="true">
+            <path stroke-linecap="round" stroke-linejoin="round"
+                  d="M8.25 18.75a1.5 1.5 0 01-3 0V15a6 6 0 0112 0v3.75a1.5
+                  1.5 0 01-3 0V15a3 3 0 00-6 0v3.75zM12 9a3 3 0 100-6 3 3 0 000 6z" />
         </svg>
         <h1>AparcaYa</h1>
     </div>
+
+    <!-- Navegación principal del sidebar
+         data-tab="X" → JavaScript usa este atributo para
+         mostrar/ocultar la sección correspondiente -->
     <nav class="sidebar-nav" role="navigation">
         <a href="#" class="active" data-tab="usuarios">Usuarios</a>
         <a href="#" data-tab="sedes">Sedes</a>
@@ -30,20 +67,56 @@
     </nav>
 </aside>
 
+
+<!-- =====================================================
+     HEADER — Barra superior fija
+     Usa clases propias: .page-header, .logo-section,
+     .profile-menu, .profile-btn, .aparca-dropdown
+     (definidas en admin.css Parte 1)
+     ===================================================== -->
 <header class="page-header">
+
+    <!-- Logo repetido en el header (visible en móvil cuando el sidebar se oculta) -->
     <div class="logo-section">
-        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
-            <path stroke-linecap="round" stroke-linejoin="round" d="M8.25 18.75a1.5 1.5 0 01-3 0V15a6 6 0 0112 0v3.75a1.5 1.5 0 01-3 0V15a3 3 0 00-6 0v3.75zM12 9a3 3 0 100-6 3 3 0 000 6z" />
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
+             stroke-width="1.5" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round"
+                  d="M8.25 18.75a1.5 1.5 0 01-3 0V15a6 6 0 0112 0v3.75a1.5
+                  1.5 0 01-3 0V15a3 3 0 00-6 0v3.75zM12 9a3 3 0 100-6 3 3 0 000 6z" />
         </svg>
         <h1>AparcaYa</h1>
     </div>
+
+    <!-- Menú de perfil: botón que abre/cierra el dropdown -->
     <div class="profile-menu">
-        <button id="profileBtn" aria-label="Menú perfil" class="profile-btn" aria-haspopup="true" aria-controls="profileDropdown" aria-expanded="false" type="button">
-            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
-                <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 6a3.75 3.75 0 11-7.5 0 3.75 3.75 0 017.5 0zM4.501 20.118a7.5 7.5 0 0114.998 0A17.933 17.933 0 0112 21.75c-2.676 0-5.216-.584-7.499-1.632z" />
+
+        <!-- Botón circular con ícono de usuario
+             aria-expanded: JavaScript lo cambia a "true" cuando el menú está abierto
+             aria-controls: indica qué elemento controla este botón -->
+        <button id="profileBtn"
+                aria-label="Menú perfil"
+                class="profile-btn"
+                aria-haspopup="true"
+                aria-controls="profileDropdown"
+                aria-expanded="false"
+                type="button">
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
+                 stroke-width="1.5" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round"
+                      d="M15.75 6a3.75 3.75 0 11-7.5 0 3.75 3.75 0 017.5
+                      0zM4.501 20.118a7.5 7.5 0 0114.998 0A17.933 17.933 0
+                      0112 21.75c-2.676 0-5.216-.584-7.499-1.632z" />
             </svg>
         </button>
-        <menu id="profileDropdown" class="dropdown-menu" role="menu" aria-label="Opciones perfil">
+
+        <!-- Dropdown del perfil
+             CAMBIO: era class="dropdown-menu" (conflicto con DaisyUI)
+             AHORA:  class="aparca-dropdown" (clase propia, sin conflicto)
+             JavaScript agrega/quita la clase .show para mostrarlo/ocultarlo -->
+        <menu id="profileDropdown"
+              class="aparca-dropdown"
+              role="menu"
+              aria-label="Opciones perfil">
             <button role="menuitem" type="button" onclick="irConfiguracion()">Configuración</button>
             <button role="menuitem" type="button" onclick="irAyuda()">Ayuda</button>
             <button role="menuitem" type="button" onclick="cerrarSesion()">Cerrar sesión</button>
@@ -51,76 +124,143 @@
     </div>
 </header>
 
+<!-- =====================================================
+     ÁREA PRINCIPAL DEL DASHBOARD
+     Usa clase propia: .dashboard (admin.css Parte 1)
+     margin-left: 220px (mismo ancho del sidebar)
+     margin-top: 64px  (misma altura del header)
+     ===================================================== -->
 <main class="dashboard">
+
+
+    <!-- =================================================
+         INDICADORES SUPERIORES — TARJETAS DONUT
+         Usa clases propias: .stat-indicators, .stats-card,
+         .stats-label, .donut-container, .donut-svg,
+         .donut-ring, .donut-segment, .donut-text
+         (todas definidas en admin.css Parte 1)
+         ================================================= -->
     <div class="stat-indicators" aria-label="Indicadores generales">
+
+        <!-- Donut 1: Total de Usuarios registrados -->
         <article class="stats-card" aria-label="Total usuarios">
             <div class="stats-label">Total Usuarios</div>
             <div class="donut-container" role="img">
-                <svg class="donut-svg" viewBox="0 0 42 42" width="120" height="120" aria-hidden="true">
+                <!-- SVG del gráfico circular
+                     viewBox="0 0 42 42": sistema de coordenadas interno
+                     El JS actualiza stroke-dasharray para animar el arco -->
+                <svg class="donut-svg" viewBox="0 0 42 42"
+                     width="120" height="120" aria-hidden="true">
+                    <!-- Anillo blanco de fondo (el "riel" del donut) -->
                     <circle class="donut-ring" cx="21" cy="21" r="15.9155" />
-                    <circle class="donut-segment usuario-segment" cx="21" cy="21" r="15.9155" stroke-dasharray="0 100"></circle>
+                    <!-- Arco de color: .usuario-segment → color salmón (#d97967) -->
+                    <circle class="donut-segment usuario-segment"
+                            cx="21" cy="21" r="15.9155"
+                            stroke-dasharray="0 100">
+                    </circle>
                 </svg>
+                <!-- Número central: JavaScript actualiza este valor -->
                 <div class="donut-text">0</div>
             </div>
         </article>
+
+        <!-- Donut 2: Total de Sedes registradas -->
         <article class="stats-card" aria-label="Total sedes">
             <div class="stats-label">Total Sedes</div>
             <div class="donut-container" role="img">
-                <svg class="donut-svg" viewBox="0 0 42 42" width="120" height="120" aria-hidden="true">
+                <svg class="donut-svg" viewBox="0 0 42 42"
+                     width="120" height="120" aria-hidden="true">
                     <circle class="donut-ring" cx="21" cy="21" r="15.9155" />
-                    <circle class="donut-segment cuota-segment" cx="21" cy="21" r="15.9155" stroke-dasharray="0 100"></circle>
+                    <!-- .cuota-segment → color verde/oliva (#98a687) -->
+                    <circle class="donut-segment cuota-segment"
+                            cx="21" cy="21" r="15.9155"
+                            stroke-dasharray="0 100">
+                    </circle>
                 </svg>
                 <div class="donut-text">0</div>
             </div>
         </article>
+
+        <!-- Donut 3: Ingresos totales en dinero -->
         <article class="stats-card" aria-label="Ingresos totales">
             <div class="stats-label">Ingresos Totales</div>
             <div class="donut-container" role="img">
-                <svg class="donut-svg" viewBox="0 0 42 42" width="120" height="120" aria-hidden="true">
+                <svg class="donut-svg" viewBox="0 0 42 42"
+                     width="120" height="120" aria-hidden="true">
                     <circle class="donut-ring" cx="21" cy="21" r="15.9155" />
-                    <circle class="donut-segment ingresos-segment" cx="21" cy="21" r="15.9155" stroke-dasharray="0 100"></circle>
+                    <!-- .ingresos-segment → color azul/grisáceo (#7d94b8) -->
+                    <circle class="donut-segment ingresos-segment"
+                            cx="21" cy="21" r="15.9155"
+                            stroke-dasharray="0 100">
+                    </circle>
                 </svg>
+                <!-- Muestra el valor con signo de pesos -->
                 <div class="donut-text">$0</div>
             </div>
         </article>
     </div>
 
-    <!-- Updated HTML with additional filters and table fields -->
 
-    <!-- SECCIÓN USUARIOS -->
+    <!-- =================================================
+         SECCIÓN USUARIOS
+         id="usuarios" → JavaScript la muestra/oculta
+         según el link activo del sidebar
+         ================================================= -->
     <section id="usuarios" class="content-section">
         <h2>Gestión de Usuarios</h2>
 
+        <!-- Botones de exportación
+             CAMBIO: era class="btn-outline" (conflicto con DaisyUI)
+             AHORA:  class="aparca-btn-outline" (clase propia) -->
         <div class="flex justify-end mb-4 space-x-4">
-            <button class="btn-outline" onclick="generarPDF()">Generar PDF</button>
-            <button class="btn-outline" onclick="generarExcel()">Generar Excel</button>
+            <button class="aparca-btn-outline" onclick="generarPDF()">
+                Generar PDF
+            </button>
+            <button class="aparca-btn-outline" onclick="generarExcel()">
+                Generar Excel
+            </button>
         </div>
 
-        <!-- NUEVOS FILTROS SIMPLIFICADOS -->
+        <!-- Barra de filtros de usuarios -->
         <div class="flex flex-col md:flex-row justify-between items-center mb-6 gap-4">
-            <!-- ÚNICA BARRA DE BÚSQUEDA GENERAL -->
+
+            <!-- Barra de búsqueda general
+                 Tailwind: flex, items-center, w-full, border, rounded-md, px-3, py-2
+                 Estas clases de Tailwind no tienen conflicto con nuestro CSS -->
             <div class="flex items-center w-full md:w-1/2 border border-gray-300 rounded-md px-3 py-2">
-                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                <!-- Ícono lupa -->
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-gray-400"
+                     fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                          d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
                 </svg>
-                <input id="busquedaInput" type="text" placeholder="Buscar usuarios por nombre, correo, teléfono, rol, localidad o barrio..." class="ml-2 w-full focus:outline-none" />
+                <!-- Input de búsqueda: escucha keyup en adminD.js -->
+                <input id="busquedaInput"
+                       type="text"
+                       placeholder="Buscar por nombre, correo, teléfono, rol..."
+                       class="ml-2 w-full focus:outline-none" />
             </div>
 
-            <!-- SELECTS DE FILTRO -->
+            <!-- Select de filtro rápido por estado y rol -->
             <div class="flex gap-4 w-full md:w-auto">
-                <select id="filtroUnificado" class="border border-gray-300 rounded-md px-3 py-2 text-gray-700">
+                <select id="filtroUnificado"
+                        class="border border-gray-300 rounded-md px-3 py-2 text-gray-700">
                     <option value="">Todos</option>
-                    <option value="estado:activo"> Activos</option>
-                    <option value="estado:inactivo"> Inactivos</option>
-                    <option value="rol:administrador_sede"> Administrador de Sede</option>
-                    <option value="rol:operario"> Operario</option>
-                    <option value="rol:cliente"> Cliente</option>
+                    <option value="estado:activo">Activos</option>
+                    <option value="estado:inactivo">Inactivos</option>
+                    <option value="rol:administrador_sede">Administrador de Sede</option>
+                    <option value="rol:operario">Operario</option>
+                    <option value="rol:cliente">Cliente</option>
                 </select>
             </div>
         </div>
 
+        <!-- Tabla de usuarios
+             overflow-x-auto: permite scroll horizontal en pantallas pequeñas
+             CAMBIO: el <table> ahora tiene class="aparca-table" en vez de id solo
+             para que los estilos de admin.css Parte 2 se apliquen correctamente -->
         <div class="overflow-x-auto">
-            <table id="tablaUsuarios">
+            <table id="tablaUsuarios" class="aparca-table">
                 <thead>
                 <tr>
                     <th>Nombre</th>
@@ -132,108 +272,124 @@
                 </tr>
                 </thead>
                 <tbody id="tbodyUsuarios">
-                <tr><td colspan="7" class="loading">Cargando usuarios...</td></tr>
+                <!-- JavaScript rellena esta tabla con los datos del backend -->
+                <tr>
+                    <td colspan="6" class="loading">Cargando usuarios...</td>
+                </tr>
                 </tbody>
             </table>
         </div>
     </section>
 
-    <!-- ============================================ -->
-    <!-- MODAL DE EDICIÓN DE USUARIO -->
-    <!-- ============================================ -->
+
+    <!-- =================================================
+         MODAL EDITAR USUARIO — DaisyUI <dialog>
+         IMPORTANTE: Este modal usa 100% clases de DaisyUI
+         (.modal, .modal-box, .modal-action, .btn, etc.)
+         NO se le agregan clases aparca- aquí para no
+         interferir con el comportamiento de DaisyUI
+         ================================================= -->
     <dialog id="modal_editar_usuario" class="modal">
         <div class="modal-box w-11/12 max-w-3xl">
-            <!-- Header del Modal -->
+
+            <!-- Encabezado del modal -->
             <div class="flex items-center justify-between mb-6 pb-4 border-b border-gray-200">
                 <div class="flex items-center gap-3">
+
+                    <!-- Ícono del encabezado con color primario de DaisyUI -->
                     <div class="bg-primary/10 p-3 rounded-lg">
-                        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-primary" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-primary"
+                             fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                  d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5
+                                  m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
                         </svg>
                     </div>
+
                     <div>
                         <h3 class="font-bold text-2xl text-gray-800">Editar Usuario</h3>
                         <p class="text-sm text-gray-500">Actualiza la información del usuario</p>
                     </div>
                 </div>
-                <button
-                        onclick="cerrarModalEdicion()"
+
+                <!-- Botón cerrar: usa clases DaisyUI (.btn, .btn-sm, .btn-circle, .btn-ghost) -->
+                <button onclick="cerrarModalEdicion()"
                         class="btn btn-sm btn-circle btn-ghost hover:bg-gray-200"
-                        title="Cerrar"
-                >
-                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                        title="Cerrar">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5"
+                         fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                              d="M6 18L18 6M6 6l12 12" />
                     </svg>
                 </button>
             </div>
 
-            <!-- Formulario de Edición -->
+            <!-- Formulario de edición de usuario
+                 onsubmit: previene el envío por defecto y llama a guardarEdicion() en el JS -->
             <form onsubmit="event.preventDefault(); guardarEdicion();">
-                <!-- Campo oculto para el ID -->
+
+                <!-- Campo oculto: guarda el ID del usuario que se está editando -->
                 <input type="hidden" id="edit_usuario_id">
 
-                <!-- Grid de Campos -->
                 <div class="space-y-4">
-                    <!-- Fila 1: Nombre y Email -->
+
+                    <!-- Fila 1: Nombre y Email en 2 columnas -->
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        <!-- Nombre -->
+
+                        <!-- Campo Nombre
+                             .form-control → clase de DaisyUI (ok, está dentro del modal de DaisyUI) -->
                         <div class="form-control">
                             <label class="label">
-                        <span class="label-text font-semibold text-gray-700">
-                            <span class="text-error">*</span> Nombre Completo
-                        </span>
+                                <span class="label-text font-semibold text-gray-700">
+                                    <span class="text-error">*</span> Nombre Completo
+                                </span>
                             </label>
-                            <input
-                                    type="text"
-                                    id="edit_nombre"
-                                    placeholder="Ej: Juan Pérez García"
-                                    class="input input-bordered w-full focus:input-primary"
-                                    required
-                            >
+                            <input type="text"
+                                   id="edit_nombre"
+                                   placeholder="Ej: Juan Pérez García"
+                                   class="input input-bordered w-full focus:input-primary"
+                                   required>
                         </div>
 
-                        <!-- Email -->
+                        <!-- Campo Email -->
                         <div class="form-control">
                             <label class="label">
-                        <span class="label-text font-semibold text-gray-700">
-                            <span class="text-error">*</span> Correo Electrónico
-                        </span>
+                                <span class="label-text font-semibold text-gray-700">
+                                    <span class="text-error">*</span> Correo Electrónico
+                                </span>
                             </label>
-                            <input
-                                    type="email"
-                                    id="edit_email"
-                                    placeholder="ejemplo@correo.com"
-                                    class="input input-bordered w-full focus:input-primary"
-                                    required
-                            >
+                            <input type="email"
+                                   id="edit_email"
+                                   placeholder="ejemplo@correo.com"
+                                   class="input input-bordered w-full focus:input-primary"
+                                   required>
                         </div>
                     </div>
 
-                    <!-- Fila 2: Teléfono -->
+                    <!-- Campo Teléfono (ancho completo) -->
                     <div class="form-control">
                         <label class="label">
-                    <span class="label-text font-semibold text-gray-700">
-                        Teléfono
-                    </span>
+                            <span class="label-text font-semibold text-gray-700">Teléfono</span>
                         </label>
-                        <input
-                                type="tel"
-                                id="edit_telefono"
-                                placeholder="Ej: +57 300 123 4567"
-                                class="input input-bordered w-full focus:input-primary"
-                        >
+                        <input type="tel"
+                               id="edit_telefono"
+                               placeholder="Ej: +57 300 123 4567"
+                               class="input input-bordered w-full focus:input-primary">
                     </div>
 
-                    <!-- Fila 3: Rol y Estado -->
+                    <!-- Fila 2: Rol y Estado en 2 columnas -->
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        <!-- Rol - CORREGIDO CON LOS VALORES DEL ENUM -->
+
+                        <!-- Select Rol: valores en MAYÚSCULAS para coincidir con el enum del backend Java -->
                         <div class="form-control">
                             <label class="label">
-                            <span class="label-text font-semibold text-gray-700">
-                                <span class="text-error">*</span> Rol
-                            </span>
+                                <span class="label-text font-semibold text-gray-700">
+                                    <span class="text-error">*</span> Rol
+                                </span>
                             </label>
-                            <select id="edit_rol" class="select select-bordered w-full focus:select-primary" required>
+                            <select id="edit_rol"
+                                    class="select select-bordered w-full focus:select-primary"
+                                    required>
                                 <option value="ADMIN">Administrador</option>
                                 <option value="ADMINISTRADOR_SEDE">Administrador de Sede</option>
                                 <option value="OPERARIO">Operario</option>
@@ -241,12 +397,13 @@
                             </select>
                         </div>
 
-                        <!-- Estado -->
+                        <!-- Select Estado -->
                         <div class="form-control">
                             <label class="label">
                                 <span class="label-text font-semibold text-gray-700">Estado</span>
                             </label>
-                            <select id="edit_estado" class="select select-bordered w-full focus:select-primary">
+                            <select id="edit_estado"
+                                    class="select select-bordered w-full focus:select-primary">
                                 <option value="ACTIVO">Activo</option>
                                 <option value="INACTIVO">Inactivo</option>
                             </select>
@@ -254,34 +411,42 @@
                     </div>
                 </div>
 
-                <!-- Nota informativa -->
+                <!-- Nota informativa usando componente DaisyUI .alert -->
                 <div class="alert alert-info mt-6 shadow-sm">
-                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" class="stroke-current shrink-0 w-6 h-6">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
+                         class="stroke-current shrink-0 w-6 h-6">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                              d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z">
+                        </path>
                     </svg>
                     <span>
-                Los campos marcados con <span class="text-error font-bold">*</span> son obligatorios
-            </span>
+                        Los campos marcados con <span class="text-error font-bold">*</span> son obligatorios
+                    </span>
                 </div>
 
-                <!-- Botones de Acción -->
+                <!-- Botones de acción del modal
+                     .modal-action → clase DaisyUI que alinea los botones a la derecha -->
                 <div class="modal-action mt-6 pt-4 border-t border-gray-200">
-                    <button
-                            type="button"
+
+                    <!-- Botón Cancelar: .btn .btn-ghost → estilo DaisyUI transparente -->
+                    <button type="button"
                             onclick="cerrarModalEdicion()"
-                            class="btn btn-ghost"
-                    >
-                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                            class="btn btn-ghost">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2"
+                             fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                  d="M6 18L18 6M6 6l12 12" />
                         </svg>
                         Cancelar
                     </button>
-                    <button
-                            type="submit"
-                            class="btn btn-primary"
-                    >
-                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+
+                    <!-- Botón Guardar: .btn .btn-primary → color primario de DaisyUI
+                         (no entra en conflicto porque estamos DENTRO del contexto DaisyUI) -->
+                    <button type="submit" class="btn btn-primary">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2"
+                             fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                  d="M5 13l4 4L19 7" />
                         </svg>
                         Guardar Cambios
                     </button>
@@ -289,23 +454,29 @@
             </form>
         </div>
 
-        <!-- Backdrop para cerrar al hacer clic fuera -->
+        <!-- Backdrop DaisyUI: al hacer clic fuera del modal, lo cierra -->
         <form method="dialog" class="modal-backdrop">
             <button>close</button>
         </form>
     </dialog>
-
-    <!-- ============================================ -->
-    <!-- MODAL DE EDICIÓN DE SEDE -->
-    <!-- ============================================ -->
+    <!-- =================================================
+         MODAL EDITAR SEDE — DaisyUI <dialog>
+         Igual que el modal de usuario: 100% clases DaisyUI
+         ================================================= -->
     <dialog id="modal_editar_sede" class="modal">
         <div class="modal-box w-11/12 max-w-3xl">
-            <!-- Header del Modal -->
+
+            <!-- Encabezado -->
             <div class="flex items-center justify-between mb-6 pb-4 border-b border-gray-200">
                 <div class="flex items-center gap-3">
                     <div class="bg-primary/10 p-3 rounded-lg">
-                        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-primary" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
+                        <!-- Ícono de edificio para representar una sede -->
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-primary"
+                             fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                  d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2
+                                  0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5
+                                  10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
                         </svg>
                     </div>
                     <div>
@@ -313,86 +484,87 @@
                         <p class="text-sm text-gray-500">Actualiza la información de la sede</p>
                     </div>
                 </div>
-                <button
-                        onclick="cerrarModalEdicionSede()"
+
+                <button onclick="cerrarModalEdicionSede()"
                         class="btn btn-sm btn-circle btn-ghost hover:bg-gray-200"
-                        title="Cerrar"
-                >
-                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                        title="Cerrar">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5"
+                         fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                              d="M6 18L18 6M6 6l12 12" />
                     </svg>
                 </button>
             </div>
 
-            <!-- Formulario de Edición -->
+            <!-- Formulario edición de sede -->
             <form onsubmit="event.preventDefault(); guardarEdicionSede();">
-                <!-- Campo oculto para el ID -->
+
+                <!-- ID oculto de la sede a editar -->
                 <input type="hidden" id="edit_sede_id">
 
-                <!-- Grid de Campos -->
                 <div class="space-y-4">
-                    <!-- Fila 1: Nombre de la Sede -->
+
+                    <!-- Campo: Nombre de la sede -->
                     <div class="form-control">
                         <label class="label">
-                        <span class="label-text font-semibold text-gray-700">
-                            <span class="text-error">*</span> Nombre de la Sede
-                        </span>
+                            <span class="label-text font-semibold text-gray-700">
+                                <span class="text-error">*</span> Nombre de la Sede
+                            </span>
                         </label>
-                        <input
-                                type="text"
-                                id="edit_sede_nombre"
-                                placeholder="Ej: Sede Norte"
-                                class="input input-bordered w-full focus:input-primary"
-                                required
-                        >
+                        <input type="text"
+                               id="edit_sede_nombre"
+                               placeholder="Ej: Sede Norte"
+                               class="input input-bordered w-full focus:input-primary"
+                               required>
                     </div>
 
-                    <!-- Fila 2: Dirección -->
+                    <!-- Campo: Dirección -->
                     <div class="form-control">
                         <label class="label">
-                        <span class="label-text font-semibold text-gray-700">
-                            <span class="text-error">*</span> Dirección
-                        </span>
+                            <span class="label-text font-semibold text-gray-700">
+                                <span class="text-error">*</span> Dirección
+                            </span>
                         </label>
-                        <input
-                                type="text"
-                                id="edit_sede_direccion"
-                                placeholder="Ej: Calle 123 #45-67"
-                                class="input input-bordered w-full focus:input-primary"
-                                required
-                        >
+                        <input type="text"
+                               id="edit_sede_direccion"
+                               placeholder="Ej: Calle 123 #45-67"
+                               class="input input-bordered w-full focus:input-primary"
+                               required>
                     </div>
 
-                    <!-- Fila 3: Capacidad y Estado -->
+                    <!-- Fila: Capacidad y Estado -->
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        <!-- Capacidad -->
+
+                        <!-- Campo: Capacidad (número de espacios) -->
                         <div class="form-control">
                             <label class="label">
-                            <span class="label-text font-semibold text-gray-700">
-                                <span class="text-error">*</span> Capacidad
-                            </span>
+                                <span class="label-text font-semibold text-gray-700">
+                                    <span class="text-error">*</span> Capacidad
+                                </span>
                             </label>
-                            <input
-                                    type="number"
-                                    id="edit_sede_capacidad"
-                                    placeholder="Ej: 100"
-                                    min="1"
-                                    class="input input-bordered w-full focus:input-primary"
-                                    required
-                            >
+                            <input type="number"
+                                   id="edit_sede_capacidad"
+                                   placeholder="Ej: 100"
+                                   min="1"
+                                   class="input input-bordered w-full focus:input-primary"
+                                   required>
                             <label class="label">
-                                <span class="label-text-alt text-gray-500">Número de espacios disponibles</span>
+                                <span class="label-text-alt text-gray-500">
+                                    Número de espacios disponibles
+                                </span>
                             </label>
                         </div>
 
-                        <!-- Estado -->
+                        <!-- Campo: Estado de la sede -->
                         <div class="form-control">
                             <label class="label">
-                            <span class="label-text font-semibold text-gray-700">
-                                <span class="text-error">*</span> Estado
-                            </span>
+                                <span class="label-text font-semibold text-gray-700">
+                                    <span class="text-error">*</span> Estado
+                                </span>
                             </label>
-                            <select id="edit_sede_estado" class="select select-bordered w-full focus:select-primary" required>
+                            <select id="edit_sede_estado"
+                                    class="select select-bordered w-full focus:select-primary"
+                                    required>
                                 <option value="ACTIVO">Activo</option>
                                 <option value="INACTIVO">Inactivo</option>
                             </select>
@@ -400,34 +572,36 @@
                     </div>
                 </div>
 
-                <!-- Nota informativa -->
+                <!-- Nota informativa DaisyUI -->
                 <div class="alert alert-info mt-6 shadow-sm">
-                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" class="stroke-current shrink-0 w-6 h-6">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
+                         class="stroke-current shrink-0 w-6 h-6">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                              d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z">
+                        </path>
                     </svg>
                     <span>
-                    Los campos marcados con <span class="text-error font-bold">*</span> son obligatorios
-                </span>
+                        Los campos marcados con <span class="text-error font-bold">*</span> son obligatorios
+                    </span>
                 </div>
 
-                <!-- Botones de Acción -->
+                <!-- Botones de acción -->
                 <div class="modal-action mt-6 pt-4 border-t border-gray-200">
-                    <button
-                            type="button"
+                    <button type="button"
                             onclick="cerrarModalEdicionSede()"
-                            class="btn btn-ghost"
-                    >
-                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                            class="btn btn-ghost">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2"
+                             fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                  d="M6 18L18 6M6 6l12 12" />
                         </svg>
                         Cancelar
                     </button>
-                    <button
-                            type="submit"
-                            class="btn btn-primary"
-                    >
-                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+                    <button type="submit" class="btn btn-primary">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2"
+                             fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                  d="M5 13l4 4L19 7" />
                         </svg>
                         Guardar Cambios
                     </button>
@@ -435,32 +609,42 @@
             </form>
         </div>
 
-        <!-- Backdrop para cerrar al hacer clic fuera -->
+        <!-- Backdrop DaisyUI -->
         <form method="dialog" class="modal-backdrop">
             <button>close</button>
         </form>
     </dialog>
 
 
-    <!-- SECCIÓN SEDES -->
+    <!-- =================================================
+         SECCIÓN SEDES
+         class="hidden" → Tailwind la oculta por defecto
+         JavaScript la muestra cuando se hace clic en
+         "Sedes" en el sidebar
+         ================================================= -->
     <section id="sedes" class="content-section hidden">
         <h2>Gestión de Sedes</h2>
 
-
-        <!-- FILTROS SIMPLIFICADOS PARA SEDES -->
+        <!-- Filtros de sedes -->
         <div class="flex flex-col md:flex-row justify-between items-center mb-6 gap-4">
 
-            <!-- ÚNICA BARRA DE BÚSQUEDA PARA TODO -->
+            <!-- Barra de búsqueda de sedes -->
             <div class="flex items-center w-full md:w-1/2 border border-gray-300 rounded-md px-3 py-2">
-                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-gray-400"
+                     fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                          d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
                 </svg>
-                <input id="busquedaSedes" type="text" placeholder="Buscar sedes por nombre, dirección, localidad, barrio, capacidad o estado..." class="ml-2 w-full focus:outline-none" />
+                <input id="busquedaSedes"
+                       type="text"
+                       placeholder="Buscar por nombre, dirección, localidad, barrio..."
+                       class="ml-2 w-full focus:outline-none" />
             </div>
 
-            <!-- SELECT UNIFICADO SIMPLE -->
+            <!-- Filtro por estado de sede -->
             <div class="flex gap-4 w-full md:w-auto">
-                <select id="filtroUnificadoSedes" class="border border-gray-300 rounded-md px-3 py-2 text-gray-700">
+                <select id="filtroUnificadoSedes"
+                        class="border border-gray-300 rounded-md px-3 py-2 text-gray-700">
                     <option value="">Todos</option>
                     <option value="estado:activo">Activas</option>
                     <option value="estado:inactivo">Inactivas</option>
@@ -468,8 +652,10 @@
             </div>
         </div>
 
+        <!-- Tabla de sedes
+             CAMBIO: class="aparca-table" para aplicar estilos de admin.css Parte 2 -->
         <div class="overflow-x-auto mb-6">
-            <table id="tablaSedes">
+            <table id="tablaSedes" class="aparca-table">
                 <thead>
                 <tr>
                     <th>Nombre</th>
@@ -482,84 +668,133 @@
                 </tr>
                 </thead>
                 <tbody id="tbodySedes">
-                <tr><td colspan="6" class="loading">Cargando sedes...</td></tr>
+                <!-- JavaScript rellena con datos del backend -->
+                <tr>
+                    <td colspan="7" class="loading">Cargando sedes...</td>
+                </tr>
                 </tbody>
             </table>
         </div>
 
+        <!-- Mapa interactivo de sedes usando Leaflet.js -->
         <h3 class="font-bold text-xl mb-4">Mapa de Sedes</h3>
-        <div id="map-container" style="height: 400px; width: 100%; border: 1px solid #ccc; border-radius: 8px;"></div>
+        <div id="map-container"
+             style="height: 400px; width: 100%; border: 1px solid #ccc; border-radius: 8px;">
+            <!-- Leaflet.js renderiza el mapa aquí -->
+        </div>
     </section>
 
 
-    <!-- SECCIÓN CORREOS -->
+    <!-- =================================================
+         SECCIÓN CORREOS
+         ================================================= -->
     <section id="correos" class="content-section hidden">
         <h2 class="text-2xl font-semibold text-blue-700 mb-6">Enviar Correo</h2>
 
-        <!-- Tabs de correo -->
-        <div class="tabs">
+        <!-- Pestañas de correo
+             CAMBIO: era class="tabs" (conflicto con DaisyUI)
+             AHORA:  class="aparca-tabs" (clase propia de admin.css Parte 2) -->
+        <div class="aparca-tabs">
+
+            <!-- Pestaña 1: Correo individual
+                 JavaScript agrega/quita la clase .active -->
             <button id="tab-correounitario" class="active">
-                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5"
+                     fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                          d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0
+                          002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
                 </svg>
                 Correo Uno a Uno
             </button>
+
+            <!-- Pestaña 2: Correo masivo -->
             <button id="tab-correomasivo">
-                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5"
+                     fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                          d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857
+                          M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002
+                          5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0
+                          014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
                 </svg>
                 Correo Masivo
             </button>
         </div>
 
-        <!-- Formulario Correo Uno a Uno -->
+        <!-- Formulario: Correo individual
+             JavaScript lo muestra/oculta con .hidden según la pestaña activa -->
         <div id="correoUnitario">
             <form id="formCorreoUnitario">
-                <div class="form-control">
+
+                <!-- Campo destinatario
+                     CAMBIO: era class="form-control" (conflicto con DaisyUI)
+                     AHORA:  class="aparca-form-control" (clase propia de admin.css Parte 2) -->
+                <div class="aparca-form-control">
                     <label for="emailSingle">Correo del destinatario</label>
-                    <input type="email" id="emailSingle" placeholder="ejemplo@correo.com" required>
+                    <input type="email" id="emailSingle"
+                           placeholder="ejemplo@correo.com" required>
                 </div>
 
-                <div class="form-control">
+                <!-- Campo asunto -->
+                <div class="aparca-form-control">
                     <label for="subjectSingle">Asunto</label>
-                    <input type="text" id="subjectSingle" placeholder="Asunto del correo" required>
+                    <input type="text" id="subjectSingle"
+                           placeholder="Asunto del correo" required>
                 </div>
 
-                <div class="form-control">
+                <!-- Campo mensaje -->
+                <div class="aparca-form-control">
                     <label for="messageSingle">Mensaje</label>
-                    <textarea id="messageSingle" placeholder="Escribe el contenido del correo..." rows="6" required></textarea>
+                    <textarea id="messageSingle"
+                              placeholder="Escribe el contenido del correo..."
+                              rows="6" required></textarea>
                 </div>
 
-                <button type="submit" class="btn-primary">
-                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8" />
+                <!-- Botón enviar
+                     CAMBIO: era class="btn-primary" (conflicto con DaisyUI)
+                     AHORA:  class="aparca-btn-primary" (clase propia de admin.css Parte 2) -->
+                <button type="submit" class="aparca-btn-primary">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5"
+                         fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                              d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8" />
                     </svg>
                     Enviar Correo
                 </button>
             </form>
         </div>
 
-        <!-- Formulario Correo Masivo -->
+        <!-- Formulario: Correo masivo (oculto por defecto) -->
         <div id="correoMasivo" hidden>
             <form id="formCorreoMasivo">
-                <div class="form-control">
+
+                <!-- Lista de correos separados por coma -->
+                <div class="aparca-form-control">
                     <label for="emailsMassive">Lista de correos (separados por coma)</label>
-                    <textarea id="emailsMassive" placeholder="correo1@ejemplo.com, correo2@ejemplo.com, ..." rows="4" required></textarea>
+                    <textarea id="emailsMassive"
+                              placeholder="correo1@ejemplo.com, correo2@ejemplo.com, ..."
+                              rows="4" required></textarea>
                 </div>
 
-                <div class="form-control">
+                <div class="aparca-form-control">
                     <label for="subjectMassive">Asunto</label>
-                    <input type="text" id="subjectMassive" placeholder="Asunto del correo" required>
+                    <input type="text" id="subjectMassive"
+                           placeholder="Asunto del correo" required>
                 </div>
 
-                <div class="form-control">
+                <div class="aparca-form-control">
                     <label for="messageMassive">Mensaje</label>
-                    <textarea id="messageMassive" placeholder="Escribe el contenido del correo..." rows="6" required></textarea>
+                    <textarea id="messageMassive"
+                              placeholder="Escribe el contenido del correo..."
+                              rows="6" required></textarea>
                 </div>
 
-                <button type="submit" class="btn-primary">
-                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8" />
+                <button type="submit" class="aparca-btn-primary">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5"
+                         fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                              d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8" />
                     </svg>
                     Enviar Masivamente
                 </button>
@@ -567,10 +802,15 @@
         </div>
     </section>
 
-    <!-- SECCIÓN GRÁFICAS -->
+
+    <!-- =================================================
+         SECCIÓN GRÁFICAS — Chart.js
+         ================================================= -->
     <section id="graficas" class="content-section hidden">
         <h2>Estadísticas y Gráficas</h2>
 
+        <!-- Cada canvas es donde Chart.js dibuja la gráfica
+             JavaScript los inicializa en adminD.js -->
         <div class="chart-container">
             <h3 class="text-center font-bold mb-4">Ingresos Mensuales</h3>
             <canvas id="chartIngresos"></canvas>
@@ -587,39 +827,85 @@
         </div>
     </section>
 
-    <!-- SECCIÓN CONFIGURACIÓN -->
+
+    <!-- =================================================
+         SECCIÓN CONFIGURACIÓN
+         ================================================= -->
     <section id="configuracion" class="content-section hidden">
         <h2>Configuración del Sistema</h2>
+
         <div class="space-y-4">
+            <!-- Tarjeta: Configuración General -->
             <div class="p-4 bg-gray-50 rounded">
                 <h3 class="font-bold mb-2">Configuración General</h3>
                 <p class="text-gray-600">Opciones de configuración del sistema (próximamente)</p>
             </div>
+
+            <!-- Tarjeta: Gestión de Permisos -->
             <div class="p-4 bg-gray-50 rounded">
                 <h3 class="font-bold mb-2">Gestión de Permisos</h3>
                 <p class="text-gray-600">Control de roles y permisos (próximamente)</p>
             </div>
+
+            <!-- Tarjeta: Respaldos -->
             <div class="p-4 bg-gray-50 rounded">
                 <h3 class="font-bold mb-2">Respaldos</h3>
                 <p class="text-gray-600">Configuración de backups automáticos (próximamente)</p>
             </div>
         </div>
     </section>
-</main>
 
-<!-- Modal para detalles de sede -->
-<div id="modalSede" class="modal-overlay" role="dialog" aria-labelledby="modalSedeTitle" aria-hidden="true">
-    <div class="modal-content">
-        <div class="modal-header">
+</main><!-- Cierre de <main class="dashboard"> -->
+
+
+<!-- =====================================================
+     MODAL DE DETALLE DE SEDE — Modal propio (NO DaisyUI)
+     Este es un <div> simple controlado por JavaScript.
+     CAMBIO: todas sus clases fueron renombradas:
+       .modal-overlay  → .aparca-modal-overlay
+       .modal-content  → .aparca-modal-content
+       .modal-header   → .aparca-modal-header
+       .modal-close    → .aparca-modal-close
+       .modal-body     → .aparca-modal-body
+     (definidas en admin.css Parte 3)
+     ===================================================== -->
+<div id="modalSede"
+     class="aparca-modal-overlay"
+     role="dialog"
+     aria-labelledby="modalSedeTitle"
+     aria-hidden="true">
+
+    <div class="aparca-modal-content">
+
+        <!-- Encabezado con degradado azul -->
+        <div class="aparca-modal-header">
             <h3 id="modalSedeTitle">Información de la Sede</h3>
-            <button class="modal-close" onclick="cerrarModalSede()" aria-label="Cerrar modal" type="button">&times;</button>
+            <!-- Botón cerrar: llama a cerrarModalSede() en adminD.js -->
+            <button class="aparca-modal-close"
+                    onclick="cerrarModalSede()"
+                    aria-label="Cerrar modal"
+                    type="button">
+                &times; <!-- Símbolo × -->
+            </button>
         </div>
-        <div class="modal-body" id="modalSedeBody">
-            <!-- El contenido se llenará dinámicamente -->
+
+        <!-- Cuerpo del modal: JavaScript inyecta aquí el HTML con los datos de la sede
+             Usa las clases .info-grid, .info-item, .info-label, .info-value, .info-full
+             definidas en admin.css Parte 3 -->
+        <div class="aparca-modal-body" id="modalSedeBody">
+            <!-- Contenido dinámico generado por adminD.js -->
         </div>
     </div>
 </div>
 
+
+<!-- =====================================================
+     SCRIPT PRINCIPAL
+     CAMBIO: ruta corregida a minúsculas para Spring Boot
+     (en Linux, las rutas son sensibles a mayúsculas)
+     /Script/AdminD.js  → /js/adminD.js
+     ===================================================== -->
 <script src="/Script/AdminD.js"></script>
+
 </body>
 </html>
