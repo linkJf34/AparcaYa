@@ -1,0 +1,100 @@
+/* ============================================================
+   APARCA-ANIMATIONS.CSS
+   Ruta: static/css/base/aparca-animations.css
+
+   PROPÓSITO: Animaciones @keyframes globales reutilizables.
+   Solo contiene definiciones de @keyframes y las clases
+   de utilidad que las aplican. NUNCA estilos de componentes.
+
+   PREFIJO OBLIGATORIO: aparca-
+   Razón: evita colisión con @keyframes pulse y fadeInUp
+   que Tailwind define internamente para .animate-pulse
+   y otras utilidades de animación.
+
+   IMPORTADO EN: todos los HTML del proyecto (antes del
+   CSS específico de cada página).
+   ============================================================ */
+
+
+/* ------------------------------------------------------------
+   1. FADE IN UP
+   Entrada suave: el elemento sube desde abajo mientras
+   aparece. Usada en: index, registro, login.
+   ------------------------------------------------------------ */
+@keyframes aparca-fadeInUp {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.aparca-fade-in-up {
+    opacity: 0;
+    animation: aparca-fadeInUp 0.8s ease-out forwards;
+    /* forwards: mantiene el estado final (visible) al terminar */
+}
+
+/* Variante con delay para efecto cascada (0.2s) */
+.aparca-fade-in-up--delay {
+    opacity: 0;
+    animation: aparca-fadeInUp 0.8s ease-out 0.2s forwards;
+}
+
+
+/* ------------------------------------------------------------
+   2. SLIDE UP
+   Entrada del contenido de modales: sube 30px mientras aparece.
+   Usada en: modales propios de admin, cliente, sede, login.
+   ------------------------------------------------------------ */
+@keyframes aparca-slideUp {
+    from {
+        opacity: 0;
+        transform: translateY(30px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* No tiene clase de utilidad directa porque se aplica
+   solo a elementos de modal con clase propia del módulo:
+   ej. .admin-modal-box { animation: aparca-slideUp 0.3s ease } */
+
+
+/* ------------------------------------------------------------
+   3. PULSE
+   Efecto de escala pulsante para botones CTA.
+   Usada en: index (btn-pulse), registro (btn-pulse).
+   NOTA CRÍTICA: Tailwind define su propio @keyframes pulse
+   para .animate-pulse. Este usa el prefijo aparca- para
+   no colisionar bajo ninguna circunstancia.
+   ------------------------------------------------------------ */
+@keyframes aparca-pulse {
+    0%, 100% { transform: scale(1); }
+    50%       { transform: scale(1.05); }
+}
+
+.aparca-pulse {
+    animation: aparca-pulse 2s infinite;
+}
+
+
+/* ------------------------------------------------------------
+   4. SPIN
+   Rotación continua para indicadores de carga.
+   Tailwind tiene .animate-spin que usa @keyframes spin.
+   Este usa aparca-spin para no interferir.
+   ------------------------------------------------------------ */
+@keyframes aparca-spin {
+    from { transform: rotate(0deg); }
+    to   { transform: rotate(360deg); }
+}
+
+.aparca-spin {
+    animation: aparca-spin 1s linear infinite;
+}

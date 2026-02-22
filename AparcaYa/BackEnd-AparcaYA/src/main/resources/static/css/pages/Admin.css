@@ -1,0 +1,358 @@
+/* ============================================================
+   ADMIN.CSS
+   Ruta: static/css/pages/admin.css
+
+   PROPÓSITO: Estilos exclusivos del DashboardAdmin.
+   Todo lo compartido ya está en:
+     - css/base/aparca-animations.css
+     - css/components/aparca-components.css
+
+   Este archivo solo define:
+   1. Colores de acento del admin (azul oscuro #1e3a8a)
+   2. Gráficas donut (exclusivas del admin)
+   3. Info-grid del modal de sede (exclusivo del admin)
+   4. Chart container de Chart.js (exclusivo del admin)
+   5. Badges de estado de usuarios/sedes
+   6. Indicadores stat-card
+
+   PREFIJO: admin- para clases exclusivas de este módulo.
+   Las clases compartidas usan el prefijo aparca- ya
+   definido en aparca-components.css.
+
+   ORDEN DE CARGA EN admin.html:
+   1. Tailwind CDN
+   2. DaisyUI CDN
+   3. Chart.js CDN
+   4. Leaflet CSS CDN
+   5. Leaflet JS CDN
+   6. /css/base/aparca-animations.css
+   7. /css/components/aparca-components.css
+   8. /css/pages/admin.css   ← este archivo
+   ============================================================ */
+
+
+/* ------------------------------------------------------------
+   1. COLORES DE ACENTO — Admin
+   El sidebar y header del admin usan azul oscuro navy.
+   Se sobreescriben aquí las clases de aparca-components.css
+   sin modificar el componente base.
+   ------------------------------------------------------------ */
+
+/* Sidebar con fondo navy oscuro */
+.aparca-sidebar {
+    background: linear-gradient(180deg, #00BFFF 0%, #00BFFF 25%, #1e40af 100%);
+    color: white;
+}
+
+.aparca-sidebar-header h1 {
+    color: white;
+}
+
+.aparca-sidebar-header svg {
+    color: #93c5fd; /* Azul claro para el ícono del logo */
+}
+
+/* Links del sidebar */
+.aparca-sidebar-nav a {
+    color: rgba(255, 255, 255, 0.75);
+}
+
+.aparca-sidebar-nav a:hover {
+    background-color: rgba(255, 255, 255, 0.1);
+    color: white;
+    border-left-color: rgba(255, 255, 255, 0.5);
+}
+
+.aparca-sidebar-nav a.active {
+    background-color: rgba(255, 255, 255, 0.15);
+    color: white;
+    border-left-color: white;
+    font-weight: 700;
+}
+
+/* Header con fondo blanco y texto oscuro */
+.aparca-page-header {
+    background: white;
+    color: #1e3a8a;
+}
+
+.aparca-logo-section {
+    color: #1e3a8a;
+}
+
+.aparca-logo-section svg {
+    color: #1e40af;
+}
+
+/* Botón de perfil con color navy */
+.aparca-profile-btn {
+    background-color: #1e3a8a;
+    color: white;
+}
+
+/* Área principal con fondo gris muy claro */
+body {
+    background-color: #f8fafc;
+    margin: 0;
+    font-family: system-ui, -apple-system, sans-serif;
+}
+
+/* Hover de filas de la tabla admin */
+.aparca-table tbody tr:hover {
+    background-color: #eff6ff; /* Azul muy claro */
+}
+
+/* Header de tabla admin */
+.aparca-table th {
+    background-color: #f0f4ff;
+}
+
+/* Modal overlay del admin con el header en navy */
+.aparca-modal-header {
+    background: linear-gradient(135deg, #1e3a8a, #1e40af);
+    color: white;
+    border-radius: 1rem 1rem 0 0;
+}
+
+.aparca-modal-header h3 {
+    color: white;
+}
+
+.aparca-modal-close {
+    color: rgba(255, 255, 255, 0.8);
+}
+
+.aparca-modal-close:hover {
+    color: white;
+    background-color: rgba(255, 255, 255, 0.1);
+}
+
+/* Tabs del admin en azul navy */
+.aparca-tabs button:hover {
+    color: #1e3a8a;
+}
+
+.aparca-tabs button.active {
+    color: #1e3a8a;
+    border-bottom-color: #1e3a8a;
+}
+
+
+/* ------------------------------------------------------------
+   2. INDICADORES DONUT (exclusivos del admin)
+   Los gráficos circulares SVG que muestran estadísticas
+   en la parte superior del dashboard.
+   Prefijo: admin-
+   ------------------------------------------------------------ */
+
+/* Contenedor de los 3 donuts */
+.admin-stat-indicators {
+    display: flex;
+    gap: 1.5rem;
+    margin-bottom: 2rem;
+    flex-wrap: wrap;
+}
+
+/* Tarjeta individual de cada donut */
+.admin-stats-card {
+    flex: 1;
+    min-width: 160px;
+    background: white;
+    border-radius: 1rem;
+    padding: 1.25rem;
+    text-align: center;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+    border: 1px solid #e2e8f0;
+}
+
+.admin-stats-label {
+    font-size: 0.8rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: #64748b;
+    margin-bottom: 0.75rem;
+}
+
+/* Contenedor relativo para superponer el número sobre el SVG */
+.admin-donut-container {
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.admin-donut-svg {
+    transform: rotate(-90deg); /* Empieza desde arriba en vez de la derecha */
+}
+
+/* Anillo de fondo (riel gris del donut) */
+.admin-donut-ring {
+    fill: none;
+    stroke: #e2e8f0;
+    stroke-width: 3.8;
+}
+
+/* Arco de color del donut — animado por JS con stroke-dasharray */
+.admin-donut-segment {
+    fill: none;
+    stroke-width: 3.8;
+    stroke-linecap: round;
+    transition: stroke-dasharray 1s ease; /* Animación suave al cargar */
+}
+
+/* Colores específicos de cada indicador */
+.admin-usuario-segment  { stroke: #d97967; } /* Salmón: total usuarios */
+.admin-cuota-segment    { stroke: #98a687; } /* Verde oliva: total sedes */
+.admin-ingresos-segment { stroke: #7d94b8; } /* Azul grisáceo: ingresos */
+
+/* Número central superpuesto sobre el SVG */
+.admin-donut-text {
+    position: absolute;
+    font-size: 1.1rem;
+    font-weight: 700;
+    color: #1e3a8a;
+}
+
+
+/* ------------------------------------------------------------
+   3. CHART CONTAINER — Gráficas de Chart.js (exclusivas admin)
+   Prefijo: admin-
+   ------------------------------------------------------------ */
+.admin-chart-container {
+    background: white;
+    border-radius: 1rem;
+    padding: 1.5rem;
+    margin-bottom: 2rem;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+    border: 1px solid #e2e8f0;
+}
+
+.admin-chart-container h3 {
+    font-size: 1rem;
+    font-weight: 700;
+    color: #1e3a8a;
+    margin-bottom: 1rem;
+    text-align: center;
+}
+
+/* Chart.js necesita que el canvas tenga max-height
+   para evitar que crezca indefinidamente */
+.admin-chart-container canvas {
+    max-height: 300px;
+}
+
+
+/* ------------------------------------------------------------
+   4. INFO GRID — Grid de datos del modal de sede (exclusivo admin)
+   Muestra nombre, dirección, capacidad, tarifas, etc.
+   en un layout de 2 columnas dentro del modal.
+   Prefijo: admin-
+   ------------------------------------------------------------ */
+.admin-info-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 1rem;
+}
+
+.admin-info-item {
+    padding: 0.75rem;
+    background: #f8fafc;
+    border-radius: 0.5rem;
+    border: 1px solid #e2e8f0;
+}
+
+/* Ocupa las 2 columnas completas — para campos más largos */
+.admin-info-item.admin-info-full {
+    grid-column: 1 / -1;
+}
+
+.admin-info-label {
+    font-size: 0.75rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    color: #64748b;
+    margin-bottom: 0.25rem;
+}
+
+.admin-info-value {
+    font-size: 0.95rem;
+    color: #0f172a;
+    font-weight: 500;
+}
+
+
+/* ------------------------------------------------------------
+   5. BADGES DE ESTADO (usuarios y sedes en el admin)
+   CAMBIO CRÍTICO: era .badge, .badge-activo, .badge-inactivo
+   que colisionan con el componente .badge de DaisyUI.
+   AHORA: .admin-badge, .admin-badge-activo, .admin-badge-inactivo
+   Prefijo: admin-
+   ------------------------------------------------------------ */
+.admin-badge {
+    display: inline-block;
+    padding: 3px 10px;
+    border-radius: 20px;
+    font-size: 0.75rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+}
+
+.admin-badge-activo {
+    background-color: #dcfce7;
+    color: #166534;
+}
+
+.admin-badge-inactivo {
+    background-color: #fee2e2;
+    color: #991b1b;
+}
+
+/* Badge de roles */
+.admin-badge-admin    { background-color: #dbeafe; color: #1e40af; }
+.admin-badge-sede     { background-color: #fef3c7; color: #92400e; }
+.admin-badge-operario { background-color: #f3e8ff; color: #6b21a8; }
+.admin-badge-cliente  { background-color: #ecfdf5; color: #065f46; }
+
+
+/* ------------------------------------------------------------
+   6. MAPA LEAFLET — Contenedor (exclusivo admin)
+   Leaflet requiere altura explícita en el contenedor.
+   z-index bajo para que los modales queden encima.
+   ------------------------------------------------------------ */
+#admin-map-container {
+    height: 400px;
+    width: 100%;
+    border: 1px solid #e2e8f0;
+    border-radius: 0.75rem;
+    z-index: 1; /* Bajo para que los modales (z:999) queden encima */
+    overflow: hidden;
+}
+
+
+/* ------------------------------------------------------------
+   7. RESPONSIVE EXCLUSIVO DEL ADMIN
+   (Las reglas de sidebar/header ya están en components)
+   ------------------------------------------------------------ */
+@media (max-width: 768px) {
+
+    .admin-stat-indicators {
+        gap: 1rem;
+    }
+
+    .admin-stats-card {
+        min-width: 120px;
+        padding: 1rem;
+    }
+
+    .admin-info-grid {
+        grid-template-columns: 1fr; /* 1 columna en móvil */
+    }
+
+    .aparca-modal-content {
+        width: 95%;
+        padding: 0; /* El padding lo dan header y body */
+    }
+}

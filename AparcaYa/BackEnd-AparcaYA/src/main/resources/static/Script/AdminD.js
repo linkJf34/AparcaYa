@@ -5,8 +5,14 @@ const API_BASE_URL = '/admin/api';
 
 const profileBtn = document.getElementById('profileBtn');
 const profileDropdown = document.getElementById('profileDropdown');
-const navLinks = document.querySelectorAll('nav.sidebar-nav a');
-const sections = document.querySelectorAll('section.content-section');
+
+// CAMBIO 1: 'nav.sidebar-nav a' → 'nav.aparca-sidebar-nav a'
+// Razón: el HTML refactorizado usa class="aparca-sidebar-nav"
+const navLinks = document.querySelectorAll('nav.aparca-sidebar-nav a');
+
+// CAMBIO 2: 'section.content-section' → 'section.aparca-content-section'
+// Razón: el HTML refactorizado usa class="aparca-content-section"
+const sections = document.querySelectorAll('section.aparca-content-section');
 
 let map = null;
 let marcadores = [];
@@ -168,14 +174,11 @@ function obtenerCoordenadasPorBarrio(localidad, barrio) {
     const localidadKey = localidad.toUpperCase().trim();
     const barrioNormalizado = barrio.trim();
 
-    // Buscar en la base de datos de barrios
     if (COORDENADAS_BARRIOS[localidadKey]) {
-        // Búsqueda exacta
         if (COORDENADAS_BARRIOS[localidadKey][barrioNormalizado]) {
             return COORDENADAS_BARRIOS[localidadKey][barrioNormalizado];
         }
 
-        // Búsqueda parcial (por si hay variaciones en el nombre)
         const barrioLower = barrioNormalizado.toLowerCase();
         for (const [nombreBarrio, coords] of Object.entries(COORDENADAS_BARRIOS[localidadKey])) {
             if (nombreBarrio.toLowerCase().includes(barrioLower) ||
@@ -203,7 +206,6 @@ function obtenerCoordenadasPorLocalidad(localidad) {
         };
     }
 
-    // Fallback final: Centro de Bogotá
     console.log('📍 Usando centro de Bogotá (fallback final)');
     return {
         lat: 4.6533 + (Math.random() - 0.5) * 0.08,
@@ -224,7 +226,6 @@ async function buscarDireccionEnBarrio(direccion, localidad, barrio, coordsBarri
                 .join(' ')
             : '';
 
-        // Múltiples estrategias de búsqueda específicas
         const estrategias = [
             `${direccion}, ${barrio}, ${localidadFormateada}, Bogotá, Colombia`,
             `${direccion}, ${barrio}, Bogotá, Colombia`,
@@ -236,7 +237,6 @@ async function buscarDireccionEnBarrio(direccion, localidad, barrio, coordsBarri
             const busqueda = estrategias[i];
             console.log(`  🔎 Estrategia ${i + 1}: ${busqueda}`);
 
-            // Crear un viewbox centrado en el barrio (radio de ~2km)
             const latMin = coordsBarrio.lat - 0.018;
             const latMax = coordsBarrio.lat + 0.018;
             const lonMin = coordsBarrio.lon - 0.018;
@@ -252,9 +252,7 @@ async function buscarDireccionEnBarrio(direccion, localidad, barrio, coordsBarri
                 `&addressdetails=1`;
 
             const response = await fetch(url, {
-                headers: {
-                    'User-Agent': 'AparcaYA/1.0 (admin@aparcaya.com)'
-                }
+                headers: { 'User-Agent': 'AparcaYA/1.0 (admin@aparcaya.com)' }
             });
 
             if (response.ok) {
@@ -273,7 +271,6 @@ async function buscarDireccionEnBarrio(direccion, localidad, barrio, coordsBarri
                         if (distancia < 0.018) {
                             console.log(`    ✅ Match a ${(distancia * 111).toFixed(2)}km del barrio`);
                             console.log(`    📌 ${resultado.display_name}`);
-
                             return {
                                 lat: lat,
                                 lon: lon,
@@ -310,7 +307,6 @@ async function geocodificarDireccionGeneral(direccion, localidad, barrio) {
             : '';
 
         const busqueda = `${direccion}, ${localidadFormateada}, Bogotá, Colombia`;
-
         console.log(`🌐 Geocodificación general: ${busqueda}`);
 
         const url = `https://nominatim.openstreetmap.org/search?` +
@@ -322,9 +318,7 @@ async function geocodificarDireccionGeneral(direccion, localidad, barrio) {
             `&viewbox=-74.25,4.45,-73.95,4.85`;
 
         const response = await fetch(url, {
-            headers: {
-                'User-Agent': 'AparcaYA/1.0 (admin@aparcaya.com)'
-            }
+            headers: { 'User-Agent': 'AparcaYA/1.0 (admin@aparcaya.com)' }
         });
 
         if (response.ok) {
@@ -359,13 +353,11 @@ async function geocodificarDireccionGeneral(direccion, localidad, barrio) {
 async function geocodificarDireccion(direccion, localidad, barrio) {
     console.log(`🔍 Geocodificando: ${direccion}, Barrio: ${barrio}, Localidad: ${localidad}`);
 
-    // PASO 1: Obtener coordenadas del barrio como punto de referencia
     const coordsBarrio = obtenerCoordenadasPorBarrio(localidad, barrio);
 
     if (coordsBarrio) {
         console.log(`📍 Punto de referencia: ${barrio} (${coordsBarrio.lat}, ${coordsBarrio.lon})`);
 
-        // PASO 2: Buscar la dirección específica CERCA del barrio
         const coordsEspecificas = await buscarDireccionEnBarrio(direccion, localidad, barrio, coordsBarrio);
 
         if (coordsEspecificas) {
@@ -381,7 +373,6 @@ async function geocodificarDireccion(direccion, localidad, barrio) {
         }
     }
 
-    // PASO 3: Si no hay coordenadas de barrio, intentar geocodificación general
     console.log(`🌐 Intentando geocodificación general...`);
     const coordsGenerales = await geocodificarDireccionGeneral(direccion, localidad, barrio);
 
@@ -389,11 +380,9 @@ async function geocodificarDireccion(direccion, localidad, barrio) {
         return coordsGenerales;
     }
 
-    // PASO 4: Fallback a coordenadas de localidad
     console.log(`📍 Usando coordenadas centrales de localidad: ${localidad}`);
     return obtenerCoordenadasPorLocalidad(localidad);
 }
-
 
 
 // ============================================
@@ -475,11 +464,18 @@ async function cargarIndicadores() {
 }
 
 function actualizarIndicador(index, valor, porcentaje) {
-    const cards = document.querySelectorAll('.stats-card');
+    // CAMBIO 3: '.stats-card' → '.admin-stats-card'
+    // Razón: el HTML refactorizado usa class="admin-stats-card"
+    const cards = document.querySelectorAll('.admin-stats-card');
     if (!cards[index]) return;
 
-    const textElement = cards[index].querySelector('.donut-text');
-    const segmentElement = cards[index].querySelector('.donut-segment');
+    // CAMBIO 4: '.donut-text' → '.admin-donut-text'
+    // Razón: el HTML refactorizado usa class="admin-donut-text"
+    const textElement = cards[index].querySelector('.admin-donut-text');
+
+    // CAMBIO 5: '.donut-segment' → '.admin-donut-segment'
+    // Razón: el HTML refactorizado usa class="admin-donut-segment"
+    const segmentElement = cards[index].querySelector('.admin-donut-segment');
 
     if (textElement) textElement.textContent = valor;
     if (segmentElement) {
@@ -513,10 +509,8 @@ function renderUsuarios(usuariosArray = usuarios) {
     }
 
     tbody.innerHTML = usuariosArray.map(u => {
-        // Determinar el ID correcto (puede ser 'id' o 'idUsuario' según tu API)
         const usuarioId = u.id || u.idUsuario || u.usuario_id;
 
-        // Validar que existe un ID
         if (!usuarioId) {
             console.error('Usuario sin ID:', u);
             return '';
@@ -539,7 +533,7 @@ function renderUsuarios(usuariosArray = usuarios) {
 }
 
 async function eliminarUsuario(id) {
-    console.log('Eliminando usuario con ID:', id); // 👈 Para debug
+    console.log('Eliminando usuario con ID:', id);
 
     if (!id) {
         alert('❌ ID de usuario inválido');
@@ -565,9 +559,7 @@ async function eliminarUsuario(id) {
     try {
         const response = await fetch(`${API_BASE_URL}/usuarios/eliminar/${id}`, {
             method: 'DELETE',
-            headers: {
-                'Content-Type': 'application/json'
-            }
+            headers: { 'Content-Type': 'application/json' }
         });
 
         if (!response.ok) {
@@ -586,6 +578,7 @@ async function eliminarUsuario(id) {
         alert(`❌ No se pudo eliminar el usuario: ${error.message}`);
     }
 }
+
 // ============================================
 // FUNCIÓN PARA ABRIR EL MODAL DE EDICIÓN
 // ============================================
@@ -604,21 +597,17 @@ function editarUsuario(id) {
         return;
     }
 
-    // Llenar el formulario con los datos actuales
     document.getElementById('edit_usuario_id').value = id;
     document.getElementById('edit_nombre').value = usuario.nombre || '';
     document.getElementById('edit_email').value = usuario.correo || '';
     document.getElementById('edit_telefono').value = usuario.telefono || '';
 
-    // Manejar el rol - puede venir como objeto {name: "ADMIN"} o como string "ADMIN"
     const rolValue = usuario.rol?.name || usuario.rol || 'CLIENTE';
     document.getElementById('edit_rol').value = rolValue;
 
-    // Manejar el estado - convertir a mayúsculas si viene en minúsculas
     const estadoValue = (usuario.estado || 'ACTIVO').toUpperCase();
     document.getElementById('edit_estado').value = estadoValue;
 
-    // Mostrar el modal
     document.getElementById('modal_editar_usuario').showModal();
 }
 
@@ -633,7 +622,6 @@ async function guardarEdicion() {
     const rol = document.getElementById('edit_rol').value;
     const estado = document.getElementById('edit_estado').value;
 
-    // Validaciones
     if (!nombre || !email || !rol) {
         alert('❌ Por favor completa todos los campos obligatorios');
         return;
@@ -644,12 +632,11 @@ async function guardarEdicion() {
         return;
     }
 
-    // Preparar el objeto a enviar (rol como string, no como objeto)
     const usuarioActualizado = {
         nombre: nombre,
         correo: email,
         telefono: telefono || null,
-        rol: rol, // Enviamos el string directamente: "ADMIN", "OPERARIO", etc.
+        rol: rol,
         estado: estado
     };
 
@@ -658,13 +645,10 @@ async function guardarEdicion() {
     try {
         const response = await fetch(`${API_BASE_URL}/usuarios/actualizar/${id}`, {
             method: 'PUT',
-            headers: {
-                'Content-Type': 'application/json'
-            },
+            headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(usuarioActualizado)
         });
 
-        // Log del response para debug
         console.log('📥 Response status:', response.status);
 
         const data = await response.json();
@@ -676,10 +660,8 @@ async function guardarEdicion() {
 
         alert(`✅ ${data.mensaje || 'Usuario actualizado correctamente'}`);
 
-        // Cerrar modal
         document.getElementById('modal_editar_usuario').close();
 
-        // Recargar datos
         await cargarUsuarios();
         await cargarIndicadores();
 
@@ -689,13 +671,11 @@ async function guardarEdicion() {
     }
 }
 
-
 // ============================================
 // FUNCIÓN PARA CERRAR MODAL DE EDICIÓN
 // ============================================
 function cerrarModalEdicion() {
     document.getElementById('modal_editar_usuario').close();
-    // Limpiar formulario
     document.getElementById('edit_usuario_id').value = '';
     document.getElementById('edit_nombre').value = '';
     document.getElementById('edit_email').value = '';
@@ -710,7 +690,6 @@ function cerrarModalEdicion() {
 const busquedaInput = document.getElementById('busquedaInput');
 const filtroUnificado = document.getElementById('filtroUnificado');
 
-// Conectar eventos
 if (busquedaInput) {
     busquedaInput.addEventListener('input', filtrarUsuarios);
 }
@@ -723,7 +702,6 @@ function filtrarUsuarios() {
     const filtroSeleccionado = filtroUnificado?.value || '';
 
     const usuariosFiltrados = usuarios.filter(usuario => {
-        // Filtro de búsqueda por texto (incluye teléfono y estado)
         const nombre = (usuario.nombre || '').toLowerCase();
         const correo = (usuario.correo || '').toLowerCase();
         const rol = usuario.rol ? (usuario.rol.name || usuario.rol || '').toLowerCase() : '';
@@ -736,7 +714,6 @@ function filtrarUsuarios() {
             telefono.includes(textoBusqueda) ||
             estado.includes(textoBusqueda);
 
-        // Filtro por select unificado
         let coincideFiltro = true;
 
         if (filtroSeleccionado) {
@@ -845,17 +822,14 @@ function editarSede(id) {
         return;
     }
 
-    // Llenar el formulario con los datos actuales
     document.getElementById('edit_sede_id').value = id;
     document.getElementById('edit_sede_nombre').value = sede.nombre || '';
     document.getElementById('edit_sede_direccion').value = sede.direccion || '';
     document.getElementById('edit_sede_capacidad').value = sede.capacidad || '';
 
-    // Manejar el estado - convertir a mayúsculas si viene en minúsculas
     const estadoValue = (sede.estado || 'ACTIVO').toUpperCase();
     document.getElementById('edit_sede_estado').value = estadoValue;
 
-    // Mostrar el modal
     document.getElementById('modal_editar_sede').showModal();
 }
 
@@ -869,7 +843,6 @@ async function guardarEdicionSede() {
     const capacidad = parseInt(document.getElementById('edit_sede_capacidad').value);
     const estado = document.getElementById('edit_sede_estado').value;
 
-    // Validaciones
     if (!nombre || !direccion || !capacidad || !estado) {
         alert('❌ Por favor completa todos los campos obligatorios');
         return;
@@ -880,7 +853,6 @@ async function guardarEdicionSede() {
         return;
     }
 
-    // Preparar el objeto a enviar
     const sedeActualizada = {
         nombre: nombre,
         direccion: direccion,
@@ -893,13 +865,10 @@ async function guardarEdicionSede() {
     try {
         const response = await fetch(`${API_BASE_URL}/sedes/actualizar/${id}`, {
             method: 'PUT',
-            headers: {
-                'Content-Type': 'application/json'
-            },
+            headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(sedeActualizada)
         });
 
-        // Log del response para debug
         console.log('📥 Response status:', response.status);
 
         const data = await response.json();
@@ -911,12 +880,10 @@ async function guardarEdicionSede() {
 
         alert(`✅ ${data.mensaje || 'Sede actualizada correctamente'}`);
 
-        // Cerrar modal
         document.getElementById('modal_editar_sede').close();
 
-        // Recargar datos de sedes
         await cargarSedes();
-        await cargarIndicadores(); // Si tienes indicadores que dependan de las sedes
+        await cargarIndicadores();
 
     } catch (error) {
         console.error('❌ Error completo:', error);
@@ -937,7 +904,6 @@ function cerrarModalEdicionSede() {
 const busquedaSedes = document.getElementById('busquedaSedes');
 const filtroUnificadoSedes = document.getElementById('filtroUnificadoSedes');
 
-// Conectar eventos
 if (busquedaSedes) {
     busquedaSedes.addEventListener('input', filtrarSedes);
 }
@@ -950,7 +916,6 @@ function filtrarSedes() {
     const filtroSeleccionado = filtroUnificadoSedes?.value || '';
 
     const sedesFiltradas = sedes.filter(sede => {
-        // Filtro de búsqueda por texto
         const nombre = (sede.nombre || '').toLowerCase();
         const direccion = (sede.direccion || '').toLowerCase();
         const localidad = (sede.localidad || '').toLowerCase();
@@ -965,7 +930,6 @@ function filtrarSedes() {
             capacidad.includes(textoBusqueda) ||
             estado.includes(textoBusqueda);
 
-        // Filtro por select unificado (solo estado)
         let coincideFiltro = true;
 
         if (filtroSeleccionado) {
@@ -986,10 +950,14 @@ function filtrarSedes() {
 // MAPA LEAFLET
 // ============================================
 function initMap() {
-    const mapContainer = document.getElementById('map-container');
+    // CAMBIO 6: 'map-container' → 'admin-map-container'
+    // Razón: el HTML refactorizado usa id="admin-map-container"
+    const mapContainer = document.getElementById('admin-map-container');
     if (!mapContainer || map) return;
 
-    map = L.map('map-container').setView([4.6533, -74.0836], 12);
+    // CAMBIO 7: L.map('map-container') → L.map('admin-map-container')
+    // Razón: Leaflet debe inicializarse con el mismo ID del elemento HTML
+    map = L.map('admin-map-container').setView([4.6533, -74.0836], 12);
 
     L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
         attribution: '&copy; OpenStreetMap contributors',
@@ -1008,11 +976,9 @@ async function agregarMarcadores() {
     console.log(`📌 Agregando ${sedes.length} marcadores al mapa...`);
 
     for (const sede of sedes) {
-        // ⬇️ CAMBIO AQUÍ: Agregar el parámetro barrio
         const coords = await geocodificarDireccion(sede.direccion, sede.localidad, sede.barrio);
 
         if (coords) {
-            // Crear ícono personalizado según el estado
             const iconColor = sede.estado === 'ACTIVO' ? '#34a853' : '#dc2626';
             const customIcon = L.divIcon({
                 className: 'custom-marker',
@@ -1046,7 +1012,6 @@ async function agregarMarcadores() {
             const marker = L.marker([coords.lat, coords.lon], { icon: customIcon })
                 .addTo(map);
 
-            // Crear popup con información resumida
             const popupContent = `
                 <div style="min-width: 200px;">
                     <h4 style="margin: 0 0 8px 0; font-size: 1.125rem; font-weight: 700; color: #0f172a;">
@@ -1087,14 +1052,12 @@ async function agregarMarcadores() {
 
             marcadores.push(marker);
 
-            // Delay entre peticiones para no saturar Nominatim
             await new Promise(resolve => setTimeout(resolve, 500));
         }
     }
 
     console.log(`✅ ${marcadores.length} marcadores agregados`);
 
-    // Ajustar el mapa para mostrar todos los marcadores
     if (marcadores.length > 0) {
         const group = L.featureGroup(marcadores);
         map.fitBounds(group.getBounds().pad(0.1));
@@ -1114,7 +1077,6 @@ function mostrarDetallesSede(sedeId) {
 
     modalTitle.textContent = sede.nombre;
 
-    // Formatear valores
     const estadoBadge = sede.estado === 'ACTIVO'
         ? '<span class="badge badge-activo">✓ Activa</span>'
         : '<span class="badge badge-inactivo">✗ Inactiva</span>';
@@ -1206,14 +1168,12 @@ function cerrarModalSede() {
     modal.setAttribute('aria-hidden', 'true');
 }
 
-// Cerrar modal al hacer clic fuera de él
 document.getElementById('modalSede')?.addEventListener('click', (e) => {
     if (e.target.id === 'modalSede') {
         cerrarModalSede();
     }
 });
 
-// Cerrar modal con la tecla Escape
 document.addEventListener('keydown', (e) => {
     if (e.key === 'Escape') {
         cerrarModalSede();
@@ -1346,46 +1306,45 @@ async function cargarGraficaSedes() {
 
 async function cargarEstadisticasDonut() {
     try {
-        // Cargar estadísticas generales desde tu API
         const response = await fetch(`${API_BASE_URL}/estadisticas/generales`);
         if (!response.ok) throw new Error('Error cargando estadísticas');
 
         const data = await response.json();
 
-        // Actualizar los valores de texto
-        actualizarTextoDonut('.usuario-segment', data.totalUsuarios || 7);
-        actualizarTextoDonut('.cuota-segment', data.totalSedes || 2);
-        actualizarTextoDonut('.ingresos-segment', formatearIngresos(data.ingresosTotal || 85000));
+        // CAMBIO 8: '.usuario-segment' → '.admin-usuario-segment'
+        // CAMBIO 9: '.cuota-segment'   → '.admin-cuota-segment'
+        // CAMBIO 10: '.ingresos-segment' → '.admin-ingresos-segment'
+        // Razón: el HTML refactorizado usa prefijo admin- en todas las clases de donut
+        actualizarTextoDonut('.admin-usuario-segment', data.totalUsuarios || 7);
+        actualizarTextoDonut('.admin-cuota-segment', data.totalSedes || 2);
+        actualizarTextoDonut('.admin-ingresos-segment', formatearIngresos(data.ingresosTotal || 85000));
 
-        // Animar los donuts con los porcentajes
-        animarDonut('.usuario-segment', data.totalUsuarios, data.metaUsuarios || 10);
-        animarDonut('.cuota-segment', data.totalSedes, data.metaSedes || 5);
-        animarDonut('.ingresos-segment', data.ingresosTotal, data.metaIngresos || 100000);
+        animarDonut('.admin-usuario-segment', data.totalUsuarios, data.metaUsuarios || 10);
+        animarDonut('.admin-cuota-segment', data.totalSedes, data.metaSedes || 5);
+        animarDonut('.admin-ingresos-segment', data.ingresosTotal, data.metaIngresos || 100000);
 
     } catch (error) {
         console.error('Error cargando estadísticas donut:', error);
-        // Valores por defecto si falla la API
         cargarEstadisticasDefault();
     }
 }
 
 function cargarEstadisticasDefault() {
-    // Valores por defecto para pruebas
-    actualizarTextoDonut('.usuario-segment', 7);
-    actualizarTextoDonut('.cuota-segment', 2);
-    actualizarTextoDonut('.ingresos-segment', '85K');
+    actualizarTextoDonut('.admin-usuario-segment', 7);
+    actualizarTextoDonut('.admin-cuota-segment', 2);
+    actualizarTextoDonut('.admin-ingresos-segment', '85K');
 
-    animarDonut('.usuario-segment', 7, 10);
-    animarDonut('.cuota-segment', 2, 5);
-    animarDonut('.ingresos-segment', 85000, 100000);
+    animarDonut('.admin-usuario-segment', 7, 10);
+    animarDonut('.admin-cuota-segment', 2, 5);
+    animarDonut('.admin-ingresos-segment', 85000, 100000);
 }
 
 function actualizarTextoDonut(selector, valor) {
     const circle = document.querySelector(selector);
     if (!circle) return;
 
-    const container = circle.closest('.donut-container');
-    const textElement = container.querySelector('.donut-text');
+    const container = circle.closest('.admin-donut-container');
+    const textElement = container.querySelector('.admin-donut-text');
 
     if (textElement) {
         textElement.textContent = valor;
@@ -1396,16 +1355,10 @@ function animarDonut(selector, valorActual, valorMaximo) {
     const circle = document.querySelector(selector);
     if (!circle) return;
 
-    // Calcular el porcentaje
     const porcentaje = Math.min((valorActual / valorMaximo) * 100, 100);
-
-    // Circunferencia del círculo (2πr donde r=15.9155)
     const circumference = 2 * Math.PI * 15.9155;
-
-    // Calcular cuánto debe llenarse
     const fillAmount = (porcentaje / 100) * circumference;
 
-    // Animar con un pequeño delay para el efecto visual
     setTimeout(() => {
         circle.style.strokeDasharray = `${fillAmount} ${circumference}`;
     }, 100);
@@ -1420,7 +1373,6 @@ function formatearIngresos(valor) {
     return `$${valor}`;
 }
 
-// Inicializar cuando cargue el documento
 document.addEventListener('DOMContentLoaded', function() {
     cargarEstadisticasDonut();
 });
@@ -1468,9 +1420,10 @@ async function generarExcel() {
 
 
 // ==================== ENVÍO DE CORREOS ====================
-// Tabs de correo (Uno a Uno / Masivo)
 function setupMailTabs() {
-    const tabsBtns = document.querySelectorAll('#correos .tabs button');
+    // CAMBIO 11: '#correos .tabs button' → '#correos .aparca-tabs button'
+    // Razón: el HTML refactorizado usa class="aparca-tabs" en vez de class="tabs"
+    const tabsBtns = document.querySelectorAll('#correos .aparca-tabs button');
     const mailPanels = [
         document.getElementById('correoUnitario'),
         document.getElementById('correoMasivo')
@@ -1478,13 +1431,11 @@ function setupMailTabs() {
 
     tabsBtns.forEach((btn, idx) => {
         btn.addEventListener('click', () => {
-            // Actualizar tabs activos
             tabsBtns.forEach(b => {
                 b.classList.remove('active');
                 b.setAttribute('aria-selected', 'false');
             });
 
-            // Mostrar panel correspondiente
             mailPanels.forEach(panel => panel.hidden = true);
 
             btn.classList.add('active');
@@ -1494,7 +1445,6 @@ function setupMailTabs() {
     });
 }
 
-// Función para enviar correo unitario
 function enviarCorreoUnitario() {
     console.log('📧 Enviando correo uno a uno...');
 
@@ -1513,31 +1463,25 @@ function enviarCorreoUnitario() {
         return;
     }
 
-    // Crear FormData para enviar al backend
     const formData = new URLSearchParams();
     formData.append('correo', email);
     formData.append('asunto', subject);
     formData.append('mensaje', message);
 
-    // Mostrar indicador de carga
     const button = event.target.querySelector('button[type="submit"]');
     const originalText = button.innerHTML;
     button.disabled = true;
     button.innerHTML = '<span>Enviando...</span>';
 
-    // Enviar correo al backend
     fetch('/admin/correo/unitario', {
         method: 'POST',
-        headers: {
-            'Content-Type': 'application/x-www-form-urlencoded'
-        },
+        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
         body: formData.toString()
     })
         .then(response => response.json())
         .then(data => {
             if (data.status === 'success') {
                 alert('✅ ' + data.message);
-                // Limpiar formulario
                 document.getElementById('emailSingle').value = '';
                 document.getElementById('subjectSingle').value = '';
                 document.getElementById('messageSingle').value = '';
@@ -1555,7 +1499,6 @@ function enviarCorreoUnitario() {
         });
 }
 
-// Función para enviar correo masivo
 function enviarCorreoMasivo() {
     console.log('📧 Enviando correo masivo...');
 
@@ -1568,7 +1511,6 @@ function enviarCorreoMasivo() {
         return;
     }
 
-    // Separar y validar correos
     const emailList = emails.split(',').map(e => e.trim()).filter(e => e);
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
@@ -1583,7 +1525,6 @@ function enviarCorreoMasivo() {
         return;
     }
 
-    // Crear FormData para enviar al backend
     const formData = new URLSearchParams();
     emailList.forEach(email => {
         formData.append('seleccionados', email);
@@ -1591,25 +1532,20 @@ function enviarCorreoMasivo() {
     formData.append('asunto', subject);
     formData.append('mensaje', message);
 
-    // Mostrar indicador de carga
     const button = event.target.querySelector('button[type="submit"]');
     const originalText = button.innerHTML;
     button.disabled = true;
     button.innerHTML = '<span>Enviando...</span>';
 
-    // Enviar correos al backend
     fetch('/admin/correo/masivo', {
         method: 'POST',
-        headers: {
-            'Content-Type': 'application/x-www-form-urlencoded'
-        },
+        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
         body: formData.toString()
     })
         .then(response => response.json())
         .then(data => {
             if (data.status === 'success') {
                 alert('✅ ' + data.message);
-                // Limpiar formulario
                 document.getElementById('emailsMassive').value = '';
                 document.getElementById('subjectMassive').value = '';
                 document.getElementById('messageMassive').value = '';
@@ -1627,12 +1563,9 @@ function enviarCorreoMasivo() {
         });
 }
 
-// Event listeners para los formularios
 document.addEventListener('DOMContentLoaded', function() {
-    // Setup tabs
     setupMailTabs();
 
-    // Formulario unitario
     const formUnitario = document.getElementById('formCorreoUnitario');
     if (formUnitario) {
         formUnitario.addEventListener('submit', function(e) {
@@ -1641,7 +1574,6 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
 
-    // Formulario masivo
     const formMasivo = document.getElementById('formCorreoMasivo');
     if (formMasivo) {
         formMasivo.addEventListener('submit', function(e) {
@@ -1656,10 +1588,12 @@ document.addEventListener('DOMContentLoaded', function() {
 // ============================================
 window.eliminarUsuario = eliminarUsuario;
 window.editarUsuario = editarUsuario;
-window.guardarEdicion = guardarEdicion;        // ⬅️ NUEVA
-window.cerrarModalEdicion = cerrarModalEdicion; // ⬅️ NUEVA
+window.guardarEdicion = guardarEdicion;
+window.cerrarModalEdicion = cerrarModalEdicion;
 window.eliminarSede = eliminarSede;
 window.editarSede = editarSede;
+window.guardarEdicionSede = guardarEdicionSede;
+window.cerrarModalEdicionSede = cerrarModalEdicionSede;
 window.generarPDF = generarPDF;
 window.generarExcel = generarExcel;
 window.mostrarDetallesSede = mostrarDetallesSede;
@@ -1670,20 +1604,11 @@ window.cerrarModalSede = cerrarModalSede;
 // ============================================
 function cerrarSesion() {
     if (confirm('¿Estás seguro de cerrar sesión?')) {
-        // Opción 1: Redirigir al logout de Spring Security
         window.location.href = '/logout';
-
-        // Opción 2: Si usas tu propio endpoint de logout
-        // window.location.href = '/admin/logout';
-
-        // Opción 3: Si manejas sesión con token
-        // localStorage.removeItem('token');
-        // window.location.href = '/login';
     }
 }
 
 function irConfiguracion() {
-    // Simular clic en el menú de configuración
     const configLink = document.querySelector('[data-tab="configuracion"]');
     if (configLink) {
         configLink.click();
@@ -1692,7 +1617,5 @@ function irConfiguracion() {
 }
 
 function irAyuda() {
-    // Puedes redirigir a una página de ayuda o abrir un modal
     alert('Sección de ayuda\n\nPróximamente: documentación y tutoriales');
-    // O redirigir: window.location.href = '/admin/ayuda';
 }
