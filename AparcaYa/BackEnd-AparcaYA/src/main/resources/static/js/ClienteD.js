@@ -7,10 +7,9 @@ let sedes = [];
 let sedeSeleccionada = null;
 let ID_USUARIO_ACTUAL;
 
-// Obtener datos del servidor
-if (typeof DATOS_SERVIDOR !== 'undefined') {
-    ID_USUARIO_ACTUAL = DATOS_SERVIDOR.userId;
-    sedes = DATOS_SERVIDOR.sedes || [];
+if (typeof window.userId !== 'undefined') {
+    ID_USUARIO_ACTUAL = window.userId;
+    sedes = window.sedesData || [];
 }
 
 // ============================================
@@ -88,15 +87,19 @@ document.addEventListener('DOMContentLoaded', function() {
 // NAVEGACIÓN
 // ============================================
 function inicializarNavegacion() {
-    document.querySelectorAll('nav.sidebar-nav a').forEach(link => {
+    document.querySelectorAll('.aparca-sidebar-nav a').forEach(link => {
         link.addEventListener('click', function(e) {
             e.preventDefault();
             const targetTab = this.getAttribute('data-tab');
 
-            document.querySelectorAll('.content-section').forEach(section => section.classList.add('hidden'));
+            document.querySelectorAll('.aparca-content-section').forEach(section => {
+                section.classList.add('hidden');
+            });
             document.getElementById(targetTab)?.classList.remove('hidden');
 
-            document.querySelectorAll('nav.sidebar-nav a').forEach(l => l.classList.remove('active'));
+            document.querySelectorAll('.aparca-sidebar-nav a').forEach(l => {
+                l.classList.remove('active');
+            });
             this.classList.add('active');
 
             if (targetTab === 'perfil' && map) {
@@ -133,7 +136,7 @@ async function cargarDatosUsuario() {
         if (response.ok) {
             const usuario = await response.json();
             if (usuario) {
-                const welcomeH2 = document.querySelector('.welcome-section h2');
+                const welcomeH2 = document.querySelector('.cli-welcome-section h2');
                 if (welcomeH2) {
                     welcomeH2.textContent = `Bienvenido, ${usuario.nombre || 'Usuario'}`;
                 }
@@ -224,7 +227,8 @@ function actualizarTablaReservas(reservas) {
 
 function actualizarContadorReservas(reservas) {
     const activas = reservas.filter(r => r.estado === 'ACTIVA').length;
-    const welcomeSection = document.querySelector('.welcome-section');
+
+    const welcomeSection = document.querySelector('.cli-welcome-section');
     if (!welcomeSection) return;
 
     let contador = welcomeSection.querySelector('.reservas-contador');
@@ -371,7 +375,6 @@ async function agregarMarcadores() {
 
             marker.bindPopup(popupContent, { maxWidth: 300 });
 
-            // Agregar evento al botón cuando se abra el popup
             marker.on('popupopen', function() {
                 setTimeout(() => {
                     const btn = document.getElementById(`btn-sede-${sede.idSede}`);
@@ -498,7 +501,7 @@ async function buscarDireccion() {
 }
 
 // ============================================
-// MODAL DE DETALLES
+// MODAL DE DETALLES DE SEDE
 // ============================================
 function mostrarDetallesSede(sedeId) {
     console.log('Mostrando detalles de sede:', sedeId);
@@ -509,64 +512,92 @@ function mostrarDetallesSede(sedeId) {
     }
 
     sedeSeleccionada = sede;
-
     document.getElementById('modalSedeTitle').textContent = sede.nombre;
 
+    // ✅ CAMBIO: .badge/.badge-activo/.badge-inactivo → .cli-badge/.cli-badge-activo/.cli-badge-inactivo
     const estadoBadge = sede.estado === 'ACTIVO'
-        ? '<span class="badge badge-activo">✓ Activa</span>'
-        : '<span class="badge badge-inactivo">✗ Inactiva</span>';
+        ? '<span class="cli-badge cli-badge-activo">✓ Activa</span>'
+        : '<span class="cli-badge cli-badge-inactivo">✗ Inactiva</span>';
 
+    // ✅ CAMBIO: .info-grid → .cliente-modal-sede-grid
+    // ✅ CAMBIO: .info-item → .cliente-modal-sede-item
+    // ✅ CAMBIO: .info-full → .cliente-modal-sede-full
+    // ✅ CAMBIO: .info-label → .cliente-modal-sede-label
+    // ✅ CAMBIO: .info-value → .cliente-modal-sede-value
+    // ✅ CAMBIO: style="line-height:1.8" → .cliente-modal-sede-tarifas
+    // ✅ CAMBIO: div de botones inline → .cliente-modal-sede-actions
+    // ✅ CAMBIO: botón Reservar inline → .cli-btn-confirm (ya en cliente.css)
+    // ✅ CAMBIO: botón Cerrar inline → .cliente-modal-sede-btn-cerrar
     document.getElementById('modalSedeBody').innerHTML = `
-        <div class="info-grid">
-            <div class="info-item info-full">
-                <div class="info-label">Estado</div>
-                <div class="info-value">${estadoBadge}</div>
+        <div class="cliente-modal-sede-grid">
+
+            <div class="cliente-modal-sede-item cliente-modal-sede-full">
+                <div class="cliente-modal-sede-label">Estado</div>
+                <div class="cliente-modal-sede-value">${estadoBadge}</div>
             </div>
-            <div class="info-item">
-                <div class="info-label">🚗 Capacidad</div>
-                <div class="info-value">${sede.capacidad} vehículos</div>
+
+            <div class="cliente-modal-sede-item">
+                <div class="cliente-modal-sede-label">🚗 Capacidad</div>
+                <div class="cliente-modal-sede-value">${sede.capacidad} vehículos</div>
             </div>
-            <div class="info-item">
-                <div class="info-label">📍 Localidad</div>
-                <div class="info-value">${sede.localidad || 'N/A'}</div>
+
+            <div class="cliente-modal-sede-item">
+                <div class="cliente-modal-sede-label">📍 Localidad</div>
+                <div class="cliente-modal-sede-value">${sede.localidad || 'N/A'}</div>
             </div>
-            <div class="info-item info-full">
-                <div class="info-label">🏘️ Barrio</div>
-                <div class="info-value">${sede.barrio || 'No especificado'}</div>
+
+            <div class="cliente-modal-sede-item cliente-modal-sede-full">
+                <div class="cliente-modal-sede-label">🏘️ Barrio</div>
+                <div class="cliente-modal-sede-value">${sede.barrio || 'No especificado'}</div>
             </div>
-            <div class="info-item info-full">
-                <div class="info-label">📌 Dirección</div>
-                <div class="info-value">${sede.direccion}</div>
+
+            <div class="cliente-modal-sede-item cliente-modal-sede-full">
+                <div class="cliente-modal-sede-label">📌 Dirección</div>
+                <div class="cliente-modal-sede-value">${sede.direccion}</div>
             </div>
-            <div class="info-item info-full">
-                <div class="info-label">💰 Tarifas</div>
-                <div class="info-value" style="line-height: 1.8;">
-                    <strong>🚗 Carros:</strong><br>
+
+            <div class="cliente-modal-sede-item cliente-modal-sede-full">
+                <div class="cliente-modal-sede-label">💰 Tarifas</div>
+                <div class="cliente-modal-sede-value cliente-modal-sede-tarifas">
+                    <strong>🚗 Carros:</strong>
                     • Hora plena: $${(sede.tarifaPlenaC || 0).toLocaleString('es-CO')} COP<br>
                     • Por minuto: $${(sede.tarifaMinutoC || 0).toLocaleString('es-CO')} COP<br>
-                    <br>
-                    <strong>🏍️ Motos:</strong><br>
+                    <strong>🏍️ Motos:</strong>
                     • Hora plena: $${(sede.tarifaPlenaM || 0).toLocaleString('es-CO')} COP<br>
                     • Por minuto: $${(sede.tarifaMinutoM || 0).toLocaleString('es-CO')} COP
                 </div>
             </div>
-            <div class="info-item info-full">
-                <div class="info-label">🕐 Horario</div>
-                <div class="info-value">${sede.horarioSede || 'No especificado'}</div>
+
+            <div class="cliente-modal-sede-item cliente-modal-sede-full">
+                <div class="cliente-modal-sede-label">🕐 Horario</div>
+                <div class="cliente-modal-sede-value">${sede.horarioSede || 'No especificado'}</div>
             </div>
+
         </div>
-        <div style="margin-top:1.5rem;display:flex;gap:1rem;justify-content:flex-end">
-            <button onclick="abrirModalReserva()" style="background:#00BFFF;color:white;padding:0.75rem 1.5rem;border:none;border-radius:0.5rem;cursor:pointer;font-weight:600">Reservar Ahora</button>
-            <button onclick="cerrarModalSede()" style="background:#64748b;color:white;padding:0.75rem 1.5rem;border:none;border-radius:0.5rem;cursor:pointer;font-weight:600">Cerrar</button>
+
+        <div class="cliente-modal-sede-actions">
+            <button onclick="abrirModalReserva()" class="cli-btn-confirm">
+                Reservar Ahora
+            </button>
+            <button onclick="cerrarModalSede()" class="cliente-modal-sede-btn-cerrar">
+                Cerrar
+            </button>
         </div>
     `;
 
-    document.getElementById('modalSede').classList.add('show');
+    const modal = document.getElementById('modalSede');
+    modal.classList.add('show');
+    modal.setAttribute('aria-hidden', 'false');
 }
 
 function cerrarModalSede() {
-    document.getElementById('modalSede').classList.remove('show');
+    const modal = document.getElementById('modalSede');
+    modal.classList.remove('show');
+    modal.setAttribute('aria-hidden', 'true');
 }
+
+window.closeModalSede    = cerrarModalSede;
+window.closeReservaModal = cerrarReservaModal;
 
 // ============================================
 // MODAL DE RESERVA
@@ -587,19 +618,23 @@ function abrirModalReserva() {
     document.getElementById('fechaFin').value = '';
     document.getElementById('placa').value = '';
 
-    document.getElementById('reservaModal').classList.add('show');
+    const modal = document.getElementById('reservaModal');
+    modal.classList.add('show');
+    modal.setAttribute('aria-hidden', 'false');
 
     document.getElementById('reservarBtn').onclick = crearReserva;
 }
 
 function cerrarReservaModal() {
-    document.getElementById('reservaModal').classList.remove('show');
+    const modal = document.getElementById('reservaModal');
+    modal.classList.remove('show');
+    modal.setAttribute('aria-hidden', 'true');
 }
 
 async function crearReserva() {
     const fechaInicio = document.getElementById('fechaInicio').value;
-    const fechaFin = document.getElementById('fechaFin').value;
-    const placa = document.getElementById('placa').value.trim().toUpperCase();
+    const fechaFin    = document.getElementById('fechaFin').value;
+    const placa       = document.getElementById('placa').value.trim().toUpperCase();
 
     if (!fechaInicio || !fechaFin || !placa) {
         alert('Por favor, completa todos los campos');
@@ -612,7 +647,6 @@ async function crearReserva() {
     }
 
     try {
-        // Obtener cupos
         const cuposRes = await fetch(`/api/cupos/sede/${sedeSeleccionada.idSede}`);
         if (!cuposRes.ok) {
             alert('No hay cupos disponibles');
@@ -625,19 +659,18 @@ async function crearReserva() {
             return;
         }
 
-        // Crear reserva
         const reservaData = {
-            cliente: { idUsuario: ID_USUARIO_ACTUAL },
-            cupoId: cupos[0].idCupo,
-            placa: placa,
+            cliente:     { idUsuario: ID_USUARIO_ACTUAL },
+            cupoId:      cupos[0].idCupo,
+            placa:       placa,
             fechaInicio: fechaInicio,
-            fechaFin: fechaFin
+            fechaFin:    fechaFin
         };
 
         const response = await fetch('/api/reservaciones', {
-            method: 'POST',
+            method:  'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(reservaData)
+            body:    JSON.stringify(reservaData)
         });
 
         if (response.ok) {
@@ -699,20 +732,22 @@ function actualizarTablaPagos(pagos) {
                 estadoBadge = '<span style="background:#06b6d4;color:white;padding:4px 12px;border-radius:12px;font-size:0.85rem;font-weight:600;">↩ Reembolsado</span>';
                 break;
             default:
-                estadoBadge = <span style="background:#94a3b8;color:white;padding:4px 12px;border-radius:12px;font-size:0.85rem;font-weight:600;">${pago.estado}</span>;
+                estadoBadge = `<span style="background:#94a3b8;color:white;padding:4px 12px;border-radius:12px;font-size:0.85rem;font-weight:600;">${pago.estado}</span>`;
         }
+
         row.innerHTML = `
-        <td>${fechaPago.toLocaleDateString('es-CO')}</td>
-        <td>Reserva #${pago.reservacion.idReserva}</td>
-        <td>$${pago.monto.toLocaleString('es-CO')} COP</td>
-        <td>${pago.metodoPago || 'N/A'}</td>
-        <td>${estadoBadge}</td>
-    `;
+            <td>${fechaPago.toLocaleDateString('es-CO')}</td>
+            <td>Reserva #${pago.reservacion.idReserva}</td>
+            <td>$${pago.monto.toLocaleString('es-CO')} COP</td>
+            <td>${pago.metodoPago || 'N/A'}</td>
+            <td>${estadoBadge}</td>
+        `;
         tbody.appendChild(row);
     });
 }
-// Cerrar modales al hacer clic fuera
+
+// Cerrar modales al hacer clic en el overlay
 document.addEventListener('click', (e) => {
-    if (e.target.id === 'modalSede') cerrarModalSede();
+    if (e.target.id === 'modalSede')    cerrarModalSede();
     if (e.target.id === 'reservaModal') cerrarReservaModal();
 });

@@ -1,101 +1,52 @@
 <!DOCTYPE html>
-<!-- data-theme="light" → atributo de DaisyUI que fuerza el tema claro.
-     Sin esto DaisyUI aplica el tema oscuro del SO del usuario,
-     cambiando los colores de .btn, .input, .checkbox, etc. -->
-<html lang="es" data-theme="light">
+<html lang="es"
+      data-theme="light"
+      xmlns:th="http://www.thymeleaf.org">
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>Inicio de Sesión - Aparca Ya</title>
 
-    <!-- =====================================================
-         LIBRERÍAS EXTERNAS — Orden de carga crítico:
-         1. Tailwind  → clases utilitarias base
-         2. DaisyUI   → componentes sobre Tailwind
-         3. login.css → nuestros estilos al final
-                        para tener prioridad sobre frameworks
-         ===================================================== -->
-
-    <!-- Tailwind CSS: provee clases como bg-gradient-to-br,
-         min-h-screen, flex, items-center, justify-center,
-         p-6, w-full, max-w-md, rounded-lg, shadow-lg,
-         text-center, text-3xl, font-bold, space-y-6, etc. -->
     <script src="https://cdn.tailwindcss.com"></script>
 
-    <!-- DaisyUI: provee componentes preconstruidos:
-         .input .input-bordered → campo de texto con borde
-         .btn .btn-primary .btn-block → botones con estilo
-         .checkbox .checkbox-primary → checkbox estilizado
-         .link .link-primary → enlace con color primario
-         .divider → línea divisoria con texto central -->
     <link href="https://cdn.jsdelivr.net/npm/daisyui@4.12.10/dist/full.min.css"
           rel="stylesheet" />
 
-    <!-- CSS propio del módulo login.
-         CAMBIO: el <style> inline fue eliminado y movido aquí.
-         Ruta en minúsculas para Spring Boot en Linux -->
-    <link rel="stylesheet" href="/Css/Login.css">
+    <link rel="stylesheet" href="/css/base/aparca-animations.css" />
+    <link rel="stylesheet" href="/css/components/aparca-components.css" />
+    <link rel="stylesheet" href="/css/pages/login.css" />
 </head>
 
-<!-- bg-gradient-to-br from-blue-50 to-white → Tailwind:
-     gradiente diagonal de azul muy claro a blanco
-     min-h-screen → Tailwind: mínimo la altura completa de la pantalla
-     flex items-center justify-center → Tailwind: centra la tarjeta
-     vertical y horizontalmente en toda la pantalla
-     p-6 → Tailwind: padding de 24px en todos lados -->
 <body class="bg-gradient-to-br from-blue-50 to-white
              min-h-screen flex items-center justify-center p-6">
 
-<!-- =====================================================
-     TARJETA DEL FORMULARIO DE LOGIN
-     Contenedor blanco centrado con el formulario completo
-     w-full max-w-md → Tailwind: ancho completo con máximo 448px
-     bg-white rounded-lg shadow-lg → Tailwind: fondo blanco,
-     esquinas redondeadas, sombra pronunciada
-     p-8 → Tailwind: padding interior de 32px
-     animate-fade-in-up → login.css: animación de entrada
-     ===================================================== -->
+
+<!-- TARJETA DEL FORMULARIO -->
 <section class="w-full max-w-md bg-white rounded-lg shadow-lg p-8 animate-fade-in-up"
          aria-label="Formulario de inicio de sesión">
 
-    <!-- Logo de la aplicación centrado -->
     <header class="flex justify-center mb-6">
-        <!-- SVG del ícono de usuario de AparcaYA
-             h-16 w-16 → Tailwind: 64×64px
-             text-blue-600 → Tailwind: color azul para el stroke -->
         <svg xmlns="http://www.w3.org/2000/svg"
              class="h-16 w-16 text-blue-600"
              fill="none" viewBox="0 0 24 24"
              stroke="currentColor" stroke-width="1.5"
              aria-hidden="true">
-            <!-- Cabeza del ícono de persona -->
             <path stroke-linecap="round" stroke-linejoin="round"
                   d="M15.75 6a3.75 3.75 0 11-7.5 0 3.75 3.75 0 017.5 0z" />
-            <!-- Cuerpo/silueta del ícono de persona -->
             <path stroke-linecap="round" stroke-linejoin="round"
                   d="M4.5 20.118a7.5 7.5 0 0115 0c0-2-3-4.5-7.5-4.5S4.5 18.118 4.5 20.118z" />
         </svg>
     </header>
 
-    <!-- Título principal de la página
-         text-3xl font-bold text-blue-900 → Tailwind: tamaño, negrita, azul oscuro
-         text-center mb-2 → Tailwind: centrado y margen inferior pequeño -->
     <h1 class="text-3xl font-bold text-blue-900 text-center mb-2">
         Inicio de Sesión
     </h1>
 
-    <!-- Subtítulo descriptivo
-         text-blue-600 → Tailwind: azul medio
-         text-center mb-8 → Tailwind: centrado y margen inferior grande -->
     <p class="text-blue-600 text-center mb-8">
         Accede a tu cuenta para gestionar tus reservas y más
     </p>
 
-    <!-- Mensaje de credenciales incorrectas
-         Solo se muestra cuando Spring Security redirige a /login?error
-         loginD.js detecta el parámetro ?error y quita .hidden
-         error-message → login.css: texto rojo pequeño
-         hidden → Tailwind: display:none por defecto -->
+    <!-- Mensaje de credenciales incorrectas (Spring Security ?error) -->
     <div id="error-msg"
          class="error-message text-center mb-4 hidden"
          role="alert"
@@ -103,31 +54,17 @@
         Correo o contraseña incorrectos.
     </div>
 
-    <!-- =====================================================
-         FORMULARIO DE LOGIN
-         action="/login" → Spring Security intercepta esta ruta
-         method="post" → POST para no exponer datos en la URL
-         novalidate → desactiva la validación nativa del navegador
-                      porque loginD.js hace su propia validación
-         space-y-6 → Tailwind: espaciado vertical de 24px entre hijos
-         ===================================================== -->
+
+    <!-- FORMULARIO DE LOGIN -->
     <form action="/login" method="post" novalidate
           class="space-y-6" id="login-form">
 
-        <!-- ===== CAMPO: CORREO ELECTRÓNICO ===== -->
+        <!-- Campo correo -->
         <div>
-            <!-- block → Tailwind: la etiqueta ocupa toda la fila
-                 text-sm font-medium text-blue-800 → Tailwind: estilo del label -->
             <label for="correo"
                    class="block text-sm font-medium text-blue-800">
                 Correo electrónico
             </label>
-
-            <!-- input input-bordered → DaisyUI: campo de texto con borde
-                 w-full → Tailwind: ancho completo
-                 border-blue-300 focus:border-blue-500 → Tailwind: colores del borde
-                 name="username" → Spring Security espera este nombre exacto
-                 (no "correo" ni "email") para autenticar -->
             <input type="email"
                    name="username"
                    id="correo"
@@ -137,10 +74,6 @@
                    class="input input-bordered w-full border-blue-300
                           focus:border-blue-500 focus:ring-blue-500"
                    aria-describedby="correo-error" />
-
-            <!-- Mensaje de error del campo correo
-                 hidden → oculto por defecto, loginD.js lo muestra si falla la validación
-                 error-message → login.css: color rojo y tamaño pequeño -->
             <div id="correo-error"
                  class="error-message hidden"
                  role="alert"
@@ -149,19 +82,12 @@
             </div>
         </div>
 
-
-        <!-- ===== CAMPO: CONTRASEÑA ===== -->
-        <!-- relative → Tailwind: necesario para que el ícono del ojo
-             (position:absolute en login.css) se posicione dentro de este div -->
+        <!-- Campo contraseña -->
         <div class="relative">
             <label for="contrasena"
                    class="block text-sm font-medium text-blue-800">
                 Contraseña
             </label>
-
-            <!-- pr-10 → Tailwind: padding-right de 40px para que el texto
-                 no quede tapado por el ícono del ojo (10px del ícono + padding)
-                 name="password" → Spring Security espera este nombre exacto -->
             <input type="password"
                    name="password"
                    id="contrasena"
@@ -172,11 +98,6 @@
                           focus:border-blue-500 focus:ring-blue-500 pr-10"
                    aria-describedby="contrasena-error" />
 
-            <!-- Ícono del ojo para mostrar/ocultar contraseña
-                 id="toggle-password" → loginD.js escucha el clic en este elemento
-                 password-toggle → login.css: position:absolute, centrado vertical,
-                 alineado a la derecha del campo
-                 h-5 w-5 text-blue-600 → Tailwind: 20×20px, color azul -->
             <svg id="toggle-password"
                  xmlns="http://www.w3.org/2000/svg"
                  class="h-5 w-5 text-blue-600 password-toggle"
@@ -185,17 +106,14 @@
                  role="button"
                  aria-label="Mostrar u ocultar contraseña"
                  tabindex="0">
-                <!-- Pupila del ojo -->
                 <path stroke-linecap="round" stroke-linejoin="round"
                       d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-                <!-- Contorno del ojo -->
                 <path stroke-linecap="round" stroke-linejoin="round"
                       d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943
                       9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943
                       -9.542-7z" />
             </svg>
 
-            <!-- Mensaje de error del campo contraseña -->
             <div id="contrasena-error"
                  class="error-message hidden"
                  role="alert"
@@ -204,52 +122,32 @@
             </div>
         </div>
 
-
-        <!-- ===== CHECKBOX: TÉRMINOS Y CONDICIONES ===== -->
-        <!-- flex items-center → Tailwind: checkbox y label en fila, centrados -->
+        <!-- Checkbox términos -->
         <div class="flex items-center">
-            <!-- checkbox checkbox-primary → DaisyUI: checkbox con color primario
-                 mr-2 → Tailwind: margen derecho entre checkbox y label -->
             <input type="checkbox"
                    id="terms"
                    name="aceptaTerminos"
                    class="checkbox checkbox-primary mr-2"
                    aria-describedby="terms-error" />
-            <!-- select-none → Tailwind: impide seleccionar el texto al hacer clic rápido
-                 cursor-pointer → Tailwind: cursor de mano para indicar que es clickeable -->
             <label for="terms"
                    class="text-sm text-blue-700 select-none cursor-pointer">
                 Acepto los términos y condiciones
             </label>
         </div>
-
-        <!-- Mensaje de error del checkbox (inicialmente vacío)
-             loginD.js escribe el texto y quita .hidden si no está marcado -->
         <div id="terms-error"
              class="error-message hidden"
              role="alert"
              aria-live="polite">
         </div>
 
-
-        <!-- ===== BOTÓN INICIAR SESIÓN ===== -->
-        <!-- btn btn-primary → DaisyUI: botón con color primario
-             btn-block → DaisyUI: ancho completo del contenedor
-             btn-pulse → login.css: animación de escala suave (login-pulse)
-             NOTA: .btn-pulse estaba definido en el HTML original pero
-             el @keyframes no existía → ahora está correctamente en login.css -->
+        <!-- Botón submit -->
         <button type="submit"
                 class="btn btn-primary btn-block btn-pulse">
             Iniciar Sesión
         </button>
 
-
-        <!-- ===== LINK: ¿OLVIDASTE TU CONTRASEÑA? ===== -->
-        <!-- text-center mt-4 → Tailwind: centrado con margen superior -->
+        <!-- Link recuperar contraseña -->
         <div class="text-center mt-4">
-            <!-- link link-primary → DaisyUI: enlace con el color primario
-                 hover:underline → Tailwind: subrayado al pasar el mouse
-                 loginD.js escucha el clic en este link para abrir el modal -->
             <a href="#"
                id="forgot-password-link"
                class="link link-primary hover:underline">
@@ -257,14 +155,9 @@
             </a>
         </div>
 
-
-        <!-- ===== DIVISOR ===== -->
-        <!-- divider → DaisyUI: línea horizontal con texto centrado
-             mt-6 mb-1 → Tailwind: márgenes superior e inferior -->
         <div class="divider mt-6 mb-1">O</div>
 
-
-        <!-- ===== BOTÓN CREAR CUENTA ===== -->
+        <!-- Link crear cuenta -->
         <div class="text-center">
             <a href="/registro"
                class="btn btn-primary w-full">
@@ -275,138 +168,11 @@
 </section>
 
 
-<!-- =====================================================
-     MODAL DE RECUPERACIÓN DE CONTRASEÑA
-     Flujo de 2 pasos:
-     Paso 1 → el usuario ingresa su email
-     Paso 2 → el usuario ingresa el token + nueva contraseña
+<!-- Modal recuperación de contraseña -->
+<div th:replace="modals/login-modal-recuperar :: modal"></div>
 
-     CAMBIO CRÍTICO: era class="modal" (nombre de DaisyUI)
-     AHORA: class="login-modal" (nombre propio, sin conflicto)
-
-     CAMBIO: era class="modal-box" → ahora class="login-modal-box"
-     CAMBIO: era class="modal-action" → ahora class="login-modal-action"
-
-     Estado activo: loginD.js agrega .login-modal-open
-     (antes era .modal-open que es el nombre de DaisyUI legado)
-     ===================================================== -->
-<div id="forgot-password-modal"
-     class="login-modal"
-     role="dialog"
-     aria-modal="true"
-     aria-labelledby="modal-titulo">
-
-    <!-- Cuadro blanco del contenido del modal -->
-    <div class="login-modal-box">
-
-        <!-- Título del modal -->
-        <h3 class="font-bold text-lg text-blue-900 mb-2"
-            id="modal-titulo">
-            Recuperar Contraseña
-        </h3>
-
-
-        <!-- ===== PASO 1: Ingresar email ===== -->
-        <!-- py-4 → Tailwind: padding vertical
-             Sin .hidden → visible por defecto al abrir el modal -->
-        <div id="step-1" class="py-4">
-
-            <p class="mb-4 text-gray-600">
-                Ingresa tu correo electrónico para recibir un token de recuperación.
-            </p>
-
-            <!-- input input-bordered → DaisyUI: campo de texto
-                 w-full mb-2 → Tailwind: ancho completo y margen inferior -->
-            <input type="email"
-                   id="reset-email"
-                   placeholder="tu@ejemplo.com"
-                   class="input input-bordered w-full mb-2"
-                   autocomplete="email"
-                   aria-label="Correo para recuperación de contraseña" />
-
-            <!-- Error del campo email del modal -->
-            <div id="reset-email-error"
-                 class="error-message hidden"
-                 role="alert"
-                 aria-live="polite">
-                Correo inválido.
-            </div>
-
-            <!-- btn btn-primary → DaisyUI: botón azul
-                 loginD.js escucha el clic para enviar la petición -->
-            <button id="send-token-btn"
-                    class="btn btn-primary w-full mt-2"
-                    type="button">
-                Enviar Token
-            </button>
-        </div>
-
-
-        <!-- ===== PASO 2: Ingresar token + nueva contraseña ===== -->
-        <!-- hidden → Tailwind: oculto por defecto.
-             loginD.js lo muestra al completar el paso 1 -->
-        <div id="step-2" class="py-4 hidden">
-
-            <p class="mb-4 text-gray-600">
-                Ingresa el token recibido y tu nueva contraseña.
-            </p>
-
-            <!-- maxlength="8" → HTML: limita el token a 8 caracteres -->
-            <input type="text"
-                   id="reset-token"
-                   placeholder="Token de 8 caracteres"
-                   maxlength="8"
-                   class="input input-bordered w-full mb-2"
-                   autocomplete="off"
-                   aria-label="Token de recuperación" />
-
-            <input type="password"
-                   id="new-password"
-                   placeholder="Nueva contraseña"
-                   class="input input-bordered w-full mb-2"
-                   autocomplete="new-password"
-                   aria-label="Nueva contraseña" />
-
-            <input type="password"
-                   id="confirm-password"
-                   placeholder="Confirmar contraseña"
-                   class="input input-bordered w-full mb-2"
-                   autocomplete="new-password"
-                   aria-label="Confirmar nueva contraseña" />
-
-            <!-- Error del paso 2 (token inválido, contraseñas no coinciden, etc.) -->
-            <div id="reset-error"
-                 class="error-message hidden"
-                 role="alert"
-                 aria-live="polite">
-                Error en la recuperación.
-            </div>
-
-            <button id="reset-password-btn"
-                    class="btn btn-primary w-full mt-2"
-                    type="button">
-                Actualizar Contraseña
-            </button>
-        </div>
-
-
-        <!-- ===== BOTÓN CERRAR DEL MODAL ===== -->
-        <!-- CAMBIO: era class="modal-action" → ahora class="login-modal-action"
-             login-modal-action → login.css: flex, justify-end, border-top -->
-        <div class="login-modal-action">
-            <!-- btn → DaisyUI: botón gris por defecto (sin modificadores de color)
-                 loginD.js escucha el clic para cerrar el modal -->
-            <button id="close-modal"
-                    class="btn"
-                    type="button"
-                    aria-label="Cerrar modal de recuperación">
-                Cerrar
-            </button>
-        </div>
-    </div>
-</div>
-
-<script src="/Script/Login.js"></script>
+<!-- ✅ RUTA CORREGIDA: /Script/loginD.js → /js/loginD.js -->
+<script src="/js/loginD.js"></script>
 
 </body>
 </html>

@@ -1,0 +1,84 @@
+/* ============================================================
+   ADMIN-MODAL-EDITAR-USUARIO.CSS
+   Ruta: static/css/modals/admin-modal-editar-usuario.css
+
+   MODAL: #modal_editar_usuario
+   TIPO: DaisyUI <dialog> — clases .modal, .modal-box,
+         .modal-action, .modal-backdrop son de DaisyUI,
+         NO se redefinen aquí.
+
+   ESTE ARCHIVO solo agrega estilos propios del admin
+   que no cubren ni aparca-components.css ni admin.css.
+
+   PREFIJO OBLIGATORIO: admin-modal-usuario-
+   ============================================================ */
+
+
+/* ------------------------------------------------------------
+   1. ICONO DEL ENCABEZADO
+   El contenedor bg-primary/10 es clase de Tailwind.
+   Este override aplica el color del admin.
+   ------------------------------------------------------------ */
+#modal_editar_usuario .bg-primary\/10 {
+    background-color: rgba(30, 58, 138, 0.1); /* navy admin al 10% */
+}
+
+#modal_editar_usuario .text-primary {
+    color: #1e3a8a; /* navy admin */
+}
+
+
+/* ------------------------------------------------------------
+   2. BOTÓN GUARDAR — override del btn-primary de DaisyUI
+   DaisyUI usa la variable CSS --p para el color primario.
+   En el admin el primario es navy, pero si el tema DaisyUI
+   no coincide, este override lo garantiza.
+   ------------------------------------------------------------ */
+#modal_editar_usuario .btn-primary {
+    background-color: #1e40af;
+    border-color: #1e40af;
+    color: white;
+}
+
+#modal_editar_usuario .btn-primary:hover {
+    background-color: #1e3a8a;
+    border-color: #1e3a8a;
+}
+
+
+/* ------------------------------------------------------------
+   3. FOCUS DE INPUTS — color de anillo en tono admin
+   DaisyUI aplica su color primario al focus.
+   Este override lo fuerza al azul navy del admin.
+   ------------------------------------------------------------ */
+#modal_editar_usuario .input:focus,
+#modal_editar_usuario .select:focus {
+    outline-color: #1e40af;
+    border-color: #1e40af;
+    box-shadow: 0 0 0 2px rgba(30, 64, 175, 0.2);
+}
+
+
+/* ------------------------------------------------------------
+   4. ALERT INFO — borde izquierdo en tono admin
+   ------------------------------------------------------------ */
+#modal_editar_usuario .alert-info {
+    border-left: 4px solid #1e40af;
+    background-color: #eff6ff;
+    color: #1e3a8a;
+}
+
+
+/* ------------------------------------------------------------
+   5. RESPONSIVE — ajuste del modal en móvil
+   ------------------------------------------------------------ */
+@media (max-width: 768px) {
+    #modal_editar_usuario .modal-box {
+        width: 95%;
+        padding: 1rem;
+    }
+
+    #modal_editar_usuario .grid-cols-2 {
+        grid-template-columns: 1fr;
+    }
+}

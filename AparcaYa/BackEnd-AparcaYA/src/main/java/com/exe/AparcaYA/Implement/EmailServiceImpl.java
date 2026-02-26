@@ -1,44 +1,32 @@
 package com.exe.AparcaYA.Implement;
 
-
 import com.exe.AparcaYA.Service.IEmailService;
-import jakarta.mail.*;
-import jakarta.mail.internet.InternetAddress;
+import jakarta.mail.MessagingException;
 import jakarta.mail.internet.MimeMessage;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.mail.javamail.JavaMailSender;
+import org.springframework.mail.javamail.MimeMessageHelper;
 import org.springframework.stereotype.Service;
 import org.thymeleaf.TemplateEngine;
 import org.thymeleaf.context.Context;
 
-import jakarta.mail.*;                    // ← CAMBIAR a jakarta
-import jakarta.mail.internet.*;
-import java.util.*;
+import java.util.List;
 
 @Service
 public class EmailServiceImpl implements IEmailService {
 
+    // ✅ CAMBIO #10: JavaMailSender inyectado — Spring Boot lo autoconfigura
+    // con spring.mail.* de application.properties. Eliminada la sesión manual.
+    @Autowired
+    private JavaMailSender mailSender;
+
     @Autowired
     private TemplateEngine templateEngine;
 
-    private final String remitente = "aparcaya.parkingtech@gmail.com";
-    private final String password = "bnsw wtcn zqjh dunq";
-
-    private Properties getMailProperties() {
-        Properties props = new Properties();
-        props.put("mail.smtp.auth", "true");
-        props.put("mail.smtp.starttls.enable", "true");
-        props.put("mail.smtp.host", "smtp.gmail.com");
-        props.put("mail.smtp.port", "587");
-        return props;
-    }
-
-    private Session getMailSession() {
-        return Session.getInstance(getMailProperties(), new Authenticator() {
-            protected PasswordAuthentication getPasswordAuthentication() {
-                return new PasswordAuthentication(remitente, password);
-            }
-        });
-    }
+    // ✅ CAMBIO 3 (anterior): Credencial leída desde application.properties
+    @Value("${spring.mail.username}")
+    private String remitente;
 
     /**
      * Procesar plantilla HTML con Thymeleaf
@@ -47,40 +35,44 @@ public class EmailServiceImpl implements IEmailService {
         Context context = new Context();
         context.setVariable("asunto", asunto);
         context.setVariable("mensaje", mensaje.replace("\n", "<br>"));
-
         return templateEngine.process("emails/plantilla-estandar", context);
     }
 
     @Override
-    public void enviarCorreoUnitario(String destinatario, String asunto, String mensaje) throws MessagingException {
+    public void enviarCorreoUnitario(String destinatario, String asunto, String mensaje)
+            throws MessagingException {
+
         String htmlContent = procesarPlantilla(asunto, mensaje);
 
-        MimeMessage mimeMessage = new MimeMessage(getMailSession());
-        mimeMessage.setFrom(new InternetAddress(remitente));
-        mimeMessage.setRecipients(Message.RecipientType.TO, InternetAddress.parse(destinatario));
-        mimeMessage.setSubject(asunto);
-        mimeMessage.setContent(htmlContent, "text/html; charset=utf-8");
+        MimeMessage mimeMessage = mailSender.createMimeMessage();
+        MimeMessageHelper helper = new MimeMessageHelper(mimeMessage, true, "UTF-8");
 
-        Transport.send(mimeMessage);
+        helper.setFrom(remitente);
+        helper.setTo(destinatario);
+        helper.setSubject(asunto);
+        helper.setText(htmlContent, true); // true = es HTML
+
+        mailSender.send(mimeMessage);
     }
 
     @Override
-    public void enviarCorreoMasivo(List<String> destinatarios, String asunto, String mensaje) throws MessagingException {
+    public void enviarCorreoMasivo(List<String> destinatarios, String asunto, String mensaje)
+            throws MessagingException {
+
         String htmlContent = procesarPlantilla(asunto, mensaje);
 
-        MimeMessage mimeMessage = new MimeMessage(getMailSession());
-        mimeMessage.setFrom(new InternetAddress(remitente));
+        MimeMessage mimeMessage = mailSender.createMimeMessage();
+        MimeMessageHelper helper = new MimeMessageHelper(mimeMessage, true, "UTF-8");
 
-        // El remitente como TO (para que no aparezca vacío)
-        mimeMessage.setRecipients(Message.RecipientType.TO, InternetAddress.parse(remitente));
+        helper.setFrom(remitente);
+        helper.setTo(remitente); // TO: remitente (no aparece vacío)
 
-        // Todos los destinatarios en BCC (ocultos)
-        String destinatariosStr = String.join(",", destinatarios);
-        mimeMessage.setRecipients(Message.RecipientType.BCC, InternetAddress.parse(destinatariosStr));
+        // BCC: todos los destinatarios ocultos — mismo comportamiento que antes
+        helper.setBcc(destinatarios.toArray(new String[0]));
 
-        mimeMessage.setSubject(asunto);
-        mimeMessage.setContent(htmlContent, "text/html; charset=utf-8");
+        helper.setSubject(asunto);
+        helper.setText(htmlContent, true);
 
-        Transport.send(mimeMessage);
+        mailSender.send(mimeMessage);
     }
 }

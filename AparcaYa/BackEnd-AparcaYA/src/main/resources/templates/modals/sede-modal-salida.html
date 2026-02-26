@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<!--
+    FRAGMENTO: sede-modal-salida
+    Uso: <div th:replace="modals/sede-modal-salida :: modal"></div>
+    Tipo: DIV propio con .sede-modal-dinamico (sede-modal-dinamico.css)
+    Abre:   abrirModalSalida(registroId) → estilo display:block + visibility:visible
+    Cierra: cerrarModalSalida()          → estilo display:none
+
+    CAMBIO desde JS original:
+      - .modal     → .sede-modal-dinamico
+      - .modal-content  → .sede-modal-dinamico-content
+      - .modal-header   → .sede-modal-dinamico-header
+      - .close          → .sede-modal-dinamico-close
+
+    Sin JS embebido. Sin estilos inline.
+    Estilos propios en /css/modals/sede-modal-dinamico.css
+-->
+<body>
+<th:block th:fragment="modal">
+
+    <div id="salidaModal"
+         class="sede-modal-dinamico"
+         role="dialog"
+         aria-modal="true"
+         aria-labelledby="salidaModalTitulo"
+         aria-hidden="true">
+
+        <div class="sede-modal-dinamico-content">
+
+            <div class="sede-modal-dinamico-header">
+                <h2 id="salidaModalTitulo">🚪 Registrar Salida</h2>
+                <span class="sede-modal-dinamico-close"
+                      onclick="cerrarModalSalida()"
+                      role="button"
+                      tabindex="0"
+                      aria-label="Cerrar modal">
+                    &times;
+                </span>
+            </div>
+
+            <div class="sede-modal-dinamico-body">
+
+                <div class="sede-modal-salida-row">
+                    <strong>Placa:</strong>
+                    <span id="salidaPlaca"></span>
+                </div>
+
+                <div class="sede-modal-salida-row">
+                    <strong>Cliente:</strong>
+                    <span id="salidaCliente"></span>
+                </div>
+
+                <div class="sede-modal-salida-row">
+                    <strong>Hora Entrada:</strong>
+                    <span id="salidaHoraEntrada"></span>
+                </div>
+
+                <div class="sede-modal-salida-row">
+                    <strong>Tiempo:</strong>
+                    <span id="salidaTiempo"></span>
+                </div>
+
+                <div class="sede-modal-salida-row">
+                    <strong>Cobro Estimado:</strong>
+                    <div id="salidaCobroEstimado"></div>
+                </div>
+
+                <div class="sede-modal-dinamico-actions">
+                    <button class="sede-btn-success"
+                            onclick="confirmarSalida()"
+                            type="button">
+                        ✅ Confirmar Salida
+                    </button>
+                    <button class="sede-btn-secondary"
+                            onclick="cerrarModalSalida()"
+                            type="button">
+                        ❌ Cancelar
+                    </button>
+                </div>
+
+            </div>
+        </div>
+    </div>
+
+</th:block>
+</body>
+</html>

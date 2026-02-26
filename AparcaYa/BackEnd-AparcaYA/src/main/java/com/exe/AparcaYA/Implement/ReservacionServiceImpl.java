@@ -28,12 +28,14 @@ public class ReservacionServiceImpl implements ReservacionService {
 
     @Override
     public Optional<Reservacion> findById(Long id) {
-        return reservacionRepository.findById(Math.toIntExact(id));
+        // ✅ CAMBIO #9: Eliminado Math.toIntExact(id) — el Repository ahora acepta Long directamente
+        return reservacionRepository.findById(id);
     }
 
     @Override
     public Reservacion update(Reservacion reservacion) {
-        if (reservacionRepository.existsById(Math.toIntExact(reservacion.getIdReserva()))) {
+        // ✅ CAMBIO #9: Eliminado Math.toIntExact() — el Repository ahora acepta Long directamente
+        if (reservacionRepository.existsById(reservacion.getIdReserva())) {
             return reservacionRepository.save(reservacion);
         }
         throw new RuntimeException("Reservación no encontrada");
@@ -41,7 +43,8 @@ public class ReservacionServiceImpl implements ReservacionService {
 
     @Override
     public void delete(Long id) {
-        reservacionRepository.deleteById(Math.toIntExact(id));
+        // ✅ CAMBIO #9: Eliminado Math.toIntExact(id) — el Repository ahora acepta Long directamente
+        reservacionRepository.deleteById(id);
     }
 
     @Override
@@ -51,6 +54,9 @@ public class ReservacionServiceImpl implements ReservacionService {
 
     @Override
     public List<Reservacion> findByEstado(EstadoReservacion estado) {
-        return reservacionRepository.findByEstado(String.valueOf(estado));
+        // ✅ CAMBIO #10: Eliminado String.valueOf(estado)
+        // El Repository recibe String por sus métodos heredados, pero la Entity
+        // usa @Enumerated(EnumType.STRING) así que .name() es equivalente y más explícito
+        return reservacionRepository.findByEstado(estado.name());
     }
 }

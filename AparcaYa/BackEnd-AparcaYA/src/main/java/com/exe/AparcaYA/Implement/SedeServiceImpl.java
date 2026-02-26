@@ -69,8 +69,21 @@ public class SedeServiceImpl implements SedeService {
     public Sede findByIdUsuario(Long idUsuario) {
         List<Sede> sedes = sedeRepository.findByIdUsuario_IdUsuario(idUsuario);
         if (!sedes.isEmpty()) {
-            return sedes.get(0); // Retorna la primera sede encontrada
+            return sedes.get(0);
         }
         return null;
+    }
+
+    // ✅ CAMBIO #2: Lógica de conteo movida desde AdminController
+    @Override
+    public long contarActivas() {
+        return sedeRepository.findAll().stream()
+                .filter(s -> s.getEstado() == EstadoGeneral.ACTIVO)
+                .count();
+    }
+
+    @Override
+    public long contarTotal() {
+        return sedeRepository.count();
     }
 }

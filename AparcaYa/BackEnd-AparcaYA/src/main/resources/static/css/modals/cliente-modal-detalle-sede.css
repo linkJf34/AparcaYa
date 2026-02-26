@@ -1,0 +1,141 @@
+/* ============================================================
+   CLIENTE-MODAL-DETALLE-SEDE.CSS
+   Ruta: static/css/modals/cliente-modal-detalle-sede.css
+
+   MODAL: #modalSede
+   TIPO: DIV propio con .aparca-modal-overlay
+
+   ORIGEN DE LOS ESTILOS:
+   Extraídos del innerHTML de mostrarDetallesSede() en ClienteD.js
+   y de las clases .info-grid/.info-item/.info-full/.info-label/.info-value
+   que estaban en cliente.css sin prefijo correcto.
+
+   PREFIJO OBLIGATORIO: cliente-modal-sede-
+   ============================================================ */
+
+
+/* ------------------------------------------------------------
+   1. HEADER DEL MODAL — color de acento cliente (#00BFFF)
+   ------------------------------------------------------------ */
+#modalSede .aparca-modal-header {
+    background: linear-gradient(135deg, #0284c7, #00BFFF);
+    color: white;
+    border-radius: 1rem 1rem 0 0;
+}
+
+#modalSede .aparca-modal-header h3 {
+    color: white;
+}
+
+#modalSede .aparca-modal-close {
+    color: rgba(255, 255, 255, 0.85);
+}
+
+#modalSede .aparca-modal-close:hover {
+    color: white;
+    background-color: rgba(255, 255, 255, 0.15);
+}
+
+
+/* ------------------------------------------------------------
+   2. INFO GRID — Reemplaza .info-grid/.info-item de cliente.css
+   ------------------------------------------------------------ */
+.cliente-modal-sede-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 1rem;
+}
+
+.cliente-modal-sede-item {
+    padding: 0.75rem;
+    background: #f8fafc;
+    border-radius: 0.5rem;
+    border: 1px solid #e2e8f0;
+}
+
+.cliente-modal-sede-full {
+    grid-column: 1 / -1;
+}
+
+.cliente-modal-sede-label {
+    font-size: 0.875rem;
+    font-weight: 600;
+    color: #64748b;
+    margin-bottom: 0.25rem;
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
+}
+
+.cliente-modal-sede-value {
+    font-size: 1rem;
+    color: #0f172a;
+    font-weight: 500;
+}
+
+
+/* ------------------------------------------------------------
+   3. BLOQUE DE TARIFAS
+   Reemplaza style="line-height: 1.8;" inline del JS original.
+   ------------------------------------------------------------ */
+.cliente-modal-sede-tarifas {
+    line-height: 1.8;
+}
+
+.cliente-modal-sede-tarifas strong {
+    display: block;
+    margin-top: 0.25rem;
+}
+
+
+/* ------------------------------------------------------------
+   4. ÁREA DE ACCIONES
+   Reemplaza style="margin-top:1.5rem;display:flex;gap:1rem;
+   justify-content:flex-end" inline del JS original.
+   ------------------------------------------------------------ */
+.cliente-modal-sede-actions {
+    margin-top: 1.5rem;
+    display: flex;
+    gap: 1rem;
+    justify-content: flex-end;
+    flex-wrap: wrap;
+}
+
+
+/* ------------------------------------------------------------
+   5. BOTÓN CERRAR
+   Reemplaza style="background:#64748b;color:white;..." inline.
+   ------------------------------------------------------------ */
+.cliente-modal-sede-btn-cerrar {
+    background: #64748b;
+    color: white;
+    padding: 0.75rem 1.5rem;
+    border: none;
+    border-radius: 0.5rem;
+    cursor: pointer;
+    font-weight: 600;
+    transition: background-color 0.2s;
+}
+
+.cliente-modal-sede-btn-cerrar:hover {
+    background: #475569;
+}
+
+
+/* ------------------------------------------------------------
+   6. RESPONSIVE
+   ------------------------------------------------------------ */
+@media (max-width: 768px) {
+    .cliente-modal-sede-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .cliente-modal-sede-actions {
+        flex-direction: column;
+    }
+
+    .cliente-modal-sede-actions .cli-btn-confirm,
+    .cliente-modal-sede-btn-cerrar {
+        width: 100%;
+        text-align: center;
+    }
+}

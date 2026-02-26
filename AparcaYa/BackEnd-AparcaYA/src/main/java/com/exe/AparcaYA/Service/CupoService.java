@@ -15,6 +15,10 @@ public interface CupoService {
     void delete(Long id);
     List<Cupo> findBySede_IdSede(Long idSede);
     List<Cupo> findByEstado(EstadoCupo estado);
-
     List<Cupo> findBySedeAndEstado(Sede sede, EstadoCupo estadoCupo);
+
+    // ✅ CAMBIO #6: Creación de cupos extraída del Controller al Service
+    // Antes: bucle for inline en UsuarioController.registrarUsuario()
+    // Ahora: lógica centralizada — reutilizable desde cualquier Controller
+    void crearCuposParaSede(Sede sede);
 }

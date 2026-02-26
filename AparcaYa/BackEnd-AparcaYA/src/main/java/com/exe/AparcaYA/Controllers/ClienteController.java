@@ -11,6 +11,7 @@ import com.exe.AparcaYA.Service.ReservacionService;
 import com.exe.AparcaYA.Service.SedeService;
 import com.exe.AparcaYA.Service.PagoService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -18,6 +19,8 @@ import org.springframework.web.bind.annotation.*;
 
 import jakarta.servlet.http.HttpSession;
 import java.util.List;
+import java.util.Map;
+import java.util.HashMap;
 
 @Controller
 @RequestMapping("/cliente")
@@ -85,7 +88,7 @@ public class ClienteController {
         Long userId = (Long) session.getAttribute("userId");
 
         if (userId == null) {
-            return ResponseEntity.status(401).build();
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
         }
 
         Usuario usuario = usuarioService.findById(userId).orElse(null);
@@ -102,18 +105,24 @@ public class ClienteController {
      */
     @PostMapping("/perfil/actualizar")
     @ResponseBody
-    public ResponseEntity<String> actualizarPerfil(@RequestBody Usuario usuarioActualizado, HttpSession session) {
+    public ResponseEntity<Map<String, Object>> actualizarPerfil(
+            @RequestBody Usuario usuarioActualizado,
+            HttpSession session) {
+
         Long userId = (Long) session.getAttribute("userId");
 
+        // ✅ CAMBIO #2: Reemplazado JSON como String literal por Map<String, Object>
         if (userId == null) {
-            return ResponseEntity.status(401).body("{\"success\": false, \"message\": \"No autenticado\"}");
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                    .body(Map.of("success", false, "message", "No autenticado"));
         }
 
         try {
             Usuario usuario = usuarioService.findById(userId).orElse(null);
 
             if (usuario == null) {
-                return ResponseEntity.status(404).body("{\"success\": false, \"message\": \"Usuario no encontrado\"}");
+                return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                        .body(Map.of("success", false, "message", "Usuario no encontrado"));
             }
 
             if (usuarioActualizado.getNombre() != null) {
@@ -128,9 +137,11 @@ public class ClienteController {
 
             usuarioService.update(usuario);
 
-            return ResponseEntity.ok("{\"success\": true, \"message\": \"Perfil actualizado correctamente\"}");
+            return ResponseEntity.ok(Map.of("success", true, "message", "Perfil actualizado correctamente"));
+
         } catch (Exception e) {
-            return ResponseEntity.status(500).body("{\"success\": false, \"message\": \"" + e.getMessage() + "\"}");
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(Map.of("success", false, "message", e.getMessage()));
         }
     }
 
@@ -143,7 +154,7 @@ public class ClienteController {
         Long userId = (Long) session.getAttribute("userId");
 
         if (userId == null) {
-            return ResponseEntity.status(401).build();
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
         }
 
         List<Reservacion> reservas = reservacionService.findByCliente_IdUsuario(userId);
@@ -155,35 +166,45 @@ public class ClienteController {
      */
     @PostMapping("/reservas/{reservaId}/cancelar")
     @ResponseBody
-    public ResponseEntity<String> cancelarReserva(@PathVariable Long reservaId, HttpSession session) {
+    public ResponseEntity<Map<String, Object>> cancelarReserva(
+            @PathVariable Long reservaId,
+            HttpSession session) {
+
         Long userId = (Long) session.getAttribute("userId");
 
+        // ✅ CAMBIO #3: Reemplazado JSON como String literal por Map<String, Object>
         if (userId == null) {
-            return ResponseEntity.status(401).body("{\"success\": false, \"message\": \"No autenticado\"}");
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                    .body(Map.of("success", false, "message", "No autenticado"));
         }
 
         try {
             Reservacion reserva = reservacionService.findById(reservaId).orElse(null);
 
             if (reserva == null) {
-                return ResponseEntity.status(404).body("{\"success\": false, \"message\": \"Reserva no encontrada\"}");
+                return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                        .body(Map.of("success", false, "message", "Reserva no encontrada"));
             }
 
             if (!reserva.getCliente().getIdUsuario().equals(userId)) {
-                return ResponseEntity.status(403).body("{\"success\": false, \"message\": \"No autorizado\"}");
+                return ResponseEntity.status(HttpStatus.FORBIDDEN)
+                        .body(Map.of("success", false, "message", "No autorizado"));
             }
 
             if (reserva.getEstado() != EstadoReservacion.ACTIVA &&
                     reserva.getEstado() != EstadoReservacion.PENDIENTE) {
-                return ResponseEntity.status(400).body("{\"success\": false, \"message\": \"La reserva no se puede cancelar\"}");
+                return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                        .body(Map.of("success", false, "message", "La reserva no se puede cancelar"));
             }
 
             reserva.setEstado(EstadoReservacion.CANCELADA);
             reservacionService.update(reserva);
 
-            return ResponseEntity.ok("{\"success\": true, \"message\": \"Reserva cancelada correctamente\"}");
+            return ResponseEntity.ok(Map.of("success", true, "message", "Reserva cancelada correctamente"));
+
         } catch (Exception e) {
-            return ResponseEntity.status(500).body("{\"success\": false, \"message\": \"" + e.getMessage() + "\"}");
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(Map.of("success", false, "message", e.getMessage()));
         }
     }
 
@@ -221,7 +242,7 @@ public class ClienteController {
         Long userId = (Long) session.getAttribute("userId");
 
         if (userId == null) {
-            return ResponseEntity.status(401).build();
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
         }
 
         List<Pago> pagos = pagoService.findByCliente_IdUsuario(userId);

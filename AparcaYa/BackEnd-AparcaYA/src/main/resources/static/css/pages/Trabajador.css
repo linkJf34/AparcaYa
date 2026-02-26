@@ -1,818 +1,472 @@
-/* ================================================
-   TRABAJADOR.CSS — AparcaYA
-   Parte 1/3: Layout Base (Sidebar, Header, Dashboard,
-   Tarjetas indicadoras)
-   ================================================
-   REGLA DE ORO: Ninguna clase aquí repite nombres
-   de DaisyUI ni Tailwind. Todo lo que podría
-   chocar lleva el prefijo "trab-" para este módulo.
+/* ============================================================
+   TRABAJADOR.CSS
+   Ruta: static/css/pages/trabajador.css
 
-   CONFLICTOS CORREGIDOS vs versión anterior:
-   ✅ .dropdown-menu     → .trab-dropdown
-   ✅ .modal             → .trab-modal
-   ✅ .modal-content     → .trab-modal-content
-   ✅ .modal-header      → .trab-modal-header
-   ✅ .btn-primary       → .trab-btn-primary
-   ✅ .btn-success       → .trab-btn-success
-   ✅ .btn-danger        → .trab-btn-danger
-   ✅ .btn-warning       → .trab-btn-warning
-   ✅ .btn-info          → .trab-btn-info
-   ✅ .badge             → .trab-badge
-   ✅ .badge-success     → .trab-badge-success
-   ✅ .badge-warning     → .trab-badge-warning
-   ✅ .badge-danger      → .trab-badge-danger
-   ✅ .badge-info        → .trab-badge-info
-   ✅ .form-group        → .trab-form-group
-   ✅ .hidden            → eliminada (Tailwind ya la tiene)
-   ================================================ */
+   PROPÓSITO: Estilos EXCLUSIVOS del Dashboard Trabajador.
+
+   Estructura base (sidebar, header, dashboard-main, dropdown,
+   modal overlay, tabla base) → aparca-components.css
+
+   Aquí solo van overrides y exclusivos del Trabajador:
+   1. Sidebar colores de acento
+   2. Sidebar-header centrado (distinto al Sede)
+   3. Logo-section h1 tamaño reducido
+   4. Content-section padding compacto
+   5. Tarjetas indicadoras del Panel de Control
+   6. Tabla con colores azules (distinto al Sede/Admin)
+   7. Botones trab-btn-*
+   8. Formularios trab-form-group
+   9. Badges trab-badge-*
+   10. Modal propio con animación slideUp
+   11. Utilidades: .tiempo-activo, .card-form, .filter-bar
+   ============================================================ */
 
 
-/* ================================================
-   1. SIDEBAR — Barra lateral izquierda fija
-   ================================================ */
-
-.sidebar {
-    background: #00BFFF;                        /* Color azul principal de AparcaYA */
-    color: white;                               /* Todo el texto del sidebar en blanco */
-    height: 100vh;                              /* Ocupa el 100% de la altura visible de la pantalla */
-    width: 220px;                               /* Ancho fijo de la barra lateral */
-    padding: 2rem 1rem;                         /* Espacio interior: 2rem arriba/abajo, 1rem lados */
-    display: flex;                              /* Flexbox para organizar hijos en columna */
-    flex-direction: column;                     /* Logo arriba, navegación abajo */
-    box-shadow: 2px 0 12px rgba(0, 0, 0, 0.1); /* Sombra suave hacia la derecha */
-    position: fixed;                            /* Se queda fijo aunque el usuario haga scroll */
-    left: 0;                                    /* Pegado al borde izquierdo */
-    top: 0;                                     /* Pegado al borde superior */
-    z-index: 30;                                /* Capa 30: encima del contenido normal */
+/* ------------------------------------------------------------
+   1. SIDEBAR — Colores de acento del Trabajador
+   ------------------------------------------------------------ */
+.trab-sidebar {
+    background: #00BFFF;
+    color: white;
 }
 
-.sidebar-header {
-    text-align: center;                         /* Centra el logo y el título */
-    margin-bottom: 2.5rem;                      /* Espacio entre el header y los links de navegación */
+.trab-sidebar .aparca-sidebar-nav a {
+    color: white;
+    border-radius: 0 0.5rem 0.5rem 0;
 }
 
-.sidebar-header svg {
-    width: 56px;                                /* Ancho del ícono del logo */
-    height: 56px;                               /* Alto del ícono del logo */
-    color: white;                               /* Color del ícono SVG */
-    margin: 0 auto;                             /* Centra el ícono horizontalmente */
-}
-
-.sidebar-header h1 {
-    font-size: 1.75rem;                         /* Tamaño del texto "AparcaYA" */
-    font-weight: 700;                           /* Negrita */
-    letter-spacing: 3px;                        /* Espaciado entre letras para estilo moderno */
-    margin-top: 0.5rem;                         /* Espacio entre el ícono y el texto */
-}
-
-nav.sidebar-nav a {
-    font-weight: 600;                           /* Links en semi-negrita */
-    color: white;                               /* Texto blanco para los links */
-    padding: 0.75rem 0.5rem;                    /* Espacio interior del link */
-    border-left: 4px solid transparent;         /* Borde izquierdo invisible por defecto */
-    display: block;                             /* Cada link ocupa toda la fila */
-    margin-bottom: 0.5rem;                      /* Espacio entre cada link del menú */
-    cursor: pointer;                            /* Cursor de mano al pasar sobre el link */
-    border-radius: 0 0.5rem 0.5rem 0;          /* Esquinas redondeadas solo a la derecha */
-    transition: all 0.2s;                       /* Suaviza todos los cambios visuales */
-    text-decoration: none;                      /* Sin subrayado en los links */
-}
-
-nav.sidebar-nav a.active,                      /* Link activo (sección actual) */
-nav.sidebar-nav a:hover {                      /* Link al pasar el mouse */
-    background-color: rgba(255, 255, 255, 0.25); /* Fondo blanco semitransparente */
-    border-left-color: white;                   /* Línea blanca visible en el borde izquierdo */
+.trab-sidebar .aparca-sidebar-nav a.active,
+.trab-sidebar .aparca-sidebar-nav a:hover {
+    background-color: rgba(255, 255, 255, 0.25);
+    border-left-color: white;
 }
 
 
-/* ================================================
-   2. HEADER — Barra superior fija
-   ================================================ */
-
-header.page-header {
-    position: fixed;                            /* Fijo en la parte superior al hacer scroll */
-    top: 0;                                     /* Pegado al borde superior */
-    left: 220px;                                /* Empieza donde termina el sidebar */
-    right: 0;                                   /* Se extiende hasta el borde derecho */
-    height: 64px;                               /* Altura fija del header */
-    background: white;                          /* Fondo blanco */
-    border-bottom: 1px solid #e2e8f0;           /* Línea gris clara en la parte inferior */
-    display: flex;                              /* Flexbox para alinear logo y perfil */
-    align-items: center;                        /* Centra verticalmente */
-    justify-content: space-between;             /* Logo a la izquierda, perfil a la derecha */
-    padding: 0 1.5rem;                          /* Espacio interior horizontal */
-    z-index: 40;                                /* Capa 40: por encima del sidebar (z-index 30) */
+/* ------------------------------------------------------------
+   2. SIDEBAR-HEADER — Centrado (distinto al Sede que usa columna
+   con display:flex; el trabajador usa text-align:center)
+   ------------------------------------------------------------ */
+.trab-sidebar-header {
+    text-align: center;
+    align-items: center;
 }
 
-.logo-section {
-    display: flex;                              /* Flexbox para alinear ícono y texto */
-    align-items: center;                        /* Centra verticalmente */
-    gap: 0.75rem;                               /* Espacio entre el ícono y el texto */
+.trab-sidebar-header svg {
+    width: 56px;
+    height: 56px;
+    color: white;
+    margin: 0 auto;
+    display: block;
 }
 
-.logo-section svg {
-    color: #00BFFF;                             /* Color azul para el ícono del header */
-    width: 40px;                                /* Tamaño del ícono */
+.trab-sidebar-header h1 {
+    font-size: 1.75rem;
+    letter-spacing: 3px;
+    margin-top: 0.5rem;
+}
+
+
+/* ------------------------------------------------------------
+   3. LOGO-SECTION — Tamaño de h1 reducido (1.5rem vs 1.75rem)
+   ------------------------------------------------------------ */
+.trab-logo-section h1 {
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: #0369a1;
+}
+
+.trab-logo-icon {
+    color: #00BFFF;
+    width: 40px;
     height: 40px;
 }
 
-.logo-section h1 {
-    font-weight: 700;                           /* Negrita */
-    font-size: 1.5rem;                          /* Un poco más pequeño que en el sidebar */
-    color: #0369a1;                             /* Azul oscuro sobre fondo blanco */
+
+/* ------------------------------------------------------------
+   4. PERFIL — Color de hover del dropdown
+   ------------------------------------------------------------ */
+.aparca-profile-btn svg {
+    color: #00BFFF;
+}
+
+.aparca-dropdown button:hover {
+    background-color: #e0f2fe;
+    color: #0284c7;
 }
 
 
-/* ================================================
-   3. MENÚ DE PERFIL (DROPDOWN)
-   Renombrado a .trab-dropdown para no chocar
-   con el .dropdown de DaisyUI
-   ================================================ */
-
-.profile-menu {
-    position: relative;                         /* Para que el dropdown se posicione relativo a este elemento */
-}
-
-.profile-btn {
-    background: transparent;                    /* Sin fondo visible */
-    border: none;                               /* Sin borde */
-    cursor: pointer;                            /* Cursor de mano */
-    padding: 0.25rem;                           /* Pequeño espacio interior */
-    border-radius: 9999px;                      /* Completamente redondo */
-    display: flex;                              /* Para centrar el ícono */
-    align-items: center;                        /* Centra verticalmente */
-    justify-content: center;                    /* Centra horizontalmente */
-}
-
-.profile-btn svg {
-    width: 36px;                                /* Tamaño del ícono de usuario */
-    height: 36px;
-    color: #00BFFF;                             /* Color azul del ícono */
-}
-
-/* CAMBIO: era .dropdown-menu → ahora .trab-dropdown
-   Razón: DaisyUI usa .dropdown internamente y puede
-   generar conflictos de estilos con display y z-index */
-.trab-dropdown {
-    position: absolute;                         /* Se posiciona respecto al .profile-menu */
-    top: calc(100% + 0.5rem);                   /* Aparece justo debajo del botón de perfil */
-    right: 0;                                   /* Alineado al borde derecho */
-    background: white;                          /* Fondo blanco */
-    border-radius: 0.5rem;                      /* Esquinas redondeadas */
-    box-shadow: 0 4px 10px rgb(0 0 0 / 0.15);  /* Sombra para dar profundidad */
-    min-width: 180px;                           /* Ancho mínimo del menú */
-    display: none;                              /* Oculto por defecto */
-    flex-direction: column;                     /* Opciones apiladas verticalmente */
-    padding: 0.5rem 0;                          /* Espacio interior arriba y abajo */
-    font-weight: 600;                           /* Texto semi-negrita */
-    z-index: 50;                                /* Capa 50: por encima de todo */
-}
-
-.trab-dropdown.show {
-    display: flex;                              /* JavaScript agrega .show para mostrarlo */
-}
-
-.trab-dropdown button {
-    background: transparent;                    /* Sin fondo */
-    border: none;                               /* Sin borde */
-    text-align: left;                           /* Texto alineado a la izquierda */
-    padding: 0.6rem 1.5rem;                     /* Espacio interior de cada opción */
-    width: 100%;                                /* Ocupa todo el ancho del menú */
-    cursor: pointer;                            /* Cursor de mano */
-    font-size: 1rem;                            /* Tamaño del texto */
-    transition: background-color 0.2s;          /* Suaviza el cambio de color */
-}
-
-.trab-dropdown button:hover {
-    background-color: #e0f2fe;                  /* Fondo azul muy claro al pasar el mouse */
-    color: #0284c7;                             /* Texto azul al pasar el mouse */
+/* ------------------------------------------------------------
+   5. ÁREA PRINCIPAL — Padding compacto del Trabajador
+   ------------------------------------------------------------ */
+.trab-dashboard-main {
+    background: #f9fafb;
 }
 
 
-/* ================================================
-   4. ÁREA PRINCIPAL (DASHBOARD)
-   ================================================ */
-
-main.dashboard {
-    margin-left: 220px;                         /* Deja espacio para el sidebar */
-    margin-top: 64px;                           /* Deja espacio para el header */
-    background: #f9fafb;                        /* Fondo gris muy claro */
-    min-height: calc(100vh - 64px);             /* Mínimo: pantalla completa menos el header */
-    padding: 2rem;                              /* Espacio interior (más compacto que el admin) */
-}
-
-
-/* ================================================
-   5. TARJETAS INDICADORAS — Panel de Control
-   Muestran: Ocupación, Cupos Libres, Vehículos Hoy,
-   Ingresos del Día, Pendientes de Cobro, Tarifas
-   ================================================ */
-
-.indicator-cards {
-    display: flex;                              /* Las tarjetas se muestran en fila */
-    gap: 1rem;                                  /* Espacio entre cada tarjeta */
-    flex-wrap: wrap;                            /* Si no caben, pasan a la siguiente fila */
-    margin-bottom: 2rem;                        /* Espacio debajo del grupo de tarjetas */
-}
-
-.indicator-card {
-    background: #d0e8f2;                        /* Fondo azul claro para las tarjetas */
-    border-radius: 1rem;                        /* Esquinas muy redondeadas */
-    box-shadow: 0 10px 30px rgba(0, 191, 255, 0.15); /* Sombra azul suave */
-    width: 160px;                               /* Ancho fijo de cada tarjeta */
-    min-height: 100px;                          /* Alto mínimo */
-    display: flex;                              /* Flexbox para apilar los textos */
-    flex-direction: column;                     /* Título, valor y subtítulo en columna */
-    align-items: center;                        /* Centra horizontalmente */
-    justify-content: center;                    /* Centra verticalmente */
-    color: #075985;                             /* Azul oscuro para el texto */
-    padding: 1rem;                              /* Espacio interior */
-}
-
-.indicator-title {
-    font-weight: 700;                           /* Título en negrita */
-    font-size: 0.85rem;                         /* Texto pequeño para el título */
-    margin-bottom: 0.5rem;                      /* Espacio entre el título y el valor */
-    text-align: center;                         /* Centrado */
-}
-
-.indicator-value {
-    font-weight: 900;                           /* Número en extra-negrita para destacar */
-    font-size: 1.5rem;                          /* Número grande y visible */
-}
-
-.indicator-subtitle {
-    font-size: 0.7rem;                          /* Texto muy pequeño para el subtítulo */
-    color: #64748b;                             /* Gris medio para texto secundario */
-    margin-top: 0.25rem;                        /* Pequeño espacio encima del subtítulo */
-}
-
-
-/* ================================================
-   6. SECCIONES DE CONTENIDO
-   Cada pantalla del dashboard vive aquí
-   ================================================ */
-
-section.content-section {
-    background: white;                          /* Fondo blanco sobre el gris del dashboard */
-    border-radius: 1rem;                        /* Esquinas redondeadas */
-    padding: 1.5rem;                            /* Espacio interior */
-    margin-bottom: 1.5rem;                      /* Espacio entre secciones */
-    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.06); /* Sombra suave */
+/* ------------------------------------------------------------
+   6. SECCIONES — Padding más compacto que el estándar
+   ------------------------------------------------------------ */
+.trab-content-section {
+    padding: 1.5rem;
+    margin-bottom: 1.5rem;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.06);
 }
 
 .section-title {
-    font-size: 1.25rem;                         /* Tamaño del título de cada sección */
-    font-weight: 700;                           /* Negrita */
-    color: #0369a1;                             /* Azul oscuro */
-    margin-bottom: 1rem;                        /* Espacio entre el título y el contenido */
+    font-size: 1.25rem;
+    font-weight: 700;
+    color: #0369a1;
+    margin-bottom: 1rem;
 }
 
 
-/* ================================================
-   7. SUBSECCIONES
-   Contenedores internos dentro de una sección
-   (ej: "Registrar Entrada", "Vehículos Activos")
-   ================================================ */
-
+/* ------------------------------------------------------------
+   7. SUBSECCIONES — Exclusivas del Trabajador
+   ------------------------------------------------------------ */
 .sub-section {
-    background: white;                          /* Fondo blanco */
-    padding: 1.5rem;                            /* Espacio interior */
-    border-radius: 0.75rem;                     /* Esquinas redondeadas */
-    margin-bottom: 1.5rem;                      /* Espacio entre subsecciones */
-    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05); /* Sombra muy suave */
+    background: white;
+    padding: 1.5rem;
+    border-radius: 0.75rem;
+    margin-bottom: 1.5rem;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
 }
 
 .sub-section-title {
-    font-size: 1rem;                            /* Tamaño del título de la subsección */
-    font-weight: 700;                           /* Negrita */
-    color: #334155;                             /* Gris oscuro */
-    margin-bottom: 1rem;                        /* Espacio debajo del título */
-    padding-bottom: 0.5rem;                     /* Espacio interior debajo del texto */
-    border-bottom: 2px solid #00BFFF;           /* Línea azul como separador decorativo */
+    font-size: 1rem;
+    font-weight: 700;
+    color: #334155;
+    margin-bottom: 1rem;
+    padding-bottom: 0.5rem;
+    border-bottom: 2px solid #00BFFF;
 }
 
 
-/* ================================================
-   8. RESPONSIVE — ADAPTACIÓN A MÓVIL
-   ================================================ */
-
-@media (max-width: 768px) {                     /* Se aplica en pantallas menores a 768px */
-
-    .sidebar {
-        transform: translateX(-100%);           /* Oculta el sidebar moviéndolo fuera de pantalla */
-    }
-
-    header.page-header {
-        left: 0 !important;                     /* El header ocupa todo el ancho sin sidebar */
-    }
-
-    main.dashboard {
-        margin-left: 0 !important;              /* El contenido ocupa todo el ancho */
-        padding: 1rem;                          /* Reduce el espacio interior en móvil */
-    }
-
-    .indicator-cards {
-        justify-content: center;                /* Centra las tarjetas en móvil */
-    }
+/* ------------------------------------------------------------
+   8. TARJETAS INDICADORAS — Panel de Control (exclusivas)
+   ------------------------------------------------------------ */
+.indicator-cards {
+    display: flex;
+    gap: 1rem;
+    flex-wrap: wrap;
+    margin-bottom: 2rem;
 }
 
-/* ================================================
-   TRABAJADOR.CSS — AparcaYA
-   Parte 2/3: Tablas, Botones, Formularios,
-   Filtros, Badges y Utilidades
-   ================================================ */
-
-
-/* ================================================
-   9. TABLA DE DATOS
-   Renombrada a .trab-table para no interferir
-   con las tablas de DaisyUI (.table, .table-zebra)
-   ================================================ */
-
-.trab-table {
-    width: 100%;                                /* Ocupa todo el ancho disponible */
-    border-collapse: collapse;                  /* Elimina el espacio doble entre celdas */
-    border-radius: 0.5rem;                      /* Esquinas redondeadas */
-    overflow: hidden;                           /* Necesario para que border-radius funcione */
-    box-shadow: 0 8px 24px rgb(0 0 0 / 0.05);  /* Sombra suave alrededor de la tabla */
-    background: white;                          /* Fondo blanco */
-    margin-top: 1rem;                           /* Espacio encima de la tabla */
+.indicator-card {
+    background: #d0e8f2;
+    border-radius: 1rem;
+    box-shadow: 0 10px 30px rgba(0, 191, 255, 0.15);
+    width: 160px;
+    min-height: 100px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    color: #075985;
+    padding: 1rem;
 }
 
-.trab-table th,                                /* Encabezados de columna */
-.trab-table td {                               /* Celdas de datos */
-    padding: 0.6rem 0.8rem;                    /* Espacio interior compacto (más pequeño que el admin) */
-    border-bottom: 1px solid #e2e8f0;           /* Línea gris clara entre filas */
-    color: #334155;                             /* Gris oscuro para el texto */
-    text-align: left;                           /* Texto alineado a la izquierda */
-    font-size: 0.85rem;                         /* Texto más pequeño para mostrar más datos */
+.indicator-title {
+    font-weight: 700;
+    font-size: 0.85rem;
+    margin-bottom: 0.5rem;
+    text-align: center;
 }
 
+.indicator-value {
+    font-weight: 900;
+    font-size: 1.5rem;
+}
+
+.indicator-subtitle {
+    font-size: 0.7rem;
+    color: #64748b;
+    margin-top: 0.25rem;
+}
+
+
+/* ------------------------------------------------------------
+   9. TABLA — Override colores azules (distinto al Sede/Admin verde)
+   ------------------------------------------------------------ */
 .trab-table th {
-    background-color: #bae6fd;                  /* Azul claro para los encabezados */
-    font-weight: 700;                           /* Negrita en los encabezados */
+    background-color: #bae6fd;
+    font-size: 0.85rem;
+}
+
+.trab-table td {
+    font-size: 0.85rem;
+    padding: 0.6rem 0.8rem;
 }
 
 .trab-table tbody tr:hover {
-    background-color: #f0f9ff;                  /* Azul muy claro al pasar el mouse */
+    background-color: #f0f9ff;
 }
 
 
-/* ================================================
-   10. BOTONES PROPIOS
-   TODOS renombrados con prefijo trab- para no
-   chocar con los botones de DaisyUI:
-   (.btn-primary, .btn-success, .btn-warning,
-    .btn-error, .btn-info de DaisyUI)
-   ================================================ */
-
-/* Estilos base compartidos por todos los botones
-   para no repetir código en cada variante */
+/* ------------------------------------------------------------
+   10. BOTONES PROPIOS DEL TRABAJADOR
+   ------------------------------------------------------------ */
 .trab-btn-primary,
 .trab-btn-success,
 .trab-btn-danger,
 .trab-btn-warning,
 .trab-btn-info,
 .trab-btn-secondary {
-    border: none;                               /* Sin borde en todos los botones */
-    padding: 0.4rem 0.8rem;                     /* Espacio interior compacto */
-    border-radius: 0.4rem;                      /* Esquinas redondeadas */
-    cursor: pointer;                            /* Cursor de mano */
-    font-weight: 600;                           /* Texto semi-negrita */
-    font-size: 0.85rem;                         /* Texto pequeño y consistente */
-    color: white;                               /* Texto blanco en todos los botones */
-    display: inline-flex;                       /* Para alinear íconos emoji + texto */
-    align-items: center;                        /* Centra verticalmente */
-    gap: 0.4rem;                                /* Espacio entre ícono y texto */
-    transition: background-color 0.2s;          /* Suaviza el cambio de color al pasar el mouse */
+    border: none;
+    padding: 0.4rem 0.8rem;
+    border-radius: 0.4rem;
+    cursor: pointer;
+    font-weight: 600;
+    font-size: 0.85rem;
+    color: white;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    transition: background-color 0.2s;
 }
 
-/* --- Botón Principal (Azul AparcaYA) ---
-   CAMBIO: era .btn-primary → ahora .trab-btn-primary
-   Razón: DaisyUI tiene .btn-primary con su propio color */
-.trab-btn-primary {
-    background-color: #00BFFF;                  /* Azul principal de AparcaYA */
-}
-.trab-btn-primary:hover {
-    background-color: #008dbf;                  /* Azul más oscuro al pasar el mouse */
-}
+.trab-btn-primary    { background-color: #00BFFF; }
+.trab-btn-primary:hover { background-color: #008dbf; }
 
-/* --- Botón Éxito (Verde) ---
-   CAMBIO: era .btn-success → ahora .trab-btn-success
-   Razón: DaisyUI tiene .btn-success propio */
-.trab-btn-success {
-    background-color: #10b981;                  /* Verde para acciones positivas (confirmar, registrar) */
-}
-.trab-btn-success:hover {
-    background-color: #059669;                  /* Verde más oscuro al pasar el mouse */
-}
+.trab-btn-success    { background-color: #10b981; }
+.trab-btn-success:hover { background-color: #059669; }
 
-/* --- Botón Peligro (Rojo) ---
-   CAMBIO: era .btn-danger → ahora .trab-btn-danger
-   Razón: DaisyUI tiene .btn-error (similar) */
-.trab-btn-danger {
-    background-color: #ef4444;                  /* Rojo para acciones peligrosas (cancelar, eliminar) */
-}
-.trab-btn-danger:hover {
-    background-color: #dc2626;                  /* Rojo más oscuro al pasar el mouse */
-}
+.trab-btn-danger     { background-color: #ef4444; }
+.trab-btn-danger:hover { background-color: #dc2626; }
 
-/* --- Botón Advertencia (Amarillo/Naranja) ---
-   CAMBIO: era .btn-warning → ahora .trab-btn-warning
-   Razón: DaisyUI tiene .btn-warning propio */
-.trab-btn-warning {
-    background-color: #f59e0b;                  /* Amarillo/naranja para acciones de precaución */
-}
-.trab-btn-warning:hover {
-    background-color: #d97706;                  /* Más oscuro al pasar el mouse */
-}
+.trab-btn-warning    { background-color: #f59e0b; }
+.trab-btn-warning:hover { background-color: #d97706; }
 
-/* --- Botón Información (Azul medio) ---
-   CAMBIO: era .btn-info → ahora .trab-btn-info
-   Razón: DaisyUI tiene .btn-info propio */
-.trab-btn-info {
-    background-color: #3b82f6;                  /* Azul para acciones informativas */
-}
-.trab-btn-info:hover {
-    background-color: #2563eb;                  /* Azul más oscuro al pasar el mouse */
-}
+.trab-btn-info       { background-color: #3b82f6; }
+.trab-btn-info:hover { background-color: #2563eb; }
 
-/* --- Botón Secundario (Gris) ---
-   Para acciones secundarias como "Limpiar formulario" */
-.trab-btn-secondary {
-    background-color: #64748b;                  /* Gris para acciones neutras */
-}
-.trab-btn-secondary:hover {
-    background-color: #475569;                  /* Gris más oscuro al pasar el mouse */
-}
+.trab-btn-secondary  { background-color: #64748b; }
+.trab-btn-secondary:hover { background-color: #475569; }
 
 
-/* ================================================
-   11. FORMULARIOS PROPIOS
-   CAMBIO: era .form-group → ahora .trab-form-group
-   Razón: DaisyUI usa .form-control para sus campos,
-   lo que puede generar confusión y conflictos de
-   espaciado si se mezclan en el mismo contexto
-   ================================================ */
-
+/* ------------------------------------------------------------
+   11. FORMULARIOS — Exclusivos del Trabajador
+   ------------------------------------------------------------ */
 .trab-form-group {
-    margin-bottom: 1rem;                        /* Espacio entre cada campo del formulario */
+    margin-bottom: 1rem;
 }
 
 .trab-form-group label {
-    display: block;                             /* El label ocupa toda la fila */
-    font-weight: 600;                           /* Semi-negrita */
-    margin-bottom: 0.4rem;                      /* Espacio entre el label y el campo */
-    color: #334155;                             /* Gris oscuro */
-    font-size: 0.9rem;                          /* Texto ligeramente más pequeño */
+    display: block;
+    font-weight: 600;
+    margin-bottom: 0.4rem;
+    color: #334155;
+    font-size: 0.9rem;
 }
 
-.trab-form-group input,                        /* Campos de texto, número, fecha, tel, email */
-.trab-form-group select {                      /* Listas desplegables */
-    width: 100%;                               /* Ocupa todo el ancho del contenedor */
-    padding: 0.6rem;                           /* Espacio interior del campo */
-    border: 1px solid #cbd5e1;                 /* Borde gris claro */
-    border-radius: 0.5rem;                     /* Esquinas redondeadas */
-    font-size: 0.9rem;                         /* Texto consistente con los labels */
-    transition: border-color 0.2s,             /* Suaviza el cambio de borde al enfocar */
-                box-shadow 0.2s;               /* Suaviza el cambio del halo al enfocar */
-    background: white;                         /* Fondo blanco */
+.trab-form-group input,
+.trab-form-group select {
+    width: 100%;
+    padding: 0.6rem;
+    border: 1px solid #cbd5e1;
+    border-radius: 0.5rem;
+    font-size: 0.9rem;
+    transition: border-color 0.2s, box-shadow 0.2s;
+    background: white;
+    box-sizing: border-box;
 }
 
-.trab-form-group input:focus,                 /* Cuando el usuario hace clic en el campo */
+.trab-form-group input:focus,
 .trab-form-group select:focus {
-    outline: none;                             /* Elimina el borde de focus del navegador */
-    border-color: #00BFFF;                     /* Borde azul al enfocar */
-    box-shadow: 0 0 0 3px rgba(0, 191, 255, 0.2); /* Halo azul suave alrededor */
+    outline: none;
+    border-color: #00BFFF;
+    box-shadow: 0 0 0 3px rgba(0, 191, 255, 0.2);
 }
 
-/* Mensajes de validación en tiempo real
-   Aparecen debajo de los campos con errores o éxito */
 .error-message {
-    display: block;                             /* Ocupa su propia línea */
-    color: #ef4444;                             /* Rojo para mensajes de error */
-    font-size: 0.78rem;                         /* Texto muy pequeño */
-    margin-top: 0.25rem;                        /* Pequeño espacio encima del mensaje */
-    min-height: 1rem;                           /* Altura mínima para no saltar el layout */
+    display: block;
+    color: #ef4444;
+    font-size: 0.78rem;
+    margin-top: 0.25rem;
+    min-height: 1rem;
 }
 
 .success-message {
-    display: block;                             /* Ocupa su propia línea */
-    color: #10b981;                             /* Verde para mensajes de éxito */
-    font-size: 0.78rem;                         /* Texto muy pequeño */
-    margin-top: 0.25rem;                        /* Pequeño espacio encima del mensaje */
-    min-height: 1rem;                           /* Altura mínima para no saltar el layout */
+    display: block;
+    color: #10b981;
+    font-size: 0.78rem;
+    margin-top: 0.25rem;
+    min-height: 1rem;
 }
 
 
-/* ================================================
+/* ------------------------------------------------------------
    12. BARRA DE FILTROS
-   ================================================ */
-
+   ------------------------------------------------------------ */
 .filter-bar {
-    display: flex;                              /* Los filtros se muestran en fila */
-    gap: 1rem;                                  /* Espacio entre cada filtro */
-    margin-bottom: 1rem;                        /* Espacio debajo de los filtros */
-    flex-wrap: wrap;                            /* Si no caben, pasan a la siguiente fila */
-    align-items: center;                        /* Centra verticalmente los elementos */
+    display: flex;
+    gap: 1rem;
+    margin-bottom: 1rem;
+    flex-wrap: wrap;
+    align-items: center;
 }
 
-.filter-bar input,                             /* Inputs dentro de la barra de filtros */
-.filter-bar select {                           /* Selects dentro de la barra de filtros */
-    padding: 0.5rem;                           /* Espacio interior */
-    border: 1px solid #cbd5e1;                 /* Borde gris claro */
-    border-radius: 0.5rem;                     /* Esquinas redondeadas */
-    font-size: 0.85rem;                        /* Texto pequeño y consistente */
-    background: white;                         /* Fondo blanco */
-    transition: border-color 0.2s;             /* Suaviza el cambio de borde */
+.filter-bar input,
+.filter-bar select {
+    padding: 0.5rem;
+    border: 1px solid #cbd5e1;
+    border-radius: 0.5rem;
+    font-size: 0.85rem;
+    background: white;
+    transition: border-color 0.2s;
 }
 
 .filter-bar input:focus,
 .filter-bar select:focus {
-    outline: none;                             /* Sin borde de focus del navegador */
-    border-color: #00BFFF;                     /* Borde azul al enfocar */
+    outline: none;
+    border-color: #00BFFF;
 }
 
 
-/* ================================================
-   13. BADGES DE ESTADO
-   CAMBIO: era .badge, .badge-success, etc.
-   AHORA: .trab-badge, .trab-badge-success, etc.
-   Razón: DaisyUI tiene su propio sistema de badges
-   con exactamente esos nombres (.badge, .badge-success,
-   .badge-warning, .badge-error, .badge-info)
-   ================================================ */
-
+/* ------------------------------------------------------------
+   13. BADGES — Exclusivos del Trabajador
+   ------------------------------------------------------------ */
 .trab-badge {
-    padding: 0.2rem 0.6rem;                     /* Espacio interior compacto */
-    border-radius: 9999px;                      /* Completamente redondeado (forma píldora) */
-    font-size: 0.7rem;                          /* Texto muy pequeño */
-    font-weight: 600;                           /* Semi-negrita para que sea legible */
-    display: inline-block;                      /* Se comporta como texto pero acepta padding */
+    padding: 0.2rem 0.6rem;
+    border-radius: 9999px;
+    font-size: 0.7rem;
+    font-weight: 600;
+    display: inline-block;
 }
 
-/* Verde: para estados activos o exitosos */
-.trab-badge-success {
-    background-color: #d1fae5;                  /* Fondo verde muy claro */
-    color: #065f46;                             /* Texto verde oscuro */
-}
-
-/* Amarillo: para estados pendientes o de advertencia */
-.trab-badge-warning {
-    background-color: #fef3c7;                  /* Fondo amarillo muy claro */
-    color: #92400e;                             /* Texto marrón/naranja oscuro */
-}
-
-/* Rojo: para estados de error o peligro */
-.trab-badge-danger {
-    background-color: #fee2e2;                  /* Fondo rojo muy claro */
-    color: #991b1b;                             /* Texto rojo oscuro */
-}
-
-/* Azul: para estados informativos o neutros */
-.trab-badge-info {
-    background-color: #dbeafe;                  /* Fondo azul muy claro */
-    color: #1e40af;                             /* Texto azul oscuro */
-}
+.trab-badge-success { background-color: #d1fae5; color: #065f46; }
+.trab-badge-warning { background-color: #fef3c7; color: #92400e; }
+.trab-badge-danger  { background-color: #fee2e2; color: #991b1b; }
+.trab-badge-info    { background-color: #dbeafe; color: #1e40af; }
 
 
-/* ================================================
+/* ------------------------------------------------------------
    14. TIEMPO ACTIVO — Temporizador de vehículos
-   Muestra el tiempo transcurrido en formato monospace
-   (ej: 01:23:45) dentro de la tabla de vehículos activos
-   ================================================ */
-
+   ------------------------------------------------------------ */
 .tiempo-activo {
-    font-family: monospace;                     /* Fuente de ancho fijo para que los números no "salten" */
-    font-size: 0.9rem;                          /* Tamaño estándar */
-    font-weight: 700;                           /* Negrita para destacar el tiempo */
-    color: #0369a1;                             /* Azul oscuro */
-    background: #e0f2fe;                        /* Fondo azul muy claro */
-    padding: 0.2rem 0.4rem;                     /* Espacio interior compacto */
-    border-radius: 0.25rem;                     /* Esquinas ligeramente redondeadas */
+    font-family: monospace;
+    font-size: 0.9rem;
+    font-weight: 700;
+    color: #0369a1;
+    background: #e0f2fe;
+    padding: 0.2rem 0.4rem;
+    border-radius: 0.25rem;
 }
 
 
-/* ================================================
-   15. TARJETA DE FORMULARIO
-   Contenedor blanco con sombra para formularios
-   que no están dentro de un .sub-section
-   ================================================ */
-
+/* ------------------------------------------------------------
+   15. TARJETA DE FORMULARIO — Para formularios standalone
+   ------------------------------------------------------------ */
 .card-form {
-    background: white;                          /* Fondo blanco */
-    padding: 1.5rem;                            /* Espacio interior */
-    border-radius: 1rem;                        /* Esquinas muy redondeadas */
-    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08); /* Sombra suave */
-    max-width: 600px;                           /* Ancho máximo para no ser demasiado ancho */
+    background: white;
+    padding: 1.5rem;
+    border-radius: 1rem;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+    max-width: 600px;
 }
 
-/* ================================================
-   TRABAJADOR.CSS — AparcaYA
-   Parte 3/3: Modales Propios y Animaciones
-   ================================================
-   NOTA CRÍTICA:
-   El HTML del trabajador usa modales tipo <div>
-   (NO los <dialog> de DaisyUI). Estos son:
-     - #cobroModal   → Modal de confirmar cobro
-     - #salidaModal  → Modal de registrar salida
 
-   CONFLICTO ORIGINAL:
-   Estos modales usaban .modal, .modal-content y
-   .modal-header que son exactamente los mismos
-   nombres que DaisyUI usa internamente para sus
-   propios modales <dialog>.
-
-   SOLUCIÓN:
-   Se renombran TODAS las clases de estos modales
-   con el prefijo trab- para eliminar el conflicto.
-   ================================================ */
-
-
-/* ================================================
-   16. MODAL BASE — Overlay oscuro de fondo
-   CAMBIO: era .modal → ahora .trab-modal
-   Razón: DaisyUI usa .modal para sus <dialog> y
-   define display, position y z-index propios.
-   Si dejamos .modal aquí, DaisyUI y nuestro CSS
-   se pisarían mutuamente rompiendo AMBOS modales.
-   ================================================ */
-
+/* ------------------------------------------------------------
+   16. MODAL PROPIO — Cobro y Salida
+   Animación slideUp: diferente al .sede-modal que usa scale.
+   .aparca-modal-overlay en aparca-components.css es un overlay
+   simple sin animación; este tiene trab-fadeIn + trab-slideUp.
+   ------------------------------------------------------------ */
 .trab-modal {
-    display: none;                              /* Oculto por defecto */
-    position: fixed;                            /* Cubre toda la pantalla */
-    z-index: 1000;                              /* Capa muy alta, por encima de todo */
-    left: 0;                                    /* Desde el borde izquierdo */
-    top: 0;                                     /* Desde el borde superior */
-    width: 100%;                                /* Todo el ancho de la pantalla */
-    height: 100%;                               /* Todo el alto de la pantalla */
-    background-color: rgba(0, 0, 0, 0.5);       /* Fondo negro semitransparente (oscurece el fondo) */
-    animation: trab-fadeIn 0.25s ease;          /* Aparece con fundido suave */
+    display: none;
+    position: fixed;
+    z-index: 1000;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.5);
+    animation: trab-fadeIn 0.25s ease;
 }
 
 .trab-modal.show {
-    display: flex;                              /* JavaScript agrega .show para mostrarlo */
-    align-items: center;                        /* Centra el contenido verticalmente */
-    justify-content: center;                    /* Centra el contenido horizontalmente */
+    display: flex;
+    align-items: center;
+    justify-content: center;
 }
-
-
-/* ================================================
-   17. CONTENIDO DEL MODAL
-   CAMBIO: era .modal-content → .trab-modal-content
-   ================================================ */
 
 .trab-modal-content {
-    background-color: #fefefe;                  /* Blanco puro para el contenido */
-    padding: 1.5rem;                            /* Espacio interior */
-    width: 90%;                                 /* 90% del ancho de la pantalla */
-    max-width: 500px;                           /* Nunca más de 500px */
-    border-radius: 1rem;                        /* Esquinas muy redondeadas */
-    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3); /* Sombra profunda */
-    animation: trab-slideUp 0.3s ease;          /* El contenido sube suavemente al aparecer */
-    position: relative;                         /* Para posicionar el botón cerrar si se necesita */
+    background-color: #fefefe;
+    padding: 1.5rem;
+    width: 90%;
+    max-width: 500px;
+    border-radius: 1rem;
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+    animation: trab-slideUp 0.3s ease;
+    position: relative;
 }
 
-
-/* ================================================
-   18. ENCABEZADO DEL MODAL
-   CAMBIO: era .modal-header → .trab-modal-header
-   ================================================ */
-
 .trab-modal-header {
-    display: flex;                              /* Flexbox para alinear título y botón cerrar */
-    justify-content: space-between;             /* Título a la izquierda, botón a la derecha */
-    align-items: center;                        /* Centra verticalmente */
-    margin-bottom: 1rem;                        /* Espacio debajo del encabezado */
-    border-bottom: 1px solid #e2e8f0;           /* Línea gris separadora */
-    padding-bottom: 1rem;                       /* Espacio interior debajo del texto */
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1rem;
+    border-bottom: 1px solid #e2e8f0;
+    padding-bottom: 1rem;
 }
 
 .trab-modal-header h2 {
-    font-size: 1.25rem;                         /* Tamaño del título del modal */
-    font-weight: 700;                           /* Negrita */
-    color: #0369a1;                             /* Azul oscuro */
-    margin: 0;                                  /* Elimina el margen por defecto del h2 */
+    font-size: 1.25rem;
+    font-weight: 700;
+    color: #0369a1;
+    margin: 0;
 }
 
-
-/* ================================================
-   19. BOTÓN CERRAR MODAL (×)
-   CAMBIO: era .close → .trab-modal-close
-   Razón: .close es un nombre genérico que puede
-   entrar en conflicto con utilidades de Tailwind
-   o estilos base del navegador
-   ================================================ */
-
 .trab-modal-close {
-    color: #aaa;                                /* Gris claro para el símbolo × */
-    font-size: 28px;                            /* Grande para ser fácil de hacer clic */
-    font-weight: bold;                          /* Negrita para que se vea bien */
-    cursor: pointer;                            /* Cursor de mano */
-    background: none;                           /* Sin fondo */
-    border: none;                               /* Sin borde */
-    line-height: 1;                             /* Evita que el alto de línea desplace el símbolo */
-    padding: 0;                                 /* Sin espacio interior */
-    transition: color 0.2s;                     /* Suaviza el cambio de color */
+    color: #aaa;
+    font-size: 28px;
+    font-weight: bold;
+    cursor: pointer;
+    background: none;
+    border: none;
+    line-height: 1;
+    padding: 0;
+    transition: color 0.2s;
 }
 
 .trab-modal-close:hover {
-    color: #333;                                /* Oscurece el × al pasar el mouse */
+    color: #333;
 }
 
 
-/* ================================================
-   20. ANIMACIONES
-   Con prefijo trab- para no interferir con las
-   animaciones internas de DaisyUI o Tailwind
-   ================================================ */
-
+/* ------------------------------------------------------------
+   17. ANIMACIONES — Exclusivas del módulo Trabajador
+   trab-fadeIn: solo opacidad (sin translateY, distinto a aparca-fadeInUp)
+   trab-slideUp: usado por el modal-content
+   ------------------------------------------------------------ */
 @keyframes trab-fadeIn {
-    from { opacity: 0; }                        /* Empieza completamente transparente */
-    to   { opacity: 1; }                        /* Termina completamente opaco */
+    from { opacity: 0; }
+    to   { opacity: 1; }
 }
-/* Uso: el overlay oscuro del modal aparece suavemente */
 
 @keyframes trab-slideUp {
-    from {
-        transform: translateY(30px);            /* Empieza 30px más abajo */
-        opacity: 0;                             /* Empieza transparente */
+    from { transform: translateY(30px); opacity: 0; }
+    to   { transform: translateY(0);    opacity: 1; }
+}
+
+
+/* ------------------------------------------------------------
+   18. RESPONSIVE
+   ------------------------------------------------------------ */
+@media (max-width: 768px) {
+
+    .aparca-sidebar {
+        transform: translateX(-100%);
     }
-    to {
-        transform: translateY(0);               /* Llega a su posición correcta */
-        opacity: 1;                             /* Llega completamente opaco */
+
+    .aparca-page-header {
+        left: 0 !important;
+    }
+
+    .trab-dashboard-main {
+        margin-left: 0 !important;
+        padding: 1rem;
+    }
+
+    .indicator-cards {
+        justify-content: center;
     }
 }
-/* Uso: el cuadro blanco del modal sube suavemente */
-
-
-/* ================================================
-   FIN DEL ARCHIVO Trabajador.css
-   ================================================
-
-   RESUMEN — Clases propias del módulo Trabajador:
-   ┌──────────────────┬─────────────────────────────┐
-   │ Sección          │ Clases                      │
-   ├──────────────────┼─────────────────────────────┤
-   │ Layout           │ .sidebar                    │
-   │                  │ .sidebar-header             │
-   │                  │ .sidebar-nav                │
-   │                  │ .page-header                │
-   │                  │ .logo-section               │
-   │                  │ .profile-menu               │
-   │                  │ .profile-btn                │
-   │                  │ .dashboard                  │
-   ├──────────────────┼─────────────────────────────┤
-   │ Dropdown         │ .trab-dropdown              │
-   ├──────────────────┼─────────────────────────────┤
-   │ Indicadores      │ .indicator-cards            │
-   │                  │ .indicator-card             │
-   │                  │ .indicator-title            │
-   │                  │ .indicator-value            │
-   │                  │ .indicator-subtitle         │
-   ├──────────────────┼─────────────────────────────┤
-   │ Secciones        │ .content-section            │
-   │                  │ .section-title              │
-   │                  │ .sub-section                │
-   │                  │ .sub-section-title          │
-   ├──────────────────┼─────────────────────────────┤
-   │ Tabla            │ .trab-table                 │
-   ├──────────────────┼─────────────────────────────┤
-   │ Botones          │ .trab-btn-primary           │
-   │                  │ .trab-btn-success           │
-   │                  │ .trab-btn-danger            │
-   │                  │ .trab-btn-warning           │
-   │                  │ .trab-btn-info              │
-   │                  │ .trab-btn-secondary         │
-   ├──────────────────┼─────────────────────────────┤
-   │ Formularios      │ .trab-form-group            │
-   │                  │ .error-message              │
-   │                  │ .success-message            │
-   │                  │ .filter-bar                 │
-   ├──────────────────┼─────────────────────────────┤
-   │ Badges           │ .trab-badge                 │
-   │                  │ .trab-badge-success         │
-   │                  │ .trab-badge-warning         │
-   │                  │ .trab-badge-danger          │
-   │                  │ .trab-badge-info            │
-   ├──────────────────┼─────────────────────────────┤
-   │ Utilidades       │ .tiempo-activo              │
-   │                  │ .card-form                  │
-   ├──────────────────┼─────────────────────────────┤
-   │ Modales propios  │ .trab-modal                 │
-   │                  │ .trab-modal-content         │
-   │                  │ .trab-modal-header          │
-   │                  │ .trab-modal-close           │
-   ├──────────────────┼─────────────────────────────┤
-   │ Animaciones      │ trab-fadeIn                 │
-   │                  │ trab-slideUp                │
-   └──────────────────┴─────────────────────────────┘
-
-   Clases de DaisyUI que NO se tocan aquí:
-   .modal, .modal-box, .modal-action (DaisyUI <dialog>)
-   .btn, .btn-primary, .btn-success (DaisyUI buttons)
-   .badge, .badge-success (DaisyUI badges)
-   .form-control, .input, .select (DaisyUI forms)
-   .alert, .alert-info (DaisyUI alerts)
-   ================================================ */

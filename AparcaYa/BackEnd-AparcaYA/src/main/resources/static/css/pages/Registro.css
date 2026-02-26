@@ -1,0 +1,122 @@
+/* ================================================
+   REGISTRO.CSS — AparcaYA
+   Ruta: static/css/registro.css
+
+   PROPÓSITO: Estilos EXCLUSIVOS del formulario
+   de registro multi-paso.
+
+   Lo que ya NO está aquí (viene de archivos base):
+   - .animate-fade-in-up    → aparca-animations.css
+   - @keyframes aparca-fadeInUp → aparca-animations.css
+
+   Lo que SÍ está aquí (exclusivo del registro):
+   1. .card-hover
+   2. .btn-pulse / @keyframes registro-pulse
+   3. .role-btn (selector de rol)
+   4. .error-message / .success-message
+   5. .mensaje / .mensaje.success / .mensaje.error
+   6. .step / .active-step
+   ================================================ */
+
+
+/* ================================================
+   1. HOVER PARA LA TARJETA DEL FORMULARIO
+   ================================================ */
+.card-hover {
+    transition: transform 0.3s ease,
+    box-shadow 0.3s ease,
+    border-color 0.3s ease;
+}
+
+.card-hover:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 10px 20px rgba(0, 191, 255, 0.2);
+    border-color: #00BFFF;
+}
+
+
+/* ================================================
+   2. ANIMACIÓN PULSE PARA BOTONES
+   Nombre registro-pulse para no colisionar con
+   el @keyframes pulse interno de Tailwind
+   ================================================ */
+.btn-pulse {
+    animation: registro-pulse 2s infinite;
+}
+
+@keyframes registro-pulse {
+    0%, 100% { transform: scale(1);    }
+    50%       { transform: scale(1.05); }
+}
+
+
+/* ================================================
+   3. BOTONES DE SELECCIÓN DE ROL
+   ================================================ */
+.role-btn {
+    transition: background-color 0.3s ease,
+    color 0.3s ease;
+}
+
+.role-btn.active {
+    background-color: #00BFFF;
+    color: white;
+}
+
+.role-btn:hover:not(:disabled) {
+    background-color: #87CEEB;
+}
+
+/* Estado deshabilitado tras avanzar el primer paso */
+.role-btn:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+
+/* ================================================
+   4. MENSAJES DE VALIDACIÓN
+   ================================================ */
+.error-message {
+    color: #DC2626;
+    font-size: 0.875rem;
+}
+
+.success-message {
+    color: #059669;
+    font-size: 0.875rem;
+}
+
+
+/* ================================================
+   5. MENSAJE DE RESULTADO DEL FORMULARIO
+   ================================================ */
+.mensaje {
+    margin-top: 1rem;
+    padding: 0.5rem;
+    border-radius: 0.375rem;
+}
+
+.mensaje.success {
+    background-color: #D1FAE5;
+    color: #065F46;
+}
+
+.mensaje.error {
+    background-color: #FEE2E2;
+    color: #991B1B;
+}
+
+
+/* ================================================
+   6. CONTROL DE VISIBILIDAD DE PASOS
+   El JS alterna .active-step para mostrar
+   solo el paso actual del formulario multi-paso
+   ================================================ */
+.step {
+    display: none;
+}
+
+.active-step {
+    display: block;
+}

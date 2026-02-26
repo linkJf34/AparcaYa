@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<!--
+    FRAGMENTO: sede-modal-cobro
+    Uso: <div th:replace="modals/sede-modal-cobro :: modal"></div>
+    Tipo: DIV propio con .sede-modal-dinamico (sede-modal-dinamico.css)
+    Abre:   abrirModalCobro(registroId) → display:block + visibility:visible
+    Cierra: cerrarModalCobro()          → display:none + visibility:hidden
+
+    El JS inyecta dinámicamente en #tarifaSelectorContainer
+    las opciones de tarifa calculadas desde la API.
+
+    Sin JS embebido. Sin estilos inline.
+    Estilos propios en /css/modals/sede-modal-dinamico.css
+-->
+<body>
+<th:block th:fragment="modal">
+
+    <div id="cobroModal"
+         class="sede-modal-dinamico"
+         role="dialog"
+         aria-modal="true"
+         aria-labelledby="cobroModalTitulo"
+         aria-hidden="true">
+
+        <div class="sede-modal-dinamico-content">
+
+            <div class="sede-modal-dinamico-header">
+                <h2 id="cobroModalTitulo">💰 Procesar Cobro</h2>
+                <span class="sede-modal-dinamico-close"
+                      onclick="cerrarModalCobro()"
+                      role="button"
+                      tabindex="0"
+                      aria-label="Cerrar modal">
+                    &times;
+                </span>
+            </div>
+
+            <div class="sede-modal-dinamico-body">
+
+                <div class="sede-modal-salida-row">
+                    <strong>Cliente:</strong>
+                    <span id="cobroCliente"></span>
+                </div>
+
+                <div class="sede-modal-salida-row">
+                    <strong>Placa:</strong>
+                    <span id="cobroPlaca"></span>
+                </div>
+
+                <div class="sede-modal-salida-row">
+                    <strong>Tiempo Total:</strong>
+                    <span id="cobroTiempo"></span>
+                </div>
+
+                <div class="sede-modal-cobro-metodo">
+                    <label for="metodoPago" class="sede-modal-cobro-label">
+                        Método de Pago:
+                    </label>
+                    <select id="metodoPago" class="sede-modal-cobro-select">
+                        <option value="EFECTIVO">💵 Efectivo</option>
+                        <option value="TARJETA">💳 Tarjeta</option>
+                        <option value="TRANSFERENCIA">🏦 Transferencia</option>
+                    </select>
+                </div>
+
+                <!--
+                    JS inyecta aquí las opciones de tarifa via abrirModalCobro().
+                    Selector: #tarifaSelectorContainer
+                    Clases usadas en el innerHTML:
+                      sede-modal-cobro-selector
+                      sede-modal-cobro-opcion (label)
+                -->
+                <div id="tarifaSelectorContainer"></div>
+
+                <div class="sede-modal-cobro-total">
+                    <strong>Total a Pagar:</strong>
+                    <div class="sede-modal-cobro-precio">
+                        $<span id="cobroPrecio">0</span>
+                    </div>
+                </div>
+
+                <div class="sede-modal-dinamico-actions">
+                    <button class="sede-btn-success"
+                            onclick="procesarCobro()"
+                            type="button">
+                        ✅ Confirmar Cobro
+                    </button>
+                    <button class="sede-btn-secondary"
+                            onclick="cerrarModalCobro()"
+                            type="button">
+                        ❌ Cancelar
+                    </button>
+                </div>
+
+            </div>
+        </div>
+    </div>
+
+</th:block>
+</body>
+</html>

@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<!--
+    FRAGMENTO: sede-modal-registrar-trabajador
+    Uso: <div th:replace="modals/sede-modal-registrar-trabajador :: modal"></div>
+    Tipo: DIV propio con .sede-modal (sede.css, animación scale)
+    Abre:  openRegistrarTrabajadorModal()  → modal.classList.add('show')
+    Cierra: closeRegistrarTrabajadorModal() → modal.classList.remove('show')
+
+    Sin JS embebido. Sin estilos inline.
+    Estilos en: sede.css (secciones 17 y 18 ya definidas)
+-->
+<body>
+<th:block th:fragment="modal">
+
+    <div id="registrarTrabajadorModal"
+         class="sede-modal"
+         role="dialog"
+         aria-modal="true"
+         aria-labelledby="modalTrabajadorTitulo"
+         aria-hidden="true">
+
+        <div class="sede-modal-box">
+
+            <h3 id="modalTrabajadorTitulo">Registrar Trabajador</h3>
+
+            <label for="trabajadorNombre">Nombre Completo</label>
+            <input type="text"
+                   id="trabajadorNombre"
+                   placeholder="Ej: Juan Pérez"
+                   autocomplete="name">
+
+            <label for="trabajadorCorreo">Correo Electrónico</label>
+            <input type="email"
+                   id="trabajadorCorreo"
+                   placeholder="juan@ejemplo.com"
+                   autocomplete="email">
+
+            <label for="trabajadorTelefono">Teléfono</label>
+            <input type="tel"
+                   id="trabajadorTelefono"
+                   placeholder="3001234567"
+                   autocomplete="tel">
+
+            <label for="trabajadorCedula">Cédula</label>
+            <input type="text"
+                   id="trabajadorCedula"
+                   placeholder="1234567890"
+                   autocomplete="off">
+
+            <label for="trabajadorContrasena">Contraseña</label>
+            <input type="password"
+                   id="trabajadorContrasena"
+                   placeholder="Mínimo 6 caracteres"
+                   autocomplete="new-password">
+
+            <div class="sede-modal-action">
+                <button class="sede-btn-primary"
+                        onclick="registrarTrabajador()"
+                        type="button">
+                    <svg xmlns="http://www.w3.org/2000/svg"
+                         class="h-5 w-5" fill="none"
+                         viewBox="0 0 24 24" stroke="currentColor"
+                         aria-hidden="true">
+                        <path stroke-linecap="round" stroke-linejoin="round"
+                              stroke-width="2" d="M5 13l4 4L19 7" />
+                    </svg>
+                    Registrar
+                </button>
+                <button class="sede-btn-outline"
+                        onclick="closeRegistrarTrabajadorModal()"
+                        type="button">
+                    Cancelar
+                </button>
+            </div>
+
+        </div>
+    </div>
+
+</th:block>
+</body>
+</html>

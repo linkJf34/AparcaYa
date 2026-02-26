@@ -1,0 +1,267 @@
+/* ============================================================
+   SEDE-MODAL-DINAMICO.CSS
+   Ruta: static/css/modals/sede-modal-dinamico.css
+
+   MODALES: #salidaModal  y  #cobroModal
+   TIPO: DIV propio con display/visibility gestionados por JS
+
+   ORIGEN DE LOS ESTILOS:
+   Extraídos de injectModalStyles() en SedeD.js.
+   Las clases .modal/.modal-content/.modal-header/.close
+   estaban sin prefijo y eran inyectadas dinámicamente.
+   Aquí se definen con prefijo sede-modal-dinamico-.
+
+   PREFIJO: sede-modal-dinamico-
+
+   NOTA: .sede-btn-success, .sede-btn-secondary, .sede-btn-*
+   están en sede.css y son reutilizados aquí sin duplicar.
+   ============================================================ */
+
+
+/* ------------------------------------------------------------
+   1. OVERLAY / BACKDROP
+   Reemplaza .modal de injectModalStyles()
+   JS controla display:block/none + visibility + opacity
+   ------------------------------------------------------------ */
+.sede-modal-dinamico {
+    display: none;
+    position: fixed;
+    z-index: 999999;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    overflow: auto;
+    background-color: rgba(0, 0, 0, 0.6);
+    backdrop-filter: blur(2px);
+}
+
+
+/* ------------------------------------------------------------
+   2. CONTENIDO DEL MODAL
+   Reemplaza .modal-content de injectModalStyles()
+   ------------------------------------------------------------ */
+.sede-modal-dinamico-content {
+    background-color: #ffffff;
+    margin: 5% auto;
+    padding: 0;
+    border: 1px solid #e5e7eb;
+    border-radius: 0.75rem;
+    width: 90%;
+    max-width: 600px;
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.35);
+    position: relative;
+    z-index: 1000000;
+    pointer-events: auto;
+}
+
+
+/* ------------------------------------------------------------
+   3. HEADER DEL MODAL
+   Reemplaza .modal-header de injectModalStyles()
+   Color de acento: #00BFFF (azul sede)
+   ------------------------------------------------------------ */
+.sede-modal-dinamico-header {
+    padding: 1.5rem;
+    border-bottom: 1px solid #e5e7eb;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background: linear-gradient(135deg, #0284c7, #00BFFF);
+    border-radius: 0.75rem 0.75rem 0 0;
+}
+
+.sede-modal-dinamico-header h2 {
+    margin: 0;
+    font-size: 1.5rem;
+    color: white;
+    font-weight: 700;
+}
+
+
+/* ------------------------------------------------------------
+   4. BOTÓN CERRAR (×)
+   Reemplaza .close de injectModalStyles()
+   ------------------------------------------------------------ */
+.sede-modal-dinamico-close {
+    color: rgba(255, 255, 255, 0.85);
+    font-size: 2rem;
+    font-weight: bold;
+    cursor: pointer;
+    line-height: 1;
+    transition: color 0.2s, transform 0.2s;
+    user-select: none;
+}
+
+.sede-modal-dinamico-close:hover {
+    color: white;
+    transform: scale(1.15);
+}
+
+
+/* ------------------------------------------------------------
+   5. CUERPO DEL MODAL
+   ------------------------------------------------------------ */
+.sede-modal-dinamico-body {
+    padding: 1.5rem;
+}
+
+
+/* ------------------------------------------------------------
+   6. FILAS DE DATOS (salida y cobro)
+   Reemplaza style="margin-bottom: 1rem;" de los div inline
+   del JS original.
+   ------------------------------------------------------------ */
+.sede-modal-salida-row {
+    margin-bottom: 1rem;
+    display: flex;
+    gap: 0.5rem;
+    align-items: flex-start;
+    font-size: 1rem;
+    color: #1f2937;
+}
+
+.sede-modal-salida-row strong {
+    min-width: 130px;
+    color: #374151;
+}
+
+
+/* ------------------------------------------------------------
+   7. SELECTOR DE TARIFA (cobro) — inyectado por JS
+   Reemplaza style inline del bloque tarifaSelector.
+   ------------------------------------------------------------ */
+.sede-modal-cobro-selector {
+    margin: 1.5rem 0;
+    padding: 1rem;
+    background: #f0f9ff;
+    border-radius: 0.5rem;
+}
+
+.sede-modal-cobro-selector h3 {
+    margin-bottom: 1rem;
+    color: #0369a1;
+    font-weight: 700;
+    font-size: 1rem;
+}
+
+/* Cada opción de tarifa (label + radio) */
+.sede-modal-cobro-opcion {
+    display: block;
+    padding: 1rem;
+    margin-bottom: 0.75rem;
+    background: white;
+    border: 2px solid #3b82f6;
+    border-radius: 0.5rem;
+    cursor: pointer;
+    transition: border-color 0.2s, background-color 0.2s;
+}
+
+.sede-modal-cobro-opcion:hover {
+    border-color: #00BFFF;
+    background-color: #f0f9ff;
+}
+
+.sede-modal-cobro-opcion input[type="radio"] {
+    margin-right: 0.5rem;
+    accent-color: #00BFFF;
+}
+
+
+/* ------------------------------------------------------------
+   8. MÉTODO DE PAGO (cobro)
+   ------------------------------------------------------------ */
+.sede-modal-cobro-metodo {
+    margin-bottom: 1rem;
+}
+
+.sede-modal-cobro-label {
+    display: block;
+    font-weight: 600;
+    color: #374151;
+    margin-bottom: 0.5rem;
+}
+
+.sede-modal-cobro-select {
+    width: 100%;
+    padding: 0.5rem;
+    border: 1px solid #cbd5e1;
+    border-radius: 0.375rem;
+    font-size: 1rem;
+    background: white;
+    transition: border-color 0.2s;
+    box-sizing: border-box;
+}
+
+.sede-modal-cobro-select:focus {
+    outline: none;
+    border-color: #00BFFF;
+    box-shadow: 0 0 0 3px rgba(0, 191, 255, 0.1);
+}
+
+
+/* ------------------------------------------------------------
+   9. TOTAL A PAGAR (cobro)
+   ------------------------------------------------------------ */
+.sede-modal-cobro-total {
+    margin-bottom: 1rem;
+    padding: 1rem;
+    background: #f0f9ff;
+    border-radius: 0.5rem;
+}
+
+.sede-modal-cobro-total strong {
+    color: #0369a1;
+    display: block;
+    margin-bottom: 0.25rem;
+}
+
+.sede-modal-cobro-precio {
+    font-size: 2rem;
+    font-weight: 700;
+    color: #059669;
+}
+
+
+/* ------------------------------------------------------------
+   10. ÁREA DE ACCIONES (pie de modal)
+   Reemplaza style="display:flex;gap:0.5rem;justify-content:
+   flex-end;margin-top:1.5rem" de los div inline del JS original.
+   ------------------------------------------------------------ */
+.sede-modal-dinamico-actions {
+    display: flex;
+    gap: 0.5rem;
+    justify-content: flex-end;
+    margin-top: 1.5rem;
+    flex-wrap: wrap;
+}
+
+
+/* ------------------------------------------------------------
+   11. RESPONSIVE
+   ------------------------------------------------------------ */
+@media (max-width: 768px) {
+    .sede-modal-dinamico-content {
+        width: 95%;
+        margin: 8% auto;
+    }
+
+    .sede-modal-dinamico-actions {
+        flex-direction: column;
+    }
+
+    .sede-modal-dinamico-actions .sede-btn-success,
+    .sede-modal-dinamico-actions .sede-btn-secondary {
+        width: 100%;
+        justify-content: center;
+    }
+
+    .sede-modal-salida-row {
+        flex-direction: column;
+        gap: 0.25rem;
+    }
+
+    .sede-modal-salida-row strong {
+        min-width: unset;
+    }
+}

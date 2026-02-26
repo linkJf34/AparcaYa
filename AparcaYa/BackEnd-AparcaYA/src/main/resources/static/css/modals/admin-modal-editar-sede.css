@@ -1,0 +1,87 @@
+/* ============================================================
+   ADMIN-MODAL-EDITAR-SEDE.CSS
+   Ruta: static/css/modals/admin-modal-editar-sede.css
+
+   MODAL: #modal_editar_sede
+   TIPO: DaisyUI <dialog> — clases .modal, .modal-box,
+         .modal-action, .modal-backdrop son de DaisyUI,
+         NO se redefinen aquí.
+
+   ESTE ARCHIVO solo agrega estilos propios del admin
+   que no cubren ni aparca-components.css ni admin.css.
+
+   PREFIJO OBLIGATORIO: admin-modal-sede-
+   ============================================================ */
+
+
+/* ------------------------------------------------------------
+   1. ICONO DEL ENCABEZADO
+   ------------------------------------------------------------ */
+#modal_editar_sede .bg-primary\/10 {
+    background-color: rgba(30, 58, 138, 0.1);
+}
+
+#modal_editar_sede .text-primary {
+    color: #1e3a8a;
+}
+
+
+/* ------------------------------------------------------------
+   2. BOTÓN GUARDAR
+   ------------------------------------------------------------ */
+#modal_editar_sede .btn-primary {
+    background-color: #1e40af;
+    border-color: #1e40af;
+    color: white;
+}
+
+#modal_editar_sede .btn-primary:hover {
+    background-color: #1e3a8a;
+    border-color: #1e3a8a;
+}
+
+
+/* ------------------------------------------------------------
+   3. FOCUS DE INPUTS
+   ------------------------------------------------------------ */
+#modal_editar_sede .input:focus,
+#modal_editar_sede .select:focus {
+    outline-color: #1e40af;
+    border-color: #1e40af;
+    box-shadow: 0 0 0 2px rgba(30, 64, 175, 0.2);
+}
+
+
+/* ------------------------------------------------------------
+   4. ALERT INFO
+   ------------------------------------------------------------ */
+#modal_editar_sede .alert-info {
+    border-left: 4px solid #1e40af;
+    background-color: #eff6ff;
+    color: #1e3a8a;
+}
+
+
+/* ------------------------------------------------------------
+   5. HELPER TEXT CAPACIDAD
+   El label-text-alt de la capacidad lleva un tono suave.
+   ------------------------------------------------------------ */
+#modal_editar_sede .label-text-alt {
+    font-size: 0.75rem;
+    color: #6b7280;
+}
+
+
+/* ------------------------------------------------------------
+   6. RESPONSIVE
+   ------------------------------------------------------------ */
+@media (max-width: 768px) {
+    #modal_editar_sede .modal-box {
+        width: 95%;
+        padding: 1rem;
+    }
+
+    #modal_editar_sede .grid-cols-2 {
+        grid-template-columns: 1fr;
+    }
+}

@@ -2,14 +2,12 @@ package com.exe.AparcaYA.Controllers;
 
 import com.exe.AparcaYA.Entity.Sede;
 import com.exe.AparcaYA.Entity.Usuario;
-import com.exe.AparcaYA.Enum.EstadoGeneral;
 import com.exe.AparcaYA.Service.IEmailService;
 import com.exe.AparcaYA.Service.ReporteService;
 import com.exe.AparcaYA.Service.SedeService;
+import com.exe.AparcaYA.Dto.SedeDTO;
 import com.exe.AparcaYA.Service.UsuarioService;
-import jakarta.mail.*;
-import jakarta.mail.internet.InternetAddress;
-import jakarta.mail.internet.MimeMessage;
+import jakarta.mail.MessagingException; // ✅ CAMBIO 1: Solo el import necesario (eliminados jakarta.mail.*, InternetAddress, MimeMessage)
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
@@ -108,8 +106,8 @@ public class AdminController {
             usuario.setNombre(usuarioActualizado.getNombre());
             usuario.setCorreo(usuarioActualizado.getCorreo());
             usuario.setRol(usuarioActualizado.getRol());
-            usuario.setTelefono(usuarioActualizado.getTelefono()); // 👈 AGREGAR ESTA LÍNEA
-            usuario.setEstado(usuarioActualizado.getEstado());     // 👈 AGREGAR ESTA LÍNEA
+            usuario.setTelefono(usuarioActualizado.getTelefono());
+            usuario.setEstado(usuarioActualizado.getEstado());
 
             usuarioService.save(usuario);
             return ResponseEntity.ok(Map.of("mensaje", "Usuario actualizado correctamente"));
@@ -125,30 +123,11 @@ public class AdminController {
 
     @GetMapping("/api/sedes")
     @ResponseBody
-    public ResponseEntity<List<Map<String, Object>>> getSedes() {
+    public ResponseEntity<List<SedeDTO>> getSedes() {
         try {
-            List<Sede> sedes = sedeService.findAll();
-
-            // Convertir a Map para asegurar que todos los campos se envían correctamente
-            List<Map<String, Object>> sedesResponse = sedes.stream()
-                    .map(sede -> {
-                        Map<String, Object> sedeMap = new HashMap<>();
-                        sedeMap.put("id", sede.getIdSede());
-                        sedeMap.put("nombre", sede.getNombre());
-                        sedeMap.put("nit", sede.getNit());
-                        sedeMap.put("direccion", sede.getDireccion());
-                        sedeMap.put("localidad", sede.getLocalidad() != null ? sede.getLocalidad().name() : null);
-                        sedeMap.put("barrio", sede.getBarrio());
-                        sedeMap.put("capacidad", sede.getCapacidad());
-                        sedeMap.put("tarifaPlenaC", sede.getTarifaPlenaC());
-                        sedeMap.put("tarifaPlenaM", sede.getTarifaPlenaM());
-                        sedeMap.put("tarifaMinutoC", sede.getTarifaMinutoC());
-                        sedeMap.put("tarifaMinutoM", sede.getTarifaMinutoM());
-                        sedeMap.put("horarioSede", sede.getHorarioSede());
-                        sedeMap.put("estado", sede.getEstado() != null ? sede.getEstado().name() : null);
-
-                        return sedeMap;
-                    })
+            // ✅ CAMBIO #5: Mapeo delegado a SedeDTO.fromEntity(), eliminado Map<String,Object> manual
+            List<SedeDTO> sedesResponse = sedeService.findAll().stream()
+                    .map(SedeDTO::fromEntity)
                     .collect(Collectors.toList());
 
             return ResponseEntity.ok(sedesResponse);
@@ -201,7 +180,6 @@ public class AdminController {
             sede.setDireccion(sedeActualizada.getDireccion());
             sede.setCapacidad(sedeActualizada.getCapacidad());
             sede.setEstado(sedeActualizada.getEstado());
-            // Actualiza otros campos según necesites
 
             sedeService.save(sede);
             return ResponseEntity.ok(Map.of("mensaje", "Sede actualizada correctamente"));
@@ -219,40 +197,26 @@ public class AdminController {
     @ResponseBody
     public ResponseEntity<Map<String, Object>> getIndicadores() {
         try {
-            List<Usuario> usuarios = usuarioService.findAll();
-            List<Sede> sedes = sedeService.findAll();
+            // ✅ CAMBIO #2: Cálculos delegados al Service, Controller solo ensambla la respuesta
+            long totalUsuarios   = usuarioService.contarTotal();
+            long usuariosActivos = usuarioService.contarActivos();
+            long totalSedes      = sedeService.contarTotal();
+            long sedesActivas    = sedeService.contarActivas();
 
-            // ---- USUARIOS ----
-            long usuariosActivos = usuarios.stream()
-                    .filter(u -> u.getEstado() == EstadoGeneral.ACTIVO)
-                    .count();
+            double porcentajeUsuarios = totalUsuarios == 0 ? 0 : (usuariosActivos * 100.0 / totalUsuarios);
+            double porcentajeSedes    = totalSedes == 0 ? 0 : (sedesActivas * 100.0 / totalSedes);
 
-            double porcentajeUsuarios = usuarios.isEmpty() ? 0 :
-                    (usuariosActivos * 100.0 / usuarios.size());
-
-            // ---- SEDES ----
-            long sedesActivas = sedes.stream()
-                    .filter(s -> s.getEstado() == EstadoGeneral.ACTIVO)
-                    .count();
-
-            double porcentajeSedes = sedes.isEmpty() ? 0 :
-                    (sedesActivas * 100.0 / sedes.size());
-
-            // ---- INGRESOS (EJEMPLO O PLACEHOLDER) ----
             double ingresosTotales = calcularIngresosTotales();
 
-            // ---- MAPA DE RESPUESTA ----
             Map<String, Object> indicadores = new HashMap<>();
-            indicadores.put("totalUsuarios", usuarios.size());
-            indicadores.put("usuariosActivos", usuariosActivos);
+            indicadores.put("totalUsuarios",      totalUsuarios);
+            indicadores.put("usuariosActivos",    usuariosActivos);
             indicadores.put("porcentajeUsuarios", Math.round(porcentajeUsuarios));
-
-            indicadores.put("totalSedes", sedes.size());
-            indicadores.put("sedesActivas", sedesActivas);
-            indicadores.put("porcentajeSedes", Math.round(porcentajeSedes));
-
-            indicadores.put("ingresosTotales", ingresosTotales);
-            indicadores.put("porcentajeIngresos", 85); // Temporal
+            indicadores.put("totalSedes",         totalSedes);
+            indicadores.put("sedesActivas",       sedesActivas);
+            indicadores.put("porcentajeSedes",    Math.round(porcentajeSedes));
+            indicadores.put("ingresosTotales",    ingresosTotales);
+            indicadores.put("porcentajeIngresos", 85);
 
             return ResponseEntity.ok(indicadores);
 
@@ -276,14 +240,10 @@ public class AdminController {
                             Collectors.counting()
                     ));
 
-            // Convertir a listas para Chart.js
             List<String> labels = new ArrayList<>(conteo.keySet());
             List<Long> data = new ArrayList<>(conteo.values());
 
-            return ResponseEntity.ok(Map.of(
-                    "labels", labels,
-                    "data", data
-            ));
+            return ResponseEntity.ok(Map.of("labels", labels, "data", data));
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
         }
@@ -293,16 +253,12 @@ public class AdminController {
     @ResponseBody
     public ResponseEntity<Map<String, Object>> getGraficaIngresos() {
         try {
-            // Implementa tu lógica real de ingresos mensuales
             List<String> labels = List.of("Ene", "Feb", "Mar", "Abr", "May", "Jun",
                     "Jul", "Ago", "Sep", "Oct", "Nov", "Dic");
             List<Integer> data = List.of(12000, 19000, 15000, 25000, 22000, 30000,
                     28000, 35000, 32000, 40000, 38000, 45000);
 
-            return ResponseEntity.ok(Map.of(
-                    "labels", labels,
-                    "data", data
-            ));
+            return ResponseEntity.ok(Map.of("labels", labels, "data", data));
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
         }
@@ -314,7 +270,6 @@ public class AdminController {
         try {
             List<Sede> sedes = sedeService.findAll();
 
-            // Agrupar por nombre y capacidad
             List<String> labels = sedes.stream()
                     .map(Sede::getNombre)
                     .collect(Collectors.toList());
@@ -322,10 +277,7 @@ public class AdminController {
                     .map(Sede::getCapacidad)
                     .collect(Collectors.toList());
 
-            return ResponseEntity.ok(Map.of(
-                    "labels", labels,
-                    "data", data
-            ));
+            return ResponseEntity.ok(Map.of("labels", labels, "data", data));
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
         }
@@ -336,26 +288,21 @@ public class AdminController {
     // ============================================
 
     @GetMapping("/reporte/usuarios/pdf")
-    @ResponseBody  // ✅ AGREGADO para que retorne bytes directamente
+    @ResponseBody
     public ResponseEntity<byte[]> generarReportePDF() {
         try {
-            // ✅ CAMBIO: listarTodos() → findAll()
             List<Usuario> usuarios = usuarioService.findAll();
 
             if (usuarios.isEmpty()) {
                 return ResponseEntity.status(HttpStatus.NO_CONTENT).body(null);
             }
 
-            // Generar el PDF
             ByteArrayOutputStream baos = reporteService.generarReportePDF(usuarios);
 
-            // Preparar headers para la descarga
             HttpHeaders headers = new HttpHeaders();
             headers.setContentType(MediaType.APPLICATION_PDF);
-
             String filename = "reporte_usuarios_AparcaYA_" +
-                    LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyyMMdd_HHmmss")) +
-                    ".pdf";
+                    LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyyMMdd_HHmmss")) + ".pdf";
             headers.setContentDispositionFormData("attachment", filename);
             headers.setCacheControl("must-revalidate, post-check=0, pre-check=0");
 
@@ -369,26 +316,22 @@ public class AdminController {
     }
 
     @GetMapping("/reporte/usuarios/excel")
-    @ResponseBody  // ✅ AGREGADO para que retorne bytes directamente
+    @ResponseBody
     public ResponseEntity<byte[]> generarReporteExcel() {
         try {
-            // ✅ CAMBIO: listarTodos() → findAll()
             List<Usuario> usuarios = usuarioService.findAll();
 
             if (usuarios.isEmpty()) {
                 return ResponseEntity.status(HttpStatus.NO_CONTENT).body(null);
             }
 
-            // Generar el Excel
             ByteArrayOutputStream baos = reporteService.generarReporteExcel(usuarios);
 
-            // Preparar headers para la descarga
             HttpHeaders headers = new HttpHeaders();
-            headers.setContentType(MediaType.parseMediaType("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"));
-
+            headers.setContentType(MediaType.parseMediaType(
+                    "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"));
             String filename = "reporte_usuarios_AparcaYA_" +
-                    LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyyMMdd_HHmmss")) +
-                    ".xlsx";
+                    LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyyMMdd_HHmmss")) + ".xlsx";
             headers.setContentDispositionFormData("attachment", filename);
             headers.setCacheControl("must-revalidate, post-check=0, pre-check=0");
 
@@ -406,15 +349,13 @@ public class AdminController {
     // ============================================
 
     private double calcularIngresosTotales() {
-        // Implementa tu lógica real de cálculo de ingresos
-        // Por ejemplo, sumar todas las reservas pagadas
-        return 85000.0; // Placeholder
+        return 85000.0; // Placeholder — reemplazar con lógica real cuando esté disponible
     }
 
+    // ============================================
+    // ENVÍO DE CORREOS
+    // ============================================
 
-        // ==================== ENVÍO DE CORREOS ====================
-
-    // Enviar correo unitario
     @PostMapping("/correo/unitario")
     @ResponseBody
     public ResponseEntity<Map<String, String>> enviarCorreoUnitario(
@@ -426,7 +367,6 @@ public class AdminController {
 
         try {
             emailService.enviarCorreoUnitario(correo, asunto, mensaje);
-
             response.put("status", "success");
             response.put("message", "Correo enviado correctamente a " + correo);
             return ResponseEntity.ok(response);
@@ -438,7 +378,6 @@ public class AdminController {
         }
     }
 
-    // Enviar correo masivo
     @PostMapping("/correo/masivo")
     @ResponseBody
     public ResponseEntity<Map<String, String>> enviarCorreoMasivo(
@@ -456,7 +395,6 @@ public class AdminController {
 
         try {
             emailService.enviarCorreoMasivo(seleccionados, asunto, mensaje);
-
             response.put("status", "success");
             response.put("message", "Correos enviados correctamente a " + seleccionados.size() + " destinatarios");
             return ResponseEntity.ok(response);
@@ -467,6 +405,4 @@ public class AdminController {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(response);
         }
     }
-
-
 }

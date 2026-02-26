@@ -1,61 +1,35 @@
 <!DOCTYPE html>
-<html lang="es">
+<html lang="es"
+      data-theme="light"
+      xmlns:th="http://www.thymeleaf.org">
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>Dashboard Administrador de Sede - AparcaYA</title>
 
-    <!-- =====================================================
-         LIBRERÍAS EXTERNAS
-         Orden de carga importante:
-         1. Tailwind primero (clases utilitarias base)
-         2. DaisyUI después (componentes sobre Tailwind)
-         3. Nuestro CSS al final (prioridad sobre frameworks)
-
-         CORRECCIÓN: El HTML original NO tenía DaisyUI
-         pero usaba clases como .btn, .btn-ghost, .btn-circle
-         en el botón toggle del sidebar. Se añade aquí.
-         ===================================================== -->
-
-    <!-- Tailwind CSS: clases utilitarias como flex, grid,
-         hidden, text-gray-500, md:w-1/2, gap-4, etc. -->
+    <!-- 1. Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
 
-    <!-- DaisyUI: componentes preconstruidos.
-         DEBE cargarse DESPUÉS de Tailwind.
-         Provee: .btn, .btn-ghost, .btn-circle
-         que usa el botón toggle del sidebar -->
+    <!-- 2. DaisyUI -->
     <link href="https://cdn.jsdelivr.net/npm/daisyui@4.12.10/dist/full.min.css"
           rel="stylesheet" />
 
-    <!-- =====================================================
-         CSS PROPIO DEL MÓDULO SEDE
-         CAMBIO ESTRUCTURAL: el CSS original estaba dentro
-         de una etiqueta <style> en este mismo archivo.
-         Ahora vive en su propio archivo externo Sede.css
-         para poder reutilizarse y mantenerse más fácil.
+    <!-- 3. CSS propio: base → components → pages -->
+    <link rel="stylesheet" href="/css/base/aparca-animations.css" />
+    <link rel="stylesheet" href="/css/components/aparca-components.css" />
+    <link rel="stylesheet" href="/css/pages/Sede.css" />
 
-         Ruta en minúsculas para Spring Boot en Linux
-         (el sistema de archivos de Linux distingue
-         mayúsculas de minúsculas en las rutas)
-         ===================================================== -->
-    <link rel="stylesheet" href="/Css/Sede.css">
+    <!-- 4. CSS de modales -->
+    <link rel="stylesheet" href="/css/modals/sede-modal-dinamico.css" />
 </head>
 <body>
 
-<!-- =====================================================
-     SIDEBAR — Barra lateral izquierda fija
-     id="sidebar" → JavaScript lo referencia para
-     agregar/quitar la clase .hidden al hacer toggle
-     .animate-fade-in-up → animación de entrada
-     definida en sede.css Parte 1
-     ===================================================== -->
-<aside class="sidebar animate-fade-in-up" id="sidebar"
+<!-- SIDEBAR -->
+<aside class="aparca-sidebar sede-sidebar animate-fade-in-up"
+       id="sidebar"
        aria-label="Menú principal">
 
-    <!-- Logo y nombre de la aplicación -->
-    <div class="sidebar-header" role="banner">
-        <!-- Ícono SVG del logo de AparcaYA -->
+    <div class="aparca-sidebar-header sede-sidebar-header" role="banner">
         <svg xmlns="http://www.w3.org/2000/svg" fill="none"
              viewBox="0 0 24 24" stroke-width="1.5"
              stroke="currentColor" aria-hidden="true">
@@ -67,59 +41,26 @@
         <h1>AparcaYa</h1>
     </div>
 
-    <!-- Navegación del sidebar
-         data-tab="X" → JavaScript usa este atributo
-         para mostrar/ocultar la sección correspondiente
-         class="active" → marca la sección visible actualmente -->
-    <nav class="sidebar-nav" role="navigation">
-        <a href="#" class="active" data-tab="usuarios">
-            Usuarios
-        </a>
-        <a href="#" data-tab="correo">
-            Enviar correo
-        </a>
-        <a href="#" data-tab="graficas">
-            Gráficas
-        </a>
-        <a href="#" data-tab="gestion">
-            🚗 Gestión Vehículos
-        </a>
-        <a href="#" data-tab="historial">
-            📊 Historial
-        </a>
-        <a href="#" data-tab="reservaciones">
-            📅 Reservaciones
-        </a>
-        <a href="#" data-tab="cargamasiva">
-            📤 Carga Masiva
-        </a>
+    <nav class="aparca-sidebar-nav" role="navigation">
+        <a href="#" class="active" data-tab="usuarios">Usuarios</a>
+        <a href="#" data-tab="correo">Enviar correo</a>
+        <a href="#" data-tab="graficas">Gráficas</a>
+        <a href="#" data-tab="gestion">🚗 Gestión Vehículos</a>
+        <a href="#" data-tab="historial">📊 Historial</a>
+        <a href="#" data-tab="reservaciones">📅 Reservaciones</a>
+        <a href="#" data-tab="cargamasiva">📤 Carga Masiva</a>
     </nav>
 </aside>
 
 
-<!-- =====================================================
-     HEADER — Barra superior fija
-     id="pageHeader" → JavaScript agrega/quita
-     .sidebar-hidden cuando se colapsa el sidebar
-     .animate-fade-in-up → animación de entrada
-     ===================================================== -->
-<header class="page-header animate-fade-in-up" id="pageHeader">
+<!-- HEADER -->
+<header class="aparca-page-header animate-fade-in-up" id="pageHeader">
 
-    <!-- Sección izquierda: toggle + logo -->
-    <div class="logo-section">
-
-        <!-- Botón toggle del sidebar
-             NOTA: Este botón usa clases de DaisyUI:
-             .btn .btn-ghost .btn-circle → por eso DaisyUI
-             DEBE estar cargado en el <head>
-             JavaScript escucha el clic para mostrar/ocultar
-             el sidebar agregando .hidden al <aside> y
-             .sidebar-hidden al <header> y <main> -->
+    <div class="aparca-logo-section">
         <button id="sidebarToggle"
                 class="btn btn-ghost btn-circle mr-3"
                 aria-label="Mostrar/ocultar menú lateral"
                 type="button">
-            <!-- Ícono de hamburguesa (tres líneas) -->
             <svg xmlns="http://www.w3.org/2000/svg"
                  class="inline-block w-6 h-6 stroke-current"
                  fill="none" viewBox="0 0 24 24" stroke-width="2"
@@ -129,10 +70,10 @@
             </svg>
         </button>
 
-        <!-- Ícono SVG del logo en el header -->
         <svg xmlns="http://www.w3.org/2000/svg" fill="none"
              viewBox="0 0 24 24" stroke-width="1.5"
-             stroke="currentColor" aria-hidden="true">
+             stroke="currentColor" aria-hidden="true"
+             class="sede-logo-icon">
             <path stroke-linecap="round" stroke-linejoin="round"
                   d="M8.25 18.75a1.5 1.5 0 01-3 0V15a6 6 0 0112
                   0v3.75a1.5 1.5 0 01-3 0V15a3 3 0 00-6
@@ -141,17 +82,9 @@
         <h1>AparcaYa</h1>
     </div>
 
-    <!-- Menú de perfil del administrador de sede
-         Usa clases propias: .profile-menu, .profile-btn
-         CAMBIO: el dropdown era .dropdown-menu
-         AHORA: .sede-dropdown (sede.css Parte 1) -->
-    <div class="profile-menu">
-
-        <!-- Botón circular con ícono de usuario
-             aria-expanded → JavaScript lo cambia a "true"
-             cuando el dropdown está abierto -->
+    <div class="aparca-profile-menu">
         <button id="profileBtn"
-                class="profile-btn"
+                class="aparca-profile-btn sede-profile-btn"
                 type="button"
                 aria-label="Menú de perfil"
                 aria-expanded="false"
@@ -168,85 +101,55 @@
             </svg>
         </button>
 
-        <!-- Dropdown del perfil
-             CAMBIO: era class="dropdown-menu" (conflicto con DaisyUI)
-             AHORA: class="sede-dropdown" (clase propia sin conflicto)
-             JavaScript agrega/quita .show para mostrarlo/ocultarlo -->
         <div id="profileDropdown"
-             class="sede-dropdown"
+             class="aparca-dropdown"
              role="menu"
              aria-label="Opciones de perfil">
-            <!-- sedeD.js conecta estas funciones al backend -->
-            <button type="button" role="menuitem"
-                    onclick="irConfiguracion()">
+            <button type="button" role="menuitem" onclick="irConfiguracion()">
                 Configuración
             </button>
-            <button type="button" role="menuitem"
-                    onclick="irAyuda()">
+            <button type="button" role="menuitem" onclick="irAyuda()">
                 Ayuda
             </button>
-            <button type="button" role="menuitem"
-                    onclick="cerrarSesion()">
+            <button type="button" role="menuitem" onclick="cerrarSesion()">
                 Cerrar sesión
             </button>
         </div>
     </div>
 </header>
 
-<!-- =====================================================
-     ÁREA PRINCIPAL DEL DASHBOARD
-     id="mainContent" → JavaScript agrega/quita
-     .sidebar-hidden para expandir cuando el sidebar
-     se oculta
-     .animate-fade-in-up → animación de entrada
-     ===================================================== -->
-<main class="dashboard animate-fade-in-up" id="mainContent">
+
+<!-- ÁREA PRINCIPAL -->
+<main class="aparca-dashboard-main sede-dashboard-main animate-fade-in-up"
+      id="mainContent">
 
 
-    <!-- =================================================
-         SECCIÓN USUARIOS
-         Activa por defecto (primer link del sidebar
-         tiene class="active")
-         ================================================= -->
-    <section id="usuarios" class="content-section">
+    <!-- SECCIÓN USUARIOS -->
+    <section id="usuarios" class="aparca-content-section">
 
-        <!-- Indicadores circulares (donuts) de estadísticas
-             .user-indicators → contenedor flex de las tarjetas
-             .stats-card → tarjeta circular individual
-             Definidos en sede.css Parte 1 -->
         <div class="user-indicators" aria-label="Indicadores de la sede">
 
-            <!-- Donut 1: Porcentaje de usuarios conectados
-                 stroke-dasharray="53 100" → 53% del arco relleno
-                 JavaScript puede actualizar este valor dinámicamente -->
             <article class="stats-card" aria-label="Usuarios conectados">
                 <div class="stats-label">Usuarios Conectados</div>
                 <div class="donut-container">
-                    <!-- SVG del gráfico circular
-                         viewBox="0 0 42 42" → sistema de coordenadas interno -->
                     <svg class="donut-svg" width="110" height="110"
                          viewBox="0 0 42 42" aria-hidden="true">
-                        <!-- Anillo de fondo semitransparente -->
                         <circle class="donut-ring" cx="21" cy="21" r="15.9155" />
-                        <!-- Arco de color: .usuario-segment → verde (#34a853) -->
                         <circle class="donut-segment usuario-segment"
                                 cx="21" cy="21" r="15.9155"
                                 stroke-dasharray="53 100"
                                 stroke-dashoffset="0" />
                     </svg>
-                    <!-- Número central actualizado por sedeD.js -->
                     <div class="donut-text">53%</div>
                 </div>
             </article>
 
-            <!-- Donut 2: Porcentaje de cuota de sedes ocupada -->
             <article class="stats-card" aria-label="Cuota de sedes">
                 <div class="stats-label">Cuota de Sedes</div>
                 <div class="donut-container">
                     <svg class="donut-svg" width="110" height="110"
                          viewBox="0 0 42 42" aria-hidden="true">
                         <circle class="donut-ring" cx="21" cy="21" r="15.9155" />
-                        <!-- .cuota-segment → verde azulado (#00bfa5) -->
                         <circle class="donut-segment cuota-segment"
                                 cx="21" cy="21" r="15.9155"
                                 stroke-dasharray="75 100"
@@ -257,14 +160,10 @@
             </article>
         </div>
 
-        <!-- Botón registrar nuevo trabajador
-             CAMBIO: era class="btn-primary" → ahora class="sede-btn-primary"
-             openRegistrarTrabajadorModal() → abre el modal de registro -->
         <div class="flex justify-end mb-4">
             <button class="sede-btn-primary"
                     onclick="openRegistrarTrabajadorModal()"
                     type="button">
-                <!-- Ícono "+" usando SVG de Tailwind -->
                 <svg xmlns="http://www.w3.org/2000/svg"
                      class="h-5 w-5" fill="none"
                      viewBox="0 0 24 24" stroke="currentColor"
@@ -276,20 +175,10 @@
             </button>
         </div>
 
-        <!-- Pestañas: Usuarios / Sedes
-             CAMBIO: era class="tabs" (conflicto con DaisyUI)
-             AHORA: class="sede-tabs" (sede.css Parte 2)
-             JavaScript agrega/quita .active según la pestaña clickeada -->
         <div class="sede-tabs" role="tablist">
-
-            <!-- Pestaña Usuarios: activa por defecto -->
-            <button id="btnUsuarios"
-                    class="active"
-                    role="tab"
-                    aria-selected="true"
-                    aria-controls="tablaUsuarios"
-                    type="button">
-                <!-- Ícono de grupo de personas -->
+            <button id="btnUsuarios" class="active"
+                    role="tab" aria-selected="true"
+                    aria-controls="tablaUsuarios" type="button">
                 <svg xmlns="http://www.w3.org/2000/svg"
                      class="h-6 w-6" fill="none"
                      viewBox="0 0 24 24" stroke="currentColor"
@@ -303,13 +192,9 @@
                 <span>Usuarios</span>
             </button>
 
-            <!-- Pestaña Sedes -->
             <button id="btnSedes"
-                    role="tab"
-                    aria-selected="false"
-                    aria-controls="tablaSedes"
-                    type="button">
-                <!-- Ícono de edificio -->
+                    role="tab" aria-selected="false"
+                    aria-controls="tablaSedes" type="button">
                 <svg xmlns="http://www.w3.org/2000/svg"
                      class="h-6 w-6" fill="none"
                      viewBox="0 0 24 24" stroke="currentColor"
@@ -325,17 +210,11 @@
             </button>
         </div>
 
-        <!-- Botones de exportación de reportes
-             CAMBIO: era class="btn-outline" → ahora class="sede-btn-outline" -->
         <div class="flex justify-end mb-4 gap-4 flex-wrap">
-            <button class="sede-btn-outline"
-                    onclick="generarPDF()"
-                    type="button">
-                <!-- Ícono de archivo PDF -->
+            <button class="sede-btn-outline" onclick="generarPDF()" type="button">
                 <svg xmlns="http://www.w3.org/2000/svg"
                      class="h-4 w-4" fill="none"
-                     viewBox="0 0 24 24" stroke="currentColor"
-                     aria-hidden="true">
+                     viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
                     <path stroke-linecap="round" stroke-linejoin="round"
                           stroke-width="2"
                           d="M7 21h10a2 2 0 002-2V9.414a1 1 0
@@ -344,14 +223,10 @@
                 </svg>
                 Generar PDF
             </button>
-            <button class="sede-btn-outline"
-                    onclick="generarExcel()"
-                    type="button">
-                <!-- Ícono de archivo Excel -->
+            <button class="sede-btn-outline" onclick="generarExcel()" type="button">
                 <svg xmlns="http://www.w3.org/2000/svg"
                      class="h-4 w-4" fill="none"
-                     viewBox="0 0 24 24" stroke="currentColor"
-                     aria-hidden="true">
+                     viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
                     <path stroke-linecap="round" stroke-linejoin="round"
                           stroke-width="2"
                           d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0
@@ -363,27 +238,17 @@
             </button>
         </div>
 
-        <!-- Barra de búsqueda y filtro de usuarios
-             Tailwind: flex, justify-between, items-center, etc.
-             Estas clases de Tailwind no interfieren con nuestro CSS -->
         <div class="flex justify-between items-center mb-6 gap-4 flex-wrap">
-
-            <!-- Barra de búsqueda general
-                 focus-within:border-blue-500 → Tailwind cambia el borde
-                 cuando cualquier hijo recibe el foco -->
             <div class="flex items-center w-full md:w-1/2 border-2
                         border-gray-300 rounded-lg px-3 py-2
                         focus-within:border-blue-500 transition-colors">
-                <!-- Ícono lupa -->
                 <svg xmlns="http://www.w3.org/2000/svg"
                      class="h-5 w-5 text-gray-400" fill="none"
-                     viewBox="0 0 24 24" stroke="currentColor"
-                     aria-hidden="true">
+                     viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
                     <path stroke-linecap="round" stroke-linejoin="round"
                           stroke-width="2"
                           d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
                 </svg>
-                <!-- sedeD.js escucha keyup en este input para filtrar la tabla -->
                 <input id="busquedaInput"
                        type="text"
                        placeholder="Buscar por nombre, correo o rol..."
@@ -391,7 +256,6 @@
                        aria-label="Buscar usuarios">
             </div>
 
-            <!-- Filtro por estado: Activo / Inactivo -->
             <select id="filtroEstado"
                     class="border-2 border-gray-300 rounded-lg px-4
                            py-2 text-gray-700 w-full md:w-auto
@@ -403,12 +267,8 @@
             </select>
         </div>
 
-        <!-- Tabla de Usuarios (visible por defecto)
-             CAMBIO: se agrega class="sede-table" a la tabla
-             para aplicar estilos de sede.css Parte 2 sin
-             afectar globalmente TODAS las tablas del HTML -->
         <div id="tablaUsuarios" class="overflow-x-auto">
-            <table class="sede-table">
+            <table class="aparca-table sede-table">
                 <thead>
                 <tr>
                     <th>Nombre</th>
@@ -419,21 +279,15 @@
                 </tr>
                 </thead>
                 <tbody id="usuariosTableBody">
-                <!-- sedeD.js rellena con los usuarios de la sede -->
                 <tr>
-                    <td colspan="5"
-                        class="text-center py-8 text-gray-500">
-                        Cargando usuarios...
-                    </td>
+                    <td colspan="5" class="loading">Cargando usuarios...</td>
                 </tr>
                 </tbody>
             </table>
         </div>
 
-        <!-- Tabla de Sedes (oculta por defecto)
-             .hidden → Tailwind la oculta hasta que se active la pestaña Sedes -->
         <div id="tablaSedes" class="overflow-x-auto hidden">
-            <table class="sede-table">
+            <table class="aparca-table sede-table">
                 <thead>
                 <tr>
                     <th>Nombre</th>
@@ -444,12 +298,8 @@
                 </tr>
                 </thead>
                 <tbody id="sedesTableBody">
-                <!-- sedeD.js rellena con las sedes del administrador -->
                 <tr>
-                    <td colspan="5"
-                        class="text-center py-8 text-gray-500">
-                        Cargando sedes...
-                    </td>
+                    <td colspan="5" class="loading">Cargando sedes...</td>
                 </tr>
                 </tbody>
             </table>
@@ -457,30 +307,16 @@
     </section>
 
 
-    <!-- =================================================
-         SECCIÓN CORREO
-         class="content-section hidden" → oculta por defecto
-         JavaScript la muestra al hacer clic en "Enviar correo"
-         ================================================= -->
-    <section id="correo" class="content-section hidden">
-        <h2 class="text-2xl font-semibold text-blue-700 mb-6">
-            Enviar Correo
-        </h2>
+    <!-- SECCIÓN CORREO -->
+    <section id="correo" class="aparca-content-section hidden">
+        <h2 class="text-2xl font-semibold text-blue-700 mb-6">Enviar Correo</h2>
 
-        <!-- Pestañas: Correo individual / Correo masivo
-             CAMBIO: era class="tabs" → ahora class="sede-tabs" -->
         <div class="sede-tabs" role="tablist">
-
-            <!-- Pestaña correo individual: activa por defecto -->
-            <button id="tab-mailuno"
-                    class="active"
-                    role="tab"
-                    aria-selected="true"
-                    type="button">
+            <button id="tab-mailuno" class="active"
+                    role="tab" aria-selected="true" type="button">
                 <svg xmlns="http://www.w3.org/2000/svg"
                      class="h-5 w-5" fill="none"
-                     viewBox="0 0 24 24" stroke="currentColor"
-                     aria-hidden="true">
+                     viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
                     <path stroke-linecap="round" stroke-linejoin="round"
                           stroke-width="2"
                           d="M3 8l7.89 5.26a2 2 0 002.22 0L21
@@ -489,16 +325,11 @@
                 </svg>
                 Correo Uno a Uno
             </button>
-
-            <!-- Pestaña correo masivo -->
             <button id="tab-mailmasivo"
-                    role="tab"
-                    aria-selected="false"
-                    type="button">
+                    role="tab" aria-selected="false" type="button">
                 <svg xmlns="http://www.w3.org/2000/svg"
                      class="h-5 w-5" fill="none"
-                     viewBox="0 0 24 24" stroke="currentColor"
-                     aria-hidden="true">
+                     viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
                     <path stroke-linecap="round" stroke-linejoin="round"
                           stroke-width="2"
                           d="M17 20h5v-2a3 3 0 00-5.356-1.857M17
@@ -513,42 +344,28 @@
             </button>
         </div>
 
-        <!-- Formulario Correo Uno a Uno (visible por defecto)
-             CAMBIO: era class="form-control" → ahora class="sede-form-control"
-             Evita conflicto con .form-control de DaisyUI -->
         <div id="correoUno">
             <form onsubmit="event.preventDefault(); enviarCorreoUno();">
-
                 <div class="sede-form-control">
                     <label for="emailSingle">Correo del destinatario</label>
-                    <input type="email"
-                           id="emailSingle"
-                           placeholder="ejemplo@correo.com"
-                           required>
+                    <input type="email" id="emailSingle"
+                           placeholder="ejemplo@correo.com" required>
                 </div>
-
                 <div class="sede-form-control">
                     <label for="subjectSingle">Asunto</label>
-                    <input type="text"
-                           id="subjectSingle"
-                           placeholder="Asunto del correo"
-                           required>
+                    <input type="text" id="subjectSingle"
+                           placeholder="Asunto del correo" required>
                 </div>
-
                 <div class="sede-form-control">
                     <label for="messageSingle">Mensaje</label>
                     <textarea id="messageSingle"
                               placeholder="Escribe el contenido del correo..."
-                              rows="6"
-                              required></textarea>
+                              rows="6" required></textarea>
                 </div>
-
-                <!-- CAMBIO: era class="btn-primary" → ahora class="sede-btn-primary" -->
                 <button type="submit" class="sede-btn-primary">
                     <svg xmlns="http://www.w3.org/2000/svg"
                          class="h-5 w-5" fill="none"
-                         viewBox="0 0 24 24" stroke="currentColor"
-                         aria-hidden="true">
+                         viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
                         <path stroke-linecap="round" stroke-linejoin="round"
                               stroke-width="2"
                               d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8" />
@@ -558,43 +375,29 @@
             </form>
         </div>
 
-        <!-- Formulario Correo Masivo (oculto por defecto)
-             hidden → atributo HTML nativo que oculta el elemento -->
         <div id="correoMasivo" hidden>
             <form onsubmit="event.preventDefault(); enviarCorreoMasivo();">
-
                 <div class="sede-form-control">
-                    <label for="emailsMassive">
-                        Lista de correos (separados por coma)
-                    </label>
+                    <label for="emailsMassive">Lista de correos (separados por coma)</label>
                     <textarea id="emailsMassive"
                               placeholder="correo1@ejemplo.com, correo2@ejemplo.com, ..."
-                              rows="4"
-                              required></textarea>
+                              rows="4" required></textarea>
                 </div>
-
                 <div class="sede-form-control">
                     <label for="subjectMassive">Asunto</label>
-                    <input type="text"
-                           id="subjectMassive"
-                           placeholder="Asunto del correo"
-                           required>
+                    <input type="text" id="subjectMassive"
+                           placeholder="Asunto del correo" required>
                 </div>
-
                 <div class="sede-form-control">
                     <label for="messageMassive">Mensaje</label>
                     <textarea id="messageMassive"
                               placeholder="Escribe el contenido del correo..."
-                              rows="6"
-                              required></textarea>
+                              rows="6" required></textarea>
                 </div>
-
-                <!-- CAMBIO: era class="btn-primary" → ahora class="sede-btn-primary" -->
                 <button type="submit" class="sede-btn-primary">
                     <svg xmlns="http://www.w3.org/2000/svg"
                          class="h-5 w-5" fill="none"
-                         viewBox="0 0 24 24" stroke="currentColor"
-                         aria-hidden="true">
+                         viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
                         <path stroke-linecap="round" stroke-linejoin="round"
                               stroke-width="2"
                               d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8" />
@@ -606,77 +409,48 @@
     </section>
 
 
-    <!-- =================================================
-         SECCIÓN GRÁFICAS
-         ================================================= -->
-    <section id="graficas" class="content-section hidden">
+    <!-- SECCIÓN GRÁFICAS -->
+    <section id="graficas" class="aparca-content-section hidden">
         <h2 class="text-2xl font-semibold text-blue-700 mb-6">
             Gráficas y Estadísticas
         </h2>
-
-        <!-- Grid de gráficas usando Tailwind
-             grid-cols-1 en móvil, 2 en tablet, 3 en desktop -->
         <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-
-            <!-- Tarjeta de gráfica: Ocupación de sedes
-                 Este SVG es estático, sedeD.js puede actualizarlo
-                 con datos reales del backend -->
             <article class="p-6 bg-white rounded-lg shadow-lg">
                 <h3 class="font-semibold text-lg text-center mb-4 text-gray-700">
                     Ocupación de Sedes
                 </h3>
                 <div class="flex justify-center">
-                    <!-- SVG de donut inline para la gráfica
-                         A diferencia de los otros donuts, este usa
-                         transform="rotate(-90 21 21)" directamente
-                         en el elemento en vez de en el contenedor -->
                     <svg width="150" height="150" viewBox="0 0 42 42"
                          aria-label="Gráfica de ocupación: 53%">
-                        <!-- Anillo de fondo verde claro semitransparente -->
                         <circle cx="21" cy="21" r="15.9155"
                                 stroke="#90ee90" stroke-width="10"
                                 fill="none" opacity="0.5"/>
-                        <!-- Arco de color verde con 53% de ocupación -->
                         <circle cx="21" cy="21" r="15.9155"
                                 stroke="#32cd32" stroke-width="10"
                                 fill="none" stroke-linecap="round"
                                 stroke-dasharray="53 100"
                                 stroke-dashoffset="0"
                                 transform="rotate(-90 21 21)"/>
-                        <!-- Texto del porcentaje centrado en el SVG -->
                         <text x="50%" y="50%"
                               dominant-baseline="middle"
                               text-anchor="middle"
                               fill="#32cd32"
                               font-size="8"
-                              font-weight="bold">
-                            53%
-                        </text>
+                              font-weight="bold">53%</text>
                     </svg>
                 </div>
             </article>
-
-            <!-- Más tarjetas de gráficas pueden añadirse aquí
-                 sedeD.js puede inyectar gráficas adicionales dinámicamente -->
         </div>
     </section>
-    <!-- =================================================
-         SECCIÓN GESTIÓN DE VEHÍCULOS
-         El administrador de sede también puede registrar
-         entradas/salidas igual que el trabajador
-         ================================================= -->
-    <section id="gestion" class="content-section hidden">
+
+
+    <!-- SECCIÓN GESTIÓN VEHÍCULOS -->
+    <section id="gestion" class="aparca-content-section hidden">
         <h2 class="section-title">🚗 Gestión de Vehículos</h2>
 
-
-        <!-- ---------------------------------------------
-             SUBSECCIÓN: Registrar Entrada de Vehículo
-             --------------------------------------------- -->
         <div class="sub-section">
             <h3 class="sub-section-title">➕ Registrar Entrada de Vehículo</h3>
 
-            <!-- Buscador rápido por placa
-                 CAMBIO: era class="btn-primary" → ahora class="sede-btn-primary" -->
             <div style="margin-bottom: 1rem; display: flex; gap: 0.5rem;">
                 <input type="text"
                        id="buscarPlaca"
@@ -684,199 +458,109 @@
                        style="padding: 0.5rem; border: 1px solid #cbd5e1;
                               border-radius: 0.5rem; flex: 1;"
                        aria-label="Buscar por placa">
-                <button class="sede-btn-primary"
-                        type="button"
+                <button class="sede-btn-primary" type="button"
                         onclick="buscarPorPlacaIntegrado()">
                     🔍 Buscar
                 </button>
             </div>
 
-            <!-- Formulario de registro de entrada
-                 novalidate → validaciones manejadas por sedeD.js -->
             <form id="registroEntradaForm" novalidate>
-
-                <!-- Campo oculto: indica al backend que es un CLIENTE -->
                 <input type="hidden" name="rol" value="CLIENTE">
 
-                <!-- Grid de 2 columnas para los campos -->
                 <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
 
-                    <!-- ===== DATOS DEL CLIENTE ===== -->
-
-                    <!-- CAMBIO: era class="form-group" → ahora class="sede-form-group"
-                         Evita conflicto con .form-control de DaisyUI -->
                     <div class="sede-form-group">
                         <label for="nombre">Nombre Cliente *</label>
-                        <input type="text"
-                               id="nombre"
-                               name="nombre"
-                               required
-                               minlength="2"
-                               maxlength="100"
-                               autocomplete="name"
-                               placeholder="Ej: Juan Pérez"
-                               style="padding: 0.6rem; border: 1px solid #cbd5e1;
-                                      border-radius: 0.5rem; width: 100%;">
-                        <!-- .error-message → aparece si el campo no es válido -->
-                        <span id="nombre-error"
-                              class="error-message"
-                              aria-live="polite"></span>
+                        <input type="text" id="nombre" name="nombre"
+                               required minlength="2" maxlength="100"
+                               autocomplete="name" placeholder="Ej: Juan Pérez">
+                        <span id="nombre-error" class="error-message" aria-live="polite"></span>
                     </div>
 
                     <div class="sede-form-group">
                         <label for="telefono">Teléfono *</label>
-                        <input type="tel"
-                               id="telefono"
-                               name="telefono"
-                               required
-                               pattern="[0-9]{10}"
+                        <input type="tel" id="telefono" name="telefono"
+                               required pattern="[0-9]{10}"
                                title="Ingresa un número de 10 dígitos"
-                               autocomplete="tel"
-                               placeholder="Ej: 3001234567"
-                               style="padding: 0.6rem; border: 1px solid #cbd5e1;
-                                      border-radius: 0.5rem; width: 100%;">
-                        <span id="telefono-error"
-                              class="error-message"
-                              aria-live="polite"></span>
-                        <!-- .success-message → aparece cuando el campo es válido -->
-                        <span id="telefono-success"
-                              class="success-message"
-                              aria-live="polite"></span>
+                               autocomplete="tel" placeholder="Ej: 3001234567">
+                        <span id="telefono-error" class="error-message" aria-live="polite"></span>
+                        <span id="telefono-success" class="success-message" aria-live="polite"></span>
                     </div>
 
                     <div class="sede-form-group">
                         <label for="correo1">Email *</label>
-                        <!-- id="correo1" para no colisionar con el #correo
-                             del formulario de envío de correos de esta misma página -->
-                        <input type="email"
-                               id="correo1"
-                               name="correo"
-                               required
-                               autocomplete="email"
-                               placeholder="ejemplo@correo.com"
-                               style="padding: 0.6rem; border: 1px solid #cbd5e1;
-                                      border-radius: 0.5rem; width: 100%;">
-                        <span id="correo-error"
-                              class="error-message"
-                              aria-live="polite"></span>
-                        <span id="correo-success"
-                              class="success-message"
-                              aria-live="polite"></span>
+                        <input type="email" id="correo1" name="correo"
+                               required autocomplete="email"
+                               placeholder="ejemplo@correo.com">
+                        <span id="correo-error" class="error-message" aria-live="polite"></span>
+                        <span id="correo-success" class="success-message" aria-live="polite"></span>
                     </div>
 
                     <div class="sede-form-group">
                         <label for="cedula">Cédula *</label>
-                        <input type="text"
-                               id="cedula"
-                               name="cedula"
-                               required
-                               pattern="[0-9]{10}"
+                        <input type="text" id="cedula" name="cedula"
+                               required pattern="[0-9]{10}"
                                title="Ingresa una cédula de 10 dígitos"
-                               autocomplete="off"
-                               placeholder="Ej: 1234567890"
-                               style="padding: 0.6rem; border: 1px solid #cbd5e1;
-                                      border-radius: 0.5rem; width: 100%;">
-                        <span id="cedula-error"
-                              class="error-message"
-                              aria-live="polite"></span>
-                        <span id="cedula-success"
-                              class="success-message"
-                              aria-live="polite"></span>
+                               autocomplete="off" placeholder="Ej: 1234567890">
+                        <span id="cedula-error" class="error-message" aria-live="polite"></span>
+                        <span id="cedula-success" class="success-message" aria-live="polite"></span>
                     </div>
 
-                    <!-- Contraseña generada automáticamente por sedeD.js -->
                     <input type="hidden" id="contrasena" name="contrasena" value="">
                     <input type="hidden" id="confirmarContrasena"
                            name="confirmarContrasena" value="">
 
-                    <!-- ===== DATOS DEL VEHÍCULO ===== -->
-
                     <div class="sede-form-group">
                         <label for="placa">Placa *</label>
-                        <input type="text"
-                               id="placa"
-                               name="placa"
-                               required
-                               maxlength="6"
+                        <input type="text" id="placa" name="placa"
+                               required maxlength="6"
                                pattern="[A-Z]{3}[0-9]{3}"
                                title="Formato: 3 letras mayúsculas + 3 números (ej: ABC123)"
                                placeholder="ABC123"
-                               style="text-transform: uppercase; padding: 0.6rem;
-                                      border: 1px solid #cbd5e1; border-radius: 0.5rem;
-                                      width: 100%;"
+                               style="text-transform: uppercase;"
                                oninput="this.value = this.value.toUpperCase()
                                         .replace(/[^A-Z0-9]/g, '')
                                         .substring(0, 6);">
-                        <span id="placa-error"
-                              class="error-message"
-                              aria-live="polite"></span>
+                        <span id="placa-error" class="error-message" aria-live="polite"></span>
                     </div>
 
                     <div class="sede-form-group">
                         <label for="tipoVehiculo">Tipo Vehículo *</label>
-                        <select id="tipoVehiculo"
-                                name="tipoVehiculo"
-                                required
-                                style="padding: 0.6rem; border: 1px solid #cbd5e1;
-                                       border-radius: 0.5rem; width: 100%;">
+                        <select id="tipoVehiculo" name="tipoVehiculo" required>
                             <option value="">Selecciona un tipo</option>
                             <option value="CARRO">Carro</option>
                             <option value="MOTO">Moto</option>
                             <option value="BICICLETA">Bicicleta</option>
                             <option value="OTRO">Otro</option>
                         </select>
-                        <span id="tipoVehiculo-error"
-                              class="error-message"
-                              aria-live="polite"></span>
+                        <span id="tipoVehiculo-error" class="error-message" aria-live="polite"></span>
                     </div>
 
                     <div class="sede-form-group">
                         <label for="marca">Marca *</label>
-                        <!-- Las opciones las carga sedeD.js según el tipo de vehículo -->
-                        <select id="marca"
-                                name="marca"
-                                required
-                                style="padding: 0.6rem; border: 1px solid #cbd5e1;
-                                       border-radius: 0.5rem; width: 100%;">
+                        <select id="marca" name="marca" required>
                             <option value="">Selecciona una marca</option>
                         </select>
-                        <span id="marca-error"
-                              class="error-message"
-                              aria-live="polite"></span>
+                        <span id="marca-error" class="error-message" aria-live="polite"></span>
                     </div>
 
                     <div class="sede-form-group">
                         <label for="color">Color</label>
-                        <input type="text"
-                               id="color"
-                               name="color"
-                               placeholder="Ej: Rojo"
-                               style="padding: 0.6rem; border: 1px solid #cbd5e1;
-                                      border-radius: 0.5rem; width: 100%;">
+                        <input type="text" id="color" name="color" placeholder="Ej: Rojo">
                     </div>
 
                     <div class="sede-form-group">
                         <label for="anio">Año</label>
-                        <input type="number"
-                               id="anio"
-                               name="anio"
-                               min="2000"
-                               max="2025"
-                               placeholder="Ej: 2020"
-                               style="padding: 0.6rem; border: 1px solid #cbd5e1;
-                                      border-radius: 0.5rem; width: 100%;">
+                        <input type="number" id="anio" name="anio"
+                               min="2000" max="2025" placeholder="Ej: 2020">
                     </div>
                 </div>
 
-                <!-- Botones del formulario
-                     CAMBIO: btn-success → sede-btn-success
-                             btn-secondary → sede-btn-secondary -->
                 <div style="margin-top: 1rem; display: flex; gap: 0.5rem;">
                     <button type="submit" class="sede-btn-success">
                         ✅ Registrar Entrada
                     </button>
-                    <button type="button"
-                            class="sede-btn-secondary"
+                    <button type="button" class="sede-btn-secondary"
                             onclick="limpiarFormularioEntrada()">
                         🔄 Limpiar
                     </button>
@@ -884,58 +568,37 @@
             </form>
         </div>
 
-
-        <!-- Tabla: Vehículos activos con temporizador -->
         <div class="sub-section">
             <h3 class="sub-section-title">⏱️ Vehículos en Parqueadero (Temporizando)</h3>
-            <!-- CAMBIO: se agrega class="sede-table" -->
-            <table class="sede-table">
+            <table class="aparca-table sede-table">
                 <thead>
                 <tr>
-                    <th>Placa</th>
-                    <th>Tipo</th>
-                    <th>Cliente</th>
-                    <th>Teléfono</th>
-                    <th>Hora Entrada</th>
-                    <!-- Las celdas de esta columna usan .tiempo-activo
-                         para mostrar el cronómetro en fuente monoespaciada -->
-                    <th>Tiempo</th>
-                    <th>Cobro Est.</th>
-                    <th>Acción</th>
+                    <th>Placa</th><th>Tipo</th><th>Cliente</th>
+                    <th>Teléfono</th><th>Hora Entrada</th>
+                    <th>Tiempo</th><th>Cobro Est.</th><th>Acción</th>
                 </tr>
                 </thead>
                 <tbody id="vehiculosActivosBody">
                 <tr>
-                    <td colspan="8"
-                        style="text-align: center; padding: 1rem; color: #64748b;">
-                        Cargando...
-                    </td>
+                    <td colspan="8" class="loading">Cargando...</td>
                 </tr>
                 </tbody>
             </table>
         </div>
 
-        <!-- Tabla: Vehículos pendientes de cobro -->
         <div class="sub-section">
             <h3 class="sub-section-title">💰 Pendientes de Cobro</h3>
-            <table class="sede-table">
+            <table class="aparca-table sede-table">
                 <thead>
                 <tr>
-                    <th>Placa</th>
-                    <th>Cliente</th>
-                    <th>Entrada</th>
-                    <th>Salida</th>
-                    <th>Tiempo Total</th>
-                    <th>Total a Pagar</th>
-                    <th>Acción</th>
+                    <th>Placa</th><th>Cliente</th><th>Entrada</th>
+                    <th>Salida</th><th>Tiempo Total</th>
+                    <th>Total a Pagar</th><th>Acción</th>
                 </tr>
                 </thead>
                 <tbody id="pendientesCobroBody">
                 <tr>
-                    <td colspan="7"
-                        style="text-align: center; padding: 1rem; color: #64748b;">
-                        No hay vehículos pendientes
-                    </td>
+                    <td colspan="7" class="loading">No hay vehículos pendientes</td>
                 </tr>
                 </tbody>
             </table>
@@ -943,98 +606,64 @@
     </section>
 
 
-    <!-- =================================================
-         SECCIÓN HISTORIAL
-         ================================================= -->
-    <section id="historial" class="content-section hidden">
+    <!-- SECCIÓN HISTORIAL -->
+    <section id="historial" class="aparca-content-section hidden">
         <h2 class="section-title">📊 Historial de Registros</h2>
 
-        <!-- Barra de filtros: .filter-bar definida en sede.css Parte 2
-             NOTA: id="filtroEstado1" para no colisionar con el
-             #filtroEstado del filtro de usuarios de la sección Usuarios -->
         <div class="filter-bar">
-            <input type="date"
-                   id="filtroFecha"
-                   aria-label="Filtrar por fecha">
-            <select id="filtroEstado1"
-                    aria-label="Filtrar por estado">
+            <input type="date" id="filtroFecha" aria-label="Filtrar por fecha">
+            <select id="filtroEstado1" aria-label="Filtrar por estado">
                 <option value="">Todos los estados</option>
                 <option value="ACTIVO">Activo</option>
                 <option value="FINALIZADO">Pendiente Cobro</option>
                 <option value="COBRADO">Cobrado</option>
             </select>
-            <!-- CAMBIO: btn-primary → sede-btn-primary -->
-            <button class="sede-btn-primary"
-                    onclick="loadHistorial()"
-                    type="button">
+            <button class="sede-btn-primary" onclick="loadHistorial()" type="button">
                 🔍 Filtrar
             </button>
         </div>
 
-        <table class="sede-table">
+        <table class="aparca-table sede-table">
             <thead>
             <tr>
-                <th>Placa</th>
-                <th>Tipo</th>
-                <th>Cliente</th>
-                <th>Teléfono</th>
-                <th>Entrada</th>
-                <th>Salida</th>
-                <th>Tiempo</th>
-                <th>Precio</th>
-                <th>Estado</th>
+                <th>Placa</th><th>Tipo</th><th>Cliente</th><th>Teléfono</th>
+                <th>Entrada</th><th>Salida</th><th>Tiempo</th>
+                <th>Precio</th><th>Estado</th>
             </tr>
             </thead>
             <tbody id="historialBody">
             <tr>
-                <td colspan="9"
-                    style="text-align: center; padding: 1rem; color: #64748b;">
-                    Seleccione filtros y presione Filtrar
-                </td>
+                <td colspan="9" class="loading">Seleccione filtros y presione Filtrar</td>
             </tr>
             </tbody>
         </table>
     </section>
 
 
-    <!-- =================================================
-         SECCIÓN RESERVACIONES
-         ================================================= -->
-    <section id="reservaciones" class="content-section hidden">
+    <!-- SECCIÓN RESERVACIONES -->
+    <section id="reservaciones" class="aparca-content-section hidden">
         <h2 class="section-title">📅 Reservaciones Pendientes</h2>
 
-        <table class="sede-table">
+        <table class="aparca-table sede-table">
             <thead>
             <tr>
-                <th>Cliente</th>
-                <th>Teléfono</th>
-                <th>Placa</th>
-                <th>Tipo</th>
-                <th>Fecha Inicio</th>
-                <th>Fecha Fin</th>
-                <th>Cupo</th>
-                <th>Acciones</th>
+                <th>Cliente</th><th>Teléfono</th><th>Placa</th><th>Tipo</th>
+                <th>Fecha Inicio</th><th>Fecha Fin</th><th>Cupo</th><th>Acciones</th>
             </tr>
             </thead>
             <tbody id="reservacionesBody">
             <tr>
-                <td colspan="8"
-                    style="text-align: center; padding: 1rem; color: #64748b;">
-                    Cargando...
-                </td>
+                <td colspan="8" class="loading">Cargando...</td>
             </tr>
             </tbody>
         </table>
     </section>
 
 
-    <!-- =================================================
-         SECCIÓN CARGA MASIVA
-         ================================================= -->
-    <section id="cargamasiva" class="content-section hidden">
+    <!-- SECCIÓN CARGA MASIVA -->
+    <section id="cargamasiva" class="aparca-content-section hidden">
         <h2 class="section-title">📤 Carga Masiva desde Excel</h2>
 
-        <!-- PASO 1: Descargar plantilla -->
         <div class="sub-section">
             <h3 class="sub-section-title">📥 Paso 1: Descargar Plantilla</h3>
             <p style="margin-bottom: 1rem; color: #64748b; font-size: 0.9rem;">
@@ -1042,22 +671,17 @@
                 según el tipo de registro que necesites.
             </p>
 
-            <!-- CAMBIO: btn-primary → sede-btn-primary
-                         btn-info   → sede-btn-info -->
             <div style="display: flex; gap: 1rem; flex-wrap: wrap; margin-bottom: 1rem;">
                 <button class="sede-btn-primary"
-                        onclick="descargarPlantillaCompleta()"
-                        type="button">
+                        onclick="descargarPlantillaCompleta()" type="button">
                     📥 Plantilla Completa (Clientes + Vehículos)
                 </button>
                 <button class="sede-btn-info"
-                        onclick="descargarPlantillaVehiculosSolo()"
-                        type="button">
+                        onclick="descargarPlantillaVehiculosSolo()" type="button">
                     🚗 Solo Vehículos
                 </button>
             </div>
 
-            <!-- Panel informativo sobre el formato -->
             <div style="margin-top: 1rem; padding: 1rem; background: #f1f5f9;
                         border-radius: 0.5rem; border-left: 4px solid #3b82f6;">
                 <strong style="color: #1e40af;">📋 Formato de la Plantilla:</strong>
@@ -1070,10 +694,10 @@
                     <ul style="margin: 0.5rem 0 0 1.5rem;
                                color: #475569; font-size: 0.9rem;">
                         <li><strong>Tipo:</strong> "Cliente"</li>
-                        <li><strong>Nombre:</strong> Nombre completo (ej: Juan Pérez)</li>
-                        <li><strong>Teléfono:</strong> 10 dígitos (ej: 0987654321)</li>
+                        <li><strong>Nombre:</strong> Nombre completo</li>
+                        <li><strong>Teléfono:</strong> 10 dígitos</li>
                         <li><strong>Email:</strong> correo@example.com</li>
-                        <li><strong>Cédula:</strong> 10 dígitos (ej: 1234567890)</li>
+                        <li><strong>Cédula:</strong> 10 dígitos</li>
                     </ul>
                 </details>
 
@@ -1085,43 +709,35 @@
                     <ul style="margin: 0.5rem 0 0 1.5rem;
                                color: #475569; font-size: 0.9rem;">
                         <li><strong>Tipo:</strong> "Vehiculo" o "Vehículo"</li>
-                        <li><strong>Placa:</strong> 3 letras + 3 números (ej: ABC123)</li>
+                        <li><strong>Placa:</strong> 3 letras + 3 números (ABC123)</li>
                         <li><strong>Tipo Vehículo:</strong> CARRO, MOTO, BICICLETA, OTRO</li>
-                        <li><strong>Marca:</strong> TOYOTA, CHEVROLET, MAZDA, KIA,
-                            NISSAN, HONDA, FORD, HYUNDAI, SUZUKI</li>
-                        <li><strong>Color:</strong> Color del vehículo (ej: Blanco)</li>
-                        <li><strong>Año:</strong> Año del vehículo (2000-2025)</li>
-                        <li><strong>Email Cliente:</strong> Email del propietario
-                            (debe estar registrado primero)</li>
+                        <li><strong>Marca:</strong> TOYOTA, CHEVROLET, MAZDA, etc.</li>
+                        <li><strong>Color:</strong> Color del vehículo</li>
+                        <li><strong>Año:</strong> 2000-2025</li>
+                        <li><strong>Email Cliente:</strong> debe estar registrado primero</li>
                     </ul>
                 </details>
 
-                <!-- Advertencia del orden de registro -->
                 <div style="margin-top: 1rem; padding: 0.75rem; background: #fef3c7;
                             border-radius: 0.5rem; border-left: 3px solid #f59e0b;">
                     <strong style="color: #92400e;">⚠️ Orden importante:</strong>
                     <p style="margin: 0.25rem 0 0; color: #78350f; font-size: 0.85rem;">
                         1. Primero registra los Clientes<br>
-                        2. Luego registra los Vehículos (necesitan el email del cliente)
+                        2. Luego registra los Vehículos
                     </p>
                 </div>
             </div>
         </div>
 
-        <!-- PASO 2: Subir archivo Excel -->
         <div class="sub-section">
             <h3 class="sub-section-title">📁 Paso 2: Subir Archivo Excel</h3>
             <p style="margin-bottom: 1rem; color: #64748b; font-size: 0.9rem;">
-                Selecciona el archivo Excel con los datos completados
-                y haz clic en "Cargar Excel".
+                Selecciona el archivo Excel con los datos completados.
             </p>
 
             <div style="display: flex; gap: 1rem; align-items: center; flex-wrap: wrap;">
                 <div style="flex: 1; min-width: 250px;">
-                    <!-- accept=".xlsx,.xls" → solo acepta archivos Excel
-                         onchange → muestra el nombre del archivo elegido -->
-                    <input type="file"
-                           id="excelFile"
+                    <input type="file" id="excelFile"
                            accept=".xlsx,.xls"
                            aria-label="Seleccionar archivo Excel"
                            style="width: 100%; padding: 0.75rem;
@@ -1129,27 +745,21 @@
                                   border-radius: 0.5rem; cursor: pointer;"
                            onchange="mostrarArchivoSeleccionado()">
                 </div>
-                <!-- CAMBIO: btn-success → sede-btn-success -->
                 <button class="sede-btn-success"
                         onclick="cargarExcel()"
-                        style="white-space: nowrap;"
-                        type="button">
+                        style="white-space: nowrap;" type="button">
                     📤 Cargar Excel
                 </button>
             </div>
 
-            <!-- Nombre del archivo seleccionado: sedeD.js lo actualiza -->
             <div id="archivoSeleccionado"
                  style="margin-top: 0.5rem; font-size: 0.85rem; color: #64748b;">
             </div>
         </div>
 
-        <!-- Barra de progreso de la carga
-             display:none → oculta hasta que inicia la carga -->
         <div id="progressContainer" class="sub-section" style="display: none;">
             <div style="background: #f1f5f9; border-radius: 0.5rem;
                         padding: 0.5rem; margin-bottom: 0.5rem;">
-                <!-- width cambia con JavaScript de 0% a 100% -->
                 <div id="progressBar"
                      style="height: 1.5rem;
                             background: linear-gradient(90deg, #3b82f6, #2563eb);
@@ -1161,18 +771,12 @@
                 </div>
             </div>
             <p id="progressText"
-               style="text-align: center; color: #64748b; font-size: 0.9rem;">
-            </p>
+               style="text-align: center; color: #64748b; font-size: 0.9rem;"></p>
         </div>
 
-        <!-- Resultados de la carga masiva -->
         <div class="sub-section" id="resultadosCarga" style="display: none;">
             <h3 class="sub-section-title">📋 Resultados de la Carga</h3>
-
-            <!-- Resumen numérico de éxitos y fallos -->
             <div id="resumenCarga" style="margin-bottom: 1.5rem;"></div>
-
-            <!-- Lista de errores (solo visible si hubo errores) -->
             <div id="erroresContainer" style="display: none; margin-bottom: 1.5rem;">
                 <div style="background: #fef2f2; border-left: 4px solid #ef4444;
                             padding: 1rem; border-radius: 0.5rem;">
@@ -1181,14 +785,11 @@
                     </h4>
                     <ul id="listaErrores"
                         style="margin: 0; padding-left: 1.5rem;
-                               color: #7f1d1d; font-size: 0.9rem;">
-                    </ul>
+                               color: #7f1d1d; font-size: 0.9rem;"></ul>
                 </div>
             </div>
-
-            <!-- Tabla de resultados por fila del Excel -->
             <div style="overflow-x: auto;">
-                <table class="sede-table">
+                <table class="aparca-table sede-table">
                     <thead>
                     <tr>
                         <th>Tipo</th>
@@ -1203,119 +804,27 @@
         </div>
     </section>
 
-</main><!-- Cierre de <main class="dashboard"> -->
+</main>
 
 
-<!-- =====================================================
-     MODAL REGISTRAR TRABAJADOR
-     Este modal es un <div> propio (NO un <dialog> de DaisyUI)
+<!-- ==================================================
+     MODALES — integrados vía Thymeleaf
+     ❌ ELIMINADOS del HTML original
+     ✅ Incluidos como fragmentos externos
+     ================================================== -->
 
-     CAMBIO CRÍTICO: En el original usaba .modal y .modal-box
-     que son los mismos nombres que DaisyUI usa internamente.
-     Esto rompía AMBOS sistemas al mismo tiempo.
+<!-- Modal registrar trabajador -->
+<div th:replace="modals/sede-modal-registrar-trabajador :: modal"></div>
 
-     AHORA:
-       .modal       → .sede-modal
-       .modal-box   → .sede-modal-box
-       .modal-action → .sede-modal-action
-       .modal.open  → .sede-modal.show
+<!-- Modal salida de vehículo -->
+<div th:replace="modals/sede-modal-salida :: modal"></div>
 
-     JavaScript debe usar:
-       document.getElementById('registrarTrabajadorModal')
-               .classList.add('show')    ← para abrir
-               .classList.remove('show') ← para cerrar
-     ===================================================== -->
-<div id="registrarTrabajadorModal"
-     class="sede-modal"
-     role="dialog"
-     aria-modal="true"
-     aria-labelledby="modalTrabajadorTitulo">
-
-    <div class="sede-modal-box">
-
-        <!-- Título del modal -->
-        <h3 id="modalTrabajadorTitulo">Registrar Trabajador</h3>
-
-        <!-- Campos del formulario
-             Usan los estilos de .sede-modal-box label y
-             .sede-modal-box input definidos en sede.css Parte 3 -->
-        <label for="trabajadorNombre">Nombre Completo</label>
-        <input type="text"
-               id="trabajadorNombre"
-               placeholder="Ej: Juan Pérez"
-               autocomplete="name">
-
-        <label for="trabajadorCorreo">Correo Electrónico</label>
-        <input type="email"
-               id="trabajadorCorreo"
-               placeholder="juan@ejemplo.com"
-               autocomplete="email">
-
-        <label for="trabajadorTelefono">Teléfono</label>
-        <input type="tel"
-               id="trabajadorTelefono"
-               placeholder="3001234567"
-               autocomplete="tel">
-
-        <label for="trabajadorCedula">Cédula</label>
-        <input type="text"
-               id="trabajadorCedula"
-               placeholder="1234567890"
-               autocomplete="off">
-
-        <label for="trabajadorContrasena">Contraseña</label>
-        <input type="password"
-               id="trabajadorContrasena"
-               placeholder="Mínimo 6 caracteres"
-               autocomplete="new-password">
-
-        <!-- Botones de acción del modal
-             .sede-modal-action → fila de botones alineada a la derecha
-             CAMBIO: btn-primary → sede-btn-primary
-                     btn-outline → sede-btn-outline -->
-        <div class="sede-modal-action">
-            <button class="sede-btn-primary"
-                    onclick="registrarTrabajador()"
-                    type="button">
-                <!-- Ícono de check -->
-                <svg xmlns="http://www.w3.org/2000/svg"
-                     class="h-5 w-5" fill="none"
-                     viewBox="0 0 24 24" stroke="currentColor"
-                     aria-hidden="true">
-                    <path stroke-linecap="round" stroke-linejoin="round"
-                          stroke-width="2" d="M5 13l4 4L19 7" />
-                </svg>
-                Registrar
-            </button>
-            <!-- closeRegistrarTrabajadorModal() → quita .show del modal -->
-            <button class="sede-btn-outline"
-                    onclick="closeRegistrarTrabajadorModal()"
-                    type="button">
-                Cancelar
-            </button>
-        </div>
-    </div>
-</div>
+<!-- Modal cobro -->
+<div th:replace="modals/sede-modal-cobro :: modal"></div>
 
 
-<!-- =====================================================
-     SCRIPT PRINCIPAL DEL MÓDULO SEDE
-     CAMBIO: ruta corregida de /Script/SedeD.js
-     a /js/sedeD.js (minúsculas para Spring Boot en Linux)
-
-     Se carga AL FINAL del body para garantizar que todo
-     el HTML está disponible cuando el JS intente acceder
-     a los elementos del DOM.
-
-     sedeD.js debe actualizar las referencias de clases:
-     - openRegistrarTrabajadorModal() → agrega .show
-     - closeRegistrarTrabajadorModal() → quita .show
-     - Toggle sidebar → agrega/quita .hidden en <aside>
-       y .sidebar-hidden en <header> y <main>
-     - Tabs → agrega/quita .active en los botones
-     - Dropdown perfil → agrega/quita .show en .sede-dropdown
-     ===================================================== -->
-<script src="/Script/SedeD.js"></script>
+<!-- Script principal del módulo sede -->
+<script src="/js/SedeD.js"></script>
 
 </body>
 </html>

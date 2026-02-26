@@ -1,5 +1,6 @@
 package com.exe.AparcaYA.Service;
 
+import com.exe.AparcaYA.Entity.Sede;
 import com.exe.AparcaYA.Entity.Tarifa;
 
 import java.util.List;
@@ -11,5 +12,9 @@ public interface TarifaService {
     Optional<Tarifa> findById(Long id);
     Tarifa update(Tarifa tarifa);
     void delete(Long id);
-    List<Tarifa> findBySede_IdSede(Long idSede);
+
+    // ✅ CAMBIO #2: Creación de tarifas extraída al Service
+    // Antes: bloque de 4 tarifas inline en UsuarioController Y en SedeController (duplicado)
+    // Ahora: lógica centralizada — un único punto de verdad para las 4 tarifas
+    void crearTarifasParaSede(Sede sede);
 }

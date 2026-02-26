@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<!--
+    FRAGMENTO: admin-modal-detalle-sede
+    Uso en dashboard: <div th:replace="modals/admin-modal-detalle-sede :: modal"></div>
+    Tipo: DIV propio con .aparca-modal-overlay (aparca-components.css)
+    Abre con: mostrarDetallesSede(sedeId)  →  modal.classList.add('show')
+    Cierra con: cerrarModalSede()          →  modal.classList.remove('show')
+
+    IMPORTANTE: El JS de adminD.js rellena dinámicamente:
+      - #modalSedeTitle  → nombre de la sede
+      - #modalSedeBody   → grid de datos de la sede
+    usando clases admin-info-* definidas en admin.css.
+    Las clases admin-modal-sede-* de este archivo son
+    exclusivas del contenedor y la cabecera del modal.
+-->
+<body>
+<th:block th:fragment="modal">
+
+    <div id="modalSede"
+         class="aparca-modal-overlay"
+         role="dialog"
+         aria-labelledby="modalSedeTitle"
+         aria-modal="true"
+         aria-hidden="true">
+
+        <div class="aparca-modal-content">
+
+            <!-- Cabecera -->
+            <div class="aparca-modal-header">
+                <h3 id="modalSedeTitle">Información de la Sede</h3>
+                <button class="aparca-modal-close"
+                        onclick="cerrarModalSede()"
+                        aria-label="Cerrar modal de detalle de sede"
+                        type="button">
+                    &times;
+                </button>
+            </div>
+
+            <!--
+                Cuerpo inyectado dinámicamente por adminD.js
+                en mostrarDetallesSede(sedeId).
+
+                Estructura esperada del innerHTML:
+                  <div class="admin-info-grid">
+                    <div class="admin-info-item admin-info-full">...</div>
+                    <div class="admin-info-item">...</div>
+                    ...
+                  </div>
+                  <div class="admin-modal-sede-actions">
+                    <button class="aparca-btn-outline">Editar Sede</button>
+                    <button class="admin-modal-sede-btn-danger">Eliminar</button>
+                  </div>
+
+                Las clases admin-info-* están en admin.css.
+                Las clases admin-modal-sede-* están en
+                /css/modals/admin-modal-detalle-sede.css
+            -->
+            <div class="aparca-modal-body" id="modalSedeBody">
+                <!-- JS inyecta aquí el contenido -->
+            </div>
+
+        </div>
+    </div>
+
+</th:block>
+</body>
+</html>

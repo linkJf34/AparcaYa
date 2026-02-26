@@ -1,19 +1,20 @@
 package com.exe.AparcaYA.Implement;
 
+import com.exe.AparcaYA.Entity.Sede;
 import com.exe.AparcaYA.Entity.Tarifa;
 import com.exe.AparcaYA.Repository.TarifaRepository;
 import com.exe.AparcaYA.Service.TarifaService;
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
 import java.util.Optional;
 
 @Service
+@RequiredArgsConstructor
 public class TarifaServiceImpl implements TarifaService {
 
-    @Autowired
-    private TarifaRepository tarifaRepository;
+    private final TarifaRepository tarifaRepository;
 
     @Override
     public Tarifa save(Tarifa tarifa) {
@@ -43,8 +44,37 @@ public class TarifaServiceImpl implements TarifaService {
         tarifaRepository.deleteById(id);
     }
 
+    /**
+     * ✅ CAMBIO #2: Creación de las 4 tarifas centralizada en el Service
+     * Antes: bloque idéntico de 16 líneas duplicado en:
+     *   - UsuarioController.registrarUsuario() (sede nueva en registro)
+     *   - SedeController.crearTarifasParaSede() (método privado del Controller)
+     * Ahora: un único método en el Service, ambos Controllers lo delegan aquí
+     */
     @Override
-    public List<Tarifa> findBySede_IdSede(Long idSede) {
-        return tarifaRepository.findBySede_IdSede(idSede);
+    public void crearTarifasParaSede(Sede sede) {
+        Tarifa tarifaPlenaC = new Tarifa();
+        tarifaPlenaC.setPrecio(sede.getTarifaPlenaC());
+        tarifaPlenaC.setTipoTarifa("PLENA_CARRO");
+        tarifaPlenaC.setSede(sede);
+        tarifaRepository.save(tarifaPlenaC);
+
+        Tarifa tarifaPlenaM = new Tarifa();
+        tarifaPlenaM.setPrecio(sede.getTarifaPlenaM());
+        tarifaPlenaM.setTipoTarifa("PLENA_MOTO");
+        tarifaPlenaM.setSede(sede);
+        tarifaRepository.save(tarifaPlenaM);
+
+        Tarifa tarifaMinutoC = new Tarifa();
+        tarifaMinutoC.setPrecio(sede.getTarifaMinutoC());
+        tarifaMinutoC.setTipoTarifa("MINUTO_CARRO");
+        tarifaMinutoC.setSede(sede);
+        tarifaRepository.save(tarifaMinutoC);
+
+        Tarifa tarifaMinutoM = new Tarifa();
+        tarifaMinutoM.setPrecio(sede.getTarifaMinutoM());
+        tarifaMinutoM.setTipoTarifa("MINUTO_MOTO");
+        tarifaMinutoM.setSede(sede);
+        tarifaRepository.save(tarifaMinutoM);
     }
 }

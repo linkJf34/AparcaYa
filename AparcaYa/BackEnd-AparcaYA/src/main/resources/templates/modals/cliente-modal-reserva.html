@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<!--
+    FRAGMENTO: cliente-modal-reserva
+    Uso en dashboard: <div th:replace="modals/cliente-modal-reserva :: modal"></div>
+    Tipo: DIV propio con .aparca-modal-overlay (aparca-components.css)
+    Abre con: abrirModalReserva() → modal.classList.add('show')
+    Cierra con: cerrarReservaModal() → modal.classList.remove('show')
+
+    Sin JS embebido. Sin estilos inline.
+    Estilos propios en /css/modals/cliente-modal-reserva.css
+-->
+<body>
+<th:block th:fragment="modal">
+
+    <div id="reservaModal"
+         class="aparca-modal-overlay"
+         role="dialog"
+         aria-modal="true"
+         aria-labelledby="reservaModalTitulo"
+         aria-hidden="true">
+
+        <div class="aparca-modal-content">
+
+            <div class="aparca-modal-header">
+                <h3 id="reservaModalTitulo">Hacer Reserva</h3>
+                <button class="aparca-modal-close"
+                        type="button"
+                        onclick="window.closeReservaModal()"
+                        aria-label="Cerrar modal">
+                    &times;
+                </button>
+            </div>
+
+            <div class="aparca-modal-body">
+
+                <!-- Nombre de la sede seleccionada — rellena JS -->
+                <p class="cliente-modal-reserva-sede-nombre">
+                    <strong>Sede seleccionada:</strong>
+                    <span id="reservaSedeNombre"></span>
+                </p>
+
+                <div class="aparca-form-control">
+                    <label for="fechaInicio">Fecha y Hora de Inicio:</label>
+                    <input type="datetime-local"
+                           id="fechaInicio"
+                           required
+                           aria-label="Fecha y hora de inicio de la reserva">
+                </div>
+
+                <div class="aparca-form-control">
+                    <label for="fechaFin">Fecha y Hora de Fin:</label>
+                    <input type="datetime-local"
+                           id="fechaFin"
+                           required
+                           aria-label="Fecha y hora de fin de la reserva">
+                </div>
+
+                <div class="aparca-form-control">
+                    <label for="placa">Placa del Vehículo:</label>
+                    <!--
+                        CAMBIO: style="text-transform: uppercase" eliminado
+                        → gestionado por .cliente-modal-reserva-placa en CSS
+                    -->
+                    <input type="text"
+                           id="placa"
+                           placeholder="ABC-123"
+                           required
+                           class="cliente-modal-reserva-placa"
+                           aria-label="Placa del vehículo">
+                </div>
+
+                <!--
+                    CAMBIO: style="display:flex;gap:1rem;justify-content:flex-end;margin-top:1rem"
+                    eliminado → gestionado por .cliente-modal-reserva-actions en CSS
+                -->
+                <div class="cliente-modal-reserva-actions">
+                    <button id="reservarBtn"
+                            type="button"
+                            class="cli-btn-confirm">
+                        Confirmar Reserva
+                    </button>
+                    <button type="button"
+                            onclick="window.closeReservaModal()"
+                            class="aparca-btn-outline">
+                        Cancelar
+                    </button>
+                </div>
+
+            </div>
+        </div>
+    </div>
+
+</th:block>
+</body>
+</html>

@@ -1,140 +1,305 @@
 <!DOCTYPE html>
-<html lang="es">
+<html lang="es"
+      data-theme="light"
+      xmlns:th="http://www.thymeleaf.org">
 <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>Registro - AparcaYA</title>
+    <meta name="description"
+          content="Regístrate en AparcaYA como cliente o administrador de sede para gestionar estacionamientos.">
+
     <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://cdn.jsdelivr.net/npm/daisyui@4.12.10/dist/full.min.css" rel="stylesheet" type="text/css" />
-    <meta name="description" content="Regístrate en AparcaYA como cliente o administrador de sede para gestionar estacionamientos.">
-    <link rel="preconnect" href="https://fonts.googleapis.com"/>
-    <style>
-        /* Tus estilos CSS personalizados */
-        .animate-fade-in-up { opacity: 0; transform: translateY(20px); animation: fadeInUp 0.8s ease-out forwards; }
-        .card-hover { transition: transform 0.3s ease, box-shadow 0.3s ease, border-color 0.3s ease; }
-        .card-hover:hover { transform: translateY(-5px); box-shadow: 0 10px 20px rgba(0,191,255,0.2); border-color: #00BFFF; }
-        .btn-pulse { animation: pulse 2s infinite; }
-        @keyframes fadeInUp { to { opacity: 1; transform: translateY(0); } }
-        @keyframes pulse { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.05); } }
-        .role-btn { transition: background-color 0.3s ease, color 0.3s ease; }
-        .role-btn.active { background-color: #00BFFF; color: white; }
-        .role-btn:hover { background-color: #87CEEB; }
-        .error-message { color: #DC2626; font-size: 0.875rem; }
-        .success-message { color: #059669; font-size: 0.875rem; }
-        .mensaje { margin-top: 1rem; padding: 0.5rem; border-radius: 0.375rem; }
-        .mensaje.success { background-color: #D1FAE5; color: #065F46; }
-        .mensaje.error { background-color: #FEE2E2; color: #991B1B; }
-        .step { display: none; }
-        .active-step { display: block; }
-    </style>
+    <link href="https://cdn.jsdelivr.net/npm/daisyui@4.12.10/dist/full.min.css"
+          rel="stylesheet" type="text/css" />
+    <link rel="stylesheet" href="/css/base/aparca-animations.css" />
+    <link rel="stylesheet" href="/css/components/aparca-components.css" />
+    <!-- ✅ CAMBIO: /css/pages/Registro.css → /css/pages/registro.css -->
+    <link rel="stylesheet" href="/css/pages/registro.css" />
 </head>
+
 <body class="bg-gradient-to-br from-blue-50 to-white min-h-screen flex items-center justify-center p-4">
+
+<!-- ENCABEZADO — Logo + título -->
 <section class="w-full max-w-4xl text-center mb-8 animate-fade-in-up">
     <div class="flex justify-center mb-4">
-        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-16 h-16 text-blue-500">
-            <path stroke-linecap="round" stroke-linejoin="round" d="M8.25 18.75a1.5 1.5 0 01-3 0V15a6 6 0 0112 0v3.75a1.5 1.5 0 01-3 0V15a3 3 0 00-6 0v3.75zM12 9a3 3 0 100-6 3 3 0 000 6z" />
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
+             stroke-width="1.5" stroke="currentColor"
+             class="w-16 h-16 text-blue-500" aria-hidden="true">
+            <path stroke-linecap="round" stroke-linejoin="round"
+                  d="M8.25 18.75a1.5 1.5 0 01-3 0V15a6 6 0 0112 0v3.75a1.5 1.5 0
+                  01-3 0V15a3 3 0 00-6 0v3.75zM12 9a3 3 0 100-6 3 3 0 000 6z" />
         </svg>
     </div>
     <h1 class="text-3xl sm:text-4xl font-bold text-blue-900 mb-2">Únete a Aparca Ya</h1>
     <p class="text-blue-600">Crea tu cuenta paso a paso y reserva espacios en segundos.</p>
 </section>
+
+<!-- TARJETA PRINCIPAL DEL FORMULARIO -->
 <main class="w-full max-w-2xl">
-    <section class="card bg-white shadow-lg rounded-lg card-hover animate-fade-in-up p-6" role="main" aria-labelledby="registro-titulo" style="animation-delay: 0.2s;">
+    <section class="card bg-white shadow-lg rounded-lg card-hover animate-fade-in-up p-6"
+             role="main"
+             aria-labelledby="registro-titulo"
+             style="animation-delay: 0.2s;">
+
         <header class="card-header text-center mb-6">
             <h1 id="registro-titulo" class="text-2xl font-bold text-blue-900">Crear cuenta</h1>
-            <p class="subtitle text-blue-600">Selecciona tu rol y completa el formulario paso a paso</p>
+            <p class="text-blue-600">Selecciona tu rol y completa el formulario paso a paso</p>
         </header>
-        <div class="role-selection flex justify-center gap-4 mb-6" role="radiogroup" aria-labelledby="rol-label" aria-describedby="rol-desc">
+
+        <!-- SELECTOR DE ROL -->
+        <div class="role-selection flex justify-center gap-4 mb-6"
+             role="radiogroup"
+             aria-labelledby="rol-label"
+             aria-describedby="rol-desc">
             <span id="rol-label" class="sr-only">Selecciona tu rol</span>
-            <p id="rol-desc" class="sr-only">Elige si eres cliente o administrador de sede para mostrar los campos relevantes.</p>
-            <button id="btnCliente" class="role-btn px-4 py-2 rounded-lg border border-blue-300 text-blue-700 active" data-role="CLIENTE" type="button" aria-pressed="true">Soy Cliente</button>
-            <button id="btnSede" class="role-btn px-4 py-2 rounded-lg border border-blue-300 text-blue-700" data-role="ADMINISTRADOR_SEDE" type="button" aria-pressed="false">Soy Sede</button>
+            <p id="rol-desc" class="sr-only">
+                Elige si eres cliente o administrador de sede para mostrar los campos relevantes.
+            </p>
+            <button id="btnCliente"
+                    class="role-btn px-4 py-2 rounded-lg border border-blue-300 text-blue-700 active"
+                    data-role="CLIENTE"
+                    type="button"
+                    aria-pressed="true">
+                Soy Cliente
+            </button>
+            <button id="btnSede"
+                    class="role-btn px-4 py-2 rounded-lg border border-blue-300 text-blue-700"
+                    data-role="ADMINISTRADOR_SEDE"
+                    type="button"
+                    aria-pressed="false">
+                Soy Sede
+            </button>
         </div>
 
-        <form id="registroForm" class="form" novalidate action="/registrar" method="post" aria-labelledby="registro-titulo">
+
+        <!-- FORMULARIO MULTI-PASO -->
+        <form id="registroForm" class="form" novalidate
+              action="/registrar" method="post"
+              aria-labelledby="registro-titulo">
+
             <input type="hidden" name="rol" id="rolHidden" value="CLIENTE">
 
+
+            <!-- PASO 1: INFORMACIÓN PERSONAL -->
             <div class="step active-step" id="step1">
                 <fieldset class="mb-6">
                     <legend class="sr-only">Información básica</legend>
+
                     <div class="flex items-center mb-4">
-                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-6 h-6 text-cyan-400 mr-2">
-                            <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 6a3.75 3.75 0 11-7.5 0 3.75 3.75 0 017.5 0zM4.501 20.118a7.5 7.5 0 0114.998 0A17.933 17.933 0 0112 21.75c-2.676 0-5.216-.584-7.499-1.632z"/>
+                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
+                             stroke-width="1.5" stroke="currentColor"
+                             class="w-6 h-6 text-cyan-400 mr-2" aria-hidden="true">
+                            <path stroke-linecap="round" stroke-linejoin="round"
+                                  d="M15.75 6a3.75 3.75 0 11-7.5 0 3.75 3.75 0 017.5 0zM4.501
+                                  20.118a7.5 7.5 0 0114.998 0A17.933 17.933 0 0112
+                                  21.75c-2.676 0-5.216-.584-7.499-1.632z"/>
                         </svg>
                         <h3 class="text-lg font-semibold text-blue-700">Información Personal</h3>
                     </div>
+
+                    <!-- Nombre -->
                     <div class="form-row mb-4">
-                        <label for="nombre" class="block text-sm font-medium text-gray-700">Nombre completo</label>
-                        <input id="nombre" name="nombre" type="text" placeholder="Tu nombre" required minlength="2" maxlength="100" autocomplete="name" aria-describedby="nombre-error" class="input input-bordered w-full border-blue-300 focus:border-blue-500 focus:ring-blue-500 text-blue-700"/>
+                        <label for="nombre" class="block text-sm font-medium text-gray-700">
+                            Nombre completo
+                        </label>
+                        <input id="nombre" name="nombre" type="text"
+                               placeholder="Tu nombre"
+                               required minlength="2" maxlength="100"
+                               autocomplete="name"
+                               aria-describedby="nombre-error"
+                               class="input input-bordered w-full border-blue-300
+                                      focus:border-blue-500 focus:ring-blue-500 text-blue-700"/>
                         <span id="nombre-error" class="error-message" aria-live="polite"></span>
                     </div>
 
-                    <div class="form-row two-cols grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                    <!-- Correo + Teléfono -->
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
                         <div>
-                            <label for="correo" class="block text-sm font-medium text-gray-700">Correo electrónico</label>
-                            <input id="correo" name="correo" type="email" placeholder="tu@ejemplo.com" required autocomplete="email" aria-describedby="correo-error" class="input input-bordered w-full border-blue-300 focus:border-blue-500 focus:ring-blue-500 text-blue-700"/>
-                            <span id="correo-error" class="error-message" aria-live="polite"></span>
+                            <label for="correo" class="block text-sm font-medium text-gray-700">
+                                Correo electrónico
+                            </label>
+                            <input id="correo" name="correo" type="email"
+                                   placeholder="tu@ejemplo.com"
+                                   required autocomplete="email"
+                                   aria-describedby="correo-error"
+                                   class="input input-bordered w-full border-blue-300
+                                          focus:border-blue-500 focus:ring-blue-500 text-blue-700"/>
+                            <span id="correo-error"   class="error-message"   aria-live="polite"></span>
                             <span id="correo-success" class="success-message" aria-live="polite"></span>
                         </div>
                         <div>
-                            <label for="telefono" class="block text-sm font-medium text-gray-700">Teléfono</label>
-                            <input id="telefono" name="telefono" type="tel" placeholder="3001234567" required pattern="[0-9]{10}" title="Ingresa un número de 10 dígitos" autocomplete="tel" aria-describedby="telefono-error" class="input input-bordered w-full border-blue-300 focus:border-blue-500 focus:ring-blue-500 text-blue-700"/>
-                            <span id="telefono-error" class="error-message" aria-live="polite"></span>
+                            <label for="telefono" class="block text-sm font-medium text-gray-700">
+                                Teléfono
+                            </label>
+                            <input id="telefono" name="telefono" type="tel"
+                                   placeholder="3001234567"
+                                   required pattern="[0-9]{10}"
+                                   title="Ingresa un número de 10 dígitos"
+                                   autocomplete="tel"
+                                   aria-describedby="telefono-error"
+                                   class="input input-bordered w-full border-blue-300
+                                          focus:border-blue-500 focus:ring-blue-500 text-blue-700"/>
+                            <span id="telefono-error"   class="error-message"   aria-live="polite"></span>
                             <span id="telefono-success" class="success-message" aria-live="polite"></span>
                         </div>
                     </div>
-                    <div class="form-row two-cols grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+
+                    <!-- Cédula + Contraseña -->
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
                         <div>
-                            <label for="cedula" class="block text-sm font-medium text-gray-700">Cédula</label>
-                            <input id="cedula" name="cedula" type="text" placeholder="1234567890" required pattern="[0-9]{10}" title="Ingresa una cédula de 10 dígitos" autocomplete="off" aria-describedby="cedula-error" class="input input-bordered w-full border-blue-300 focus:border-blue-500 focus:ring-blue-500 text-blue-700"/>
-                            <span id="cedula-error" class="error-message" aria-live="polite"></span>
+                            <label for="cedula" class="block text-sm font-medium text-gray-700">
+                                Cédula
+                            </label>
+                            <input id="cedula" name="cedula" type="text"
+                                   placeholder="1234567890"
+                                   required pattern="[0-9]{10}"
+                                   title="Ingresa una cédula de 10 dígitos"
+                                   autocomplete="off"
+                                   aria-describedby="cedula-error"
+                                   class="input input-bordered w-full border-blue-300
+                                          focus:border-blue-500 focus:ring-blue-500 text-blue-700"/>
+                            <span id="cedula-error"   class="error-message"   aria-live="polite"></span>
                             <span id="cedula-success" class="success-message" aria-live="polite"></span>
                         </div>
                         <div class="relative">
-                            <label for="contrasena" class="block text-sm font-medium text-gray-700">Contraseña</label>
-                            <input id="contrasena" name="contrasena" type="password" placeholder="••••••••" required minlength="8" autocomplete="new-password" aria-describedby="contrasena-error" class="input input-bordered w-full border-blue-300 focus:border-blue-500 focus:ring-blue-500 text-blue-700 pr-10"/>
-                            <button type="button" tabindex="-1" aria-label="Mostrar u ocultar contraseña" class="toggle-password absolute right-2 top-9 text-gray-500 hover:text-gray-700" data-target="contrasena">
-                                <svg class="h-5 w-5 eye-open" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.477 0 8.268 2.943 9.542 7-1.274 4.057-5.065 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/></svg>
-                                <svg class="h-5 w-5 eye-closed hidden" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.269-2.944-9.543-7a9.967 9.967 0 012.783-4.423m2.93-2.931A9.953 9.953 0 0112 5c4.478 0 8.269 2.944 9.543 7a9.965 9.965 0 01-3.494 4.705M15 12a3 3 0 11-6 0 3 3 0 016 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 3l18 18"/></svg>
+                            <label for="contrasena" class="block text-sm font-medium text-gray-700">
+                                Contraseña
+                            </label>
+                            <input id="contrasena" name="contrasena" type="password"
+                                   placeholder="••••••••"
+                                   required minlength="8"
+                                   autocomplete="new-password"
+                                   aria-describedby="contrasena-error"
+                                   class="input input-bordered w-full border-blue-300
+                                          focus:border-blue-500 focus:ring-blue-500
+                                          text-blue-700 pr-10"/>
+                            <button type="button" tabindex="-1"
+                                    aria-label="Mostrar u ocultar contraseña"
+                                    class="toggle-password absolute right-2 top-9
+                                           text-gray-500 hover:text-gray-700"
+                                    data-target="contrasena">
+                                <svg class="h-5 w-5 eye-open"
+                                     xmlns="http://www.w3.org/2000/svg" fill="none"
+                                     viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round"
+                                          stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
+                                    <path stroke-linecap="round" stroke-linejoin="round"
+                                          stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.477
+                                          0 8.268 2.943 9.542 7-1.274 4.057-5.065 7-9.542 7-4.477
+                                          0-8.268-2.943-9.542-7z"/>
+                                </svg>
+                                <svg class="h-5 w-5 eye-closed hidden"
+                                     xmlns="http://www.w3.org/2000/svg" fill="none"
+                                     viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round"
+                                          stroke-width="2" d="M13.875 18.825A10.05 10.05 0 0112
+                                          19c-4.478 0-8.269-2.944-9.543-7a9.967 9.967 0
+                                          012.783-4.423m2.93-2.931A9.953 9.953 0 0112 5c4.478 0
+                                          8.269 2.944 9.543 7a9.965 9.965 0
+                                          01-3.494 4.705M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
+                                    <path stroke-linecap="round" stroke-linejoin="round"
+                                          stroke-width="2" d="M3 3l18 18"/>
+                                </svg>
                             </button>
                             <span id="contrasena-error" class="error-message" aria-live="polite"></span>
                         </div>
                     </div>
 
+                    <!-- Confirmar contraseña -->
                     <div class="form-row mb-4 relative">
-                        <label for="confirmarContrasena" class="block text-sm font-medium text-gray-700">Confirmar contraseña</label>
-                        <input id="confirmarContrasena" name="confirmarContrasena" type="password" placeholder="••••••••" required minlength="8" autocomplete="new-password" aria-describedby="confirmar-error" class="input input-bordered w-full border-blue-300 focus:border-blue-500 focus:ring-blue-500 text-blue-700 pr-10"/>
-                        <button type="button" tabindex="-1" aria-label="Mostrar u ocultar contraseña" class="toggle-password absolute right-2 top-9 text-gray-500 hover:text-gray-700" data-target="confirmarContrasena">
-                            <svg class="h-5 w-5 eye-open" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.477 0 8.268 2.943 9.542 7-1.274 4.057-5.065 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/></svg>
-                            <svg class="h-5 w-5 eye-closed hidden" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.269-2.944-9.543-7a9.967 9.967 0 012.783-4.423m2.93-2.931A9.953 9.953 0 0112 5c4.478 0 8.269 2.944 9.543 7a9.965 9.965 0 01-3.494 4.705M15 12a3 3 0 11-6 0 3 3 0 016 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 3l18 18"/></svg>
+                        <label for="confirmarContrasena"
+                               class="block text-sm font-medium text-gray-700">
+                            Confirmar contraseña
+                        </label>
+                        <input id="confirmarContrasena" name="confirmarContrasena"
+                               type="password" placeholder="••••••••"
+                               required minlength="8"
+                               autocomplete="new-password"
+                               aria-describedby="confirmar-error"
+                               class="input input-bordered w-full border-blue-300
+                                      focus:border-blue-500 focus:ring-blue-500
+                                      text-blue-700 pr-10"/>
+                        <button type="button" tabindex="-1"
+                                aria-label="Mostrar u ocultar contraseña"
+                                class="toggle-password absolute right-2 top-9
+                                       text-gray-500 hover:text-gray-700"
+                                data-target="confirmarContrasena">
+                            <svg class="h-5 w-5 eye-open"
+                                 xmlns="http://www.w3.org/2000/svg" fill="none"
+                                 viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round"
+                                      stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
+                                <path stroke-linecap="round" stroke-linejoin="round"
+                                      stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.477
+                                      0 8.268 2.943 9.542 7-1.274 4.057-5.065 7-9.542 7-4.477
+                                      0-8.268-2.943-9.542-7z"/>
+                            </svg>
+                            <svg class="h-5 w-5 eye-closed hidden"
+                                 xmlns="http://www.w3.org/2000/svg" fill="none"
+                                 viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round"
+                                      stroke-width="2" d="M13.875 18.825A10.05 10.05 0 0112
+                                      19c-4.478 0-8.269-2.944-9.543-7a9.967 9.967 0
+                                      012.783-4.423m2.93-2.931A9.953 9.953 0 0112 5c4.478 0
+                                      8.269 2.944 9.543 7a9.965 9.965 0
+                                      01-3.494 4.705M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
+                                <path stroke-linecap="round" stroke-linejoin="round"
+                                      stroke-width="2" d="M3 3l18 18"/>
+                            </svg>
                         </button>
                         <span id="confirmar-error" class="error-message" aria-live="polite"></span>
                     </div>
                 </fieldset>
-                <div class="form-row actions flex justify-end">
-                    <button type="button" id="next1" class="btn btn-primary bg-blue-600 hover:bg-blue-800 text-white btn-pulse">Siguiente</button>
+
+                <div class="flex justify-end">
+                    <button type="button" id="next1"
+                            class="btn btn-primary bg-blue-600 hover:bg-blue-800 text-white btn-pulse">
+                        Siguiente
+                    </button>
                 </div>
             </div>
+            <!-- FIN PASO 1 -->
 
-            <!-- FIN PARTE 1 -->
-            <!-- FIN PARTE 1 -->
+
+            <!-- PASO 2 CLIENTE: Datos del vehículo -->
             <div class="step" id="stepCliente">
                 <fieldset class="mb-6">
                     <legend class="text-lg font-semibold text-blue-700 mb-4 flex items-center">
-                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-6 h-6 text-cyan-400 mr-2">
-                            <path stroke-linecap="round" stroke-linejoin="round" d="M8.25 18.75a1.5 1.5 0 01-3 0V15a6 6 0 0112 0v3.75a1.5 1.5 0 01-3 0V15a3 3 0 00-6 0v3.75z" />
+                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
+                             stroke-width="1.5" stroke="currentColor"
+                             class="w-6 h-6 text-cyan-400 mr-2" aria-hidden="true">
+                            <path stroke-linecap="round" stroke-linejoin="round"
+                                  d="M8.25 18.75a1.5 1.5 0 01-3 0V15a6 6 0 0112 0v3.75a1.5 1.5 0
+                                  01-3 0V15a3 3 0 00-6 0v3.75z" />
                         </svg>
                         Datos del vehículo (Cliente)
                     </legend>
-                    <div class="form-row two-cols grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+
+                    <!-- Placa + Tipo -->
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
                         <div>
-                            <label for="placa" class="block text-sm font-medium text-gray-700">Placa</label>
-                            <input id="placa" name="placa" type="text" placeholder="ABC123" required autocomplete="off" pattern="[A-Z]{3}[0-9]{3}" title="Formato: 3 letras mayúsculas seguidas de 3 números (ej. ABC123)" aria-describedby="placa-error" class="input input-bordered w-full border-blue-300 focus:border-blue-500 focus:ring-blue-500 text-blue-700" oninput="this.value = this.value.toUpperCase().replace(/[^A-Z0-9]/g, '').substring(0,6);"/>
+                            <label for="placa" class="block text-sm font-medium text-gray-700">
+                                Placa
+                            </label>
+                            <input id="placa" name="placa" type="text"
+                                   placeholder="ABC123"
+                                   required autocomplete="off"
+                                   pattern="[A-Z]{3}[0-9]{3}"
+                                   title="Formato: 3 letras mayúsculas seguidas de 3 números (ej. ABC123)"
+                                   aria-describedby="placa-error"
+                                   class="input input-bordered w-full border-blue-300
+                                          focus:border-blue-500 focus:ring-blue-500 text-blue-700"
+                                   oninput="this.value = this.value.toUpperCase().replace(/[^A-Z0-9]/g, '').substring(0,6);"/>
                             <span id="placa-error" class="error-message" aria-live="polite"></span>
                         </div>
                         <div>
-                            <label for="tipoVehiculo" class="block text-sm font-medium text-gray-700">Tipo de vehículo</label>
-                            <select id="tipoVehiculo" name="tipoVehiculo" required class="select select-bordered w-full border-blue-300 focus:border-blue-500 focus:ring-blue-500 text-blue-700">
+                            <label for="tipoVehiculo" class="block text-sm font-medium text-gray-700">
+                                Tipo de vehículo
+                            </label>
+                            <select id="tipoVehiculo" name="tipoVehiculo" required
+                                    class="select select-bordered w-full border-blue-300
+                                           focus:border-blue-500 focus:ring-blue-500 text-blue-700">
                                 <option value="">Selecciona un tipo</option>
                                 <option value="CARRO">Carro</option>
                                 <option value="MOTO">Moto</option>
@@ -144,74 +309,152 @@
                             <span id="tipoVehiculo-error" class="error-message" aria-live="polite"></span>
                         </div>
                     </div>
-                    <div class="form-row two-cols grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+
+                    <!-- Marca + Color -->
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
                         <div>
-                            <label for="marca" class="block text-sm font-medium text-gray-700">Marca</label>
-                            <select id="marca" name="marca" required class="select select-bordered w-full border-blue-300 focus:border-blue-500 focus:ring-blue-500 text-blue-700">
+                            <label for="marca" class="block text-sm font-medium text-gray-700">
+                                Marca
+                            </label>
+                            <select id="marca" name="marca" required
+                                    class="select select-bordered w-full border-blue-300
+                                           focus:border-blue-500 focus:ring-blue-500 text-blue-700">
                                 <option value="">Selecciona una marca</option>
                             </select>
                             <span id="marca-error" class="error-message" aria-live="polite"></span>
                         </div>
                         <div>
-                            <label for="color" class="block text-sm font-medium text-gray-700">Color</label>
-                            <input id="color" name="color" type="text" placeholder="Rojo" autocomplete="off" class="input input-bordered w-full border-blue-300 focus:border-blue-500 focus:ring-blue-500 text-blue-700"/>
+                            <label for="color" class="block text-sm font-medium text-gray-700">
+                                Color
+                            </label>
+                            <input id="color" name="color" type="text"
+                                   placeholder="Rojo" autocomplete="off"
+                                   class="input input-bordered w-full border-blue-300
+                                          focus:border-blue-500 focus:ring-blue-500 text-blue-700"/>
                         </div>
                     </div>
+
+                    <!-- Año -->
                     <div class="form-row mb-4">
-                        <label for="anio" class="block text-sm font-medium text-gray-700">Año</label>
-                        <input id="anio" name="anio" type="number" min="1900" max="2025" placeholder="2020" autocomplete="off" class="input input-bordered w-full border-blue-300 focus:border-blue-500 focus:ring-blue-500 text-blue-700"/>
+                        <label for="anio" class="block text-sm font-medium text-gray-700">
+                            Año
+                        </label>
+                        <input id="anio" name="anio" type="number"
+                               min="1900" max="2025" placeholder="2020" autocomplete="off"
+                               class="input input-bordered w-full border-blue-300
+                                      focus:border-blue-500 focus:ring-blue-500 text-blue-700"/>
                     </div>
                 </fieldset>
-                <div class="form-row actions flex justify-between">
-                    <button type="button" id="backCliente" class="btn btn-outline btn-secondary text-blue-700 border-blue-300 hover:bg-blue-50">Atrás</button>
-                    <button type="button" id="nextCliente" class="btn btn-primary bg-blue-600 hover:bg-blue-800 text-white btn-pulse">Siguiente</button>
+
+                <div class="flex justify-between">
+                    <button type="button" id="backCliente"
+                            class="btn btn-outline btn-secondary text-blue-700
+                                   border-blue-300 hover:bg-blue-50">
+                        Atrás
+                    </button>
+                    <button type="button" id="nextCliente"
+                            class="btn btn-primary bg-blue-600 hover:bg-blue-800 text-white btn-pulse">
+                        Siguiente
+                    </button>
                 </div>
             </div>
+
 
             <!-- PASO 2 SEDE: Nombre y NIT -->
             <div class="step" id="stepSede2">
                 <fieldset class="mb-6">
                     <legend class="text-lg font-semibold text-blue-700 mb-4 flex items-center">
-                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-6 h-6 text-cyan-400 mr-2">
-                            <path stroke-linecap="round" stroke-linejoin="round" d="M3.75 21h16.5M4.5 3h15M5.25 3v18m13.5-18v18M9 6.75h1.5m-1.5 3h1.5m-1.5 3h1.5m3-6H15m-1.5 3H15m-1.5 3H15M9 21v-3.375c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125V21" />
+                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
+                             stroke-width="1.5" stroke="currentColor"
+                             class="w-6 h-6 text-cyan-400 mr-2" aria-hidden="true">
+                            <path stroke-linecap="round" stroke-linejoin="round"
+                                  d="M3.75 21h16.5M4.5 3h15M5.25 3v18m13.5-18v18M9 6.75h1.5m-1.5
+                                  3h1.5m-1.5 3h1.5m3-6H15m-1.5 3H15m-1.5 3H15M9 21v-3.375c0-.621.504
+                                  -1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125V21" />
                         </svg>
                         Información Básica de la Sede
                     </legend>
+
                     <div class="form-row mb-4">
-                        <label for="nombreSede" class="block text-sm font-medium text-gray-700">Nombre de la sede</label>
-                        <input id="nombreSede" name="nombreSede" type="text" placeholder="Sede Centro" required minlength="3" maxlength="100" autocomplete="organization" aria-describedby="nombreSede-error" class="input input-bordered w-full border-blue-300 focus:border-blue-500 focus:ring-blue-500 text-blue-700" />
+                        <label for="nombreSede" class="block text-sm font-medium text-gray-700">
+                            Nombre de la sede
+                        </label>
+                        <input id="nombreSede" name="nombreSede" type="text"
+                               placeholder="Sede Centro"
+                               required minlength="3" maxlength="100"
+                               autocomplete="organization"
+                               aria-describedby="nombreSede-error"
+                               class="input input-bordered w-full border-blue-300
+                                      focus:border-blue-500 focus:ring-blue-500 text-blue-700" />
                         <span id="nombreSede-error" class="error-message" aria-live="polite"></span>
                     </div>
+
                     <div class="form-row mb-4">
                         <label for="nit" class="block text-sm font-medium text-gray-700">NIT</label>
-                        <input id="nit" name="nit" type="text" placeholder="123456789-0" required pattern="[0-9]{9}-[0-9]" title="Formato: 123456789-0" autocomplete="off" aria-describedby="nit-error" class="input input-bordered w-full border-blue-300 focus:border-blue-500 focus:ring-blue-500 text-blue-700" />
+                        <input id="nit" name="nit" type="text"
+                               placeholder="123456789-0"
+                               required pattern="[0-9]{9}-[0-9]"
+                               title="Formato: 123456789-0"
+                               autocomplete="off"
+                               aria-describedby="nit-error"
+                               class="input input-bordered w-full border-blue-300
+                                      focus:border-blue-500 focus:ring-blue-500 text-blue-700" />
                         <span id="nit-error" class="error-message" aria-live="polite"></span>
                     </div>
                 </fieldset>
-                <div class="form-row actions flex justify-between">
-                    <button type="button" id="backSede2" class="btn btn-outline btn-secondary text-blue-700 border-blue-300 hover:bg-blue-50">Atrás</button>
-                    <button type="button" id="nextSede2" class="btn btn-primary bg-blue-600 hover:bg-blue-800 text-white btn-pulse">Siguiente</button>
+
+                <div class="flex justify-between">
+                    <button type="button" id="backSede2"
+                            class="btn btn-outline btn-secondary text-blue-700
+                                   border-blue-300 hover:bg-blue-50">
+                        Atrás
+                    </button>
+                    <button type="button" id="nextSede2"
+                            class="btn btn-primary bg-blue-600 hover:bg-blue-800 text-white btn-pulse">
+                        Siguiente
+                    </button>
                 </div>
             </div>
-            <!-- PASO 3 SEDE: Dirección (Localidad y Barrio dinámico) -->
+
+
+            <!-- PASO 3 SEDE: Dirección -->
             <div class="step" id="stepSede3">
                 <fieldset class="mb-6">
                     <legend class="text-lg font-semibold text-blue-700 mb-4 flex items-center">
-                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-6 h-6 text-cyan-400 mr-2">
-                            <path stroke-linecap="round" stroke-linejoin="round" d="M15 10.5a3 3 0 11-6 0 3 3 0 016 0z" />
-                            <path stroke-linecap="round" stroke-linejoin="round" d="M19.5 10.5c0 7.142-7.5 11.25-7.5 11.25s-7.5-4.108-7.5-11.25a7.5 7.5 0 1115 0z" />
+                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
+                             stroke-width="1.5" stroke="currentColor"
+                             class="w-6 h-6 text-cyan-400 mr-2" aria-hidden="true">
+                            <path stroke-linecap="round" stroke-linejoin="round"
+                                  d="M15 10.5a3 3 0 11-6 0 3 3 0 016 0z" />
+                            <path stroke-linecap="round" stroke-linejoin="round"
+                                  d="M19.5 10.5c0 7.142-7.5 11.25-7.5 11.25s-7.5-4.108-7.5-11.25a7.5
+                                  7.5 0 1115 0z" />
                         </svg>
                         Ubicación de la Sede
                     </legend>
+
                     <div class="form-row mb-4">
-                        <label for="direccion" class="block text-sm font-medium text-gray-700">Dirección</label>
-                        <input id="direccion" name="direccion" type="text" placeholder="Calle 123 #45-67" required minlength="10" maxlength="200" autocomplete="address-line1" aria-describedby="direccion-error" class="input input-bordered w-full border-blue-300 focus:border-blue-500 focus:ring-blue-500 text-blue-700" />
+                        <label for="direccion" class="block text-sm font-medium text-gray-700">
+                            Dirección
+                        </label>
+                        <input id="direccion" name="direccion" type="text"
+                               placeholder="Calle 123 #45-67"
+                               required minlength="10" maxlength="200"
+                               autocomplete="address-line1"
+                               aria-describedby="direccion-error"
+                               class="input input-bordered w-full border-blue-300
+                                      focus:border-blue-500 focus:ring-blue-500 text-blue-700" />
                         <span id="direccion-error" class="error-message" aria-live="polite"></span>
                     </div>
-                    <div class="form-row two-cols grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
                         <div>
-                            <label for="localidad" class="block text-sm font-medium text-gray-700">Localidad</label>
-                            <select id="localidad" name="localidad" required class="select select-bordered w-full border-blue-300 focus:border-blue-500 focus:ring-blue-500 text-blue-700">
+                            <label for="localidad" class="block text-sm font-medium text-gray-700">
+                                Localidad
+                            </label>
+                            <select id="localidad" name="localidad" required
+                                    class="select select-bordered w-full border-blue-300
+                                           focus:border-blue-500 focus:ring-blue-500 text-blue-700">
                                 <option value="">Selecciona una localidad</option>
                                 <option value="USAQUEN">Usaquén</option>
                                 <option value="CHAPINERO">Chapinero</option>
@@ -237,65 +480,113 @@
                             <span id="localidad-error" class="error-message" aria-live="polite"></span>
                         </div>
                         <div>
-                            <label for="barrio" class="block text-sm font-medium text-gray-700">Barrio</label>
-                            <select id="barrio" name="barrio" required class="select select-bordered w-full border-blue-300 focus:border-blue-500 focus:ring-blue-500 text-blue-700">
+                            <label for="barrio" class="block text-sm font-medium text-gray-700">
+                                Barrio
+                            </label>
+                            <select id="barrio" name="barrio" required
+                                    class="select select-bordered w-full border-blue-300
+                                           focus:border-blue-500 focus:ring-blue-500 text-blue-700">
                                 <option value="">Primero selecciona localidad</option>
                             </select>
                             <span id="barrio-error" class="error-message" aria-live="polite"></span>
                         </div>
                     </div>
                 </fieldset>
-                <div class="form-row actions flex justify-between">
-                    <button type="button" id="backSede3" class="btn btn-outline btn-secondary text-blue-700 border-blue-300 hover:bg-blue-50">Atrás</button>
-                    <button type="button" id="nextSede3" class="btn btn-primary bg-blue-600 hover:bg-blue-800 text-white btn-pulse">Siguiente</button>
+
+                <div class="flex justify-between">
+                    <button type="button" id="backSede3"
+                            class="btn btn-outline btn-secondary text-blue-700
+                                   border-blue-300 hover:bg-blue-50">
+                        Atrás
+                    </button>
+                    <button type="button" id="nextSede3"
+                            class="btn btn-primary bg-blue-600 hover:bg-blue-800 text-white btn-pulse">
+                        Siguiente
+                    </button>
                 </div>
             </div>
+
+
+            <!-- PASO 4 SEDE: Cupos, Tarifas y Horario -->
             <div class="step" id="stepSede4">
                 <fieldset class="mb-6">
                     <legend class="text-lg font-semibold text-blue-700 mb-4 flex items-center">
-                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-6 h-6 text-cyan-400 mr-2">
-                            <path stroke-linecap="round" stroke-linejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 11-18 0 9 9 0 0118 0z" />
+                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
+                             stroke-width="1.5" stroke="currentColor"
+                             class="w-6 h-6 text-cyan-400 mr-2" aria-hidden="true">
+                            <path stroke-linecap="round" stroke-linejoin="round"
+                                  d="M12 6v6h4.5m4.5 0a9 9 0 11-18 0 9 9 0 0118 0z" />
                         </svg>
                         Detalles Operativos de la Sede
                     </legend>
 
-                    <!-- Cupos Totales -->
+                    <!-- Cupos totales -->
                     <div class="form-row mb-4">
-                        <label for="cuposTotales" class="block text-sm font-medium text-gray-700">Cupos totales</label>
-                        <input id="cuposTotales" name="cuposTotales" type="number" min="1" placeholder="50" required aria-describedby="cupos-error" class="input input-bordered w-full border-blue-300 focus:border-blue-500 focus:ring-blue-500 text-blue-700" />
+                        <label for="cuposTotales" class="block text-sm font-medium text-gray-700">
+                            Cupos totales
+                        </label>
+                        <input id="cuposTotales" name="cuposTotales" type="number"
+                               min="1" placeholder="50" required
+                               aria-describedby="cupos-error"
+                               class="input input-bordered w-full border-blue-300
+                                      focus:border-blue-500 focus:ring-blue-500 text-blue-700" />
                         <span id="cupos-error" class="error-message" aria-live="polite"></span>
                     </div>
 
-                    <!-- Sección de Tarifas -->
+                    <!-- Tarifas -->
                     <div class="mb-6">
                         <h3 class="text-md font-semibold text-blue-700 mb-3 flex items-center">
-                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-5 h-5 text-green-500 mr-2">
-                                <path stroke-linecap="round" stroke-linejoin="round" d="M12 6v12m-3-2.818l.879.659c1.171.879 3.07.879 4.242 0 1.172-.879 1.172-2.303 0-3.182C13.536 12.219 12.768 12 12 12c-.725 0-1.45-.22-2.003-.659-1.106-.879-1.106-2.303 0-3.182s2.9-.879 4.006 0l.415.33M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
+                                 stroke-width="1.5" stroke="currentColor"
+                                 class="w-5 h-5 text-green-500 mr-2" aria-hidden="true">
+                                <path stroke-linecap="round" stroke-linejoin="round"
+                                      d="M12 6v12m-3-2.818l.879.659c1.171.879 3.07.879 4.242 0
+                                      1.172-.879 1.172-2.303 0-3.182C13.536 12.219 12.768 12 12
+                                      12c-.725 0-1.45-.22-2.003-.659-1.106-.879-1.106-2.303
+                                      0-3.182s2.9-.879 4.006 0l.415.33M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                             </svg>
                             Tarifas
                         </h3>
 
                         <!-- Tarifas Plenas -->
                         <div class="bg-blue-50 p-4 rounded-lg mb-4">
-                            <h4 class="text-sm font-semibold text-blue-800 mb-3">Tarifas Plenas (Todo el día)</h4>
+                            <h4 class="text-sm font-semibold text-blue-800 mb-3">
+                                Tarifas Plenas (Todo el día)
+                            </h4>
                             <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                                 <div>
-                                    <label for="tarifaPlenaC" class="block text-sm font-medium text-gray-700 mb-1">
+                                    <label for="tarifaPlenaC"
+                                           class="block text-sm font-medium text-gray-700 mb-1">
                                         🚗 Tarifa Plena Carro
                                     </label>
                                     <div class="relative">
-                                        <span class="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-500">$</span>
-                                        <input id="tarifaPlenaC" name="tarifaPlenaC" type="number" step="0.01" min="0.01" placeholder="15000" required aria-describedby="tarifaPlenaC-error" class="input input-bordered w-full pl-7 border-blue-300 focus:border-blue-500 focus:ring-blue-500 text-blue-700" />
+                                        <span class="absolute left-3 top-1/2 transform
+                                                     -translate-y-1/2 text-gray-500">$</span>
+                                        <input id="tarifaPlenaC" name="tarifaPlenaC"
+                                               type="number" step="0.01" min="0.01"
+                                               placeholder="15000" required
+                                               aria-describedby="tarifaPlenaC-error"
+                                               class="input input-bordered w-full pl-7
+                                                      border-blue-300 focus:border-blue-500
+                                                      focus:ring-blue-500 text-blue-700" />
                                     </div>
                                     <span id="tarifaPlenaC-error" class="error-message" aria-live="polite"></span>
                                 </div>
                                 <div>
-                                    <label for="tarifaPlenaM" class="block text-sm font-medium text-gray-700 mb-1">
+                                    <label for="tarifaPlenaM"
+                                           class="block text-sm font-medium text-gray-700 mb-1">
                                         🏍️ Tarifa Plena Moto
                                     </label>
                                     <div class="relative">
-                                        <span class="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-500">$</span>
-                                        <input id="tarifaPlenaM" name="tarifaPlenaM" type="number" step="0.01" min="0.01" placeholder="8000" required aria-describedby="tarifaPlenaM-error" class="input input-bordered w-full pl-7 border-blue-300 focus:border-blue-500 focus:ring-blue-500 text-blue-700" />
+                                        <span class="absolute left-3 top-1/2 transform
+                                                     -translate-y-1/2 text-gray-500">$</span>
+                                        <input id="tarifaPlenaM" name="tarifaPlenaM"
+                                               type="number" step="0.01" min="0.01"
+                                               placeholder="8000" required
+                                               aria-describedby="tarifaPlenaM-error"
+                                               class="input input-bordered w-full pl-7
+                                                      border-blue-300 focus:border-blue-500
+                                                      focus:ring-blue-500 text-blue-700" />
                                     </div>
                                     <span id="tarifaPlenaM-error" class="error-message" aria-live="polite"></span>
                                 </div>
@@ -304,25 +595,43 @@
 
                         <!-- Tarifas por Minuto -->
                         <div class="bg-green-50 p-4 rounded-lg">
-                            <h4 class="text-sm font-semibold text-green-800 mb-3">Tarifas por Minuto</h4>
+                            <h4 class="text-sm font-semibold text-green-800 mb-3">
+                                Tarifas por Minuto
+                            </h4>
                             <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                                 <div>
-                                    <label for="tarifaMinutoC" class="block text-sm font-medium text-gray-700 mb-1">
+                                    <label for="tarifaMinutoC"
+                                           class="block text-sm font-medium text-gray-700 mb-1">
                                         🚗 Tarifa por Minuto Carro
                                     </label>
                                     <div class="relative">
-                                        <span class="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-500">$</span>
-                                        <input id="tarifaMinutoC" name="tarifaMinutoC" type="number" step="0.01" min="0.01" placeholder="50" required aria-describedby="tarifaMinutoC-error" class="input input-bordered w-full pl-7 border-green-300 focus:border-green-500 focus:ring-green-500 text-green-700" />
+                                        <span class="absolute left-3 top-1/2 transform
+                                                     -translate-y-1/2 text-gray-500">$</span>
+                                        <input id="tarifaMinutoC" name="tarifaMinutoC"
+                                               type="number" step="0.01" min="0.01"
+                                               placeholder="50" required
+                                               aria-describedby="tarifaMinutoC-error"
+                                               class="input input-bordered w-full pl-7
+                                                      border-green-300 focus:border-green-500
+                                                      focus:ring-green-500 text-green-700" />
                                     </div>
                                     <span id="tarifaMinutoC-error" class="error-message" aria-live="polite"></span>
                                 </div>
                                 <div>
-                                    <label for="tarifaMinutoM" class="block text-sm font-medium text-gray-700 mb-1">
+                                    <label for="tarifaMinutoM"
+                                           class="block text-sm font-medium text-gray-700 mb-1">
                                         🏍️ Tarifa por Minuto Moto
                                     </label>
                                     <div class="relative">
-                                        <span class="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-500">$</span>
-                                        <input id="tarifaMinutoM" name="tarifaMinutoM" type="number" step="0.01" min="0.01" placeholder="30" required aria-describedby="tarifaMinutoM-error" class="input input-bordered w-full pl-7 border-green-300 focus:border-green-500 focus:ring-green-500 text-green-700" />
+                                        <span class="absolute left-3 top-1/2 transform
+                                                     -translate-y-1/2 text-gray-500">$</span>
+                                        <input id="tarifaMinutoM" name="tarifaMinutoM"
+                                               type="number" step="0.01" min="0.01"
+                                               placeholder="30" required
+                                               aria-describedby="tarifaMinutoM-error"
+                                               class="input input-bordered w-full pl-7
+                                                      border-green-300 focus:border-green-500
+                                                      focus:ring-green-500 text-green-700" />
                                     </div>
                                     <span id="tarifaMinutoM-error" class="error-message" aria-live="polite"></span>
                                 </div>
@@ -332,401 +641,84 @@
 
                     <!-- Horario -->
                     <div class="form-row mb-4">
-                        <label for="horarioSede" class="block text-sm font-medium text-gray-700">Horario</label>
-                        <input id="horarioSede" name="horarioSede" type="text" placeholder="7:00 - 22:00" required minlength="5" maxlength="50" autocomplete="off" aria-describedby="horario-error" class="input input-bordered w-full border-blue-300 focus:border-blue-500 focus:ring-blue-500 text-blue-700" />
+                        <label for="horarioSede" class="block text-sm font-medium text-gray-700">
+                            Horario
+                        </label>
+                        <input id="horarioSede" name="horarioSede" type="text"
+                               placeholder="7:00 - 22:00"
+                               required minlength="5" maxlength="50"
+                               autocomplete="off"
+                               aria-describedby="horario-error"
+                               class="input input-bordered w-full border-blue-300
+                                      focus:border-blue-500 focus:ring-blue-500 text-blue-700" />
                         <span id="horario-error" class="error-message" aria-live="polite"></span>
                     </div>
                 </fieldset>
 
-                <div class="form-row actions flex justify-between">
-                    <button type="button" id="backSede4" class="btn btn-outline btn-secondary text-blue-700 border-blue-300 hover:bg-blue-50">Atrás</button>
-                    <button type="button" id="nextSede4" class="btn btn-primary bg-blue-600 hover:bg-blue-800 text-white btn-pulse">Siguiente</button>
+                <div class="flex justify-between">
+                    <button type="button" id="backSede4"
+                            class="btn btn-outline btn-secondary text-blue-700
+                                   border-blue-300 hover:bg-blue-50">
+                        Atrás
+                    </button>
+                    <button type="button" id="nextSede4"
+                            class="btn btn-primary bg-blue-600 hover:bg-blue-800 text-white btn-pulse">
+                        Siguiente
+                    </button>
                 </div>
             </div>
+
+
             <!-- PASO FINAL: Confirmación -->
             <div class="step" id="stepFinal">
                 <h3 class="text-xl font-semibold mb-4 text-blue-700">Confirmar registro</h3>
                 <p class="mb-6 text-gray-700">Todo listo. Haz clic para registrarte.</p>
-                <div class="form-row actions flex justify-between">
-                    <button type="button" id="backFinal" class="btn btn-outline btn-secondary text-blue-700 border-blue-300 hover:bg-blue-50">Atrás</button>
-                    <button type="submit" class="btn btn-primary bg-green-600 hover:bg-green-800 text-white btn-pulse">Registrar</button>
+
+                <div class="flex justify-between">
+                    <button type="button" id="backFinal"
+                            class="btn btn-outline btn-secondary text-blue-700
+                                   border-blue-300 hover:bg-blue-50">
+                        Atrás
+                    </button>
+                    <button type="submit"
+                            class="btn btn-primary bg-green-600 hover:bg-green-800 text-white btn-pulse">
+                        Registrar
+                    </button>
                 </div>
             </div>
 
-            <!-- Sección para enlace a login -->
+
+            <!-- Enlace a login -->
             <div class="text-center mt-4">
                 <p class="text-sm text-gray-600">
                     ¿Ya tienes una cuenta?
-                    <a href="/login" class="text-blue-600 hover:text-blue-800 font-semibold">Inicia sesión aquí</a>
+                    <a href="/login" class="text-blue-600 hover:text-blue-800 font-semibold">
+                        Inicia sesión aquí
+                    </a>
                 </p>
             </div>
 
+            <!-- Mensaje de resultado -->
             <div id="mensaje" class="mensaje" role="alert" aria-live="assertive"></div>
 
-            <!-- Campos ocultos para sede (para asegurar envío) -->
-            <input type="hidden" name="hiddenNombreSede" id="hiddenNombreSede">
-            <input type="hidden" name="hiddenNit" id="hiddenNit">
-            <input type="hidden" name="hiddenDireccion" id="hiddenDireccion">
-            <input type="hidden" name="hiddenLocalidad" id="hiddenLocalidad">
-            <input type="hidden" name="hiddenBarrio" id="hiddenBarrio">
-            <input type="hidden" name="hiddenCuposTotales" id="hiddenCuposTotales">
-            <input type="hidden" id="hiddenTarifaPlenaC" name="hiddenTarifaPlenaC">
-            <input type="hidden" id="hiddenTarifaPlenaM" name="hiddenTarifaPlenaM">
-            <input type="hidden" id="hiddenTarifaMinutoC" name="hiddenTarifaMinutoC">
-            <input type="hidden" id="hiddenTarifaMinutoM" name="hiddenTarifaMinutoM">
-            <input type="hidden" name="hiddenHorarioSede" id="hiddenHorarioSede">
+            <!-- Campos ocultos para sede -->
+            <input type="hidden" name="hiddenNombreSede"   id="hiddenNombreSede">
+            <input type="hidden" name="hiddenNit"           id="hiddenNit">
+            <input type="hidden" name="hiddenDireccion"     id="hiddenDireccion">
+            <input type="hidden" name="hiddenLocalidad"     id="hiddenLocalidad">
+            <input type="hidden" name="hiddenBarrio"        id="hiddenBarrio">
+            <input type="hidden" name="hiddenCuposTotales"  id="hiddenCuposTotales">
+            <input type="hidden" name="hiddenTarifaPlenaC"  id="hiddenTarifaPlenaC">
+            <input type="hidden" name="hiddenTarifaPlenaM"  id="hiddenTarifaPlenaM">
+            <input type="hidden" name="hiddenTarifaMinutoC" id="hiddenTarifaMinutoC">
+            <input type="hidden" name="hiddenTarifaMinutoM" id="hiddenTarifaMinutoM">
+            <input type="hidden" name="hiddenHorarioSede"   id="hiddenHorarioSede">
         </form>
     </section>
 </main>
-<script>
-    document.addEventListener('DOMContentLoaded', function() {
-        /// Variables y selección de elementos
-        let rol = "CLIENTE";
-        let rolBloqueado = false;  // Flag para bloquear cambio de rol después del primer paso
 
-        const localidadSelect = document.getElementById('localidad');
-        const barrioSelect = document.getElementById('barrio');
-        const tipoVehiculoSelect = document.getElementById('tipoVehiculo');
-        const marcaSelect = document.getElementById('marca');
 
-        // Datos para marcas dinámicas según tipo de vehículo
-        const marcasPorTipo = {
-            CARRO: [
-                "RENAULT", "KIA", "TOYOTA", "CHEVROLET", "MAZDA", "NISSAN", "VOLKSWAGEN",
-                "FORD", "HYUNDAI", "BMW", "MERCEDES_BENZ", "AUDI", "PEUGEOT", "CITROEN",
-                "FIAT", "VOLVO", "JEEP", "LAND_ROVER", "PORSCHE", "FERRARI", "LAMBORGHINI",
-                "TESLA", "BYD", "CHANGAN", "GEELY", "JAC", "CHERY", "GREAT_WALL", "HAVAL",
-                "GWM", "MITSUBISHI", "SUBARU", "ISUZU", "SSANGYONG", "MG", "RAM", "DFSK",
-                "FOTON", "OTRO"
-            ],
-            MOTO: [
-                "HONDA", "YAMAHA", "SUZUKI", "KAWASAKI", "BAJAJ", "TVS", "HERO", "KTM",
-                "DUCATI", "HARLEY_DAVIDSON", "BMW_MOTORRAD", "TRIUMPH", "ROYAL_ENFIELD",
-                "AUTECO", "AKT", "VICTORY", "APRILIA", "BENELLI", "HUSQVARNA", "OTRO"
-            ],
-            BICICLETA: [
-                "TREK", "SPECIALIZED", "GIANT", "SCOTT", "CANNONDALE", "ORBEA", "GW",
-                "SHIMANO", "BIANCHI", "MERIDA", "CUBE", "BMC", "FOCUS", "OTRO"
-            ],
-            OTRO: ["OTRO"]
-        };
+<script src="/js/Registro.js"></script>
 
-        // Función para formatear nombres de marcas
-        function formatMarcaName(marca) {
-            const formatMap = {
-                'MERCEDES_BENZ': 'Mercedes-Benz',
-                'LAND_ROVER': 'Land Rover',
-                'GREAT_WALL': 'Great Wall',
-                'BMW_MOTORRAD': 'BMW Motorrad',
-                'HARLEY_DAVIDSON': 'Harley-Davidson',
-                'ROYAL_ENFIELD': 'Royal Enfield'
-            };
-
-            if (formatMap[marca]) return formatMap[marca];
-
-            return marca.split('_')
-                .map(word => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
-                .join(' ');
-        }
-
-        // Actualizar marcas según tipo de vehículo
-        function updateMarcas() {
-            const selectedTipo = tipoVehiculoSelect.value;
-            marcaSelect.innerHTML = '<option value="">Selecciona una marca</option>';
-
-            if (selectedTipo && marcasPorTipo[selectedTipo]) {
-                marcasPorTipo[selectedTipo].forEach(marca => {
-                    const option = document.createElement('option');
-                    option.value = marca;
-                    option.textContent = formatMarcaName(marca);
-                    marcaSelect.appendChild(option);
-                });
-            }
-        }
-
-        // Escuchar cambios en tipo de vehículo
-        tipoVehiculoSelect.addEventListener('change', updateMarcas);
-
-        // Datos para barrios dinámicos según localidad
-        const localidadesBarrios = {
-            USAQUEN: ["Santa Bárbara", "Cedritos", "Usaquén", "La Calleja", "Molinos Norte", "Barrancas"],
-
-            CHAPINERO: ["Chicó", "El Lago", "Rosales", "Chapinero Alto", "Antiguo Country"],
-
-            SANTA_FE: ["Las Aguas", "La Perseverancia", "San Diego"],
-
-            SAN_CRISTOBAL: ["San Cristóbal Norte", "San Blas", "La Victoria"],
-
-            USME: ["Usme Pueblo", "Yomasa", "El Virrey"],
-
-            TUNJUELITO: ["Parque El Tunal", "San Vicente", "Venecia"],
-
-            BOSA: ["Bosa Central", "Bosa Laureles", "El Porvenir"],
-
-            KENNEDY: ["Tintal", "Timiza", "Mandalay", "Carvajal", "Patio Bonito"],
-
-            FONTIBON: ["Capellanía", "Fontibón Centro", "Modelia"],
-
-            ENGATIVA: ["Ferias", "Boyacá Real", "Minuto de Dios"],
-
-            SUBA: ["Tibabuyes", "Niza", "Suba Centro", "La Campiña"],
-
-            BARRIOS_UNIDOS: ["7 de Agosto", "Doce de Octubre", "San Felipe"],
-
-            TEUSAQUILLO: ["La Soledad", "Quesada", "Campín"],
-
-            MARTIRES: ["Santa Isabel", "Eduardo Santos"],
-
-            ANTONIO_NARINO: ["Restrepo", "Eduardo Santos", "Policarpa"],
-
-            PUENTE_ARANDA: ["Ciudad Montes", "Torremolinos", "Salazar Gómez"],
-
-            CANDELARIA: ["La Catedral", "Egipto", "Las Aguas"],
-
-            RAFAEL_URIBE_URIBE: ["Bravo Páez", "Marruecos", "Quiroga"],
-
-            CIUDAD_BOLIVAR: ["Meissen", "Jerusalén", "Paraíso"],
-
-            SUMAPAZ: ["Nazareth", "Betania"]
-        };
-
-        // Actualizar barrios según localidad seleccionada
-        function updateBarrios() {
-            const selectedLocalidad = localidadSelect.value;
-            barrioSelect.innerHTML = '<option value="">Selecciona un barrio</option>';
-
-            if (selectedLocalidad && localidadesBarrios[selectedLocalidad]) {
-                localidadesBarrios[selectedLocalidad].forEach(barrio => {
-                    const option = document.createElement('option');
-                    option.value = barrio;
-                    option.textContent = barrio;
-                    barrioSelect.appendChild(option);
-                });
-            } else {
-                barrioSelect.innerHTML = '<option value="">Primero selecciona localidad</option>';
-            }
-        }
-
-        localidadSelect.addEventListener('change', updateBarrios);
-
-        // Botones rol - con bloqueo después del primer paso
-        document.getElementById("btnCliente").onclick = () => {
-            if (!rolBloqueado) setRol("CLIENTE");
-        };
-        document.getElementById("btnSede").onclick = () => {
-            if (!rolBloqueado) setRol("ADMINISTRADOR_SEDE");
-        };
-
-        function setRol(r) {
-            rol = r;
-            const btnCliente = document.getElementById("btnCliente");
-            const btnSede = document.getElementById("btnSede");
-            const rolHidden = document.getElementById("rolHidden");
-            if (btnCliente) btnCliente.classList.toggle("active", r === "CLIENTE");
-            if (btnSede) btnSede.classList.toggle("active", r === "ADMINISTRADOR_SEDE");
-            if (rolHidden) rolHidden.value = r;
-        }
-
-        // Función para mostrar el paso activo
-        function showStep(stepId) {
-            document.querySelectorAll(".step").forEach(s => s.classList.remove("active-step"));
-            const step = document.getElementById(stepId);
-            if (step) step.classList.add("active-step");
-        }
-
-        // Validación personalizada para campos específicos
-        function validateField(fieldId, customValidator) {
-            const field = document.getElementById(fieldId);
-            const errorSpan = document.getElementById(fieldId + "-error");
-            const successSpan = document.getElementById(fieldId + "-success");
-
-            if (!field) return true;
-
-            let isValid = true;
-            let message = "";
-
-            if (customValidator) {
-                const result = customValidator(field.value);
-                isValid = result.isValid;
-                message = result.message;
-            } else {
-                if (field.hasAttribute('required') && !field.value.trim()) {
-                    isValid = false;
-                    message = "Este campo es obligatorio.";
-                } else if (field.hasAttribute('pattern') && field.value && !new RegExp(field.pattern).test(field.value)) {
-                    isValid = false;
-                    message = field.title || "Formato inválido.";
-                }
-            }
-
-            if (errorSpan) {
-                errorSpan.textContent = isValid ? "" : message;
-            }
-            if (successSpan) {
-                successSpan.textContent = "";
-            }
-            field.classList.toggle("border-red-500", !isValid);
-            field.classList.toggle("border-green-500", isValid && field.value.trim() !== "");
-
-            return isValid;
-        }
-
-        // Validación completa de un paso
-        function validateStep(stepId) {
-            const step = document.getElementById(stepId);
-            if (!step) return true;
-            const requiredFields = step.querySelectorAll("input[required], select[required]");
-            let isValid = true;
-
-            requiredFields.forEach(field => {
-                let customValidator = null;
-
-                if (field.id === "correo") {
-                    customValidator = (value) => {
-                        if (!value.includes("@")) return { isValid: false, message: "El correo debe contener '@'." };
-                        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-                        if (!emailRegex.test(value)) return { isValid: false, message: "Formato de correo inválido." };
-                        return { isValid: true };
-                    };
-                } else if (field.id === "confirmarContrasena") {
-                    customValidator = (value) => {
-                        const pass = document.getElementById("contrasena").value;
-                        if (value !== pass) return { isValid: false, message: "Las contraseñas no coinciden." };
-                        return { isValid: true };
-                    };
-                } else if (field.id === "telefono" || field.id === "cedula") {
-                    customValidator = (value) => {
-                        if (!/^[0-9]{10}$/.test(value)) return { isValid: false, message: "Debe tener exactamente 10 dígitos numéricos." };
-                        return { isValid: true };
-                    };
-                }
-
-                if (!validateField(field.id, customValidator)) isValid = false;
-            });
-
-            return isValid;
-        }
-
-        // Toggle de contraseña mejorado
-        document.querySelectorAll('.toggle-password').forEach(button => {
-            button.addEventListener('click', function() {
-                const targetId = this.getAttribute('data-target');
-                const input = document.getElementById(targetId);
-                const eyeOpen = this.querySelector('.eye-open');
-                const eyeClosed = this.querySelector('.eye-closed');
-
-                if (input.type === 'password') {
-                    input.type = 'text';
-                    eyeOpen.classList.add('hidden');
-                    eyeClosed.classList.remove('hidden');
-                } else {
-                    input.type = 'password';
-                    eyeClosed.classList.add('hidden');
-                    eyeOpen.classList.remove('hidden');
-                }
-            });
-        });
-
-        // Validación en tiempo real de contraseñas
-        document.getElementById("confirmarContrasena").addEventListener('input', function() {
-            const pass = document.getElementById("contrasena").value;
-            const confirm = this.value;
-            const errorSpan = document.getElementById("confirmar-error");
-
-            if (confirm && pass !== confirm) {
-                errorSpan.textContent = "Las contraseñas no coinciden.";
-                this.classList.add("border-red-500");
-                this.classList.remove("border-green-500");
-            } else if (confirm && pass === confirm) {
-                errorSpan.textContent = "";
-                this.classList.remove("border-red-500");
-                this.classList.add("border-green-500");
-            } else {
-                errorSpan.textContent = "";
-                this.classList.remove("border-red-500", "border-green-500");
-            }
-        });
-
-        // Navegación entre pasos y bloqueo de rol
-        document.getElementById("next1").onclick = () => {
-            if (validateStep("step1")) {
-                rolBloqueado = true;
-                document.getElementById("btnCliente").disabled = true;
-                document.getElementById("btnSede").disabled = true;
-                if (rol === "CLIENTE") showStep("stepCliente");
-                else showStep("stepSede2");
-            }
-        };
-
-        document.getElementById("backCliente").onclick = () => showStep("step1");
-        document.getElementById("nextCliente").onclick = () => {
-            if (validateStep("stepCliente")) showStep("stepFinal");
-        };
-
-        document.getElementById("backSede2").onclick = () => showStep("step1");
-        document.getElementById("nextSede2").onclick = () => {
-            if (validateStep("stepSede2")) {
-                document.getElementById("hiddenNombreSede").value = document.getElementById("nombreSede").value;
-                document.getElementById("hiddenNit").value = document.getElementById("nit").value;
-                showStep("stepSede3");
-            }
-        };
-
-        document.getElementById("backSede3").onclick = () => showStep("stepSede2");
-        document.getElementById("nextSede3").onclick = () => {
-            if (validateStep("stepSede3")) {
-                document.getElementById("hiddenDireccion").value = document.getElementById("direccion").value;
-                document.getElementById("hiddenLocalidad").value = document.getElementById("localidad").value;
-                document.getElementById("hiddenBarrio").value = document.getElementById("barrio").value;
-                showStep("stepSede4");
-            }
-        };
-
-        document.getElementById("nextSede4").onclick = () => {
-            if (validateStep("stepSede4")) {
-                // Cupos totales
-                document.getElementById("hiddenCuposTotales").value = document.getElementById("cuposTotales").value;
-
-                // Las 4 tarifas
-                document.getElementById("hiddenTarifaPlenaC").value = document.getElementById("tarifaPlenaC").value;
-                document.getElementById("hiddenTarifaPlenaM").value = document.getElementById("tarifaPlenaM").value;
-                document.getElementById("hiddenTarifaMinutoC").value = document.getElementById("tarifaMinutoC").value;
-                document.getElementById("hiddenTarifaMinutoM").value = document.getElementById("tarifaMinutoM").value;
-
-                // Horario
-                document.getElementById("hiddenHorarioSede").value = document.getElementById("horarioSede").value;
-
-                showStep("stepFinal");
-            }
-        };
-
-        document.getElementById("backFinal").onclick = () => {
-            if (rol === "CLIENTE") showStep("stepCliente");
-            else showStep("stepSede4");
-        };
-
-        // Validación en tiempo real para feedback inmediato
-        document.querySelectorAll("input, select").forEach(field => {
-            field.addEventListener("blur", () => {
-                validateField(field.id);
-            });
-        });
-
-        // Validación de barrio antes de envío del formulario
-        document.getElementById("registroForm").onsubmit = function(e) {
-            if (rol === "ADMINISTRADOR_SEDE") {
-                const selectedLocalidad = localidadSelect.value;
-                const selectedBarrio = barrioSelect.value;
-
-                if (selectedLocalidad && !selectedBarrio) {
-                    e.preventDefault();
-                    document.getElementById('barrio-error').textContent = 'Debes seleccionar un barrio.';
-                    showStep("stepSede3");
-                    return false;
-                }
-            }
-        };
-    });
-</script>
 </body>
 </html>

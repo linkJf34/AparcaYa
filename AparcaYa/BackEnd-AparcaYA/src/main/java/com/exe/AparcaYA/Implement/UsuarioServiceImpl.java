@@ -1,6 +1,7 @@
 package com.exe.AparcaYA.Implement;
 
 import com.exe.AparcaYA.Entity.Usuario;
+import com.exe.AparcaYA.Enum.EstadoGeneral;
 import com.exe.AparcaYA.Enum.Rolenum;
 import com.exe.AparcaYA.Repository.UsuarioRepository;
 import com.exe.AparcaYA.Service.UsuarioService;
@@ -54,7 +55,6 @@ public class UsuarioServiceImpl implements UsuarioService {
         return usuarioRepository.findByCorreo(correo);
     }
 
-    // AGREGADO: Implementaciones para teléfono y cédula
     @Override
     public Usuario findByTelefono(String telefono) {
         return usuarioRepository.findByTelefono(telefono).orElse(null);
@@ -65,9 +65,21 @@ public class UsuarioServiceImpl implements UsuarioService {
         return usuarioRepository.findByCedula(cedula).orElse(null);
     }
 
-    // AGREGADO: Implementación para buscar por múltiples roles
     @Override
     public List<Usuario> findByRolIn(List<Rolenum> roles) {
         return usuarioRepository.findByRolIn(roles);
+    }
+
+    // ✅ CAMBIO #2: Lógica de conteo movida desde AdminController
+    @Override
+    public long contarActivos() {
+        return usuarioRepository.findAll().stream()
+                .filter(u -> u.getEstado() == EstadoGeneral.ACTIVO)
+                .count();
+    }
+
+    @Override
+    public long contarTotal() {
+        return usuarioRepository.count();
     }
 }

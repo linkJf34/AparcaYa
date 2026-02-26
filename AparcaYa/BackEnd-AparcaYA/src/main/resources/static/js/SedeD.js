@@ -57,11 +57,8 @@ function formatDateTime(dateString) {
     try {
         const date = new Date(dateString);
         return date.toLocaleString('es-CO', {
-            year: 'numeric',
-            month: '2-digit',
-            day: '2-digit',
-            hour: '2-digit',
-            minute: '2-digit'
+            year: 'numeric', month: '2-digit', day: '2-digit',
+            hour: '2-digit', minute: '2-digit'
         });
     } catch {
         return dateString;
@@ -85,7 +82,7 @@ function showNotification(message, type = 'info') {
     toast.style.cssText = `
         position: fixed; top: 80px; right: 20px; padding: 1rem 1.5rem;
         border-radius: 0.5rem; color: white; font-weight: 600; z-index: 9999;
-        animation: slideIn 0.3s ease-out; max-width: 400px;
+        animation: aparca-slideUp 0.3s ease-out; max-width: 400px;
         box-shadow: 0 4px 12px rgba(0,0,0,0.15);
     `;
 
@@ -95,19 +92,17 @@ function showNotification(message, type = 'info') {
     document.body.appendChild(toast);
 
     setTimeout(() => {
-        toast.style.animation = 'slideOut 0.3s ease-in';
+        toast.style.opacity = '0';
+        toast.style.transition = 'opacity 0.3s ease-in';
         setTimeout(() => toast.remove(), 300);
     }, 5000);
 }
 
 function formatMarcaName(marca) {
     const map = {
-        'MERCEDES_BENZ': 'Mercedes-Benz',
-        'LAND_ROVER': 'Land Rover',
-        'GREAT_WALL': 'Great Wall',
-        'BMW_MOTORRAD': 'BMW Motorrad',
-        'HARLEY_DAVIDSON': 'Harley-Davidson',
-        'ROYAL_ENFIELD': 'Royal Enfield'
+        'MERCEDES_BENZ': 'Mercedes-Benz', 'LAND_ROVER': 'Land Rover',
+        'GREAT_WALL': 'Great Wall', 'BMW_MOTORRAD': 'BMW Motorrad',
+        'HARLEY_DAVIDSON': 'Harley-Davidson', 'ROYAL_ENFIELD': 'Royal Enfield'
     };
     return map[marca] || marca.split('_').map(w => w.charAt(0) + w.slice(1).toLowerCase()).join(' ');
 }
@@ -117,6 +112,7 @@ document.addEventListener('DOMContentLoaded', () => {
     console.log('🚀 Inicializando Dashboard Sede AparcaYA...');
     initializeApp();
     initializeTrabajadorFeatures();
+    injectAdditionalStyles();
 });
 
 function initializeApp() {
@@ -131,11 +127,9 @@ function initializeTrabajadorFeatures() {
     initializeFormularioEntrada();
     initializeMarcas();
     setupGlobalEventDelegation();
-    injectModalStyles();
 
-    // Actualización periódica
     updateInterval = setInterval(() => {
-        const activeTab = document.querySelector('.sidebar-nav a.active')?.getAttribute('data-tab');
+        const activeTab = document.querySelector('.aparca-sidebar-nav a.active')?.getAttribute('data-tab');
         if (activeTab === 'gestion') {
             loadVehiculosActivos();
             loadPendientesCobro();
@@ -145,20 +139,16 @@ function initializeTrabajadorFeatures() {
 
 // ==================== NAVEGACIÓN ====================
 function setupEventListeners() {
-    // Navegación del sidebar
-    document.querySelectorAll('.sidebar-nav a').forEach(link => {
+    document.querySelectorAll('.aparca-sidebar-nav a').forEach(link => {
         link.addEventListener('click', handleNavigation);
     });
 
-    // Pestañas Usuarios/Sedes
     document.getElementById('btnUsuarios')?.addEventListener('click', () => switchToTab('usuarios'));
     document.getElementById('btnSedes')?.addEventListener('click', () => switchToTab('sedes'));
 
-    // Pestañas de correo
     document.getElementById('tab-mailuno')?.addEventListener('click', () => switchMailTab('uno'));
     document.getElementById('tab-mailmasivo')?.addEventListener('click', () => switchMailTab('masivo'));
 
-    // Búsqueda y filtros
     document.getElementById('busquedaInput')?.addEventListener('input', filtrarDatos);
     document.getElementById('filtroEstado')?.addEventListener('change', filtrarDatos);
 }
@@ -166,14 +156,18 @@ function setupEventListeners() {
 function handleNavigation(e) {
     e.preventDefault();
 
-    document.querySelectorAll('.sidebar-nav a').forEach(link => link.classList.remove('active'));
+    document.querySelectorAll('.aparca-sidebar-nav a').forEach(link => {
+        link.classList.remove('active');
+    });
     e.currentTarget.classList.add('active');
 
     const tab = e.currentTarget.getAttribute('data-tab');
-    document.querySelectorAll('.content-section').forEach(section => section.classList.add('hidden'));
+
+    document.querySelectorAll('.aparca-content-section').forEach(section => {
+        section.classList.add('hidden');
+    });
     document.getElementById(tab)?.classList.remove('hidden');
 
-    // Cargar datos según la sección
     switch(tab) {
         case 'gestion':
             loadVehiculosActivos();
@@ -190,7 +184,10 @@ function handleNavigation(e) {
 
 function switchToTab(tab) {
     currentTab = tab;
-    document.querySelectorAll('.tabs button').forEach(btn => btn.classList.remove('active'));
+
+    document.querySelectorAll('.sede-tabs button').forEach(btn => {
+        btn.classList.remove('active');
+    });
 
     if (tab === 'usuarios') {
         document.getElementById('btnUsuarios').classList.add('active');
@@ -205,7 +202,9 @@ function switchToTab(tab) {
 }
 
 function switchMailTab(tipo) {
-    document.querySelectorAll('#correo .tabs button').forEach(btn => btn.classList.remove('active'));
+    document.querySelectorAll('#correo .sede-tabs button').forEach(btn => {
+        btn.classList.remove('active');
+    });
 
     if (tipo === 'uno') {
         document.getElementById('tab-mailuno').classList.add('active');
@@ -271,15 +270,15 @@ function mostrarUsuarios(usuarios) {
         <tr>
             <td>${usuario.nombre || 'N/A'}</td>
             <td>${usuario.correo || 'N/A'}</td>
-            <td><span class="badge badge-info">${usuario.rol || 'N/A'}</span></td>
+            <td><span class="sede-badge sede-badge-info">${usuario.rol || 'N/A'}</span></td>
             <td>
-                <span class="badge ${usuario.estado === 'ACTIVO' ? 'badge-success' : 'badge-danger'}">
+                <span class="sede-badge ${usuario.estado === 'ACTIVO' ? 'sede-badge-success' : 'sede-badge-danger'}">
                     ${usuario.estado || 'N/A'}
                 </span>
             </td>
             <td>
-                <button class="btn-icon btn-edit" onclick="editarUsuario(${usuario.id})" title="Editar">✏️</button>
-                <button class="btn-icon btn-delete" onclick="eliminarUsuario(${usuario.id})" title="Eliminar">🗑️</button>
+                <button class="sede-btn-icon sede-btn-edit" onclick="editarUsuario(${usuario.id})" title="Editar">✏️</button>
+                <button class="sede-btn-icon sede-btn-delete" onclick="eliminarUsuario(${usuario.id})" title="Eliminar">🗑️</button>
             </td>
         </tr>
     `).join('');
@@ -300,12 +299,12 @@ function mostrarSedes(sedes) {
             <td>${sede.direccion || 'N/A'}</td>
             <td>${sede.capacidad || 0}</td>
             <td>
-                <span class="badge ${sede.estado === 'ACTIVO' ? 'badge-success' : 'badge-danger'}">
+                <span class="sede-badge ${sede.estado === 'ACTIVO' ? 'sede-badge-success' : 'sede-badge-danger'}">
                     ${sede.estado || 'N/A'}
                 </span>
             </td>
             <td>
-                <button class="btn-icon btn-edit" onclick="editarSede(${sede.id})" title="Editar">✏️</button>
+                <button class="sede-btn-icon sede-btn-edit" onclick="editarSede(${sede.id})" title="Editar">✏️</button>
             </td>
         </tr>
     `).join('');
@@ -342,7 +341,6 @@ function filtrarDatos() {
 function actualizarMarcasEntrada() {
     const tipoSelect = document.getElementById('tipoVehiculo');
     const marcaSelect = document.getElementById('marca');
-
     if (!tipoSelect || !marcaSelect) return;
 
     const tipo = tipoSelect.value;
@@ -370,7 +368,6 @@ function initializeMarcas() {
 function validateFieldEntrada(fieldId) {
     const field = document.getElementById(fieldId);
     const errorSpan = document.getElementById(`${fieldId}-error`);
-
     if (!field) return true;
 
     let isValid = true;
@@ -379,61 +376,30 @@ function validateFieldEntrada(fieldId) {
 
     switch(fieldId) {
         case 'nombre':
-            if (!value) {
-                isValid = false;
-                message = 'El nombre es obligatorio.';
-            } else if (value.length < 2) {
-                isValid = false;
-                message = 'El nombre debe tener al menos 2 caracteres.';
-            }
+            if (!value) { isValid = false; message = 'El nombre es obligatorio.'; }
+            else if (value.length < 2) { isValid = false; message = 'Al menos 2 caracteres.'; }
             break;
         case 'correo1':
-            if (!value) {
-                isValid = false;
-                message = 'El correo es obligatorio.';
-            } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value)) {
-                isValid = false;
-                message = 'Formato de correo inválido.';
-            }
+            if (!value) { isValid = false; message = 'El correo es obligatorio.'; }
+            else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value)) { isValid = false; message = 'Formato inválido.'; }
             break;
         case 'telefono':
-            if (!value) {
-                isValid = false;
-                message = 'El teléfono es obligatorio.';
-            } else if (!/^[0-9]{10}$/.test(value)) {
-                isValid = false;
-                message = 'Debe tener 10 dígitos.';
-            }
+            if (!value) { isValid = false; message = 'El teléfono es obligatorio.'; }
+            else if (!/^[0-9]{10}$/.test(value)) { isValid = false; message = 'Debe tener 10 dígitos.'; }
             break;
         case 'cedula':
-            if (!value) {
-                isValid = false;
-                message = 'La cédula es obligatoria.';
-            } else if (!/^[0-9]{10}$/.test(value)) {
-                isValid = false;
-                message = 'Debe tener 10 dígitos.';
-            }
+            if (!value) { isValid = false; message = 'La cédula es obligatoria.'; }
+            else if (!/^[0-9]{10}$/.test(value)) { isValid = false; message = 'Debe tener 10 dígitos.'; }
             break;
         case 'placa':
-            if (!value) {
-                isValid = false;
-                message = 'La placa es obligatoria.';
-            } else if (!/^[A-Z]{3}[0-9]{3}$/.test(value)) {
-                isValid = false;
-                message = 'Formato: ABC123';
-            }
+            if (!value) { isValid = false; message = 'La placa es obligatoria.'; }
+            else if (!/^[A-Z]{3}[0-9]{3}$/.test(value)) { isValid = false; message = 'Formato: ABC123'; }
             break;
         case 'tipoVehiculo':
-            if (!value) {
-                isValid = false;
-                message = 'Selecciona el tipo.';
-            }
+            if (!value) { isValid = false; message = 'Selecciona el tipo.'; }
             break;
         case 'marca':
-            if (!value) {
-                isValid = false;
-                message = 'Selecciona la marca.';
-            }
+            if (!value) { isValid = false; message = 'Selecciona la marca.'; }
             break;
     }
 
@@ -465,7 +431,6 @@ function limpiarFormularioEntrada() {
     ['nombre', 'correo1', 'telefono', 'cedula', 'placa', 'tipoVehiculo', 'marca'].forEach(fieldId => {
         const errorSpan = document.getElementById(`${fieldId}-error`);
         if (errorSpan) errorSpan.textContent = '';
-
         const field = document.getElementById(fieldId);
         if (field) field.classList.remove('border-red-500', 'border-green-500');
     });
@@ -523,12 +488,8 @@ function initializeFormularioEntrada() {
         buscarPlacaInput.addEventListener('input', (e) => {
             e.target.value = e.target.value.toUpperCase().replace(/[^A-Z0-9]/g, '');
         });
-
         buscarPlacaInput.addEventListener('keypress', (e) => {
-            if (e.key === 'Enter') {
-                e.preventDefault();
-                buscarPorPlacaIntegrado();
-            }
+            if (e.key === 'Enter') { e.preventDefault(); buscarPorPlacaIntegrado(); }
         });
     }
 }
@@ -545,15 +506,15 @@ async function registrarEntradaDirecto() {
         showNotification('⏳ Registrando entrada...', 'info');
 
         const datos = {
-            clienteNombre: getInputValue('nombre'),
-            clienteTelefono: getInputValue('telefono'),
-            clienteEmail: getInputValue('correo1'),
-            clienteCedula: getInputValue('cedula'),
-            vehiculoPlaca: getInputValue('placa'),
-            vehiculoTipo: getInputValue('tipoVehiculo'),
-            vehiculoMarca: getInputValue('marca'),
-            vehiculoColor: getInputValue('color') || 'NO ESPECIFICADO',
-            vehiculoAnio: getInputValue('anio') || '2020'
+            clienteNombre:    getInputValue('nombre'),
+            clienteTelefono:  getInputValue('telefono'),
+            clienteEmail:     getInputValue('correo1'),
+            clienteCedula:    getInputValue('cedula'),
+            vehiculoPlaca:    getInputValue('placa'),
+            vehiculoTipo:     getInputValue('tipoVehiculo'),
+            vehiculoMarca:    getInputValue('marca'),
+            vehiculoColor:    getInputValue('color') || 'NO ESPECIFICADO',
+            vehiculoAnio:     getInputValue('anio') || '2020'
         };
 
         const response = await fetch(`${API_TRABAJADOR_URL}/registrar-entrada`, {
@@ -570,13 +531,9 @@ async function registrarEntradaDirecto() {
             throw new Error(errorData.error || 'Error al registrar entrada');
         }
 
-        const data = await response.json();
         showNotification('✅ Entrada registrada. Timer iniciado ⏱️', 'success');
         limpiarFormularioEntrada();
-
-        setTimeout(() => {
-            loadVehiculosActivos();
-        }, 500);
+        setTimeout(() => { loadVehiculosActivos(); }, 500);
 
     } catch (error) {
         console.error('❌ Error:', error);
@@ -594,10 +551,7 @@ async function buscarPorPlacaIntegrado() {
 
     try {
         const response = await fetch(`${API_TRABAJADOR_URL}/buscar-por-placa/${placa}`, {
-            headers: {
-                'Content-Type': 'application/json',
-                'Authorization': `Bearer ${getToken()}`
-            }
+            headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${getToken()}` }
         });
 
         if (!response.ok) throw new Error('Error');
@@ -605,12 +559,12 @@ async function buscarPorPlacaIntegrado() {
         const data = await response.json();
 
         if (data.encontrado) {
-            setInputValue('nombre', data.cliente.nombre);
+            setInputValue('nombre',   data.cliente.nombre);
             setInputValue('telefono', data.cliente.telefono);
-            setInputValue('correo1', data.cliente.email);
-            setInputValue('cedula', data.cliente.cedula || '');
-            setInputValue('placa', data.vehiculo.placa);
-            setInputValue('color', data.vehiculo.color);
+            setInputValue('correo1',  data.cliente.email);
+            setInputValue('cedula',   data.cliente.cedula || '');
+            setInputValue('placa',    data.vehiculo.placa);
+            setInputValue('color',    data.vehiculo.color);
 
             const tipoSelect = document.getElementById('tipoVehiculo');
             if (tipoSelect) {
@@ -623,14 +577,12 @@ async function buscarPorPlacaIntegrado() {
             }
 
             if (data.vehiculo.anio) setInputValue('anio', data.vehiculo.anio);
-
             showNotification('✅ Vehículo encontrado', 'success');
         } else {
             limpiarFormularioEntrada();
             setInputValue('placa', placa);
             showNotification('ℹ️ Vehículo nuevo. Complete los datos.', 'info');
         }
-
     } catch (error) {
         console.error('Error:', error);
         showNotification('❌ Error al buscar', 'error');
@@ -642,17 +594,13 @@ async function loadVehiculosActivos() {
     try {
         const response = await fetch(`${API_TRABAJADOR_URL}/vehiculos-activos`, {
             method: 'GET',
-            headers: {
-                'Content-Type': 'application/json',
-                'Authorization': `Bearer ${getToken()}`
-            }
+            headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${getToken()}` }
         });
 
         if (!response.ok) throw new Error('Error al cargar vehículos');
 
         const vehiculos = await response.json();
         const tbody = document.getElementById('vehiculosActivosBody');
-
         if (!tbody) return;
 
         Object.values(timerIntervals).forEach(id => clearInterval(id));
@@ -682,7 +630,7 @@ async function loadVehiculosActivos() {
                     </div>
                 </td>
                 <td>
-                    <button class="btn-warning btn-salida" data-id="${v.registroId}">
+                    <button class="sede-btn-warning sede-btn-salida" data-id="${v.registroId}">
                         🚪 Salida
                     </button>
                 </td>
@@ -694,22 +642,16 @@ async function loadVehiculosActivos() {
             if (!timerElement) return;
 
             let segundosBase = v.segundosTranscurridos;
-
             timerIntervals[v.registroId] = setInterval(() => {
                 segundosBase++;
-
-                const horas = Math.floor(segundosBase / 3600);
-                const minutos = Math.floor((segundosBase % 3600) / 60);
+                const horas    = Math.floor(segundosBase / 3600);
+                const minutos  = Math.floor((segundosBase % 3600) / 60);
                 const segundos = segundosBase % 60;
 
                 let texto = '';
-                if (horas > 0) {
-                    texto = `${horas}h ${minutos}m ${segundos}s`;
-                } else if (minutos > 0) {
-                    texto = `${minutos}m ${segundos}s`;
-                } else {
-                    texto = `${segundos}s`;
-                }
+                if (horas > 0)        texto = `${horas}h ${minutos}m ${segundos}s`;
+                else if (minutos > 0) texto = `${minutos}m ${segundos}s`;
+                else                  texto = `${segundos}s`;
 
                 timerElement.textContent = texto;
             }, 1000);
@@ -724,6 +666,8 @@ async function loadVehiculosActivos() {
 }
 
 // ==================== MODAL SALIDA ====================
+// ✅ CAMBIO: modal ya existe en el DOM vía Thymeleaf (sede-modal-salida.html)
+// ✅ CAMBIO: .modal → .sede-modal-dinamico (clase en CSS propio)
 async function abrirModalSalida(registroId) {
     console.log('🚪 Abriendo modal salida para registro:', registroId);
 
@@ -739,10 +683,7 @@ async function abrirModalSalida(registroId) {
 
         const response = await fetch(`${API_TRABAJADOR_URL}/vehiculos-activos`, {
             method: 'GET',
-            headers: {
-                'Content-Type': 'application/json',
-                'Authorization': `Bearer ${getToken()}`
-            }
+            headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${getToken()}` }
         });
 
         if (!response.ok) throw new Error('Error al obtener datos');
@@ -755,23 +696,27 @@ async function abrirModalSalida(registroId) {
             return;
         }
 
-        document.getElementById('salidaPlaca').textContent = vehiculo.placa;
-        document.getElementById('salidaCliente').textContent = vehiculo.clienteNombre;
+        document.getElementById('salidaPlaca').textContent       = vehiculo.placa;
+        document.getElementById('salidaCliente').textContent     = vehiculo.clienteNombre;
         document.getElementById('salidaHoraEntrada').textContent = formatDateTime(vehiculo.horaEntrada);
-        document.getElementById('salidaTiempo').textContent = vehiculo.tiempoTranscurrido;
+        document.getElementById('salidaTiempo').textContent      = vehiculo.tiempoTranscurrido;
 
         document.getElementById('salidaCobroEstimado').innerHTML = `
-            <div style="margin-bottom: 0.5rem;">
-                <strong>Plena:</strong> ${formatNumber(vehiculo.cobroEstimadoPlena)}
+            <div class="sede-modal-salida-row">
+                <strong>Plena:</strong>
+                <span>$${formatNumber(vehiculo.cobroEstimadoPlena)}</span>
             </div>
-            <div style="color: #059669;">
-                <strong>Minuto:</strong> ${formatNumber(vehiculo.cobroEstimadoMinuto)}
+            <div class="sede-modal-salida-row" style="color: #059669;">
+                <strong>Minuto:</strong>
+                <span>$${formatNumber(vehiculo.cobroEstimadoMinuto)}</span>
             </div>
         `;
 
-        modal.style.display = 'block';
+        // ✅ CAMBIO: display:block + visibility:visible → CSS controla el overlay
+        modal.style.display    = 'block';
         modal.style.visibility = 'visible';
-        modal.style.opacity = '1';
+        modal.style.opacity    = '1';
+        modal.setAttribute('aria-hidden', 'false');
 
         console.log('✅ Modal salida abierto');
 
@@ -783,7 +728,10 @@ async function abrirModalSalida(registroId) {
 
 function cerrarModalSalida() {
     const modal = document.getElementById('salidaModal');
-    if (modal) modal.style.display = 'none';
+    if (modal) {
+        modal.style.display = 'none';
+        modal.setAttribute('aria-hidden', 'true');
+    }
     currentSalidaRegistroId = null;
 }
 
@@ -795,10 +743,7 @@ async function confirmarSalida() {
 
         const response = await fetch(`${API_TRABAJADOR_URL}/registrar-salida/${currentSalidaRegistroId}`, {
             method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'Authorization': `Bearer ${getToken()}`
-            }
+            headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${getToken()}` }
         });
 
         if (!response.ok) {
@@ -808,7 +753,6 @@ async function confirmarSalida() {
 
         showNotification('✅ Salida registrada. Proceda a cobrar.', 'success');
         cerrarModalSalida();
-
         await loadVehiculosActivos();
         await loadPendientesCobro();
 
@@ -830,7 +774,6 @@ async function loadPendientesCobro() {
 
         const pendientes = await response.json();
         const tbody = document.getElementById('pendientesCobroBody');
-
         if (!tbody) return;
 
         if (pendientes.length === 0) {
@@ -845,11 +788,9 @@ async function loadPendientesCobro() {
                 <td>${formatDateTime(p.horaEntrada)}</td>
                 <td>${formatDateTime(p.horaSalida)}</td>
                 <td>${p.tiempoTotal}</td>
-                <td style="font-weight: 700; color: #059669;">
-                    ${formatNumber(p.precio)}
-                </td>
+                <td style="font-weight: 700; color: #059669;">$${formatNumber(p.precio)}</td>
                 <td>
-                    <button class="btn-success btn-cobrar" data-id="${p.registroId}">
+                    <button class="sede-btn-success sede-btn-cobrar" data-id="${p.registroId}">
                         💰 Cobrar
                     </button>
                 </td>
@@ -863,20 +804,21 @@ async function loadPendientesCobro() {
     }
 }
 
+// ==================== MODAL COBRO ====================
+// ✅ CAMBIO: modal ya existe en el DOM vía Thymeleaf (sede-modal-cobro.html)
+// ✅ CAMBIO: selector '#cobroModal .modal-content > div:nth-child(2)'
+//    → '#tarifaSelectorContainer' (div dedicado en el fragmento HTML)
 async function abrirModalCobro(registroId) {
     console.log('💰 Abriendo modal cobro para registro:', registroId);
-
     currentCobroRegistroId = registroId;
 
     const modal = document.getElementById('cobroModal');
-    if (!modal) {
-        console.error('❌ No existe #cobroModal');
-        return;
-    }
+    if (!modal) { console.error('❌ No existe #cobroModal'); return; }
 
-    modal.style.display = 'block';
+    modal.style.display    = 'block';
     modal.style.visibility = 'visible';
-    modal.style.opacity = '1';
+    modal.style.opacity    = '1';
+    modal.setAttribute('aria-hidden', 'false');
 
     try {
         const response = await fetch(`${API_TRABAJADOR_URL}/opciones-cobro/${registroId}`, {
@@ -893,30 +835,29 @@ async function abrirModalCobro(registroId) {
         opcionesTarifa = data;
 
         document.getElementById('cobroCliente').textContent = data.clienteNombre;
-        document.getElementById('cobroPlaca').textContent = data.placa;
-        document.getElementById('cobroTiempo').textContent = data.tiempoTotal;
+        document.getElementById('cobroPlaca').textContent   = data.placa;
+        document.getElementById('cobroTiempo').textContent  = data.tiempoTotal;
 
-        const modalBody = document.querySelector('#cobroModal .modal-content > div:nth-child(2)');
-
-        const existingSelector = document.getElementById('tarifaSelector');
-        if (existingSelector) existingSelector.remove();
-
-        const selectorHTML = `
-            <div id="tarifaSelector" style="margin: 1.5rem 0; padding: 1rem; background: #f0f9ff; border-radius: 0.5rem;">
-                <h3 style="margin-bottom: 1rem; color: #0369a1;">💰 Seleccione tarifa:</h3>
-                ${data.opciones.map((op, i) => `
-                    <label style="display:block; padding:1rem; margin-bottom:.75rem; background:white; border:2px solid #3b82f6; border-radius:.5rem; cursor:pointer;">
-                        <input type="radio" name="tipoTarifa" value="${op.tipo}"
-                            ${i === 0 ? 'checked' : ''}
-                            onchange="actualizarPrecioCobro('${op.tipo}', ${op.precio})">
-                        <strong>${op.nombre}</strong>
-                        <div>${formatNumber(op.precio)} COP</div>
-                    </label>
-                `).join('')}
-            </div>
-        `;
-
-        modalBody.insertAdjacentHTML('beforeend', selectorHTML);
+        // ✅ CAMBIO: ya no busca el contenedor por nth-child ni elimina #tarifaSelector
+        // Usa #tarifaSelectorContainer definido en el fragmento HTML
+        const container = document.getElementById('tarifaSelectorContainer');
+        if (container) {
+            // ✅ CAMBIO: clases .modal-content inline → .sede-modal-cobro-selector y .sede-modal-cobro-opcion
+            container.innerHTML = `
+                <div class="sede-modal-cobro-selector">
+                    <h3>💰 Seleccione tarifa:</h3>
+                    ${data.opciones.map((op, i) => `
+                        <label class="sede-modal-cobro-opcion">
+                            <input type="radio" name="tipoTarifa" value="${op.tipo}"
+                                ${i === 0 ? 'checked' : ''}
+                                onchange="actualizarPrecioCobro('${op.tipo}', ${op.precio})">
+                            <strong>${op.nombre}</strong>
+                            <div>$${formatNumber(op.precio)} COP</div>
+                        </label>
+                    `).join('')}
+                </div>
+            `;
+        }
 
         const opcionDefault = data.opciones[0];
         document.getElementById('cobroPrecio').textContent = formatNumber(opcionDefault.precio);
@@ -936,14 +877,17 @@ function actualizarPrecioCobro(tipo, precio) {
 function cerrarModalCobro() {
     const modal = document.getElementById('cobroModal');
     if (modal) {
-        modal.style.display = 'none';
+        modal.style.display    = 'none';
         modal.style.visibility = 'hidden';
-        modal.style.opacity = '0';
+        modal.style.opacity    = '0';
+        modal.setAttribute('aria-hidden', 'true');
     }
     currentCobroRegistroId = null;
     opcionesTarifa = null;
-    const selector = document.getElementById('tarifaSelector');
-    if (selector) selector.remove();
+
+    // ✅ CAMBIO: limpia el container dedicado en lugar de buscar #tarifaSelector
+    const container = document.getElementById('tarifaSelectorContainer');
+    if (container) container.innerHTML = '';
 }
 
 async function procesarCobro() {
@@ -963,10 +907,7 @@ async function procesarCobro() {
         const response = await fetch(`${API_TRABAJADOR_URL}/confirmar-cobro/${currentCobroRegistroId}`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-                metodoPago: metodoPago,
-                tipoTarifa: tipoTarifa.value
-            })
+            body: JSON.stringify({ metodoPago: metodoPago, tipoTarifa: tipoTarifa.value })
         });
 
         if (!response.ok) {
@@ -975,11 +916,8 @@ async function procesarCobro() {
         }
 
         const data = await response.json();
-
-        showNotification(`✅ Cobro: ${formatNumber(data.precio)} - ${data.tipoTarifaAplicada}`, 'success');
-
+        showNotification(`✅ Cobro: $${formatNumber(data.precio)} - ${data.tipoTarifaAplicada}`, 'success');
         cerrarModalCobro();
-
         await loadPendientesCobro();
 
     } catch (error) {
@@ -991,27 +929,23 @@ async function procesarCobro() {
 // ==================== HISTORIAL ====================
 async function loadHistorial() {
     try {
-        const fecha = document.getElementById('filtroFecha')?.value || '';
+        const fecha  = document.getElementById('filtroFecha')?.value  || '';
         const estado = document.getElementById('filtroEstado1')?.value || '';
 
         let url = `${API_TRABAJADOR_URL}/historial`;
         const params = new URLSearchParams();
-        if (fecha) params.append('fecha', fecha);
+        if (fecha)  params.append('fecha', fecha);
         if (estado) params.append('estado', estado);
         if (params.toString()) url += '?' + params.toString();
 
         const response = await fetch(url, {
-            headers: {
-                'Content-Type': 'application/json',
-                'Authorization': `Bearer ${getToken()}`
-            }
+            headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${getToken()}` }
         });
 
         if (!response.ok) throw new Error('Error');
 
         const registros = await response.json();
         const tbody = document.getElementById('historialBody');
-
         if (!tbody) return;
 
         if (registros.length === 0) {
@@ -1021,10 +955,10 @@ async function loadHistorial() {
 
         tbody.innerHTML = registros.map(r => {
             let badge = '';
-            if (r.estado === 'ACTIVO') badge = '<span class="badge badge-info">Activo</span>';
-            else if (r.estado === 'FINALIZADO') badge = '<span class="badge badge-warning">Pendiente</span>';
-            else if (r.estado === 'COBRADO') badge = '<span class="badge badge-success">Cobrado</span>';
-            else badge = '<span class="badge badge-danger">Cancelado</span>';
+            if      (r.estado === 'ACTIVO')     badge = '<span class="sede-badge sede-badge-info">Activo</span>';
+            else if (r.estado === 'FINALIZADO') badge = '<span class="sede-badge sede-badge-warning">Pendiente</span>';
+            else if (r.estado === 'COBRADO')    badge = '<span class="sede-badge sede-badge-success">Cobrado</span>';
+            else                                badge = '<span class="sede-badge sede-badge-danger">Cancelado</span>';
 
             return `
                 <tr>
@@ -1036,7 +970,7 @@ async function loadHistorial() {
                     <td>${r.horaSalida ? formatDateTime(r.horaSalida) : '-'}</td>
                     <td>${r.tiempoTotal}</td>
                     <td>${r.precio ? '$' + formatNumber(r.precio) : '-'}</td>
-                <td>${badge}</td>
+                    <td>${badge}</td>
                 </tr>
             `;
         }).join('');
@@ -1050,17 +984,13 @@ async function loadHistorial() {
 async function loadReservaciones() {
     try {
         const response = await fetch(`${API_TRABAJADOR_URL}/reservaciones`, {
-            headers: {
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer ${getToken()}`
-            }
-            });
+            headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${getToken()}` }
+        });
 
         if (!response.ok) throw new Error('Error');
 
         const reservas = await response.json();
         const tbody = document.getElementById('reservacionesBody');
-
         if (!tbody) return;
 
         if (reservas.length === 0) {
@@ -1076,10 +1006,10 @@ async function loadReservaciones() {
                 <td>${r.tipoVehiculo}</td>
                 <td>${formatDateTime(r.horaInicio)}</td>
                 <td>${formatDateTime(r.horaFin)}</td>
-                <td><span class="badge badge-info">${r.cupo}</span></td>
+                <td><span class="sede-badge sede-badge-info">${r.cupo}</span></td>
                 <td>
-                    <button class="btn-success btn-aceptar" data-id="${r.id}">Aceptar</button>
-                    <button class="btn-danger btn-rechazar" data-id="${r.id}">Rechazar</button>
+                    <button class="sede-btn-success sede-btn-aceptar" data-id="${r.id}">Aceptar</button>
+                    <button class="sede-btn-danger sede-btn-rechazar" data-id="${r.id}">Rechazar</button>
                 </td>
             </tr>
         `).join('');
@@ -1095,14 +1025,10 @@ async function aceptarReservacion(id) {
     try {
         const response = await fetch(`${API_TRABAJADOR_URL}/aceptar-reservacion/${id}`, {
             method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'Authorization': `Bearer ${getToken()}`
-            }
+            headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${getToken()}` }
         });
 
         showNotification('✅ Reservación aceptada', 'success');
-
         await loadReservaciones();
         await loadVehiculosActivos();
 
@@ -1118,10 +1044,7 @@ async function rechazarReservacion(id) {
     try {
         const response = await fetch(`${API_TRABAJADOR_URL}/rechazar-reservacion/${id}`, {
             method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'Authorization': `Bearer ${getToken()}`
-            }
+            headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${getToken()}` }
         });
 
         if (!response.ok) throw new Error('Error');
@@ -1153,14 +1076,14 @@ async function cargarExcel() {
 
     try {
         const progressContainer = document.getElementById('progressContainer');
-        const progressBar = document.getElementById('progressBar');
-        const progressText = document.getElementById('progressText');
+        const progressBar       = document.getElementById('progressBar');
+        const progressText      = document.getElementById('progressText');
 
         if (progressContainer) {
             progressContainer.style.display = 'block';
-            progressBar.style.width = '30%';
-            progressBar.textContent = '30%';
-            progressText.textContent = 'Subiendo archivo...';
+            progressBar.style.width         = '30%';
+            progressBar.textContent         = '30%';
+            progressText.textContent        = 'Subiendo archivo...';
         }
 
         const formData = new FormData();
@@ -1173,8 +1096,8 @@ async function cargarExcel() {
         });
 
         if (progressBar) {
-            progressBar.style.width = '70%';
-            progressBar.textContent = '70%';
+            progressBar.style.width  = '70%';
+            progressBar.textContent  = '70%';
             progressText.textContent = 'Procesando datos...';
         }
 
@@ -1186,16 +1109,16 @@ async function cargarExcel() {
         const data = await response.json();
 
         if (progressBar) {
-            progressBar.style.width = '100%';
-            progressBar.textContent = '100%';
+            progressBar.style.width  = '100%';
+            progressBar.textContent  = '100%';
             progressText.textContent = '✅ Completado';
         }
 
         mostrarResultadosCarga(data);
 
         const mensaje = data.tieneErrores
-            ? `⚠️ Carga completada con ${data.errores.length} error(es). Total procesados: ${data.totalRegistros || 0}`
-            : `✅ Carga completada exitosamente: ${data.totalRegistros || 0} registros procesados`;
+            ? `⚠️ Carga completada con ${data.errores.length} error(es). Total: ${data.totalRegistros || 0}`
+            : `✅ Carga exitosa: ${data.totalRegistros || 0} registros`;
 
         showNotification(mensaje, data.tieneErrores ? 'warning' : 'success');
 
@@ -1209,33 +1132,32 @@ async function cargarExcel() {
     } catch (error) {
         console.error('Error:', error);
         showNotification(`❌ Error: ${error.message}`, 'error');
-
         const progressContainer = document.getElementById('progressContainer');
         if (progressContainer) progressContainer.style.display = 'none';
     }
 }
 
 function mostrarResultadosCarga(data) {
-    const resultadosDiv = document.getElementById('resultadosCarga');
-    const resumenDiv = document.getElementById('resumenCarga');
-    const tbody = document.getElementById('resultadosCargaBody');
+    const resultadosDiv    = document.getElementById('resultadosCarga');
+    const resumenDiv       = document.getElementById('resumenCarga');
+    const tbody            = document.getElementById('resultadosCargaBody');
     const erroresContainer = document.getElementById('erroresContainer');
-    const listaErrores = document.getElementById('listaErrores');
+    const listaErrores     = document.getElementById('listaErrores');
 
     if (resultadosDiv) resultadosDiv.style.display = 'block';
 
     if (resumenDiv) {
         resumenDiv.innerHTML = `
             <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem;">
-                <div style="background: linear-gradient(135deg, #d1fae5, #a7f3d0); padding: 1.5rem; border-radius: 0.75rem; text-align: center; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
+                <div style="background: linear-gradient(135deg, #d1fae5, #a7f3d0); padding: 1.5rem; border-radius: 0.75rem; text-align: center;">
                     <div style="font-size: 2rem; font-weight: 700; color: #065f46;">${data.clientesRegistrados || 0}</div>
                     <div style="font-size: 0.9rem; color: #047857; font-weight: 600;">Clientes Registrados</div>
                 </div>
-                <div style="background: linear-gradient(135deg, #dbeafe, #bfdbfe); padding: 1.5rem; border-radius: 0.75rem; text-align: center; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
+                <div style="background: linear-gradient(135deg, #dbeafe, #bfdbfe); padding: 1.5rem; border-radius: 0.75rem; text-align: center;">
                     <div style="font-size: 2rem; font-weight: 700; color: #1e40af;">${data.vehiculosRegistrados || 0}</div>
                     <div style="font-size: 0.9rem; color: #1e3a8a; font-weight: 600;">Vehículos Registrados</div>
                 </div>
-                <div style="background: linear-gradient(135deg, #e0e7ff, #c7d2fe); padding: 1.5rem; border-radius: 0.75rem; text-align: center; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
+                <div style="background: linear-gradient(135deg, #e0e7ff, #c7d2fe); padding: 1.5rem; border-radius: 0.75rem; text-align: center;">
                     <div style="font-size: 2rem; font-weight: 700; color: #4338ca;">${data.totalRegistros || 0}</div>
                     <div style="font-size: 0.9rem; color: #3730a3; font-weight: 600;">Total Registros</div>
                 </div>
@@ -1257,26 +1179,26 @@ function mostrarResultadosCarga(data) {
             if (r.tipo === 'Vehículo' || r.tipo === 'Vehiculo') {
                 return `
                     <tr>
-                        <td><span class="badge badge-info">🚗 ${r.tipo}</span></td>
+                        <td><span class="sede-badge sede-badge-info">🚗 ${r.tipo}</span></td>
                         <td><strong>${r.placa || 'N/A'}</strong></td>
                         <td>
                             <strong>${r.marca || 'N/A'}</strong> ${r.tipoVehiculo || ''}<br>
                             <small style="color: #64748b;">Color: ${r.color || 'N/A'} - Año: ${r.año || 'N/A'}</small><br>
                             <small style="color: #64748b;">Propietario: ${r.propietario || 'N/A'}</small>
                         </td>
-                        <td><span class="badge badge-success">✓ Registrado</span></td>
+                        <td><span class="sede-badge sede-badge-success">✓ Registrado</span></td>
                     </tr>
                 `;
             } else if (r.tipo === 'Cliente') {
                 return `
                     <tr>
-                        <td><span class="badge badge-success">🧑‍💼 ${r.tipo}</span></td>
+                        <td><span class="sede-badge sede-badge-success">🧑‍💼 ${r.tipo}</span></td>
                         <td><strong>${r.nombre || 'N/A'}</strong></td>
                         <td>
                             ${r.email || 'N/A'}<br>
                             <small style="color: #64748b;">Tel: ${r.telefono || 'N/A'} - Cédula: ${r.cedula || 'N/A'}</small>
                         </td>
-                        <td><span class="badge badge-success">✓ Registrado</span></td>
+                        <td><span class="sede-badge sede-badge-success">✓ Registrado</span></td>
                     </tr>
                 `;
             }
@@ -1318,7 +1240,7 @@ function descargarPlantillaCompleta() {
 
 function mostrarArchivoSeleccionado() {
     const fileInput = document.getElementById('excelFile');
-    const infoDiv = document.getElementById('archivoSeleccionado');
+    const infoDiv   = document.getElementById('archivoSeleccionado');
 
     if (fileInput?.files[0]) {
         const file = fileInput.files[0];
@@ -1333,150 +1255,72 @@ function mostrarArchivoSeleccionado() {
 // ==================== DELEGACIÓN DE EVENTOS ====================
 function setupGlobalEventDelegation() {
     document.body.addEventListener('click', function(e) {
-        if (e.target.closest('.btn-salida')) {
+        // ✅ CAMBIO: .btn-salida → .sede-btn-salida
+        if (e.target.closest('.sede-btn-salida')) {
             e.preventDefault();
-            const btn = e.target.closest('.btn-salida');
-            const id = parseInt(btn.dataset.id);
-            abrirModalSalida(id);
+            const btn = e.target.closest('.sede-btn-salida');
+            abrirModalSalida(parseInt(btn.dataset.id));
             return;
         }
-
-        if (e.target.closest('.btn-cobrar')) {
+        // ✅ CAMBIO: .btn-cobrar → .sede-btn-cobrar
+        if (e.target.closest('.sede-btn-cobrar')) {
             e.preventDefault();
-            const btn = e.target.closest('.btn-cobrar');
-            const id = parseInt(btn.dataset.id);
-            abrirModalCobro(id);
+            const btn = e.target.closest('.sede-btn-cobrar');
+            abrirModalCobro(parseInt(btn.dataset.id));
             return;
         }
-
-        if (e.target.closest('.btn-aceptar')) {
+        // ✅ CAMBIO: .btn-aceptar → .sede-btn-aceptar
+        if (e.target.closest('.sede-btn-aceptar')) {
             e.preventDefault();
-            const btn = e.target.closest('.btn-aceptar');
-            const id = btn.dataset.id;
-            aceptarReservacion(id);
+            const btn = e.target.closest('.sede-btn-aceptar');
+            aceptarReservacion(btn.dataset.id);
             return;
         }
-
-        if (e.target.closest('.btn-rechazar')) {
+        // ✅ CAMBIO: .btn-rechazar → .sede-btn-rechazar
+        if (e.target.closest('.sede-btn-rechazar')) {
             e.preventDefault();
-            const btn = e.target.closest('.btn-rechazar');
-            const id = btn.dataset.id;
-            rechazarReservacion(id);
+            const btn = e.target.closest('.sede-btn-rechazar');
+            rechazarReservacion(btn.dataset.id);
             return;
         }
     });
 }
 
-// ==================== ESTILOS MODALES ====================
-function injectModalStyles() {
-    if (document.getElementById('modal-styles')) return;
-
-    const style = document.createElement('style');
-    style.id = 'modal-styles';
-    style.textContent = `
-        @keyframes slideIn { from { transform: translateX(400px); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
-        @keyframes slideOut { from { transform: translateX(0); opacity: 1; } to { transform: translateX(400px); opacity: 0; } }
-        .error-message { color: #DC2626; font-size: 0.8rem; margin-top: 0.25rem; display: block; }
-        .success-message { color: #059669; font-size: 0.8rem; margin-top: 0.25rem; display: block; }
-        .border-red-500 { border-color: #ef4444 !important; box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.1); }
-        .border-green-500 { border-color: #10b981 !important; box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.1); }
-        
-        .modal {
-            display: none;
-            position: fixed !important;
-            z-index: 999999 !important;
-            left: 0 !important;
-            top: 0 !important;
-            width: 100% !important;
-            height: 100% !important;
-            overflow: auto !important;
-            background-color: rgba(0, 0, 0, 0.6) !important;
-            backdrop-filter: blur(2px) !important;
-        }
-        
-        #cobroModal[style*="display: block"],
-        #salidaModal[style*="display: block"] {
-            display: block !important;
-        }
-        
-        .modal-content {
-            background-color: #ffffff !important;
-            margin: 5% auto !important;
-            padding: 0 !important;
-            border: 1px solid #888 !important;
-            border-radius: 8px !important;
-            width: 90% !important;
-            max-width: 600px !important;
-            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.5) !important;
-            position: relative !important;
-            z-index: 1000000 !important;
-            pointer-events: auto !important;
-        }
-        
-        .modal-header {
-            padding: 1.5rem !important;
-            border-bottom: 1px solid #e5e7eb !important;
-            margin-bottom: 0 !important;
-            display: flex !important;
-            justify-content: space-between !important;
-            align-items: center !important;
-            background: #f9fafb !important;
-            border-radius: 8px 8px 0 0 !important;
-        }
-        
-        .close {
-            color: #6b7280 !important;
-            font-size: 32px !important;
-            font-weight: bold !important;
-            cursor: pointer !important;
-            line-height: 1 !important;
-            transition: color 0.2s !important;
-        }
-        
-        .close:hover { color: #ef4444 !important; transform: scale(1.1) !important; }
-    `;
-    document.head.appendChild(style);
-}
-
 // ==================== GESTIÓN TRABAJADORES ====================
 function openRegistrarTrabajadorModal() {
     const modal = document.getElementById('registrarTrabajadorModal');
-    modal.classList.add('open');
-    // Forzar el reflow para que la animación funcione
-    modal.offsetHeight;
+    modal.classList.add('show');
+    modal.setAttribute('aria-hidden', 'false');
+    modal.offsetHeight; // Forzar reflow para animación
 }
 
 function closeRegistrarTrabajadorModal() {
     const modal = document.getElementById('registrarTrabajadorModal');
-    modal.classList.remove('open');
+    modal.classList.remove('show');
+    modal.setAttribute('aria-hidden', 'true');
 
-    // Limpiar los campos después de la animación
     setTimeout(() => {
-        document.getElementById('trabajadorNombre').value = '';
-        document.getElementById('trabajadorCorreo').value = '';
-        document.getElementById('trabajadorTelefono').value = '';
-        document.getElementById('trabajadorCedula').value = '';
+        document.getElementById('trabajadorNombre').value    = '';
+        document.getElementById('trabajadorCorreo').value    = '';
+        document.getElementById('trabajadorTelefono').value  = '';
+        document.getElementById('trabajadorCedula').value    = '';
         document.getElementById('trabajadorContrasena').value = '';
-    }, 300); // Esperar a que termine la animación de cierre
+    }, 300);
 }
 
-// Cerrar modal al hacer clic fuera de él
 document.getElementById('registrarTrabajadorModal')?.addEventListener('click', function(e) {
-    if (e.target === this) {
-        closeRegistrarTrabajadorModal();
-    }
+    if (e.target === this) { closeRegistrarTrabajadorModal(); }
 });
 
 async function registrarTrabajador() {
     const datos = {
-        nombre: document.getElementById('trabajadorNombre').value.trim(),
-        correo: document.getElementById('trabajadorCorreo').value.trim(),
-        telefono: document.getElementById('trabajadorTelefono').value.trim(),
-        cedula: document.getElementById('trabajadorCedula').value.trim(),
+        nombre:    document.getElementById('trabajadorNombre').value.trim(),
+        correo:    document.getElementById('trabajadorCorreo').value.trim(),
+        telefono:  document.getElementById('trabajadorTelefono').value.trim(),
+        cedula:    document.getElementById('trabajadorCedula').value.trim(),
         contrasena: document.getElementById('trabajadorContrasena').value
     };
 
-    // Validaciones
     if (!datos.nombre || !datos.correo) {
         alert('Por favor complete los campos obligatorios: Nombre y Correo');
         return;
@@ -1487,7 +1331,6 @@ async function registrarTrabajador() {
         return;
     }
 
-    // Validar formato de correo
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (!emailRegex.test(datos.correo)) {
         alert('Por favor ingrese un correo electrónico válido');
@@ -1528,15 +1371,14 @@ async function generarPDF() {
 
         if (response.ok) {
             const blob = await response.blob();
-            const url = window.URL.createObjectURL(blob);
-            const a = document.createElement('a');
-            a.href = url;
+            const url  = window.URL.createObjectURL(blob);
+            const a    = document.createElement('a');
+            a.href     = url;
             a.download = `reporte_clientes_${new Date().getTime()}.pdf`;
             document.body.appendChild(a);
             a.click();
             window.URL.revokeObjectURL(url);
             document.body.removeChild(a);
-
             showNotification('PDF generado exitosamente', 'success');
         } else {
             throw new Error('Error al generar PDF');
@@ -1555,15 +1397,14 @@ async function generarExcel() {
 
         if (response.ok) {
             const blob = await response.blob();
-            const url = window.URL.createObjectURL(blob);
-            const a = document.createElement('a');
-            a.href = url;
+            const url  = window.URL.createObjectURL(blob);
+            const a    = document.createElement('a');
+            a.href     = url;
             a.download = `reporte_clientes_${new Date().getTime()}.xlsx`;
             document.body.appendChild(a);
             a.click();
             window.URL.revokeObjectURL(url);
             document.body.removeChild(a);
-
             showNotification('Excel generado exitosamente', 'success');
         } else {
             throw new Error('Error al generar Excel');
@@ -1576,7 +1417,6 @@ async function generarExcel() {
 
 // ==================== EDICIÓN Y ELIMINACIÓN ====================
 async function editarUsuario(id) {
-    console.log('Editar usuario:', id);
     showNotification('Función de edición en desarrollo', 'info');
 }
 
@@ -1602,14 +1442,13 @@ async function eliminarUsuario(id) {
 }
 
 async function editarSede(id) {
-    console.log('Editar sede:', id);
     showNotification('Función de edición en desarrollo', 'info');
 }
 
 // ==================== ENVÍO DE CORREOS ====================
 async function enviarCorreoUno() {
     const datos = {
-        email: document.getElementById('emailSingle').value,
+        email:   document.getElementById('emailSingle').value,
         subject: document.getElementById('subjectSingle').value,
         message: document.getElementById('messageSingle').value
     };
@@ -1619,13 +1458,12 @@ async function enviarCorreoUno() {
         return;
     }
 
-    console.log('Enviar correo:', datos);
     showNotification('Correo enviado exitosamente (función en desarrollo)', 'info');
 }
 
 async function enviarCorreoMasivo() {
     const datos = {
-        emails: document.getElementById('emailsMassive').value.split(',').map(e => e.trim()),
+        emails:  document.getElementById('emailsMassive').value.split(',').map(e => e.trim()),
         subject: document.getElementById('subjectMassive').value,
         message: document.getElementById('messageMassive').value
     };
@@ -1635,23 +1473,27 @@ async function enviarCorreoMasivo() {
         return;
     }
 
-    console.log('Enviar correo masivo:', datos);
     showNotification(`Correo enviado a ${datos.emails.length} destinatarios (función en desarrollo)`, 'info');
 }
 
 // ==================== UI HELPERS ====================
 function setupSidebarToggle() {
     const toggleBtn = document.getElementById('sidebarToggle');
-    const sidebar = document.getElementById('sidebar');
+    const sidebar   = document.getElementById('sidebar');
+    const header    = document.getElementById('pageHeader');
+    const main      = document.getElementById('mainContent');
 
     toggleBtn?.addEventListener('click', () => {
-        sidebar.classList.toggle('collapsed');
+        // .sede-sidebar.hidden → translateX(-100%) definido en sede.css
+        sidebar.classList.toggle('hidden');
+        header.classList.toggle('sidebar-hidden');
+        main.classList.toggle('sidebar-hidden');
     });
 }
 
 function setupProfileMenu() {
     const profileBtn = document.getElementById('profileBtn');
-    const dropdown = document.getElementById('profileDropdown');
+    const dropdown   = document.getElementById('profileDropdown');
 
     profileBtn?.addEventListener('click', (e) => {
         e.stopPropagation();
@@ -1666,300 +1508,79 @@ function setupProfileMenu() {
 // ==================== EVENTOS GLOBALES ====================
 document.addEventListener('keydown', (e) => {
     if (e.key === 'Escape') {
-        const cobro = document.getElementById('cobroModal');
+        const cobro  = document.getElementById('cobroModal');
         const salida = document.getElementById('salidaModal');
-        if (cobro && cobro.style.display === 'block') cerrarModalCobro();
+        if (cobro  && cobro.style.display  === 'block') cerrarModalCobro();
         if (salida && salida.style.display === 'block') cerrarModalSalida();
     }
 });
 
 window.addEventListener('click', (e) => {
-    const cobro = document.getElementById('cobroModal');
+    const cobro  = document.getElementById('cobroModal');
     const salida = document.getElementById('salidaModal');
-    if (e.target === cobro) cerrarModalCobro();
+    if (e.target === cobro)  cerrarModalCobro();
     if (e.target === salida) cerrarModalSalida();
 
     const modal = document.getElementById('registrarTrabajadorModal');
     if (e.target === modal) closeRegistrarTrabajadorModal();
 });
 
-// ==================== ESTILOS CSS ADICIONALES ====================
+// ==================== ESTILOS ADICIONALES ====================
+// ✅ CAMBIO: injectModalStyles() ELIMINADO — los estilos de .modal viven
+//   en /css/modals/sede-modal-dinamico.css importado en el HTML.
+//
+// ✅ CAMBIO: createModals() ELIMINADO — los modales #salidaModal y
+//   #cobroModal viven en fragmentos Thymeleaf integrados en sede.html.
+//
+// injectAdditionalStyles() CONSERVADO — contiene estilos de utilidades
+// (.sede-btn-icon, .sede-badge, etc.) que no son exclusivos de ningún modal.
 function injectAdditionalStyles() {
     if (document.getElementById('additional-styles')) return;
 
     const style = document.createElement('style');
     style.id = 'additional-styles';
     style.textContent = `
-        .section-title {
-            font-size: 1.5rem;
-            font-weight: 700;
-            color: #0369a1;
-            margin-bottom: 1.5rem;
+        /* Botones de icono en tablas */
+        .sede-btn-icon {
+            background: transparent; border: none; cursor: pointer;
+            padding: 0.5rem; border-radius: 0.375rem; transition: all 0.2s;
+            display: inline-flex; align-items: center; justify-content: center;
         }
-        
-        .sub-section {
-            margin-bottom: 2rem;
-            padding: 1.5rem;
-            background: #f9fafb;
-            border-radius: 0.5rem;
-            border: 1px solid #e5e7eb;
+        .sede-btn-edit:hover   { background-color: #dbeafe; }
+        .sede-btn-delete:hover { background-color: #fee2e2; }
+
+        /* Botón amarillo/warning para salida */
+        .sede-btn-warning {
+            background-color: #f59e0b; color: white; padding: 0.5rem 1.5rem;
+            border-radius: 0.375rem; border: none; cursor: pointer;
+            transition: all 0.3s; font-weight: 600;
+            display: inline-flex; align-items: center; gap: 0.5rem;
         }
-        
-        .sub-section-title {
-            font-size: 1.25rem;
-            font-weight: 600;
-            color: #1e40af;
-            margin-bottom: 1rem;
+        .sede-btn-warning:hover { background-color: #d97706; transform: translateY(-2px); }
+
+        /* Badges de estado en tablas */
+        .sede-badge {
+            padding: 0.25rem 0.75rem; border-radius: 9999px;
+            font-size: 0.75rem; font-weight: 600; display: inline-block;
         }
-        
-        .form-group {
-            margin-bottom: 1rem;
+        .sede-badge-info    { background-color: #dbeafe; color: #1e40af; }
+        .sede-badge-success { background-color: #d1fae5; color: #065f46; }
+        .sede-badge-danger  { background-color: #fee2e2; color: #991b1b; }
+        .sede-badge-warning { background-color: #fef3c7; color: #92400e; }
+
+        /* Toast notifications */
+        @keyframes aparca-slideUp {
+            from { transform: translateX(400px); opacity: 0; }
+            to   { transform: translateX(0); opacity: 1; }
         }
-        
-        .form-group label {
-            display: block;
-            margin-bottom: 0.5rem;
-            font-weight: 600;
-            color: #334155;
-            font-size: 0.875rem;
-        }
-        
-        .btn-success {
-            background-color: #10b981;
-            color: white;
-            padding: 0.5rem 1.5rem;
-            border-radius: 0.375rem;
-            border: none;
-            cursor: pointer;
-            transition: all 0.3s;
-            font-weight: 600;
-            display: inline-flex;
-            align-items: center;
-            gap: 0.5rem;
-        }
-        
-        .btn-success:hover {
-            background-color: #059669;
-            transform: translateY(-2px);
-            box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);
-        }
-        
-        .btn-secondary {
-            background-color: #64748b;
-            color: white;
-            padding: 0.5rem 1.5rem;
-            border-radius: 0.375rem;
-            border: none;
-            cursor: pointer;
-            transition: all 0.3s;
-            font-weight: 600;
-            display: inline-flex;
-            align-items: center;
-            gap: 0.5rem;
-        }
-        
-        .btn-secondary:hover {
-            background-color: #475569;
-            transform: translateY(-2px);
-        }
-        
-        .btn-warning {
-            background-color: #f59e0b;
-            color: white;
-            padding: 0.5rem 1.5rem;
-            border-radius: 0.375rem;
-            border: none;
-            cursor: pointer;
-            transition: all 0.3s;
-            font-weight: 600;
-            display: inline-flex;
-            align-items: center;
-            gap: 0.5rem;
-        }
-        
-        .btn-warning:hover {
-            background-color: #d97706;
-            transform: translateY(-2px);
-        }
-        
-        .btn-info {
-            background-color: #3b82f6;
-            color: white;
-            padding: 0.5rem 1.5rem;
-            border-radius: 0.375rem;
-            border: none;
-            cursor: pointer;
-            transition: all 0.3s;
-            font-weight: 600;
-            display: inline-flex;
-            align-items: center;
-            gap: 0.5rem;
-        }
-        
-        .btn-info:hover {
-            background-color: #2563eb;
-            transform: translateY(-2px);
-        }
-        
-        .btn-icon {
-            background: transparent;
-            border: none;
-            cursor: pointer;
-            padding: 0.5rem;
-            border-radius: 0.375rem;
-            transition: all 0.2s;
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-        }
-        
-        .btn-edit:hover {
-            background-color: #dbeafe;
-        }
-        
-        .btn-delete:hover {
-            background-color: #fee2e2;
-        }
-        
-        .badge {
-            padding: 0.25rem 0.75rem;
-            border-radius: 9999px;
-            font-size: 0.75rem;
-            font-weight: 600;
-            display: inline-block;
-        }
-        
-        .badge-info {
-            background-color: #dbeafe;
-            color: #1e40af;
-        }
-        
-        .badge-success {
-            background-color: #d1fae5;
-            color: #065f46;
-        }
-        
-        .badge-danger {
-            background-color: #fee2e2;
-            color: #991b1b;
-        }
-        
-        .badge-warning {
-            background-color: #fef3c7;
-            color: #92400e;
-        }
-        
-        .filter-bar {
-            display: flex;
-            gap: 1rem;
-            margin-bottom: 1.5rem;
-            flex-wrap: wrap;
-            align-items: center;
-        }
-        
-        .filter-bar input,
-        .filter-bar select {
-            padding: 0.5rem;
-            border: 1px solid #cbd5e1;
-            border-radius: 0.375rem;
-            font-size: 0.875rem;
-        }
-        
-        .hidden {
-            display: none !important;
-        }
+
+        /* Clases de validación de formulario */
+        .border-red-500   { border-color: #ef4444 !important; box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.1); }
+        .border-green-500 { border-color: #10b981 !important; box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.1); }
+
+        .hidden { display: none !important; }
     `;
     document.head.appendChild(style);
 }
 
-// ==================== CREAR MODALES NECESARIOS ====================
-function createModals() {
-    // Modal de Salida
-    if (!document.getElementById('salidaModal')) {
-        const salidaModal = document.createElement('div');
-        salidaModal.id = 'salidaModal';
-        salidaModal.className = 'modal';
-        salidaModal.innerHTML = `
-            <div class="modal-content" style="background: white; margin: 5% auto; padding: 0; border-radius: 8px; max-width: 500px; box-shadow: 0 4px 6px rgba(0,0,0,0.1);">
-                <div class="modal-header" style="padding: 1.5rem; border-bottom: 1px solid #e5e7eb; display: flex; justify-content: space-between; align-items: center;">
-                    <h2 style="margin: 0; font-size: 1.5rem; color: #1f2937;">🚪 Registrar Salida</h2>
-                    <span class="close" onclick="cerrarModalSalida()" style="cursor: pointer; font-size: 1.5rem; color: #6b7280;">&times;</span>
-                </div>
-                <div style="padding: 1.5rem;">
-                    <div style="margin-bottom: 1rem;">
-                        <strong>Placa:</strong> <span id="salidaPlaca"></span>
-                    </div>
-                    <div style="margin-bottom: 1rem;">
-                        <strong>Cliente:</strong> <span id="salidaCliente"></span>
-                    </div>
-                    <div style="margin-bottom: 1rem;">
-                        <strong>Hora Entrada:</strong> <span id="salidaHoraEntrada"></span>
-                    </div>
-                    <div style="margin-bottom: 1rem;">
-                        <strong>Tiempo:</strong> <span id="salidaTiempo"></span>
-                    </div>
-                    <div style="margin-bottom: 1rem;">
-                        <strong>Cobro Estimado:</strong>
-                        <div id="salidaCobroEstimado"></div>
-                    </div>
-                    <div style="display: flex; gap: 0.5rem; justify-content: flex-end; margin-top: 1.5rem;">
-                        <button class="btn-success" onclick="confirmarSalida()">✅ Confirmar Salida</button>
-                        <button class="btn-secondary" onclick="cerrarModalSalida()">❌ Cancelar</button>
-                    </div>
-                </div>
-            </div>
-        `;
-        document.body.appendChild(salidaModal);
-    }
-
-    // Modal de Cobro
-    if (!document.getElementById('cobroModal')) {
-        const cobroModal = document.createElement('div');
-        cobroModal.id = 'cobroModal';
-        cobroModal.className = 'modal';
-        cobroModal.innerHTML = `
-            <div class="modal-content" style="background: white; margin: 5% auto; padding: 0; border-radius: 8px; max-width: 600px; box-shadow: 0 4px 6px rgba(0,0,0,0.1);">
-                <div class="modal-header" style="padding: 1.5rem; border-bottom: 1px solid #e5e7eb; display: flex; justify-content: space-between; align-items: center;">
-                    <h2 style="margin: 0; font-size: 1.5rem; color: #1f2937;">💰 Procesar Cobro</h2>
-                    <span class="close" onclick="cerrarModalCobro()" style="cursor: pointer; font-size: 1.5rem; color: #6b7280;">&times;</span>
-                </div>
-                <div style="padding: 1.5rem;">
-                    <div style="margin-bottom: 1rem;">
-                        <strong>Cliente:</strong> <span id="cobroCliente"></span>
-                    </div>
-                    <div style="margin-bottom: 1rem;">
-                        <strong>Placa:</strong> <span id="cobroPlaca"></span>
-                    </div>
-                    <div style="margin-bottom: 1rem;">
-                        <strong>Tiempo Total:</strong> <span id="cobroTiempo"></span>
-                    </div>
-                    <div style="margin-bottom: 1rem;">
-                        <strong>Método de Pago:</strong>
-                        <select id="metodoPago" style="width: 100%; padding: 0.5rem; border: 1px solid #cbd5e1; border-radius: 0.375rem; margin-top: 0.5rem;">
-                            <option value="EFECTIVO">💵 Efectivo</option>
-                            <option value="TARJETA">💳 Tarjeta</option>
-                            <option value="TRANSFERENCIA">🏦 Transferencia</option>
-                        </select>
-                    </div>
-                    <div style="margin-bottom: 1rem; padding: 1rem; background: #f0f9ff; border-radius: 0.5rem;">
-                        <strong style="color: #0369a1;">Total a Pagar:</strong>
-                        <div style="font-size: 2rem; font-weight: 700; color: #059669;">$<span id="cobroPrecio">0</span></div>
-                    </div>
-                    <div style="display: flex; gap: 0.5rem; justify-content: flex-end; margin-top: 1.5rem;">
-                        <button class="btn-success" onclick="procesarCobro()">✅ Confirmar Cobro</button>
-                        <button class="btn-secondary" onclick="cerrarModalCobro()">❌ Cancelar</button>
-                    </div>
-                </div>
-            </div>
-        `;
-        document.body.appendChild(cobroModal);
-    }
-}
-
-// Llamar funciones de inyección al cargar
-injectAdditionalStyles();
-createModals();
-
-
-
-console.log('✅ Script Sede Integrado CARGADO COMPLETAMENTE');
+console.log('✅ sedeD.js cargado correctamente');

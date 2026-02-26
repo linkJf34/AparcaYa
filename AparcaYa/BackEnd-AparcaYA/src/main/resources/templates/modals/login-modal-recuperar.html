@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<!--
+    FRAGMENTO: login-modal-recuperar
+    Uso: <div th:replace="modals/login-modal-recuperar :: modal"></div>
+    Tipo: DIV .login-modal (login.css sección 4, animación login-slideUp)
+    Abre:   loginD.js → modal.classList.add('login-modal-open')
+    Cierra: loginD.js → modal.classList.remove('login-modal-open')
+            + clic en overlay (e.target === modal)
+            + botón #close-modal
+
+    Sin JS embebido. Sin estilos inline.
+    Estilos en: /css/pages/login.css (sección 4)
+-->
+<body>
+<th:block th:fragment="modal">
+
+    <div id="forgot-password-modal"
+         class="login-modal"
+         role="dialog"
+         aria-modal="true"
+         aria-labelledby="modal-titulo">
+
+        <div class="login-modal-box">
+
+            <h3 class="font-bold text-lg text-blue-900 mb-2"
+                id="modal-titulo">
+                Recuperar Contraseña
+            </h3>
+
+            <!-- PASO 1: Ingresar email -->
+            <div id="step-1" class="py-4">
+
+                <p class="mb-4 text-gray-600">
+                    Ingresa tu correo electrónico para recibir un token de recuperación.
+                </p>
+
+                <input type="email"
+                       id="reset-email"
+                       placeholder="tu@ejemplo.com"
+                       class="input input-bordered w-full mb-2"
+                       autocomplete="email"
+                       aria-label="Correo para recuperación de contraseña" />
+
+                <div id="reset-email-error"
+                     class="error-message hidden"
+                     role="alert"
+                     aria-live="polite">
+                    Correo inválido.
+                </div>
+
+                <button id="send-token-btn"
+                        class="btn btn-primary w-full mt-2"
+                        type="button">
+                    Enviar Token
+                </button>
+            </div>
+
+            <!-- PASO 2: Token + nueva contraseña (oculto por defecto) -->
+            <div id="step-2" class="py-4 hidden">
+
+                <p class="mb-4 text-gray-600">
+                    Ingresa el token recibido y tu nueva contraseña.
+                </p>
+
+                <input type="text"
+                       id="reset-token"
+                       placeholder="Token de 8 caracteres"
+                       maxlength="8"
+                       class="input input-bordered w-full mb-2"
+                       autocomplete="off"
+                       aria-label="Token de recuperación" />
+
+                <input type="password"
+                       id="new-password"
+                       placeholder="Nueva contraseña"
+                       class="input input-bordered w-full mb-2"
+                       autocomplete="new-password"
+                       aria-label="Nueva contraseña" />
+
+                <input type="password"
+                       id="confirm-password"
+                       placeholder="Confirmar contraseña"
+                       class="input input-bordered w-full mb-2"
+                       autocomplete="new-password"
+                       aria-label="Confirmar nueva contraseña" />
+
+                <div id="reset-error"
+                     class="error-message hidden"
+                     role="alert"
+                     aria-live="polite">
+                    Error en la recuperación.
+                </div>
+
+                <button id="reset-password-btn"
+                        class="btn btn-primary w-full mt-2"
+                        type="button">
+                    Actualizar Contraseña
+                </button>
+            </div>
+
+            <!-- Botón cerrar -->
+            <div class="login-modal-action">
+                <button id="close-modal"
+                        class="btn"
+                        type="button"
+                        aria-label="Cerrar modal de recuperación">
+                    Cerrar
+                </button>
+            </div>
+
+        </div>
+    </div>
+
+</th:block>
+</body>
+</html>

@@ -16,7 +16,9 @@ public interface UsuarioService {
     Optional<Usuario> findByCorreo(String correo);
     Usuario findByTelefono(String telefono);
     Usuario findByCedula(String cedula);
-
-    // AGREGADO: Método para buscar por múltiples roles (necesario para SedeController)
     List<Usuario> findByRolIn(List<Rolenum> roles);
+
+    // ✅ CAMBIO #2: Métodos de conteo movidos desde AdminController
+    long contarActivos();
+    long contarTotal();
 }

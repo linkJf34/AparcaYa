@@ -6,12 +6,7 @@ const API_BASE_URL = '/admin/api';
 const profileBtn = document.getElementById('profileBtn');
 const profileDropdown = document.getElementById('profileDropdown');
 
-// CAMBIO 1: 'nav.sidebar-nav a' → 'nav.aparca-sidebar-nav a'
-// Razón: el HTML refactorizado usa class="aparca-sidebar-nav"
 const navLinks = document.querySelectorAll('nav.aparca-sidebar-nav a');
-
-// CAMBIO 2: 'section.content-section' → 'section.aparca-content-section'
-// Razón: el HTML refactorizado usa class="aparca-content-section"
 const sections = document.querySelectorAll('section.aparca-content-section');
 
 let map = null;
@@ -295,7 +290,7 @@ async function buscarDireccionEnBarrio(direccion, localidad, barrio, coordsBarri
 }
 
 // ============================================
-// 4. GEOCODIFICACIÓN GENERAL (SIN BARRIO)
+// 4. GEOCODIFICACIÓN GENERAL
 // ============================================
 async function geocodificarDireccionGeneral(direccion, localidad, barrio) {
     try {
@@ -348,7 +343,7 @@ async function geocodificarDireccionGeneral(direccion, localidad, barrio) {
 }
 
 // ============================================
-// 5. GEOCODIFICACIÓN PRINCIPAL (FUNCIÓN PRINCIPAL)
+// 5. GEOCODIFICACIÓN PRINCIPAL
 // ============================================
 async function geocodificarDireccion(direccion, localidad, barrio) {
     console.log(`🔍 Geocodificando: ${direccion}, Barrio: ${barrio}, Localidad: ${localidad}`);
@@ -464,17 +459,10 @@ async function cargarIndicadores() {
 }
 
 function actualizarIndicador(index, valor, porcentaje) {
-    // CAMBIO 3: '.stats-card' → '.admin-stats-card'
-    // Razón: el HTML refactorizado usa class="admin-stats-card"
     const cards = document.querySelectorAll('.admin-stats-card');
     if (!cards[index]) return;
 
-    // CAMBIO 4: '.donut-text' → '.admin-donut-text'
-    // Razón: el HTML refactorizado usa class="admin-donut-text"
     const textElement = cards[index].querySelector('.admin-donut-text');
-
-    // CAMBIO 5: '.donut-segment' → '.admin-donut-segment'
-    // Razón: el HTML refactorizado usa class="admin-donut-segment"
     const segmentElement = cards[index].querySelector('.admin-donut-segment');
 
     if (textElement) textElement.textContent = valor;
@@ -524,8 +512,8 @@ function renderUsuarios(usuariosArray = usuarios) {
             <td>${u.rol ? u.rol.name || u.rol : 'N/A'}</td>
             <td>${u.estado || 'N/A'}</td>
             <td>
-                <button class="btn-outline mr-2" onclick="editarUsuario(${usuarioId})">Editar</button>
-                <button class="btn-danger" onclick="eliminarUsuario(${usuarioId})">Eliminar</button>
+                <button class="aparca-btn-outline mr-2" onclick="editarUsuario(${usuarioId})">Editar</button>
+                <button class="admin-modal-sede-btn-danger" onclick="eliminarUsuario(${usuarioId})">Eliminar</button>
             </td>
         </tr>
         `;
@@ -685,7 +673,7 @@ function cerrarModalEdicion() {
 }
 
 // ============================================
-// BÚSQUEDA Y FILTROS - USUARIOS (UNIFICADO)
+// BÚSQUEDA Y FILTROS — USUARIOS
 // ============================================
 const busquedaInput = document.getElementById('busquedaInput');
 const filtroUnificado = document.getElementById('filtroUnificado');
@@ -772,8 +760,8 @@ function renderSedes(sedesArray = sedes) {
             <td>${s.barrio || 'N/A'}</td>
             <td>${s.estado ? 'Activa' : 'Inactiva'}</td>
             <td>
-                <button class="btn-outline mr-2" onclick="editarSede(${s.id})">Editar</button>
-                <button class="btn-danger" onclick="eliminarSede(${s.id})">Eliminar</button>
+                <button class="aparca-btn-outline mr-2" onclick="editarSede(${s.id})">Editar</button>
+                <button class="admin-modal-sede-btn-danger" onclick="eliminarSede(${s.id})">Eliminar</button>
             </td>
         </tr>
     `).join('');
@@ -899,7 +887,7 @@ function cerrarModalEdicionSede() {
 }
 
 // ============================================
-// BÚSQUEDA Y FILTROS - SEDES (UNIFICADO)
+// BÚSQUEDA Y FILTROS — SEDES
 // ============================================
 const busquedaSedes = document.getElementById('busquedaSedes');
 const filtroUnificadoSedes = document.getElementById('filtroUnificadoSedes');
@@ -950,13 +938,9 @@ function filtrarSedes() {
 // MAPA LEAFLET
 // ============================================
 function initMap() {
-    // CAMBIO 6: 'map-container' → 'admin-map-container'
-    // Razón: el HTML refactorizado usa id="admin-map-container"
     const mapContainer = document.getElementById('admin-map-container');
     if (!mapContainer || map) return;
 
-    // CAMBIO 7: L.map('map-container') → L.map('admin-map-container')
-    // Razón: Leaflet debe inicializarse con el mismo ID del elemento HTML
     map = L.map('admin-map-container').setView([4.6533, -74.0836], 12);
 
     L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
@@ -1077,79 +1061,89 @@ function mostrarDetallesSede(sedeId) {
 
     modalTitle.textContent = sede.nombre;
 
+    // ✅ CAMBIO: .badge .badge-activo/.badge-inactivo → .admin-badge .admin-badge-activo/.admin-badge-inactivo
+    // Razón: admin.css define .admin-badge-activo y .admin-badge-inactivo con prefijo obligatorio
     const estadoBadge = sede.estado === 'ACTIVO'
-        ? '<span class="badge badge-activo">✓ Activa</span>'
-        : '<span class="badge badge-inactivo">✗ Inactiva</span>';
+        ? '<span class="admin-badge admin-badge-activo">✓ Activa</span>'
+        : '<span class="admin-badge admin-badge-inactivo">✗ Inactiva</span>';
 
+    // ✅ CAMBIO: .info-grid → .admin-info-grid
+    // ✅ CAMBIO: .info-item → .admin-info-item
+    // ✅ CAMBIO: .info-full → .admin-info-full (como modificador: admin-info-item admin-info-full)
+    // ✅ CAMBIO: .info-label → .admin-info-label
+    // ✅ CAMBIO: .info-value → .admin-info-value
+    // ✅ CAMBIO: style="line-height: 1.8;" → clase .admin-modal-sede-tarifas (modals CSS)
+    // ✅ CAMBIO: div de botones inline → clase .admin-modal-sede-actions (modals CSS)
+    // ✅ CAMBIO: .btn-outline → .aparca-btn-outline (aparca-components.css)
+    // ✅ CAMBIO: .btn-danger → .admin-modal-sede-btn-danger (modals CSS)
     modalBody.innerHTML = `
-        <div class="info-grid">
-            <div class="info-item info-full">
-                <div class="info-label">Estado</div>
-                <div class="info-value">${estadoBadge}</div>
+        <div class="admin-info-grid">
+            <div class="admin-info-item admin-info-full">
+                <div class="admin-info-label">Estado</div>
+                <div class="admin-info-value">${estadoBadge}</div>
             </div>
 
-            <div class="info-item">
-                <div class="info-label">📋 NIT</div>
-                <div class="info-value">${sede.nit || 'N/A'}</div>
+            <div class="admin-info-item">
+                <div class="admin-info-label">📋 NIT</div>
+                <div class="admin-info-value">${sede.nit || 'N/A'}</div>
             </div>
 
-            <div class="info-item">
-                <div class="info-label">🚗 Capacidad</div>
-                <div class="info-value">${sede.capacidad} vehículos</div>
+            <div class="admin-info-item">
+                <div class="admin-info-label">🚗 Capacidad</div>
+                <div class="admin-info-value">${sede.capacidad} vehículos</div>
             </div>
 
-            <div class="info-item">
-                <div class="info-label">📍 Localidad</div>
-                <div class="info-value">${sede.localidad || 'N/A'}</div>
+            <div class="admin-info-item">
+                <div class="admin-info-label">📍 Localidad</div>
+                <div class="admin-info-value">${sede.localidad || 'N/A'}</div>
             </div>
 
-            <div class="info-item info-full">
-                <div class="info-label">🏘️ Barrio</div>
-                <div class="info-value">${sede.barrio || 'No especificado'}</div>
+            <div class="admin-info-item admin-info-full">
+                <div class="admin-info-label">🏘️ Barrio</div>
+                <div class="admin-info-value">${sede.barrio || 'No especificado'}</div>
             </div>
 
-            <div class="info-item info-full">
-                <div class="info-label">📌 Dirección Completa</div>
-                <div class="info-value">${sede.direccion}</div>
+            <div class="admin-info-item admin-info-full">
+                <div class="admin-info-label">📌 Dirección Completa</div>
+                <div class="admin-info-value">${sede.direccion}</div>
             </div>
 
-            <div class="info-item info-full">
-                <div class="info-label">💰 Tarifas</div>
-                <div class="info-value" style="line-height: 1.8;">
-                    <strong>🚗 Carros:</strong><br>
+            <div class="admin-info-item admin-info-full">
+                <div class="admin-info-label">💰 Tarifas</div>
+                <div class="admin-info-value admin-modal-sede-tarifas">
+                    <strong>🚗 Carros:</strong>
                     &nbsp;&nbsp;• Tarifa hora plena: $${sede.tarifaPlenaC?.toLocaleString('es-CO') || 'N/A'} COP<br>
                     &nbsp;&nbsp;• Tarifa por minuto: $${sede.tarifaMinutoC?.toLocaleString('es-CO') || 'N/A'} COP<br>
-                    <br>
-                    <strong>🏍️ Motos:</strong><br>
+                    <strong>🏍️ Motos:</strong>
                     &nbsp;&nbsp;• Tarifa hora plena: $${sede.tarifaPlenaM?.toLocaleString('es-CO') || 'N/A'} COP<br>
                     &nbsp;&nbsp;• Tarifa por minuto: $${sede.tarifaMinutoM?.toLocaleString('es-CO') || 'N/A'} COP
                 </div>
             </div>
 
-            <div class="info-item info-full">
-                <div class="info-label">🕐 Horario de Atención</div>
-                <div class="info-value">${sede.horarioSede || 'No especificado'}</div>
+            <div class="admin-info-item admin-info-full">
+                <div class="admin-info-label">🕐 Horario de Atención</div>
+                <div class="admin-info-value">${sede.horarioSede || 'No especificado'}</div>
             </div>
 
             ${sede.latitud && sede.longitud ? `
-            <div class="info-item info-full">
-                <div class="info-label">🌍 Coordenadas</div>
-                <div class="info-value">
+            <div class="admin-info-item admin-info-full">
+                <div class="admin-info-label">🌍 Coordenadas</div>
+                <div class="admin-info-value admin-modal-sede-coords">
                     Lat: ${sede.latitud.toFixed(6)}, Lng: ${sede.longitud.toFixed(6)}
                 </div>
             </div>
             ` : ''}
         </div>
 
-        <div style="margin-top: 1.5rem; display: flex; gap: 1rem; justify-content: flex-end;">
+        <div class="admin-modal-sede-actions">
             <button
-                class="btn-outline"
+                class="aparca-btn-outline"
                 onclick="editarSede(${sede.id}); cerrarModalSede();"
             >
                 Editar Sede
             </button>
             <button
-                class="btn-danger"
+                class="admin-modal-sede-btn-danger"
                 onclick="if(confirm('¿Eliminar ${sede.nombre}?')) { eliminarSede(${sede.id}); cerrarModalSede(); }"
             >
                 Eliminar
@@ -1303,7 +1297,6 @@ async function cargarGraficaSedes() {
 // ============================================
 // FUNCIONES PARA LOS GRÁFICOS DONUT
 // ============================================
-
 async function cargarEstadisticasDonut() {
     try {
         const response = await fetch(`${API_BASE_URL}/estadisticas/generales`);
@@ -1311,10 +1304,6 @@ async function cargarEstadisticasDonut() {
 
         const data = await response.json();
 
-        // CAMBIO 8: '.usuario-segment' → '.admin-usuario-segment'
-        // CAMBIO 9: '.cuota-segment'   → '.admin-cuota-segment'
-        // CAMBIO 10: '.ingresos-segment' → '.admin-ingresos-segment'
-        // Razón: el HTML refactorizado usa prefijo admin- en todas las clases de donut
         actualizarTextoDonut('.admin-usuario-segment', data.totalUsuarios || 7);
         actualizarTextoDonut('.admin-cuota-segment', data.totalSedes || 2);
         actualizarTextoDonut('.admin-ingresos-segment', formatearIngresos(data.ingresosTotal || 85000));
@@ -1419,10 +1408,10 @@ async function generarExcel() {
 }
 
 
-// ==================== ENVÍO DE CORREOS ====================
+// ============================================
+// ENVÍO DE CORREOS
+// ============================================
 function setupMailTabs() {
-    // CAMBIO 11: '#correos .tabs button' → '#correos .aparca-tabs button'
-    // Razón: el HTML refactorizado usa class="aparca-tabs" en vez de class="tabs"
     const tabsBtns = document.querySelectorAll('#correos .aparca-tabs button');
     const mailPanels = [
         document.getElementById('correoUnitario'),

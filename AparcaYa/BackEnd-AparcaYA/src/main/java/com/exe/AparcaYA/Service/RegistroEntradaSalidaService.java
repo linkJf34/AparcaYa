@@ -34,4 +34,10 @@ public interface RegistroEntradaSalidaService {
     RegistroEntradaSalida registrarEntrada(Vehiculo vehiculo, Sede sede, Cupo cupo, Usuario trabajador);
     RegistroEntradaSalida registrarSalida(Long registroId);
     RegistroEntradaSalida confirmarCobro(Long registroId, String metodoPago);
+
+    // ✅ CAMBIO #8: Método subido a la interfaz
+    // Antes: solo existía en RegistroEntradaSalidaServiceImpl como método público no declarado
+    // en la interfaz, lo que obligaba a hacer un cast en TrabajadorController
+    // Ahora: cualquier llamante puede usarlo programando contra la interfaz
+    RegistroEntradaSalida confirmarCobroConTarifa(Long registroId, String metodoPago, String tipoTarifa);
 }

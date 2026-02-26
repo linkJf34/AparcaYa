@@ -1,5 +1,7 @@
 <!DOCTYPE html>
-<html lang="es" data-theme="light">
+<html lang="es"
+      data-theme="light"
+      xmlns:th="http://www.thymeleaf.org">
 <!--
     data-theme="light" → CRÍTICO para DaisyUI.
     Sin este atributo, DaisyUI puede aplicar el tema oscuro
@@ -13,16 +15,13 @@
 
     <!-- ==================================================
          ORDEN DE CARGA DE ESTILOS Y SCRIPTS
-         Este orden es OBLIGATORIO para evitar conflictos.
-
-         1. Tailwind CDN → base utilitaria (flex, grid, p-4)
-         2. DaisyUI CDN → componentes sobre Tailwind
-         3. Chart.js → gráficas (antes del CSS propio
-                           para que sus estilos inline no
-                           pisen los nuestros)
-         4. Leaflet CSS → estilos del mapa
-         5. Leaflet JS → funcionalidad del mapa
-         6-8. CSS propio en orden: base → components → pages
+         1. Tailwind CDN
+         2. DaisyUI CDN
+         3. Chart.js
+         4. Leaflet CSS
+         5. Leaflet JS
+         6. CSS base → components → pages
+         7. CSS de modales (uno por modal)
          ================================================== -->
 
     <!-- 1. Tailwind CSS -->
@@ -31,7 +30,7 @@
     <!-- 2. DaisyUI — DEBE ir después de Tailwind -->
     <link href="https://cdn.jsdelivr.net/npm/daisyui@4.12.10/dist/full.min.css" rel="stylesheet"/>
 
-    <!-- 3. Chart.js — librería de gráficas -->
+    <!-- 3. Chart.js -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
     <!-- 4. Leaflet CSS -->
@@ -40,26 +39,24 @@
     <!-- 5. Leaflet JS -->
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 
-    <!-- 6. CSS base: solo @keyframes globales con prefijo aparca- -->
+    <!-- 6. CSS propio: base → components → pages -->
     <link rel="stylesheet" href="/css/base/aparca-animations.css">
-
-    <!-- 7. CSS components: sidebar, header, tabla, modal, botones reutilizables -->
     <link rel="stylesheet" href="/css/components/aparca-components.css">
+    <link rel="stylesheet" href="/css/pages/Admin.css">
 
-    <!-- 8. CSS específico del admin: colores navy, donuts, charts, badges -->
-    <link rel="stylesheet" href="/css/pages/admin.css">
+    <!-- 7. CSS de modales -->
+    <link rel="stylesheet" href="/css/modals/admin-modal-editar-usuario.css">
+    <link rel="stylesheet" href="/css/modals/admin-modal-editar-sede.css">
+    <link rel="stylesheet" href="/css/modals/admin-modal-detalle-sede.css">
 </head>
 
 <body>
 
 <!-- ==================================================
-     SIDEBAR — Barra lateral izquierda fija
-     Clase base: .aparca-sidebar (aparca-components.css)
-     Color navy: sobreescrito en admin.css
+     SIDEBAR
      ================================================== -->
 <aside class="aparca-sidebar" aria-label="Menú principal de administración">
 
-    <!-- Logo -->
     <div class="aparca-sidebar-header" role="banner">
         <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
              stroke-width="1.5" stroke="currentColor" aria-hidden="true">
@@ -70,27 +67,21 @@
         <h1>AparcaYA</h1>
     </div>
 
-    <!-- Navegación
-         data-tab → adminD.js escucha estos atributos para
-         mostrar/ocultar la sección correspondiente -->
     <nav class="aparca-sidebar-nav" role="navigation" aria-label="Secciones del dashboard">
-        <a href="#" class="active" data-tab="usuarios"      aria-current="page">Usuarios</a>
-        <a href="#"               data-tab="sedes"                              >Sedes</a>
-        <a href="#"               data-tab="correos"                            >Envíos de Correos</a>
-        <a href="#"               data-tab="graficas"                           >Gráficas</a>
-        <a href="#"               data-tab="configuracion"                      >Configuración</a>
+        <a href="#" class="active" data-tab="usuarios" aria-current="page">Usuarios</a>
+        <a href="#"               data-tab="sedes"                         >Sedes</a>
+        <a href="#"               data-tab="correos"                       >Envíos de Correos</a>
+        <a href="#"               data-tab="graficas"                      >Gráficas</a>
+        <a href="#"               data-tab="configuracion"                 >Configuración</a>
     </nav>
 </aside>
 
 
 <!-- ==================================================
-     HEADER — Barra superior fija
-     Clase base: .aparca-page-header (aparca-components.css)
-     Fondo blanco, texto navy: sobreescrito en admin.css
+     HEADER
      ================================================== -->
 <header class="aparca-page-header">
 
-    <!-- Logo (visible en móvil cuando sidebar está abajo) -->
     <div class="aparca-logo-section">
         <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
              stroke-width="1.5" stroke="currentColor" aria-hidden="true">
@@ -101,7 +92,6 @@
         <span>AparcaYA — Admin</span>
     </div>
 
-    <!-- Menú de perfil -->
     <div class="aparca-profile-menu">
         <button id="profileBtn"
                 class="aparca-profile-btn"
@@ -119,9 +109,6 @@
             </svg>
         </button>
 
-        <!-- Dropdown de perfil
-             CAMBIO: era .dropdown-menu → .aparca-dropdown
-             .dropdown-menu colisionaba con DaisyUI -->
         <menu id="profileDropdown"
               class="aparca-dropdown"
               role="menu"
@@ -135,50 +122,34 @@
 
 
 <!-- ==================================================
-     ÁREA PRINCIPAL DEL DASHBOARD
-     Clase: .aparca-dashboard-main (aparca-components.css)
-     margin-left: 220px, margin-top: 64px
+     ÁREA PRINCIPAL
      ================================================== -->
 <main class="aparca-dashboard-main">
 
-
-    <!-- ================================================
-         INDICADORES DONUT — Estadísticas superiores
-         Clases: admin-stat-indicators, admin-stats-card,
-         admin-donut-container, admin-donut-svg, etc.
-         (todas en admin.css — exclusivas del admin)
-         ================================================ -->
+    <!-- Indicadores donut -->
     <div class="admin-stat-indicators" aria-label="Indicadores generales">
 
-        <!-- Donut 1: Total de Usuarios -->
         <article class="admin-stats-card" aria-label="Total de usuarios registrados">
             <div class="admin-stats-label">Total Usuarios</div>
             <div class="admin-donut-container" role="img" aria-label="Gráfico circular de usuarios">
-                <!-- viewBox="0 0 42 42": sistema de coordenadas interno del SVG.
-                     JS actualiza stroke-dasharray del circle para animar el arco.
-                     transform: rotate(-90deg) en admin.css lo arranca desde arriba. -->
                 <svg class="admin-donut-svg" viewBox="0 0 42 42"
                      width="120" height="120" aria-hidden="true">
                     <circle class="admin-donut-ring" cx="21" cy="21" r="15.9155"/>
-                    <!-- .admin-usuario-segment → color salmón (#d97967) en admin.css -->
                     <circle class="admin-donut-segment admin-usuario-segment"
                             cx="21" cy="21" r="15.9155"
                             stroke-dasharray="0 100">
                     </circle>
                 </svg>
-                <!-- adminD.js actualiza este texto con el conteo real -->
                 <div class="admin-donut-text" id="totalUsuarios">0</div>
             </div>
         </article>
 
-        <!-- Donut 2: Total de Sedes -->
         <article class="admin-stats-card" aria-label="Total de sedes registradas">
             <div class="admin-stats-label">Total Sedes</div>
             <div class="admin-donut-container" role="img" aria-label="Gráfico circular de sedes">
                 <svg class="admin-donut-svg" viewBox="0 0 42 42"
                      width="120" height="120" aria-hidden="true">
                     <circle class="admin-donut-ring" cx="21" cy="21" r="15.9155"/>
-                    <!-- .admin-cuota-segment → color verde oliva (#98a687) -->
                     <circle class="admin-donut-segment admin-cuota-segment"
                             cx="21" cy="21" r="15.9155"
                             stroke-dasharray="0 100">
@@ -188,14 +159,12 @@
             </div>
         </article>
 
-        <!-- Donut 3: Ingresos Totales -->
         <article class="admin-stats-card" aria-label="Ingresos totales del sistema">
             <div class="admin-stats-label">Ingresos Totales</div>
             <div class="admin-donut-container" role="img" aria-label="Gráfico circular de ingresos">
                 <svg class="admin-donut-svg" viewBox="0 0 42 42"
                      width="120" height="120" aria-hidden="true">
                     <circle class="admin-donut-ring" cx="21" cy="21" r="15.9155"/>
-                    <!-- .admin-ingresos-segment → azul grisáceo (#7d94b8) -->
                     <circle class="admin-donut-segment admin-ingresos-segment"
                             cx="21" cy="21" r="15.9155"
                             stroke-dasharray="0 100">
@@ -209,16 +178,10 @@
 
     <!-- ================================================
          SECCIÓN USUARIOS
-         id="usuarios" → adminD.js la muestra/oculta
-         Empieza visible (sin .hidden) porque es la
-         sección por defecto del sidebar.
          ================================================ -->
     <section id="usuarios" class="aparca-content-section" aria-labelledby="h2-usuarios">
         <h2 id="h2-usuarios">Gestión de Usuarios</h2>
 
-        <!-- Botones de exportación
-             CAMBIO: era .btn-outline (pisa DaisyUI)
-             AHORA: .aparca-btn-outline (aparca-components.css) -->
         <div class="flex justify-end mb-4 gap-3">
             <button class="aparca-btn-outline" type="button" onclick="generarPDF()">
                 Generar PDF
@@ -228,10 +191,7 @@
             </button>
         </div>
 
-        <!-- Barra de filtros -->
         <div class="flex flex-col md:flex-row justify-between items-center mb-6 gap-4">
-
-            <!-- Input de búsqueda libre -->
             <div class="flex items-center w-full md:w-1/2 border border-gray-300 rounded-md px-3 py-2">
                 <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-gray-400 flex-shrink-0"
                      fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
@@ -244,8 +204,6 @@
                        class="ml-2 w-full focus:outline-none text-sm"
                        aria-label="Buscar usuarios"/>
             </div>
-
-            <!-- Select de filtro rápido -->
             <div class="flex gap-4 w-full md:w-auto">
                 <select id="filtroUnificado"
                         class="border border-gray-300 rounded-md px-3 py-2 text-gray-700 text-sm"
@@ -260,10 +218,6 @@
             </div>
         </div>
 
-        <!-- Tabla de usuarios
-             CAMBIO: era table, th, td como selectores globales
-             AHORA: .aparca-table (aparca-components.css)
-             El hover de fila está en admin.css como override azul -->
         <div class="overflow-x-auto">
             <table id="tablaUsuarios" class="aparca-table" aria-label="Lista de usuarios">
                 <thead>
@@ -277,7 +231,6 @@
                 </tr>
                 </thead>
                 <tbody id="tbodyUsuarios">
-                <!-- adminD.js rellena esta tabla con fetch al backend -->
                 <tr>
                     <td colspan="6" class="loading">Cargando usuarios...</td>
                 </tr>
@@ -288,277 +241,11 @@
 
 
     <!-- ================================================
-         MODAL EDITAR USUARIO — DaisyUI <dialog>
-         IMPORTANTE: Este modal usa 100% la API de DaisyUI.
-         Se usan .modal, .modal-box, .modal-action, .btn,
-         .input-bordered, .select-bordered, .alert-info,
-         .form-control, .label — todas de DaisyUI.
-         NO se mezclan clases aparca- aquí para no
-         interferir con el comportamiento nativo de <dialog>.
-         ================================================ -->
-    <dialog id="modal_editar_usuario" class="modal" aria-labelledby="modal-usuario-title">
-        <div class="modal-box w-11/12 max-w-3xl">
-
-            <!-- Encabezado del modal -->
-            <div class="flex items-center justify-between mb-6 pb-4 border-b border-gray-200">
-                <div class="flex items-center gap-3">
-                    <div class="bg-primary/10 p-3 rounded-lg">
-                        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-primary"
-                             fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                  d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5
-                                  m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/>
-                        </svg>
-                    </div>
-                    <div>
-                        <h3 id="modal-usuario-title" class="font-bold text-2xl text-gray-800">
-                            Editar Usuario
-                        </h3>
-                        <p class="text-sm text-gray-500">Actualiza la información del usuario</p>
-                    </div>
-                </div>
-
-                <!-- Botón cerrar usando clases DaisyUI puras -->
-                <button onclick="cerrarModalEdicion()"
-                        class="btn btn-sm btn-circle btn-ghost"
-                        aria-label="Cerrar modal"
-                        type="button">
-                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5"
-                         fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                              d="M6 18L18 6M6 6l12 12"/>
-                    </svg>
-                </button>
-            </div>
-
-            <!-- Formulario de edición -->
-            <form onsubmit="event.preventDefault(); guardarEdicion();">
-                <input type="hidden" id="edit_usuario_id">
-
-                <div class="space-y-4">
-
-                    <!-- Nombre y Email -->
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        <div class="form-control">
-                            <label class="label">
-                                <span class="label-text font-semibold text-gray-700">
-                                    <span class="text-error">*</span> Nombre Completo
-                                </span>
-                            </label>
-                            <input type="text" id="edit_nombre"
-                                   placeholder="Ej: Juan Pérez García"
-                                   class="input input-bordered w-full"
-                                   required>
-                        </div>
-                        <div class="form-control">
-                            <label class="label">
-                                <span class="label-text font-semibold text-gray-700">
-                                    <span class="text-error">*</span> Correo Electrónico
-                                </span>
-                            </label>
-                            <input type="email" id="edit_email"
-                                   placeholder="ejemplo@correo.com"
-                                   class="input input-bordered w-full"
-                                   required>
-                        </div>
-                    </div>
-
-                    <!-- Teléfono -->
-                    <div class="form-control">
-                        <label class="label">
-                            <span class="label-text font-semibold text-gray-700">Teléfono</span>
-                        </label>
-                        <input type="tel" id="edit_telefono"
-                               placeholder="Ej: 3001234567"
-                               class="input input-bordered w-full">
-                    </div>
-
-                    <!-- Rol y Estado -->
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        <div class="form-control">
-                            <label class="label">
-                                <span class="label-text font-semibold text-gray-700">
-                                    <span class="text-error">*</span> Rol
-                                </span>
-                            </label>
-                            <select id="edit_rol" class="select select-bordered w-full" required>
-                                <!-- Valores en MAYÚSCULAS para coincidir con el enum Java -->
-                                <option value="ADMIN">Administrador</option>
-                                <option value="ADMINISTRADOR_SEDE">Admin de Sede</option>
-                                <option value="OPERARIO">Operario</option>
-                                <option value="CLIENTE">Cliente</option>
-                            </select>
-                        </div>
-                        <div class="form-control">
-                            <label class="label">
-                                <span class="label-text font-semibold text-gray-700">Estado</span>
-                            </label>
-                            <select id="edit_estado" class="select select-bordered w-full">
-                                <option value="ACTIVO">Activo</option>
-                                <option value="INACTIVO">Inactivo</option>
-                            </select>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Nota informativa DaisyUI -->
-                <div class="alert alert-info mt-6 shadow-sm">
-                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
-                         class="stroke-current shrink-0 w-6 h-6">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                              d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
-                    </svg>
-                    <span>Los campos con <span class="text-error font-bold">*</span> son obligatorios</span>
-                </div>
-
-                <!-- Botones de acción -->
-                <div class="modal-action mt-6 pt-4 border-t border-gray-200">
-                    <button type="button" onclick="cerrarModalEdicion()" class="btn btn-ghost">
-                        Cancelar
-                    </button>
-                    <button type="submit" class="btn btn-primary">
-                        Guardar Cambios
-                    </button>
-                </div>
-            </form>
-        </div>
-
-        <!-- Backdrop DaisyUI: clic fuera cierra el modal -->
-        <form method="dialog" class="modal-backdrop">
-            <button>close</button>
-        </form>
-    </dialog>
-
-
-    <!-- ================================================
-         MODAL EDITAR SEDE — DaisyUI <dialog>
-         Mismo patrón que el modal de usuario.
-         100% clases DaisyUI, sin mezcla de aparca-.
-         ================================================ -->
-    <dialog id="modal_editar_sede" class="modal" aria-labelledby="modal-sede-title">
-        <div class="modal-box w-11/12 max-w-3xl">
-
-            <div class="flex items-center justify-between mb-6 pb-4 border-b border-gray-200">
-                <div class="flex items-center gap-3">
-                    <div class="bg-primary/10 p-3 rounded-lg">
-                        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-primary"
-                             fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                  d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2
-                                  0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5
-                                  10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/>
-                        </svg>
-                    </div>
-                    <div>
-                        <h3 id="modal-sede-title" class="font-bold text-2xl text-gray-800">
-                            Editar Sede
-                        </h3>
-                        <p class="text-sm text-gray-500">Actualiza la información de la sede</p>
-                    </div>
-                </div>
-                <button onclick="cerrarModalEdicionSede()"
-                        class="btn btn-sm btn-circle btn-ghost"
-                        aria-label="Cerrar modal"
-                        type="button">
-                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5"
-                         fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                              d="M6 18L18 6M6 6l12 12"/>
-                    </svg>
-                </button>
-            </div>
-
-            <form onsubmit="event.preventDefault(); guardarEdicionSede();">
-                <input type="hidden" id="edit_sede_id">
-
-                <div class="space-y-4">
-                    <div class="form-control">
-                        <label class="label">
-                            <span class="label-text font-semibold text-gray-700">
-                                <span class="text-error">*</span> Nombre de la Sede
-                            </span>
-                        </label>
-                        <input type="text" id="edit_sede_nombre"
-                               placeholder="Ej: Sede Norte"
-                               class="input input-bordered w-full" required>
-                    </div>
-
-                    <div class="form-control">
-                        <label class="label">
-                            <span class="label-text font-semibold text-gray-700">
-                                <span class="text-error">*</span> Dirección
-                            </span>
-                        </label>
-                        <input type="text" id="edit_sede_direccion"
-                               placeholder="Ej: Calle 123 #45-67"
-                               class="input input-bordered w-full" required>
-                    </div>
-
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        <div class="form-control">
-                            <label class="label">
-                                <span class="label-text font-semibold text-gray-700">
-                                    <span class="text-error">*</span> Capacidad
-                                </span>
-                            </label>
-                            <input type="number" id="edit_sede_capacidad"
-                                   placeholder="Ej: 100" min="1"
-                                   class="input input-bordered w-full" required>
-                            <label class="label">
-                                <span class="label-text-alt text-gray-500">
-                                    Número total de espacios
-                                </span>
-                            </label>
-                        </div>
-                        <div class="form-control">
-                            <label class="label">
-                                <span class="label-text font-semibold text-gray-700">
-                                    <span class="text-error">*</span> Estado
-                                </span>
-                            </label>
-                            <select id="edit_sede_estado"
-                                    class="select select-bordered w-full" required>
-                                <option value="ACTIVO">Activo</option>
-                                <option value="INACTIVO">Inactivo</option>
-                            </select>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="alert alert-info mt-6 shadow-sm">
-                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
-                         class="stroke-current shrink-0 w-6 h-6">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                              d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
-                    </svg>
-                    <span>Los campos con <span class="text-error font-bold">*</span> son obligatorios</span>
-                </div>
-
-                <div class="modal-action mt-6 pt-4 border-t border-gray-200">
-                    <button type="button" onclick="cerrarModalEdicionSede()" class="btn btn-ghost">
-                        Cancelar
-                    </button>
-                    <button type="submit" class="btn btn-primary">
-                        Guardar Cambios
-                    </button>
-                </div>
-            </form>
-        </div>
-        <form method="dialog" class="modal-backdrop">
-            <button>close</button>
-        </form>
-    </dialog>
-
-
-    <!-- ================================================
          SECCIÓN SEDES
-         class="hidden" → Tailwind la oculta por defecto.
-         adminD.js quita .hidden al hacer clic en "Sedes".
          ================================================ -->
     <section id="sedes" class="aparca-content-section hidden" aria-labelledby="h2-sedes">
         <h2 id="h2-sedes">Gestión de Sedes</h2>
 
-        <!-- Filtros de sedes -->
         <div class="flex flex-col md:flex-row justify-between items-center mb-6 gap-4">
             <div class="flex items-center w-full md:w-1/2 border border-gray-300 rounded-md px-3 py-2">
                 <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-gray-400 flex-shrink-0"
@@ -582,7 +269,6 @@
             </div>
         </div>
 
-        <!-- Tabla de sedes -->
         <div class="overflow-x-auto mb-6">
             <table id="tablaSedes" class="aparca-table" aria-label="Lista de sedes">
                 <thead>
@@ -604,17 +290,10 @@
             </table>
         </div>
 
-        <!-- Mapa de Leaflet
-             CAMBIO: era id="map-container" sin prefijo.
-             AHORA: id="admin-map-container" con prefijo.
-             El CSS en admin.css usa #admin-map-container.
-             NOTA: adminD.js debe inicializar Leaflet con
-             el nuevo ID: L.map('admin-map-container') -->
         <h3 class="font-bold text-xl mb-4">Mapa de Sedes</h3>
         <div id="admin-map-container"
              style="height: 400px; width: 100%;"
              aria-label="Mapa interactivo de sedes">
-            <!-- Leaflet.js renderiza el mapa aquí -->
         </div>
     </section>
 
@@ -625,9 +304,6 @@
     <section id="correos" class="aparca-content-section hidden" aria-labelledby="h2-correos">
         <h2 id="h2-correos">Enviar Correo</h2>
 
-        <!-- Pestañas de correo
-             CAMBIO: era .tabs (pisa DaisyUI)
-             AHORA: .aparca-tabs (aparca-components.css) -->
         <div class="aparca-tabs" role="tablist" aria-label="Tipos de envío de correo">
             <button id="tab-correounitario"
                     class="active"
@@ -658,11 +334,8 @@
             </button>
         </div>
 
-        <!-- Formulario correo individual -->
         <div id="correoUnitario" role="tabpanel" aria-labelledby="tab-correounitario">
             <form id="formCorreoUnitario">
-                <!-- CAMBIO: era .form-control (pisa DaisyUI)
-                     AHORA: .aparca-form-control (aparca-components.css) -->
                 <div class="aparca-form-control">
                     <label for="emailSingle">Correo del destinatario</label>
                     <input type="email" id="emailSingle"
@@ -679,8 +352,6 @@
                               placeholder="Escribe el contenido del correo..."
                               rows="6" required></textarea>
                 </div>
-                <!-- CAMBIO: era .btn-primary (pisa DaisyUI)
-                     AHORA: .aparca-btn-primary (aparca-components.css) -->
                 <button type="submit" class="aparca-btn-primary">
                     <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5"
                          fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -692,7 +363,6 @@
             </form>
         </div>
 
-        <!-- Formulario correo masivo -->
         <div id="correoMasivo" hidden role="tabpanel" aria-labelledby="tab-correomasivo">
             <form id="formCorreoMasivo">
                 <div class="aparca-form-control">
@@ -726,23 +396,19 @@
 
 
     <!-- ================================================
-         SECCIÓN GRÁFICAS — Chart.js
+         SECCIÓN GRÁFICAS
          ================================================ -->
     <section id="graficas" class="aparca-content-section hidden" aria-labelledby="h2-graficas">
         <h2 id="h2-graficas">Estadísticas y Gráficas</h2>
 
-        <!-- CAMBIO: era .chart-container genérico
-             AHORA: .admin-chart-container (admin.css) -->
         <div class="admin-chart-container">
             <h3>Ingresos Mensuales</h3>
             <canvas id="chartIngresos" aria-label="Gráfica de ingresos mensuales"></canvas>
         </div>
-
         <div class="admin-chart-container">
             <h3>Usuarios por Rol</h3>
             <canvas id="chartUsuarios" aria-label="Gráfica de usuarios por rol"></canvas>
         </div>
-
         <div class="admin-chart-container">
             <h3>Capacidad de Sedes</h3>
             <canvas id="chartSedes" aria-label="Gráfica de capacidad de sedes"></canvas>
@@ -775,52 +441,23 @@
 
 
 <!-- ==================================================
-     MODAL DE DETALLE DE SEDE — DIV propio (no DaisyUI)
-     Controlado por JS con .show / sin .show.
-     CAMBIO: todas las clases renombradas:
-       .modal-overlay → .aparca-modal-overlay
-       .modal-content → .aparca-modal-content
-       .modal-header  → .aparca-modal-header
-       .modal-close   → .aparca-modal-close
-       .modal-body    → .aparca-modal-body
-     (aparca-components.css + override de color en admin.css)
+     MODALES — integrados vía Thymeleaf
+     ❌ ELIMINADOS del HTML original
+     ✅ Incluidos como fragmentos externos
      ================================================== -->
-<div id="modalSede"
-     class="aparca-modal-overlay"
-     role="dialog"
-     aria-labelledby="modalSedeTitle"
-     aria-modal="true"
-     aria-hidden="true">
 
-    <div class="aparca-modal-content">
+<!-- Modal editar usuario (DaisyUI <dialog>) -->
+<div th:replace="modals/admin-modal-editar-usuario :: modal"></div>
 
-        <div class="aparca-modal-header">
-            <h3 id="modalSedeTitle">Información de la Sede</h3>
-            <button class="aparca-modal-close"
-                    onclick="cerrarModalSede()"
-                    aria-label="Cerrar modal de detalle de sede"
-                    type="button">
-                &times;
-            </button>
-        </div>
+<!-- Modal editar sede (DaisyUI <dialog>) -->
+<div th:replace="modals/admin-modal-editar-sede :: modal"></div>
 
-        <!-- adminD.js inyecta aquí el HTML con los datos.
-             Usa .admin-info-grid, .admin-info-item,
-             .admin-info-label, .admin-info-value, .admin-info-full
-             (todas en admin.css) -->
-        <div class="aparca-modal-body" id="modalSedeBody">
-        </div>
-    </div>
-</div>
+<!-- Modal detalle de sede (DIV propio con aparca-modal-overlay) -->
+<div th:replace="modals/admin-modal-detalle-sede :: modal"></div>
 
 
-<!-- ==================================================
-     SCRIPT PRINCIPAL DEL ADMIN
-     CAMBIO CRÍTICO: ruta corregida a minúsculas.
-     Spring Boot en Linux es case-sensitive.
-     /Script/AdminD.js → /js/adminD.js
-     ================================================== -->
-<script src="/Script/AdminD.js"></script>
+<!-- Script principal -->
+<script src="/js/AdminD.js"></script>
 
 </body>
 </html>

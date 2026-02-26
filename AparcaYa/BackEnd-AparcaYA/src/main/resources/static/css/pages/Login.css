@@ -1,221 +1,124 @@
 /* ================================================
    LOGIN.CSS — AparcaYA
-   Estilos propios de la página de inicio de sesión
-   ================================================
-   Este archivo contiene SOLO los estilos que no
-   provee Tailwind ni DaisyUI. El resto del diseño
-   usa clases de ambos frameworks directamente en el HTML.
+   Ruta: static/css/login.css
 
-   CONFLICTOS CORREGIDOS vs versión original
-   (que tenía todo en un <style> inline):
+   PROPÓSITO: Estilos EXCLUSIVOS de la página de login.
 
-   🔴 @keyframes fadeInUp → nombre genérico.
-      Renombrado a login-fadeInUp por seguridad
-      ante futuras librerías de animación.
+   Lo que ya NO está aquí (viene de archivos base):
+   - .animate-fade-in-up    → aparca-animations.css
+   - @keyframes aparca-fadeInUp → aparca-animations.css
 
-   🔴 .btn-pulse → la clase se usaba en el HTML
-      pero el @keyframes pulse NUNCA fue definido
-      en este archivo. En el Index se definió,
-      pero aquí simplemente no existía → el botón
-      "Iniciar Sesión" no tenía animación.
-      SOLUCIÓN: se define aquí con nombre login-pulse.
-
-   🔴 @keyframes pulse → si se hubiera definido,
-      colisionaría con Tailwind (.animate-pulse).
-      Se define como login-pulse desde el inicio.
-
-   ⚠️  .modal .modal-box .modal-action → usan los
-      nombres exactos de DaisyUI. Funcionan con el
-      sistema legado de DaisyUI (div + modal-open)
-      pero son frágiles ante actualizaciones.
-      SOLUCIÓN: renombrados a .login-modal,
-      .login-modal-box, .login-modal-action.
-      El JS usa classList.add('login-modal-open')
-      como clase de estado.
-
-   ✅ .error-message  → sin conflicto, extraído del <style>
-   ✅ .password-toggle → sin conflicto, extraído del <style>
-
-   Ruta en Spring Boot (Linux, case-sensitive):
-   src/main/resources/static/css/login.css
-   Referenciado en HTML como: /css/login.css
+   Lo que SÍ está aquí (exclusivo del login):
+   1. .btn-pulse / @keyframes login-pulse
+   2. .error-message
+   3. .password-toggle
+   4. .login-modal / .login-modal-box / .login-modal-action
+   5. @keyframes login-slideUp
+   6. Responsive móvil
    ================================================ */
 
 
 /* ================================================
-   1. ANIMACIÓN DE ENTRADA — Fade + Slide desde abajo
-   Clase: .animate-fade-in-up
-   Aplicada en: la tarjeta blanca del formulario
+   1. ANIMACIÓN PULSE PARA EL BOTÓN "INICIAR SESIÓN"
+   CORRECCIÓN: la clase existía en el HTML pero el
+   @keyframes nunca fue definido → sin animación.
+   Nombre login-pulse para no colisionar con el
+   @keyframes pulse interno de Tailwind.
    ================================================ */
-
-.animate-fade-in-up {
-    opacity: 0;                                  /* Empieza completamente invisible */
-    transform: translateY(20px);                 /* Empieza 20px más abajo de su posición final */
-    /* Ejecuta la animación login-fadeInUp:
-       - 0.8s de duración
-       - ease-out: rápido al inicio, suave al final
-       - forwards: mantiene el estado final (visible) */
-    animation: login-fadeInUp 0.8s ease-out forwards;
-}
-
-/* CAMBIO: era @keyframes fadeInUp → ahora login-fadeInUp
-   El nombre genérico puede colisionar con Animate.css,
-   GSAP o cualquier otra librería de animación añadida después */
-@keyframes login-fadeInUp {
-    to {
-        opacity: 1;                              /* Termina completamente visible */
-        transform: translateY(0);               /* Termina en su posición correcta */
-    }
-}
-
-
-/* ================================================
-   2. ANIMACIÓN PULSE PARA EL BOTÓN "INICIAR SESIÓN"
-   Clase: .btn-pulse
-   CORRECCIÓN DOBLE:
-   a) La clase existía en el HTML pero el @keyframes
-      pulse NUNCA fue definido en este archivo →
-      el botón no tenía animación en absoluto.
-   b) Si se hubiera copiado de Index, el nombre
-      "pulse" colisionaría con Tailwind.
-   SOLUCIÓN: se define aquí con nombre login-pulse
-   ================================================ */
-
 .btn-pulse {
-    animation: login-pulse 2s infinite;          /* Latido suave que se repite sin fin */
+    animation: login-pulse 2s infinite;
 }
 
-/* CAMBIO: nombre único login-pulse (no "pulse")
-   Tailwind define su propio @keyframes pulse
-   para la clase .animate-pulse internamente.
-   Tener dos con el mismo nombre causa que el
-   de Tailwind sobreescriba el nuestro. */
 @keyframes login-pulse {
-    0%, 100% {
-        transform: scale(1);                     /* Tamaño normal al inicio y final del ciclo */
-    }
-    50% {
-        transform: scale(1.05);                  /* 5% más grande en el punto medio */
-    }
+    0%, 100% { transform: scale(1);    }
+    50%       { transform: scale(1.05); }
 }
 
 
 /* ================================================
-   3. MENSAJES DE ERROR DE VALIDACIÓN
-   Clase: .error-message
-   Aplicada en: debajo de cada campo del formulario
-   y debajo del checkbox de términos
+   2. MENSAJES DE ERROR DE VALIDACIÓN
    ================================================ */
-
 .error-message {
-    color: #dc2626;                              /* Rojo para que el error sea visible */
-    font-size: 0.875rem;                         /* Texto pequeño (14px) bajo el campo */
-    margin-top: 0.25rem;                         /* Pequeño espacio entre el input y el error */
+    color: #dc2626;
+    font-size: 0.875rem;
+    margin-top: 0.25rem;
 }
 
 
 /* ================================================
-   4. BOTÓN TOGGLE DE VISIBILIDAD DE CONTRASEÑA
-   Clase: .password-toggle
-   Aplicada en: el SVG del ojo dentro del campo contraseña
+   3. TOGGLE DE VISIBILIDAD DE CONTRASEÑA
+   El <div> padre del campo tiene position:relative
+   en el HTML para que este absolute funcione.
    ================================================ */
-
 .password-toggle {
-    cursor: pointer;                             /* Cursor de mano para indicar que es clickeable */
-    position: absolute;                          /* Se posiciona respecto al .relative del padre */
-    right: 10px;                                 /* 10px desde el borde derecho del campo */
-    top: 50%;                                    /* Parte superior al 50% del padre */
-    transform: translateY(-50%);                 /* Retrocede la mitad de su altura para centrar */
-    /* NOTA: el <div> padre del campo contraseña tiene
-       position: relative en el HTML para que este
-       absolute funcione correctamente */
+    cursor: pointer;
+    position: absolute;
+    right: 10px;
+    top: 50%;
+    transform: translateY(-50%);
 }
 
-/* Estado hover: resalta el ícono del ojo al pasar el mouse */
 .password-toggle:hover {
-    color: #1d4ed8;                              /* Azul más oscuro al pasar el mouse */
-    opacity: 0.8;                                /* Ligeramente transparente */
+    color: #1d4ed8;
+    opacity: 0.8;
 }
 
 
 /* ================================================
-   5. MODAL DE RECUPERACIÓN DE CONTRASEÑA
-   CAMBIO: era .modal → ahora .login-modal
-   CAMBIO: era .modal-box → ahora .login-modal-box
-   CAMBIO: era .modal-action → ahora .login-modal-action
-   CAMBIO: clase activa era .modal-open
-          ahora es .login-modal-open
-
-   Razón: DaisyUI usa exactamente esos nombres
-   para su sistema de modales. Aunque el sistema
-   legado (div + modal-open) funciona, es frágil.
-   Al renombrarlos eliminamos la dependencia.
-
-   El JS (loginD.js) debe usar:
-     modal.classList.add('login-modal-open')
-     modal.classList.remove('login-modal-open')
+   4. MODAL DE RECUPERACIÓN DE CONTRASEÑA
+   Clases propias (login-*) para evitar conflicto
+   con el sistema de modales de DaisyUI que usa
+   exactamente .modal, .modal-box, .modal-action.
+   Estado activo: loginD.js agrega .login-modal-open
    ================================================ */
-
 .login-modal {
-    display: none;                               /* Oculto por defecto */
-    position: fixed;                             /* Cubre toda la pantalla */
-    inset: 0;                                    /* top:0, right:0, bottom:0, left:0 */
-    background: rgba(0, 0, 0, 0.5);             /* Fondo negro semitransparente */
-    z-index: 1000;                               /* Por encima de todo el contenido */
-    align-items: center;                         /* Centra verticalmente el cuadro */
-    justify-content: center;                     /* Centra horizontalmente el cuadro */
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.5);
+    z-index: 1000;
+    align-items: center;
+    justify-content: center;
 }
 
-/* Estado activo: loginD.js agrega .login-modal-open para mostrar */
 .login-modal.login-modal-open {
-    display: flex;                               /* Muestra el modal centrado */
+    display: flex;
 }
 
 .login-modal-box {
-    background: white;                           /* Fondo blanco del cuadro del modal */
-    border-radius: 1rem;                         /* Esquinas muy redondeadas */
-    padding: 2rem;                               /* Espacio interior generoso */
-    max-width: 420px;                            /* Ancho máximo del cuadro */
-    width: 90%;                                  /* 90% del ancho de la pantalla */
-    max-height: 90vh;                            /* Máximo 90% de la altura visible */
-    overflow-y: auto;                            /* Scroll si el contenido es muy largo */
-    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.2); /* Sombra profunda para el cuadro */
-    animation: login-slideUp 0.3s ease;          /* El cuadro aparece subiendo */
+    background: white;
+    border-radius: 1rem;
+    padding: 2rem;
+    max-width: 420px;
+    width: 90%;
+    max-height: 90vh;
+    overflow-y: auto;
+    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.2);
+    animation: login-slideUp 0.3s ease;
 }
 
-/* Animación del cuadro del modal */
 @keyframes login-slideUp {
-    from {
-        transform: translateY(30px);             /* Empieza 30px más abajo */
-        opacity: 0;                              /* Empieza invisible */
-    }
-    to {
-        transform: translateY(0);               /* Llega a su posición */
-        opacity: 1;                              /* Completamente visible */
-    }
+    from { transform: translateY(30px); opacity: 0; }
+    to   { transform: translateY(0);    opacity: 1; }
 }
 
-/* Fila de botones en la parte inferior del modal
-   CAMBIO: era .modal-action → ahora .login-modal-action */
 .login-modal-action {
-    display: flex;                               /* Botones en fila horizontal */
-    justify-content: flex-end;                  /* Alineados a la derecha */
-    margin-top: 1.5rem;                          /* Espacio sobre los botones */
-    padding-top: 1rem;                           /* Separación visual del contenido */
-    border-top: 1px solid #e2e8f0;               /* Línea gris clara de separación */
-    gap: 0.5rem;                                 /* Espacio entre botones */
+    display: flex;
+    justify-content: flex-end;
+    margin-top: 1.5rem;
+    padding-top: 1rem;
+    border-top: 1px solid #e2e8f0;
+    gap: 0.5rem;
 }
 
 
 /* ================================================
-   6. RESPONSIVE — ADAPTACIÓN A MÓVIL
+   5. RESPONSIVE — MÓVIL PEQUEÑO
    ================================================ */
-
-@media (max-width: 480px) {                      /* Pantallas muy pequeñas (móvil pequeño) */
-
+@media (max-width: 480px) {
     .login-modal-box {
-        width: 95%;                              /* Casi todo el ancho en pantallas muy pequeñas */
-        padding: 1.5rem;                         /* Reduce el padding interior */
-        max-height: 95vh;                        /* Más altura disponible en móvil */
+        width: 95%;
+        padding: 1.5rem;
+        max-height: 95vh;
     }
 }

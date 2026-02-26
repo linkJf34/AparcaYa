@@ -1,0 +1,98 @@
+/* ============================================================
+   CLIENTE-MODAL-RESERVA.CSS
+   Ruta: static/css/modals/cliente-modal-reserva.css
+
+   MODAL: #reservaModal
+   TIPO: DIV propio con .aparca-modal-overlay
+
+   ORIGEN DE LOS ESTILOS:
+   Extraídos de los style="" inline del HTML original.
+
+   PREFIJO OBLIGATORIO: cliente-modal-reserva-
+   ============================================================ */
+
+
+/* ------------------------------------------------------------
+   1. HEADER DEL MODAL — color de acento cliente
+   ------------------------------------------------------------ */
+#reservaModal .aparca-modal-header {
+    background: linear-gradient(135deg, #0284c7, #00BFFF);
+    color: white;
+    border-radius: 1rem 1rem 0 0;
+}
+
+#reservaModal .aparca-modal-header h3 {
+    color: white;
+}
+
+#reservaModal .aparca-modal-close {
+    color: rgba(255, 255, 255, 0.85);
+}
+
+#reservaModal .aparca-modal-close:hover {
+    color: white;
+    background-color: rgba(255, 255, 255, 0.15);
+}
+
+
+/* ------------------------------------------------------------
+   2. NOMBRE DE LA SEDE SELECCIONADA
+   Reemplaza el <p> con style inline del HTML original.
+   ------------------------------------------------------------ */
+.cliente-modal-reserva-sede-nombre {
+    margin-bottom: 1rem;
+    font-size: 1rem;
+    color: #334155;
+}
+
+.cliente-modal-reserva-sede-nombre strong {
+    color: #0f172a;
+}
+
+
+/* ------------------------------------------------------------
+   3. INPUT PLACA
+   Reemplaza style="text-transform: uppercase" inline.
+   ------------------------------------------------------------ */
+.cliente-modal-reserva-placa {
+    text-transform: uppercase;
+}
+
+
+/* ------------------------------------------------------------
+   4. FOCUS DE INPUTS — azul cliente
+   ------------------------------------------------------------ */
+#reservaModal .aparca-form-control input:focus {
+    border-color: #00BFFF;
+    box-shadow: 0 0 0 3px rgba(0, 191, 255, 0.15);
+}
+
+
+/* ------------------------------------------------------------
+   5. ÁREA DE ACCIONES
+   Reemplaza style="display:flex;gap:1rem;justify-content:
+   flex-end;margin-top:1rem" inline del HTML original.
+   ------------------------------------------------------------ */
+.cliente-modal-reserva-actions {
+    display: flex;
+    gap: 1rem;
+    justify-content: flex-end;
+    margin-top: 1.5rem;
+    flex-wrap: wrap;
+}
+
+
+/* ------------------------------------------------------------
+   6. RESPONSIVE
+   ------------------------------------------------------------ */
+@media (max-width: 480px) {
+    .cliente-modal-reserva-actions {
+        flex-direction: column;
+    }
+
+    .cliente-modal-reserva-actions .cli-btn-confirm,
+    .cliente-modal-reserva-actions .aparca-btn-outline {
+        width: 100%;
+        justify-content: center;
+    }
+}

@@ -1,0 +1,118 @@
+/* ============================================================
+   ADMIN-MODAL-DETALLE-SEDE.CSS
+   Ruta: static/css/modals/admin-modal-detalle-sede.css
+
+   MODAL: #modalSede
+   TIPO: DIV propio con .aparca-modal-overlay
+         (aparca-components.css define el overlay y la caja base)
+
+   ORIGEN DE LOS ESTILOS:
+   Extraídos de los style="" inline que existían en el innerHTML
+   que adminD.js inyectaba en #modalSedeBody dentro de
+   mostrarDetallesSede(). Ahora son clases estáticas.
+
+   PREFIJO OBLIGATORIO: admin-modal-sede-
+
+   NOTA: Las clases admin-info-* (info-grid, info-item, etc.)
+   siguen en admin.css porque son usadas también fuera de
+   este modal (posible reutilización en sedes).
+   Aquí solo van los estilos exclusivos de los botones
+   y contenido específico de este modal.
+   ============================================================ */
+
+
+/* ------------------------------------------------------------
+   1. ÁREA DE ACCIONES — pie del body del modal
+   Reemplaza el style inline que tenía el div de botones:
+     style="margin-top: 1.5rem; display: flex; gap: 1rem;
+            justify-content: flex-end;"
+   ------------------------------------------------------------ */
+.admin-modal-sede-actions {
+    margin-top: 1.5rem;
+    display: flex;
+    gap: 1rem;
+    justify-content: flex-end;
+    flex-wrap: wrap;
+}
+
+
+/* ------------------------------------------------------------
+   2. BOTÓN PELIGRO — "Eliminar" dentro del modal de detalle
+   Reemplaza .btn-danger que no tenía prefijo en el JS original.
+   La lógica se mantiene igual, solo cambia el selector.
+   ------------------------------------------------------------ */
+.admin-modal-sede-btn-danger {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    padding: 0.5rem 1rem;
+    background-color: #dc2626;
+    color: white;
+    border: none;
+    border-radius: 0.5rem;
+    font-weight: 600;
+    font-size: 0.875rem;
+    cursor: pointer;
+    transition: background-color 0.2s, transform 0.1s;
+}
+
+.admin-modal-sede-btn-danger:hover {
+    background-color: #b91c1c;
+}
+
+.admin-modal-sede-btn-danger:active {
+    transform: scale(0.98);
+}
+
+
+/* ------------------------------------------------------------
+   3. SECCIÓN DE TARIFAS — bloque de texto con line-height
+   Reemplaza style="line-height: 1.8;" inline en el valor
+   del campo "Tarifas" dentro del info-grid.
+   ------------------------------------------------------------ */
+.admin-modal-sede-tarifas {
+    line-height: 1.8;
+}
+
+.admin-modal-sede-tarifas strong {
+    display: block;
+    margin-top: 0.25rem;
+}
+
+
+/* ------------------------------------------------------------
+   4. SECCIÓN DE COORDENADAS — texto monoespaciado
+   Reemplaza el valor plano de lat/lng para mejor legibilidad.
+   ------------------------------------------------------------ */
+.admin-modal-sede-coords {
+    font-family: ui-monospace, monospace;
+    font-size: 0.85rem;
+    color: #475569;
+}
+
+
+/* ------------------------------------------------------------
+   5. BADGES DENTRO DEL MODAL
+   Reemplaza .badge, .badge-activo, .badge-inactivo inline.
+   NOTA CRÍTICA: admin.css ya define .admin-badge-activo y
+   .admin-badge-inactivo. El JS actualizado debe usar esas
+   clases. No se redefinen aquí para evitar duplicación.
+   ------------------------------------------------------------ */
+
+
+/* ------------------------------------------------------------
+   6. RESPONSIVE — ajuste del cuerpo en móvil
+   El overlay y la caja ya tienen responsive en components.
+   Solo ajustamos los botones de acción.
+   ------------------------------------------------------------ */
+@media (max-width: 480px) {
+    .admin-modal-sede-actions {
+        flex-direction: column;
+    }
+
+    .admin-modal-sede-actions .aparca-btn-outline,
+    .admin-modal-sede-btn-danger {
+        width: 100%;
+        justify-content: center;
+    }
+}

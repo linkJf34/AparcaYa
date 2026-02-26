@@ -1,12 +1,12 @@
 // ==================== CONFIGURACIÓN GLOBAL ====================
 const API_BASE_URL = '/api/trabajador';
 const REGISTRO_URL = '/api/trabajador/registrar-entrada';
-let currentRegistroId = null;
+let currentRegistroId    = null;
 let currentSalidaRegistroId = null;
-let currentCobroRegistroId = null;
-let opcionesTarifa = null;
-let updateInterval = null;
-let timerIntervals = {};
+let currentCobroRegistroId  = null;
+let opcionesTarifa  = null;
+let updateInterval  = null;
+let timerIntervals  = {};
 
 // Datos de marcas por tipo de vehículo
 const marcasPorTipo = {
@@ -50,15 +50,10 @@ function formatDateTime(dateString) {
     try {
         const date = new Date(dateString);
         return date.toLocaleString('es-CO', {
-            year: 'numeric',
-            month: '2-digit',
-            day: '2-digit',
-            hour: '2-digit',
-            minute: '2-digit'
+            year: 'numeric', month: '2-digit', day: '2-digit',
+            hour: '2-digit', minute: '2-digit'
         });
-    } catch {
-        return dateString;
-    }
+    } catch { return dateString; }
 }
 
 function formatNumber(number) {
@@ -95,20 +90,19 @@ function showNotification(message, type = 'info') {
 
 function formatMarcaName(marca) {
     const map = {
-        'MERCEDES_BENZ': 'Mercedes-Benz',
-        'LAND_ROVER': 'Land Rover',
-        'GREAT_WALL': 'Great Wall',
-        'BMW_MOTORRAD': 'BMW Motorrad',
-        'HARLEY_DAVIDSON': 'Harley-Davidson',
-        'ROYAL_ENFIELD': 'Royal Enfield'
+        'MERCEDES_BENZ':  'Mercedes-Benz',
+        'LAND_ROVER':     'Land Rover',
+        'GREAT_WALL':     'Great Wall',
+        'BMW_MOTORRAD':   'BMW Motorrad',
+        'HARLEY_DAVIDSON':'Harley-Davidson',
+        'ROYAL_ENFIELD':  'Royal Enfield'
     };
     return map[marca] || marca.split('_').map(w => w.charAt(0) + w.slice(1).toLowerCase()).join(' ');
 }
 
 function actualizarMarcasEntrada() {
-    const tipoSelect = document.getElementById('tipoVehiculo');
+    const tipoSelect  = document.getElementById('tipoVehiculo');
     const marcaSelect = document.getElementById('marca');
-
     if (!tipoSelect || !marcaSelect) return;
 
     const tipo = tipoSelect.value;
@@ -117,7 +111,7 @@ function actualizarMarcasEntrada() {
     if (tipo && marcasPorTipo[tipo]) {
         marcasPorTipo[tipo].forEach(marca => {
             const option = document.createElement('option');
-            option.value = marca;
+            option.value       = marca;
             option.textContent = formatMarcaName(marca);
             marcaSelect.appendChild(option);
         });
@@ -125,7 +119,8 @@ function actualizarMarcasEntrada() {
 }
 
 function limpiarFormularioEntrada() {
-    ['nombre', 'telefono', 'correo', 'cedula', 'placa', 'color', 'anio', 'buscarPlaca'].forEach(id => setInputValue(id, ''));
+    ['nombre', 'telefono', 'correo', 'cedula', 'placa', 'color', 'anio', 'buscarPlaca']
+        .forEach(id => setInputValue(id, ''));
 
     const tipoSelect = document.getElementById('tipoVehiculo');
     if (tipoSelect) tipoSelect.value = '';
@@ -134,9 +129,9 @@ function limpiarFormularioEntrada() {
     if (marcaSelect) marcaSelect.innerHTML = '<option value="">Selecciona una marca</option>';
 
     ['nombre', 'correo', 'telefono', 'cedula', 'placa', 'tipoVehiculo', 'marca'].forEach(fieldId => {
-        const errorSpan = document.getElementById(`${fieldId}-error`);
+        const errorSpan   = document.getElementById(`${fieldId}-error`);
         const successSpan = document.getElementById(`${fieldId}-success`);
-        if (errorSpan) errorSpan.textContent = '';
+        if (errorSpan)   errorSpan.textContent   = '';
         if (successSpan) successSpan.textContent = '';
 
         const field = document.getElementById(fieldId);
@@ -146,10 +141,9 @@ function limpiarFormularioEntrada() {
 
 // ==================== VALIDACIÓN DE CAMPOS ====================
 function validateFieldEntrada(fieldId) {
-    const field = document.getElementById(fieldId);
-    const errorSpan = document.getElementById(`${fieldId}-error`);
+    const field       = document.getElementById(fieldId);
+    const errorSpan   = document.getElementById(`${fieldId}-error`);
     const successSpan = document.getElementById(`${fieldId}-success`);
-
     if (!field) return true;
 
     let isValid = true;
@@ -158,74 +152,37 @@ function validateFieldEntrada(fieldId) {
 
     switch(fieldId) {
         case 'nombre':
-            if (!value) {
-                isValid = false;
-                message = 'El nombre es obligatorio.';
-            } else if (value.length < 2) {
-                isValid = false;
-                message = 'El nombre debe tener al menos 2 caracteres.';
-            }
+            if (!value)               { isValid = false; message = 'El nombre es obligatorio.'; }
+            else if (value.length < 2){ isValid = false; message = 'Al menos 2 caracteres.'; }
             break;
-
         case 'correo':
-            if (!value) {
-                isValid = false;
-                message = 'El correo es obligatorio.';
-            } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value)) {
-                isValid = false;
-                message = 'Formato de correo inválido.';
-            }
+            if (!value)                                        { isValid = false; message = 'El correo es obligatorio.'; }
+            else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value)){ isValid = false; message = 'Formato inválido.'; }
             break;
-
         case 'telefono':
-            if (!value) {
-                isValid = false;
-                message = 'El teléfono es obligatorio.';
-            } else if (!/^[0-9]{10}$/.test(value)) {
-                isValid = false;
-                message = 'Debe tener 10 dígitos.';
-            }
+            if (!value)                       { isValid = false; message = 'El teléfono es obligatorio.'; }
+            else if (!/^[0-9]{10}$/.test(value)){ isValid = false; message = 'Debe tener 10 dígitos.'; }
             break;
-
         case 'cedula':
-            if (!value) {
-                isValid = false;
-                message = 'La cédula es obligatoria.';
-            } else if (!/^[0-9]{10}$/.test(value)) {
-                isValid = false;
-                message = 'Debe tener 10 dígitos.';
-            }
+            if (!value)                       { isValid = false; message = 'La cédula es obligatoria.'; }
+            else if (!/^[0-9]{10}$/.test(value)){ isValid = false; message = 'Debe tener 10 dígitos.'; }
             break;
-
         case 'placa':
-            if (!value) {
-                isValid = false;
-                message = 'La placa es obligatoria.';
-            } else if (!/^[A-Z]{3}[0-9]{3}$/.test(value)) {
-                isValid = false;
-                message = 'Formato: ABC123';
-            }
+            if (!value)                              { isValid = false; message = 'La placa es obligatoria.'; }
+            else if (!/^[A-Z]{3}[0-9]{3}$/.test(value)){ isValid = false; message = 'Formato: ABC123'; }
             break;
-
         case 'tipoVehiculo':
-            if (!value) {
-                isValid = false;
-                message = 'Selecciona el tipo.';
-            }
+            if (!value) { isValid = false; message = 'Selecciona el tipo.'; }
             break;
-
         case 'marca':
-            if (!value) {
-                isValid = false;
-                message = 'Selecciona la marca.';
-            }
+            if (!value) { isValid = false; message = 'Selecciona la marca.'; }
             break;
     }
 
-    if (errorSpan) errorSpan.textContent = isValid ? '' : message;
+    if (errorSpan)   errorSpan.textContent   = isValid ? '' : message;
     if (successSpan) successSpan.textContent = '';
 
-    field.classList.toggle('border-red-500', !isValid);
+    field.classList.toggle('border-red-500',  !isValid);
     field.classList.toggle('border-green-500', isValid && value !== '');
 
     return isValid;
@@ -234,20 +191,18 @@ function validateFieldEntrada(fieldId) {
 function validateFormularioEntrada() {
     const campos = ['nombre', 'correo', 'telefono', 'cedula', 'placa', 'tipoVehiculo', 'marca'];
     let todosValidos = true;
-
     campos.forEach(campoId => {
-        if (!validateFieldEntrada(campoId)) {
-            todosValidos = false;
-        }
+        if (!validateFieldEntrada(campoId)) todosValidos = false;
     });
-
     return todosValidos;
 }
 
 // ==================== NAVEGACIÓN ====================
 function initializeTabs() {
-    const navLinks = document.querySelectorAll('.sidebar-nav a');
-    const sections = document.querySelectorAll('.content-section');
+    // CAMBIO: '.sidebar-nav a' → '.aparca-sidebar-nav a'
+    const navLinks = document.querySelectorAll('.aparca-sidebar-nav a');
+    // CAMBIO: '.content-section' → '.aparca-content-section'
+    const sections = document.querySelectorAll('.aparca-content-section');
 
     navLinks.forEach(link => {
         link.addEventListener('click', (e) => {
@@ -256,16 +211,16 @@ function initializeTabs() {
             sections.forEach(s => s.classList.add('hidden'));
 
             link.classList.add('active');
-            const tabId = link.getAttribute('data-tab');
+            const tabId  = link.getAttribute('data-tab');
             const section = document.getElementById(tabId);
 
             if (section) {
                 section.classList.remove('hidden');
 
                 switch(tabId) {
-                    case 'inicio': loadIndicadores(); break;
-                    case 'gestion': loadVehiculosActivos(); loadPendientesCobro(); break;
-                    case 'reservaciones': loadReservaciones(); break;
+                    case 'inicio':       loadIndicadores(); break;
+                    case 'gestion':      loadVehiculosActivos(); loadPendientesCobro(); break;
+                    case 'reservaciones':loadReservaciones(); break;
                 }
             }
         });
@@ -273,7 +228,7 @@ function initializeTabs() {
 }
 
 function initializeProfileMenu() {
-    const btn = document.getElementById('profileBtn');
+    const btn      = document.getElementById('profileBtn');
     const dropdown = document.getElementById('profileDropdown');
 
     if (btn && dropdown) {
@@ -281,7 +236,6 @@ function initializeProfileMenu() {
             e.stopPropagation();
             dropdown.classList.toggle('show');
         });
-
         document.addEventListener('click', () => dropdown.classList.remove('show'));
     }
 }
@@ -319,14 +273,14 @@ async function loadIndicadores() {
         const data = await response.json();
 
         const elementos = {
-            'ocupacionActual': `${data.ocupacionActual}/${data.capacidadTotal}`,
-            'porcentajeOcupacion': `${data.porcentajeOcupacion}%`,
-            'cuposLibres': data.cuposLibres,
-            'vehiculosHoy': data.vehiculosHoy,
-            'ingresosDia': `${formatNumber(data.ingresosDia)}`,
-            'pendientesCobro': data.pendientesCobro,
-            'tarifaHora': `${formatNumber(data.tarifaPlenaC || 0)}`,
-            'sedeNombre': data.sedeNombre || 'Parqueadero'
+            'ocupacionActual':    `${data.ocupacionActual}/${data.capacidadTotal}`,
+            'porcentajeOcupacion':`${data.porcentajeOcupacion}%`,
+            'cuposLibres':         data.cuposLibres,
+            'vehiculosHoy':        data.vehiculosHoy,
+            'ingresosDia':        `${formatNumber(data.ingresosDia)}`,
+            'pendientesCobro':     data.pendientesCobro,
+            'tarifaHora':         `${formatNumber(data.tarifaPlenaC || 0)}`,
+            'sedeNombre':          data.sedeNombre || 'Parqueadero'
         };
 
         Object.entries(elementos).forEach(([id, valor]) => {
@@ -336,9 +290,9 @@ async function loadIndicadores() {
 
         const card = document.getElementById('cardOcupacion');
         if (card) {
-            if (data.porcentajeOcupacion >= 90) card.style.backgroundColor = '#fecaca';
+            if      (data.porcentajeOcupacion >= 90) card.style.backgroundColor = '#fecaca';
             else if (data.porcentajeOcupacion >= 70) card.style.backgroundColor = '#fef08a';
-            else card.style.backgroundColor = '#d0e8f2';
+            else                                     card.style.backgroundColor = '#d0e8f2';
         }
 
     } catch (error) {
@@ -360,7 +314,7 @@ function initializeFormularioEntrada() {
         campos.forEach(campoId => {
             const campo = document.getElementById(campoId);
             if (campo) {
-                campo.addEventListener('blur', () => validateFieldEntrada(campoId));
+                campo.addEventListener('blur',  () => validateFieldEntrada(campoId));
                 campo.addEventListener('input', () => {
                     const errorSpan = document.getElementById(`${campoId}-error`);
                     if (errorSpan && campo.value.trim()) {
@@ -411,12 +365,8 @@ function initializeFormularioEntrada() {
         buscarPlacaInput.addEventListener('input', (e) => {
             e.target.value = e.target.value.toUpperCase().replace(/[^A-Z0-9]/g, '');
         });
-
         buscarPlacaInput.addEventListener('keypress', (e) => {
-            if (e.key === 'Enter') {
-                e.preventDefault();
-                buscarPorPlacaIntegrado();
-            }
+            if (e.key === 'Enter') { e.preventDefault(); buscarPorPlacaIntegrado(); }
         });
     }
 }
@@ -433,15 +383,15 @@ async function registrarEntradaDirecto() {
         showNotification('⏳ Registrando entrada...', 'info');
 
         const datos = {
-            clienteNombre: getInputValue('nombre'),
+            clienteNombre:   getInputValue('nombre'),
             clienteTelefono: getInputValue('telefono'),
-            clienteEmail: getInputValue('correo'),
-            clienteCedula: getInputValue('cedula'),
-            vehiculoPlaca: getInputValue('placa'),
-            vehiculoTipo: getInputValue('tipoVehiculo'),
-            vehiculoMarca: getInputValue('marca'),
-            vehiculoColor: getInputValue('color') || 'NO ESPECIFICADO',
-            vehiculoAnio: getInputValue('anio') || '2020'
+            clienteEmail:    getInputValue('correo'),
+            clienteCedula:   getInputValue('cedula'),
+            vehiculoPlaca:   getInputValue('placa'),
+            vehiculoTipo:    getInputValue('tipoVehiculo'),
+            vehiculoMarca:   getInputValue('marca'),
+            vehiculoColor:   getInputValue('color') || 'NO ESPECIFICADO',
+            vehiculoAnio:    getInputValue('anio')  || '2020'
         };
 
         console.log('📋 Enviando datos:', datos);
@@ -464,7 +414,6 @@ async function registrarEntradaDirecto() {
         console.log('✅ Respuesta exitosa:', data);
 
         showNotification('✅ Entrada registrada. Timer iniciado ⏱️', 'success');
-
         limpiarFormularioEntrada();
 
         setTimeout(() => {
@@ -499,12 +448,12 @@ async function buscarPorPlacaIntegrado() {
         const data = await response.json();
 
         if (data.encontrado) {
-            setInputValue('nombre', data.cliente.nombre);
+            setInputValue('nombre',   data.cliente.nombre);
             setInputValue('telefono', data.cliente.telefono);
-            setInputValue('correo', data.cliente.email);
-            setInputValue('cedula', data.cliente.cedula || '');
-            setInputValue('placa', data.vehiculo.placa);
-            setInputValue('color', data.vehiculo.color);
+            setInputValue('correo',   data.cliente.email);
+            setInputValue('cedula',   data.cliente.cedula || '');
+            setInputValue('placa',    data.vehiculo.placa);
+            setInputValue('color',    data.vehiculo.color);
 
             const tipoSelect = document.getElementById('tipoVehiculo');
             if (tipoSelect) {
@@ -517,7 +466,6 @@ async function buscarPorPlacaIntegrado() {
             }
 
             if (data.vehiculo.anio) setInputValue('anio', data.vehiculo.anio);
-
             showNotification('✅ Vehículo encontrado', 'success');
         } else {
             limpiarFormularioEntrada();
@@ -545,8 +493,7 @@ async function loadVehiculosActivos() {
         if (!response.ok) throw new Error('Error al cargar vehículos');
 
         const vehiculos = await response.json();
-        const tbody = document.getElementById('vehiculosActivosBody');
-
+        const tbody     = document.getElementById('vehiculosActivosBody');
         if (!tbody) return;
 
         Object.values(timerIntervals).forEach(id => clearInterval(id));
@@ -576,7 +523,8 @@ async function loadVehiculosActivos() {
                     </div>
                 </td>
                 <td>
-                    <button class="btn-warning btn-salida" data-id="${v.registroId}">
+                    <!-- CAMBIO: btn-warning → trab-btn-warning (mantiene btn-salida para delegación) -->
+                    <button class="trab-btn-warning btn-salida" data-id="${v.registroId}">
                         🚪 Salida
                     </button>
                 </td>
@@ -588,22 +536,16 @@ async function loadVehiculosActivos() {
             if (!timerElement) return;
 
             let segundosBase = v.segundosTranscurridos;
-
             timerIntervals[v.registroId] = setInterval(() => {
                 segundosBase++;
-
-                const horas = Math.floor(segundosBase / 3600);
-                const minutos = Math.floor((segundosBase % 3600) / 60);
+                const horas    = Math.floor(segundosBase / 3600);
+                const minutos  = Math.floor((segundosBase % 3600) / 60);
                 const segundos = segundosBase % 60;
 
                 let texto = '';
-                if (horas > 0) {
-                    texto = `${horas}h ${minutos}m ${segundos}s`;
-                } else if (minutos > 0) {
-                    texto = `${minutos}m ${segundos}s`;
-                } else {
-                    texto = `${segundos}s`;
-                }
+                if (horas > 0)        texto = `${horas}h ${minutos}m ${segundos}s`;
+                else if (minutos > 0) texto = `${minutos}m ${segundos}s`;
+                else                  texto = `${segundos}s`;
 
                 timerElement.textContent = texto;
             }, 1000);
@@ -621,7 +563,6 @@ async function loadVehiculosActivos() {
 async function abrirModalSalida(registroId) {
     console.log('🚪 Abriendo modal salida para registro:', registroId);
 
-    // Verificar que el modal existe
     const modal = document.getElementById('salidaModal');
     if (!modal) {
         console.error('❌ No se encontró el elemento #salidaModal en el DOM');
@@ -643,62 +584,23 @@ async function abrirModalSalida(registroId) {
         if (!response.ok) throw new Error('Error al obtener datos');
 
         const vehiculos = await response.json();
-        const vehiculo = vehiculos.find(v => v.registroId === registroId);
+        const vehiculo  = vehiculos.find(v => v.registroId === registroId);
 
         if (!vehiculo) {
             showNotification('❌ Vehículo no encontrado', 'error');
             return;
         }
 
-        // Verificar que todos los elementos existen
-        const elementos = {
-            placa: document.getElementById('salidaPlaca'),
-            cliente: document.getElementById('salidaCliente'),
-            horaEntrada: document.getElementById('salidaHoraEntrada'),
-            tiempo: document.getElementById('salidaTiempo'),
-            cobro: document.getElementById('salidaCobroEstimado')
-        };
+        document.getElementById('salidaPlaca').textContent       = vehiculo.placa;
+        document.getElementById('salidaCliente').textContent     = vehiculo.clienteNombre;
+        document.getElementById('salidaHoraEntrada').textContent = formatDateTime(vehiculo.horaEntrada);
+        document.getElementById('salidaTiempo').textContent      = vehiculo.tiempoTranscurrido;
+        document.getElementById('salidaCobroEstimado').textContent =
+            formatNumber(vehiculo.cobroEstimadoPlena);
 
-        let faltantes = [];
-        for (let [key, elem] of Object.entries(elementos)) {
-            if (!elem) {
-                faltantes.push(`salida${key.charAt(0).toUpperCase() + key.slice(1)}`);
-            }
-        }
-
-        if (faltantes.length > 0) {
-            console.error('❌ Elementos faltantes en el modal:', faltantes);
-            showNotification('❌ Error: Elementos del modal no encontrados', 'error');
-            return;
-        }
-
-        // Rellenar datos
-        elementos.placa.textContent = vehiculo.placa;
-        elementos.cliente.textContent = vehiculo.clienteNombre;
-        elementos.horaEntrada.textContent = formatDateTime(vehiculo.horaEntrada);
-        elementos.tiempo.textContent = vehiculo.tiempoTranscurrido;
-
-        elementos.cobro.innerHTML = `
-            <div style="margin-bottom: 0.5rem;">
-                <strong>Plena:</strong> ${formatNumber(vehiculo.cobroEstimadoPlena)}
-            </div>
-            <div style="color: #059669;">
-                <strong>Minuto:</strong> ${formatNumber(vehiculo.cobroEstimadoMinuto)}
-            </div>
-        `;
-
-        // ABRIR MODAL CON VERIFICACIÓN
-        modal.style.display = 'block';
-        modal.style.visibility = 'visible';
-        modal.style.opacity = '1';
-
+        // CAMBIO: modal.style.display='block' → modal.classList.add('show')
+        modal.classList.add('show');
         console.log('✅ Modal salida abierto');
-        console.log('📊 Estado del modal:', {
-            display: modal.style.display,
-            visibility: modal.style.visibility,
-            opacity: modal.style.opacity,
-            zIndex: window.getComputedStyle(modal).zIndex
-        });
 
     } catch (error) {
         console.error('❌ Error:', error);
@@ -707,7 +609,9 @@ async function abrirModalSalida(registroId) {
 }
 
 function cerrarModalSalida() {
-    document.getElementById('salidaModal').style.display = 'none';
+    const modal = document.getElementById('salidaModal');
+    // CAMBIO: modal.style.display='none' → modal.classList.remove('show')
+    if (modal) modal.classList.remove('show');
     currentSalidaRegistroId = null;
 }
 
@@ -732,7 +636,6 @@ async function confirmarSalida() {
 
         showNotification('✅ Salida registrada. Proceda a cobrar.', 'success');
         cerrarModalSalida();
-
         await loadVehiculosActivos();
         await loadPendientesCobro();
         await loadIndicadores();
@@ -743,24 +646,18 @@ async function confirmarSalida() {
     }
 }
 
-
 // ==================== PENDIENTES COBRO ====================
 async function loadPendientesCobro() {
     try {
-        // SIN TOKENS: Remueve headers de Authorization
         const response = await fetch(`${API_BASE_URL}/vehiculos-pendientes-cobro`, {
             method: 'GET',
-            headers: {
-                'Content-Type': 'application/json'
-                // Eliminado: 'Authorization': `Bearer ${getToken()}`
-            }
+            headers: { 'Content-Type': 'application/json' }
         });
 
         if (!response.ok) throw new Error('Error');
 
         const pendientes = await response.json();
-        const tbody = document.getElementById('pendientesCobroBody');
-
+        const tbody      = document.getElementById('pendientesCobroBody');
         if (!tbody) return;
 
         if (pendientes.length === 0) {
@@ -775,11 +672,10 @@ async function loadPendientesCobro() {
                 <td>${formatDateTime(p.horaEntrada)}</td>
                 <td>${formatDateTime(p.horaSalida)}</td>
                 <td>${p.tiempoTotal}</td>
-                <td style="font-weight: 700; color: #059669;">
-                    $${formatNumber(p.precio)}
-                </td>
+                <td style="font-weight: 700; color: #059669;">$${formatNumber(p.precio)}</td>
                 <td>
-                    <button class="btn-success btn-cobrar" data-id="${p.registroId}">
+                    <!-- CAMBIO: btn-success → trab-btn-success (mantiene btn-cobrar para delegación) -->
+                    <button class="trab-btn-success btn-cobrar" data-id="${p.registroId}">
                         💰 Cobrar
                     </button>
                 </td>
@@ -793,31 +689,24 @@ async function loadPendientesCobro() {
     }
 }
 
+// ==================== MODAL COBRO ====================
 async function abrirModalCobro(registroId) {
     console.log('💰 Abriendo modal cobro para registro:', registroId);
 
     currentCobroRegistroId = registroId;
 
     const modal = document.getElementById('cobroModal');
-    if (!modal) {
-        console.error('❌ No existe #cobroModal');
-        return;
-    }
+    if (!modal) { console.error('❌ No existe #cobroModal'); return; }
 
-    modal.classList.add('modal');
+    // CAMBIO: modal.classList.add('modal') eliminado (ya tiene la clase)
+    // CAMBIO: modal.style.display='block' → modal.classList.add('show')
+    modal.classList.add('show');
     document.body.style.overflow = 'hidden';
-
-    // FUERZA LA VISUALIZACIÓN
-    modal.style.display = 'block';
-    modal.style.visibility = 'visible';
-    modal.style.opacity = '1';
 
     try {
         const response = await fetch(`${API_BASE_URL}/opciones-cobro/${registroId}`, {
             method: 'GET',
-            headers: {
-                'Content-Type': 'application/json'
-            }
+            headers: { 'Content-Type': 'application/json' }
         });
 
         if (!response.ok) {
@@ -829,10 +718,11 @@ async function abrirModalCobro(registroId) {
         opcionesTarifa = data;
 
         document.getElementById('cobroCliente').textContent = data.clienteNombre;
-        document.getElementById('cobroPlaca').textContent = data.placa;
-        document.getElementById('cobroTiempo').textContent = data.tiempoTotal;
+        document.getElementById('cobroPlaca').textContent   = data.placa;
+        document.getElementById('cobroTiempo').textContent  = data.tiempoTotal;
 
-        const modalBody = document.querySelector('#cobroModal .modal-content > div:nth-child(2)');
+        // CAMBIO: '.modal-content > div' → '.trab-modal-content > div'
+        const modalBody = document.querySelector('#cobroModal .trab-modal-content > div:nth-child(2)');
 
         const existingSelector = document.getElementById('tarifaSelector');
         if (existingSelector) existingSelector.remove();
@@ -852,12 +742,12 @@ async function abrirModalCobro(registroId) {
             </div>
         `;
 
-        modalBody.insertAdjacentHTML('beforeend', selectorHTML);
+        if (modalBody) modalBody.insertAdjacentHTML('beforeend', selectorHTML);
 
         const opcionDefault = data.opciones[0];
         document.getElementById('cobroPrecio').textContent = formatNumber(opcionDefault.precio);
 
-        console.log('✅ Modal cobro abierto y visible');
+        console.log('✅ Modal cobro abierto');
 
     } catch (error) {
         console.error('❌ Error:', error.message);
@@ -865,19 +755,15 @@ async function abrirModalCobro(registroId) {
     }
 }
 
-
-
 function actualizarPrecioCobro(tipo, precio) {
     document.getElementById('cobroPrecio').textContent = formatNumber(precio);
 }
 
-// ==================== CERRAR MODAL ====================
 function cerrarModalCobro() {
     const modal = document.getElementById('cobroModal');
     if (modal) {
-        modal.style.display = 'none';
-        modal.style.visibility = 'hidden';
-        modal.style.opacity = '0';
+        // CAMBIO: modal.style.display/visibility/opacity → modal.classList.remove('show')
+        modal.classList.remove('show');
         document.body.style.overflow = 'auto';
     }
     currentCobroRegistroId = null;
@@ -902,10 +788,7 @@ async function procesarCobro() {
 
         const response = await fetch(`${API_BASE_URL}/confirmar-cobro/${currentCobroRegistroId}`, {
             method: 'POST',
-            headers: {
-                'Content-Type': 'application/json'
-                // Removido: 'Authorization': `Bearer ${getToken()}`
-            },
+            headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
                 metodoPago: metodoPago,
                 tipoTarifa: tipoTarifa.value
@@ -918,11 +801,8 @@ async function procesarCobro() {
         }
 
         const data = await response.json();
-
         showNotification(`✅ Cobro: ${formatNumber(data.precio)} - ${data.tipoTarifaAplicada}`, 'success');
-
         cerrarModalCobro();
-
         await loadPendientesCobro();
         await loadIndicadores();
 
@@ -935,12 +815,12 @@ async function procesarCobro() {
 // ==================== HISTORIAL ====================
 async function loadHistorial() {
     try {
-        const fecha = document.getElementById('filtroFecha')?.value || '';
+        const fecha  = document.getElementById('filtroFecha')?.value  || '';
         const estado = document.getElementById('filtroEstado')?.value || '';
 
         let url = `${API_BASE_URL}/historial`;
         const params = new URLSearchParams();
-        if (fecha) params.append('fecha', fecha);
+        if (fecha)  params.append('fecha', fecha);
         if (estado) params.append('estado', estado);
         if (params.toString()) url += '?' + params.toString();
 
@@ -954,8 +834,7 @@ async function loadHistorial() {
         if (!response.ok) throw new Error('Error');
 
         const registros = await response.json();
-        const tbody = document.getElementById('historialBody');
-
+        const tbody     = document.getElementById('historialBody');
         if (!tbody) return;
 
         if (registros.length === 0) {
@@ -964,11 +843,12 @@ async function loadHistorial() {
         }
 
         tbody.innerHTML = registros.map(r => {
+            // CAMBIO: 'badge badge-*' → 'trab-badge trab-badge-*'
             let badge = '';
-            if (r.estado === 'ACTIVO') badge = '<span class="badge badge-info">Activo</span>';
-            else if (r.estado === 'FINALIZADO') badge = '<span class="badge badge-warning">Pendiente</span>';
-            else if (r.estado === 'COBRADO') badge = '<span class="badge badge-success">Cobrado</span>';
-            else badge = '<span class="badge badge-danger">Cancelado</span>';
+            if      (r.estado === 'ACTIVO')     badge = '<span class="trab-badge trab-badge-info">Activo</span>';
+            else if (r.estado === 'FINALIZADO') badge = '<span class="trab-badge trab-badge-warning">Pendiente</span>';
+            else if (r.estado === 'COBRADO')    badge = '<span class="trab-badge trab-badge-success">Cobrado</span>';
+            else                                badge = '<span class="trab-badge trab-badge-danger">Cancelado</span>';
 
             return `
                 <tr>
@@ -980,7 +860,7 @@ async function loadHistorial() {
                     <td>${r.horaSalida ? formatDateTime(r.horaSalida) : '-'}</td>
                     <td>${r.tiempoTotal}</td>
                     <td>${r.precio ? '$' + formatNumber(r.precio) : '-'}</td>
-                <td>${badge}</td>
+                    <td>${badge}</td>
                 </tr>
             `;
         }).join('');
@@ -995,16 +875,15 @@ async function loadReservaciones() {
     try {
         const response = await fetch(`${API_BASE_URL}/reservaciones`, {
             headers: {
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer ${getToken()}`
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${getToken()}`
             }
-            });
+        });
 
         if (!response.ok) throw new Error('Error');
 
         const reservas = await response.json();
-        const tbody = document.getElementById('reservacionesBody');
-
+        const tbody    = document.getElementById('reservacionesBody');
         if (!tbody) return;
 
         if (reservas.length === 0) {
@@ -1020,10 +899,12 @@ async function loadReservaciones() {
                 <td>${r.tipoVehiculo}</td>
                 <td>${formatDateTime(r.horaInicio)}</td>
                 <td>${formatDateTime(r.horaFin)}</td>
-                <td><span class="badge badge-info">${r.cupo}</span></td>
+                <!-- CAMBIO: 'badge badge-info' → 'trab-badge trab-badge-info' -->
+                <td><span class="trab-badge trab-badge-info">${r.cupo}</span></td>
                 <td>
-                    <button class="btn-success btn-aceptar" data-id="${r.id}">Aceptar</button>
-                    <button class="btn-danger btn-rechazar" data-id="${r.id}">Rechazar</button>
+                    <!-- CAMBIO: btn-success/danger → trab-btn-* (mantiene btn-aceptar/rechazar) -->
+                    <button class="trab-btn-success btn-aceptar" data-id="${r.id}">Aceptar</button>
+                    <button class="trab-btn-danger  btn-rechazar" data-id="${r.id}">Rechazar</button>
                 </td>
             </tr>
         `).join('');
@@ -1045,10 +926,7 @@ async function aceptarReservacion(id) {
             }
         });
 
-
-
         showNotification('✅ Reservación aceptada', 'success');
-
         await loadReservaciones();
         await loadVehiculosActivos();
         await loadIndicadores();
@@ -1082,73 +960,46 @@ async function rechazarReservacion(id) {
     }
 }
 
-// ==================== FUNCIONES PARA PLANTILLA ====================
+// ==================== PLANTILLAS EXCEL ====================
 function descargarPlantillaCompleta() {
-    // Verificar que XLSX esté disponible
     if (typeof XLSX === 'undefined') {
-        showNotification('❌ Error: Librería XLSX no está cargada. Recarga la página.', 'error');
+        showNotification('❌ Error: Librería XLSX no está cargada.', 'error');
         return;
     }
 
     const wb = XLSX.utils.book_new();
 
-    // ===== HOJA 1: TODOS LOS DATOS EN UNA SOLA HOJA =====
     const datosMixtos = [
         ['Tipo', 'Dato1', 'Dato2', 'Dato3', 'Dato4', 'Dato5', 'Dato6'],
-        // Clientes primero
-        ['Cliente', 'Juan Pérez Ejemplo', '3001234589', 'juan.perez.nuevo@gmail.com', '1234567899', '', ''],
-        ['Cliente', 'María González Ejemplo', '3007654321', 'maria.gonzalez.nueva@gmail.com', '0987654322', '', ''],
-        ['Cliente', 'Carlos López Ejemplo', '3005432109', 'carlos.lopez.nuevo@gmail.com', '1122334456', '', ''],
-        // Vehículos después
-        ['Vehiculo', 'ABC123', 'CARRO', 'TOYOTA', 'Blanco', '2020', 'juan.perez.nuevo@gmail.com'],
-        ['Vehiculo', 'XYZ789', 'MOTO', 'HONDA', 'Negro', '2021', 'maria.gonzalez.nueva@gmail.com'],
-        ['Vehiculo', 'DEF456', 'CARRO', 'CHEVROLET', 'Rojo', '2019', 'carlos.lopez.nuevo@gmail.com']
+        ['Cliente', 'Juan Pérez Ejemplo',    '3001234589', 'juan.perez.nuevo@gmail.com',    '1234567899', '', ''],
+        ['Cliente', 'María González Ejemplo','3007654321', 'maria.gonzalez.nueva@gmail.com','0987654322', '', ''],
+        ['Cliente', 'Carlos López Ejemplo',  '3005432109', 'carlos.lopez.nuevo@gmail.com',  '1122334456', '', ''],
+        ['Vehiculo', 'ABC123', 'CARRO',     'TOYOTA',    'Blanco', '2020', 'juan.perez.nuevo@gmail.com'],
+        ['Vehiculo', 'XYZ789', 'MOTO',      'HONDA',     'Negro',  '2021', 'maria.gonzalez.nueva@gmail.com'],
+        ['Vehiculo', 'DEF456', 'CARRO',     'CHEVROLET', 'Rojo',   '2019', 'carlos.lopez.nuevo@gmail.com']
     ];
 
     const wsDatos = XLSX.utils.aoa_to_sheet(datosMixtos);
     wsDatos['!cols'] = [
-        { wch: 10 },  // Tipo
-        { wch: 25 },  // Dato1: Nombre o Placa
-        { wch: 15 },  // Dato2: Teléfono o TipoVeh
-        { wch: 30 },  // Dato3: Email o Marca
-        { wch: 15 },  // Dato4: Cédula o Color
-        { wch: 10 },  // Dato5: Año (vacío para clientes)
-        { wch: 30 }   // Dato6: Email Cliente (vacío para clientes)
+        { wch: 10 }, { wch: 25 }, { wch: 15 }, { wch: 30 },
+        { wch: 15 }, { wch: 10 }, { wch: 30 }
     ];
     XLSX.utils.book_append_sheet(wb, wsDatos, 'Datos');
 
-    // ===== HOJA 2: INSTRUCCIONES =====
     const instrucciones = [
         ['INSTRUCCIONES PARA LA CARGA MASIVA'],
         [''],
         ['IMPORTANTE: Todo debe estar en UNA SOLA HOJA llamada "Datos"'],
         [''],
-        ['El sistema procesa automáticamente en este orden:'],
-        ['1. Primero registra TODOS los CLIENTES'],
-        ['2. Luego registra TODOS los VEHÍCULOS'],
-        [''],
-        ['Puedes mezclar filas de clientes y vehículos en cualquier orden.'],
-        ['El sistema se encargará de procesarlos correctamente.'],
-        [''],
         ['FORMATO DE CLIENTES:'],
-        ['Columnas: Tipo | Nombre | Teléfono | Email | Cédula | (vacío) | (vacío)'],
-        ['Ejemplo: Cliente | Juan Pérez | 3001234567 | juan@email.com | 1234567890 | | '],
+        ['Columnas: Tipo | Nombre | Teléfono | Email | Cédula'],
         [''],
         ['FORMATO DE VEHÍCULOS:'],
         ['Columnas: Tipo | Placa | TipoVeh | Marca | Color | Año | EmailCliente'],
-        ['Ejemplo: Vehiculo | ABC123 | CARRO | TOYOTA | Rojo | 2020 | juan@email.com'],
         [''],
-        ['TIPOS DE VEHÍCULO VÁLIDOS:'],
-        ['CARRO, MOTO, BICICLETA, OTRO'],
+        ['TIPOS DE VEHÍCULO VÁLIDOS: CARRO, MOTO, BICICLETA, OTRO'],
         [''],
-        ['MARCAS VÁLIDAS:'],
-        ['TOYOTA, CHEVROLET, MAZDA, KIA, NISSAN, HONDA, FORD, HYUNDAI, SUZUKI'],
-        [''],
-        ['IMPORTANTE: Evita duplicados:'],
-        ['- No uses cédulas que ya existan'],
-        ['- No uses emails que ya estén registrados'],
-        ['- No uses placas que ya estén registradas'],
-        ['- Los registros duplicados serán omitidos automáticamente']
+        ['IMPORTANTE: Evita duplicados (cédulas, emails y placas ya registradas)']
     ];
 
     const wsInstrucciones = XLSX.utils.aoa_to_sheet(instrucciones);
@@ -1161,7 +1012,7 @@ function descargarPlantillaCompleta() {
 
 function descargarPlantillaVehiculosSolo() {
     if (typeof XLSX === 'undefined') {
-        showNotification('❌ Error: Librería XLSX no está cargada. Recarga la página.', 'error');
+        showNotification('❌ Error: Librería XLSX no está cargada.', 'error');
         return;
     }
 
@@ -1169,48 +1020,25 @@ function descargarPlantillaVehiculosSolo() {
 
     const datosVehiculos = [
         ['Tipo', 'Placa', 'Tipo Vehículo', 'Marca', 'Color', 'Año', 'Email Cliente'],
-        ['Vehiculo', 'ABC123', 'CARRO', 'TOYOTA', 'Blanco', '2020', 'cliente1@gmail.com'],
-        ['Vehiculo', 'XYZ789', 'MOTO', 'HONDA', 'Negro', '2021', 'cliente2@gmail.com'],
-        ['Vehiculo', 'DEF456', 'CARRO', 'CHEVROLET', 'Rojo', '2019', 'cliente3@gmail.com'],
-        ['Vehiculo', 'GHI789', 'BICICLETA', 'SUZUKI', 'Azul', '2022', 'cliente1@gmail.com'],
-        ['Vehiculo', 'JKL012', 'CARRO', 'MAZDA', 'Gris', '2023', 'cliente2@gmail.com']
+        ['Vehiculo', 'ABC123', 'CARRO',     'TOYOTA',    'Blanco', '2020', 'cliente1@gmail.com'],
+        ['Vehiculo', 'XYZ789', 'MOTO',      'HONDA',     'Negro',  '2021', 'cliente2@gmail.com'],
+        ['Vehiculo', 'DEF456', 'CARRO',     'CHEVROLET', 'Rojo',   '2019', 'cliente3@gmail.com'],
+        ['Vehiculo', 'GHI789', 'BICICLETA', 'SUZUKI',    'Azul',   '2022', 'cliente1@gmail.com'],
+        ['Vehiculo', 'JKL012', 'CARRO',     'MAZDA',     'Gris',   '2023', 'cliente2@gmail.com']
     ];
 
     const ws = XLSX.utils.aoa_to_sheet(datosVehiculos);
     ws['!cols'] = [
-        { wch: 10 },  // Tipo
-        { wch: 10 },  // Placa
-        { wch: 15 },  // Tipo Vehículo
-        { wch: 12 },  // Marca
-        { wch: 10 },  // Color
-        { wch: 8 },   // Año
-        { wch: 28 }   // Email Cliente
+        { wch: 10 }, { wch: 10 }, { wch: 15 }, { wch: 12 },
+        { wch: 10 }, { wch: 8 },  { wch: 28 }
     ];
-
     XLSX.utils.book_append_sheet(wb, ws, 'Datos');
 
-    // Agregar hoja de referencia
     const referencia = [
-        ['TIPOS DE VEHÍCULO VÁLIDOS:'],
-        ['CARRO'],
-        ['MOTO'],
-        ['BICICLETA'],
-        ['OTRO'],
+        ['TIPOS DE VEHÍCULO: CARRO, MOTO, BICICLETA, OTRO'],
         [''],
-        ['MARCAS VÁLIDAS:'],
-        ['TOYOTA'],
-        ['CHEVROLET'],
-        ['MAZDA'],
-        ['KIA'],
-        ['NISSAN'],
-        ['HONDA'],
-        ['FORD'],
-        ['HYUNDAI'],
-        ['SUZUKI'],
-        [''],
-        ['NOTA: El email del cliente debe existir previamente en el sistema']
+        ['NOTA: El email del cliente debe existir en el sistema']
     ];
-
     const wsRef = XLSX.utils.aoa_to_sheet(referencia);
     wsRef['!cols'] = [{ wch: 50 }];
     XLSX.utils.book_append_sheet(wb, wsRef, 'Referencia');
@@ -1221,7 +1049,7 @@ function descargarPlantillaVehiculosSolo() {
 
 function mostrarArchivoSeleccionado() {
     const fileInput = document.getElementById('excelFile');
-    const infoDiv = document.getElementById('archivoSeleccionado');
+    const infoDiv   = document.getElementById('archivoSeleccionado');
 
     if (fileInput?.files[0]) {
         const file = fileInput.files[0];
@@ -1233,10 +1061,10 @@ function mostrarArchivoSeleccionado() {
     }
 }
 
-// ==================== CARGA MASIVA (SIN RESERVAS) ====================
+// ==================== CARGA MASIVA ====================
 async function cargarExcel() {
     const fileInput = document.getElementById('excelFile');
-    const file = fileInput?.files[0];
+    const file      = fileInput?.files[0];
 
     if (!file) {
         showNotification('⚠️ Por favor seleccione un archivo Excel', 'warning');
@@ -1251,14 +1079,14 @@ async function cargarExcel() {
 
     try {
         const progressContainer = document.getElementById('progressContainer');
-        const progressBar = document.getElementById('progressBar');
-        const progressText = document.getElementById('progressText');
+        const progressBar       = document.getElementById('progressBar');
+        const progressText      = document.getElementById('progressText');
 
         if (progressContainer) {
             progressContainer.style.display = 'block';
-            progressBar.style.width = '30%';
-            progressBar.textContent = '30%';
-            progressText.textContent = 'Subiendo archivo...';
+            progressBar.style.width         = '30%';
+            progressBar.textContent         = '30%';
+            progressText.textContent        = 'Subiendo archivo...';
         }
 
         const formData = new FormData();
@@ -1266,15 +1094,13 @@ async function cargarExcel() {
 
         const response = await fetch(`${API_BASE_URL}/carga-masiva`, {
             method: 'POST',
-            headers: {
-                'Authorization': `Bearer ${getToken()}`
-            },
+            headers: { 'Authorization': `Bearer ${getToken()}` },
             body: formData
         });
 
         if (progressBar) {
-            progressBar.style.width = '70%';
-            progressBar.textContent = '70%';
+            progressBar.style.width  = '70%';
+            progressBar.textContent  = '70%';
             progressText.textContent = 'Procesando datos...';
         }
 
@@ -1286,16 +1112,16 @@ async function cargarExcel() {
         const data = await response.json();
 
         if (progressBar) {
-            progressBar.style.width = '100%';
-            progressBar.textContent = '100%';
+            progressBar.style.width  = '100%';
+            progressBar.textContent  = '100%';
             progressText.textContent = '✅ Completado';
         }
 
         mostrarResultadosCarga(data);
 
         const mensaje = data.tieneErrores
-            ? `⚠️ Carga completada con ${data.errores.length} error(es). Total procesados: ${data.totalRegistros || 0}`
-            : `✅ Carga completada exitosamente: ${data.totalRegistros || 0} registros procesados`;
+            ? `⚠️ Carga con ${data.errores.length} error(es). Total: ${data.totalRegistros || 0}`
+            : `✅ Carga exitosa: ${data.totalRegistros || 0} registros`;
 
         showNotification(mensaje, data.tieneErrores ? 'warning' : 'success');
 
@@ -1309,34 +1135,32 @@ async function cargarExcel() {
     } catch (error) {
         console.error('Error:', error);
         showNotification(`❌ Error: ${error.message}`, 'error');
-
         const progressContainer = document.getElementById('progressContainer');
         if (progressContainer) progressContainer.style.display = 'none';
     }
 }
 
 function mostrarResultadosCarga(data) {
-    const resultadosDiv = document.getElementById('resultadosCarga');
-    const resumenDiv = document.getElementById('resumenCarga');
-    const tbody = document.getElementById('resultadosCargaBody');
+    const resultadosDiv    = document.getElementById('resultadosCarga');
+    const resumenDiv       = document.getElementById('resumenCarga');
+    const tbody            = document.getElementById('resultadosCargaBody');
     const erroresContainer = document.getElementById('erroresContainer');
-    const listaErrores = document.getElementById('listaErrores');
+    const listaErrores     = document.getElementById('listaErrores');
 
     if (resultadosDiv) resultadosDiv.style.display = 'block';
 
-    // Mostrar resumen (SIN RESERVACIONES)
     if (resumenDiv) {
         resumenDiv.innerHTML = `
             <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem;">
-                <div style="background: linear-gradient(135deg, #d1fae5, #a7f3d0); padding: 1.5rem; border-radius: 0.75rem; text-align: center; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
+                <div style="background: linear-gradient(135deg, #d1fae5, #a7f3d0); padding: 1.5rem; border-radius: 0.75rem; text-align: center;">
                     <div style="font-size: 2rem; font-weight: 700; color: #065f46;">${data.clientesRegistrados || 0}</div>
                     <div style="font-size: 0.9rem; color: #047857; font-weight: 600;">Clientes Registrados</div>
                 </div>
-                <div style="background: linear-gradient(135deg, #dbeafe, #bfdbfe); padding: 1.5rem; border-radius: 0.75rem; text-align: center; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
+                <div style="background: linear-gradient(135deg, #dbeafe, #bfdbfe); padding: 1.5rem; border-radius: 0.75rem; text-align: center;">
                     <div style="font-size: 2rem; font-weight: 700; color: #1e40af;">${data.vehiculosRegistrados || 0}</div>
                     <div style="font-size: 0.9rem; color: #1e3a8a; font-weight: 600;">Vehículos Registrados</div>
                 </div>
-                <div style="background: linear-gradient(135deg, #e0e7ff, #c7d2fe); padding: 1.5rem; border-radius: 0.75rem; text-align: center; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
+                <div style="background: linear-gradient(135deg, #e0e7ff, #c7d2fe); padding: 1.5rem; border-radius: 0.75rem; text-align: center;">
                     <div style="font-size: 2rem; font-weight: 700; color: #4338ca;">${data.totalRegistros || 0}</div>
                     <div style="font-size: 0.9rem; color: #3730a3; font-weight: 600;">Total Registros</div>
                 </div>
@@ -1344,42 +1168,41 @@ function mostrarResultadosCarga(data) {
         `;
     }
 
-    // Mostrar errores si los hay
     if (data.errores && data.errores.length > 0) {
         if (erroresContainer) erroresContainer.style.display = 'block';
         if (listaErrores) {
-            listaErrores.innerHTML = data.errores.map(error => `<li>${error}</li>`).join('');
+            listaErrores.innerHTML = data.errores.map(e => `<li>${e}</li>`).join('');
         }
     } else {
         if (erroresContainer) erroresContainer.style.display = 'none';
     }
 
-    // Mostrar tabla de registros (SIN RESERVACIONES)
     if (tbody && data.registrosCargados) {
         tbody.innerHTML = data.registrosCargados.map(r => {
             if (r.tipo === 'Vehículo' || r.tipo === 'Vehiculo') {
                 return `
                     <tr>
-                        <td><span class="badge badge-info">🚗 ${r.tipo}</span></td>
+                        <!-- CAMBIO: 'badge badge-info' → 'trab-badge trab-badge-info' -->
+                        <td><span class="trab-badge trab-badge-info">🚗 ${r.tipo}</span></td>
                         <td><strong>${r.placa || 'N/A'}</strong></td>
                         <td>
                             <strong>${r.marca || 'N/A'}</strong> ${r.tipoVehiculo || ''}<br>
                             <small style="color: #64748b;">Color: ${r.color || 'N/A'} - Año: ${r.año || 'N/A'}</small><br>
                             <small style="color: #64748b;">Propietario: ${r.propietario || 'N/A'}</small>
                         </td>
-                        <td><span class="badge badge-success">✓ Registrado</span></td>
+                        <td><span class="trab-badge trab-badge-success">✓ Registrado</span></td>
                     </tr>
                 `;
             } else if (r.tipo === 'Cliente') {
                 return `
                     <tr>
-                        <td><span class="badge badge-success">🧑‍💼 ${r.tipo}</span></td>
+                        <td><span class="trab-badge trab-badge-success">🧑‍💼 ${r.tipo}</span></td>
                         <td><strong>${r.nombre || 'N/A'}</strong></td>
                         <td>
                             ${r.email || 'N/A'}<br>
                             <small style="color: #64748b;">Tel: ${r.telefono || 'N/A'} - Cédula: ${r.cedula || 'N/A'}</small>
                         </td>
-                        <td><span class="badge badge-success">✓ Registrado</span></td>
+                        <td><span class="trab-badge trab-badge-success">✓ Registrado</span></td>
                     </tr>
                 `;
             }
@@ -1387,6 +1210,7 @@ function mostrarResultadosCarga(data) {
         }).join('');
     }
 }
+
 // ==================== DELEGACIÓN DE EVENTOS ====================
 function setupGlobalEventDelegation() {
     console.log('🎯 Configurando delegación de eventos global');
@@ -1395,34 +1219,31 @@ function setupGlobalEventDelegation() {
         if (e.target.closest('.btn-salida')) {
             e.preventDefault();
             const btn = e.target.closest('.btn-salida');
-            const id = parseInt(btn.dataset.id);
+            const id  = parseInt(btn.dataset.id);
             console.log('🚪 Click SALIDA, ID:', id);
             abrirModalSalida(id);
             return;
         }
-
         if (e.target.closest('.btn-cobrar')) {
             e.preventDefault();
             const btn = e.target.closest('.btn-cobrar');
-            const id = parseInt(btn.dataset.id);
+            const id  = parseInt(btn.dataset.id);
             console.log('💰 Click COBRAR, ID:', id);
             abrirModalCobro(id);
             return;
         }
-
         if (e.target.closest('.btn-aceptar')) {
             e.preventDefault();
             const btn = e.target.closest('.btn-aceptar');
-            const id = btn.dataset.id;
+            const id  = btn.dataset.id;
             console.log('✅ Click ACEPTAR, ID:', id);
             aceptarReservacion(id);
             return;
         }
-
         if (e.target.closest('.btn-rechazar')) {
             e.preventDefault();
             const btn = e.target.closest('.btn-rechazar');
-            const id = btn.dataset.id;
+            const id  = btn.dataset.id;
             console.log('❌ Click RECHAZAR, ID:', id);
             rechazarReservacion(id);
             return;
@@ -1433,129 +1254,41 @@ function setupGlobalEventDelegation() {
 // ==================== EVENTOS GLOBALES ====================
 document.addEventListener('keydown', (e) => {
     if (e.key === 'Escape') {
-        const cobro = document.getElementById('cobroModal');
+        const cobro  = document.getElementById('cobroModal');
         const salida = document.getElementById('salidaModal');
-        if (cobro && cobro.style.display === 'block') cerrarModalCobro();
-        if (salida && salida.style.display === 'block') cerrarModalSalida();
+        // CAMBIO: .style.display === 'block' → .classList.contains('show')
+        if (cobro  && cobro.classList.contains('show'))  cerrarModalCobro();
+        if (salida && salida.classList.contains('show')) cerrarModalSalida();
     }
 });
 
 window.addEventListener('click', (e) => {
-    const cobro = document.getElementById('cobroModal');
+    const cobro  = document.getElementById('cobroModal');
     const salida = document.getElementById('salidaModal');
-    if (e.target === cobro) cerrarModalCobro();
+    if (e.target === cobro)  cerrarModalCobro();
     if (e.target === salida) cerrarModalSalida();
 });
 
-// ==================== ESTILOS PARA MODALES ====================
+// ==================== ESTILOS — Solo animaciones del toast ====================
 function injectModalStyles() {
     if (document.getElementById('modal-styles')) return;
 
     const style = document.createElement('style');
     style.id = 'modal-styles';
+    // CAMBIO: Solo se mantienen los keyframes del toast y las clases de validación.
+    // Todo lo referente a .modal/.modal-content/.modal-header/.close fue eliminado
+    // porque los modales en el HTML usan .trab-modal/.trab-modal-content/.trab-modal-header
+    // cuyos estilos ya están en trabajador.css
     style.textContent = `
-        @keyframes slideIn { from { transform: translateX(400px); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
+        @keyframes slideIn  { from { transform: translateX(400px); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
         @keyframes slideOut { from { transform: translateX(0); opacity: 1; } to { transform: translateX(400px); opacity: 0; } }
-        .error-message { color: #DC2626; font-size: 0.8rem; margin-top: 0.25rem; display: block; }
-        .success-message { color: #059669; font-size: 0.8rem; margin-top: 0.25rem; display: block; }
-        .border-red-500 { border-color: #ef4444 !important; box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.1); }
+        .border-red-500   { border-color: #ef4444 !important; box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.1); }
         .border-green-500 { border-color: #10b981 !important; box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.1); }
-        
-        /* ESTILOS MODALES - SIN !important EN DISPLAY */
-        .modal {
-            display: none;  /* ← SIN !important aquí */
-            position: fixed !important;
-            z-index: 999999 !important;
-            left: 0 !important;
-            top: 0 !important;
-            width: 100% !important;
-            height: 100% !important;
-            overflow: auto !important;
-            background-color: rgba(0, 0, 0, 0.6) !important;
-            backdrop-filter: blur(2px) !important;
-        }
-        
-        /* Específico para cada modal cuando está visible */
-        #cobroModal[style*="display: block"],
-        #salidaModal[style*="display: block"] {
-            display: block !important;
-        }
-        
-        .modal-content {
-            background-color: #ffffff !important;
-            margin: 5% auto !important;
-            padding: 0 !important;
-            border: 1px solid #888 !important;
-            border-radius: 8px !important;
-            width: 90% !important;
-            max-width: 600px !important;
-            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.5) !important;
-            position: relative !important;
-            z-index: 1000000 !important;
-            pointer-events: auto !important;
-        }
-        
-        .modal-header {
-            padding: 1.5rem !important;
-            border-bottom: 1px solid #e5e7eb !important;
-            margin-bottom: 0 !important;
-            display: flex !important;
-            justify-content: space-between !important;
-            align-items: center !important;
-            background: #f9fafb !important;
-            border-radius: 8px 8px 0 0 !important;
-        }
-        
-        .modal-header h2 {
-            margin: 0 !important;
-            font-size: 1.5rem !important;
-            color: #1f2937 !important;
-            font-weight: 700 !important;
-        }
-        
-        .modal-content > div:not(.modal-header) {
-            padding: 1.5rem !important;
-        }
-        
-        .close {
-            color: #6b7280 !important;
-            font-size: 32px !important;
-            font-weight: bold !important;
-            cursor: pointer !important;
-            line-height: 1 !important;
-            transition: color 0.2s !important;
-            background: none !important;
-            border: none !important;
-            padding: 0 !important;
-            width: 32px !important;
-            height: 32px !important;
-            display: flex !important;
-            align-items: center !important;
-            justify-content: center !important;
-        }
-        
-        .close:hover,
-        .close:focus {
-            color: #ef4444 !important;
-            transform: scale(1.1) !important;
-        }
-        
-        /* Asegurar que los elementos interactivos funcionen */
-        .modal button,
-        .modal input,
-        .modal select,
-        .modal label {
-            pointer-events: auto !important;
-            cursor: pointer !important;
-            z-index: 1000001 !important;
-            position: relative !important;
-        }
     `;
     document.head.appendChild(style);
 }
 
 injectModalStyles();
-//document.head.appendChild(style);
 
 // ==================== INICIALIZACIÓN ====================
 document.addEventListener('DOMContentLoaded', () => {
@@ -1570,7 +1303,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
     updateInterval = setInterval(() => {
         loadIndicadores();
-        const activeTab = document.querySelector('.sidebar-nav a.active')?.getAttribute('data-tab');
+        // CAMBIO: '.sidebar-nav a.active' → '.aparca-sidebar-nav a.active'
+        const activeTab = document.querySelector('.aparca-sidebar-nav a.active')?.getAttribute('data-tab');
         if (activeTab === 'gestion') {
             loadVehiculosActivos();
             loadPendientesCobro();
