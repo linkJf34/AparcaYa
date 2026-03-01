@@ -14,13 +14,15 @@
           rel="stylesheet" type="text/css" />
     <link rel="stylesheet" href="/css/base/aparca-animations.css" />
     <link rel="stylesheet" href="/css/components/aparca-components.css" />
-    <!-- ✅ CAMBIO: /css/pages/Registro.css → /css/pages/registro.css -->
     <link rel="stylesheet" href="/css/pages/registro.css" />
+    <!-- Leaflet para el mini-mapa de registro de sede -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 </head>
 
 <body class="bg-gradient-to-br from-blue-50 to-white min-h-screen flex items-center justify-center p-4">
 
-<!-- ENCABEZADO — Logo + título -->
+<!-- ENCABEZADO -->
 <section class="w-full max-w-4xl text-center mb-8 animate-fade-in-up">
     <div class="flex justify-center mb-4">
         <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
@@ -35,7 +37,7 @@
     <p class="text-blue-600">Crea tu cuenta paso a paso y reserva espacios en segundos.</p>
 </section>
 
-<!-- TARJETA PRINCIPAL DEL FORMULARIO -->
+<!-- TARJETA PRINCIPAL -->
 <main class="w-full max-w-2xl">
     <section class="card bg-white shadow-lg rounded-lg card-hover animate-fade-in-up p-6"
              role="main"
@@ -46,6 +48,24 @@
             <h1 id="registro-titulo" class="text-2xl font-bold text-blue-900">Crear cuenta</h1>
             <p class="text-blue-600">Selecciona tu rol y completa el formulario paso a paso</p>
         </header>
+
+        <div th:if="${error}"
+             class="flex items-start gap-3 mb-4 p-4 rounded-lg border
+                    bg-red-50 border-red-300 text-red-700 text-sm"
+             role="alert"
+             aria-live="assertive">
+            <span class="text-lg leading-none mt-0.5">❌</span>
+            <span th:text="${error}">Error del servidor</span>
+        </div>
+
+        <div th:if="${success}"
+             class="flex items-start gap-3 mb-4 p-4 rounded-lg border
+                    bg-green-50 border-green-300 text-green-700 text-sm"
+             role="alert"
+             aria-live="assertive">
+            <span class="text-lg leading-none mt-0.5">✅</span>
+            <span th:text="${success}">Operación exitosa</span>
+        </div>
 
         <!-- SELECTOR DE ROL -->
         <div class="role-selection flex justify-center gap-4 mb-6"
@@ -72,14 +92,12 @@
             </button>
         </div>
 
-
         <!-- FORMULARIO MULTI-PASO -->
         <form id="registroForm" class="form" novalidate
               action="/registrar" method="post"
               aria-labelledby="registro-titulo">
 
             <input type="hidden" name="rol" id="rolHidden" value="CLIENTE">
-
 
             <!-- PASO 1: INFORMACIÓN PERSONAL -->
             <div class="step active-step" id="step1">
@@ -98,7 +116,6 @@
                         <h3 class="text-lg font-semibold text-blue-700">Información Personal</h3>
                     </div>
 
-                    <!-- Nombre -->
                     <div class="form-row mb-4">
                         <label for="nombre" class="block text-sm font-medium text-gray-700">
                             Nombre completo
@@ -113,7 +130,6 @@
                         <span id="nombre-error" class="error-message" aria-live="polite"></span>
                     </div>
 
-                    <!-- Correo + Teléfono -->
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
                         <div>
                             <label for="correo" class="block text-sm font-medium text-gray-700">
@@ -122,7 +138,7 @@
                             <input id="correo" name="correo" type="email"
                                    placeholder="tu@ejemplo.com"
                                    required autocomplete="email"
-                                   aria-describedby="correo-error"
+                                   aria-describedby="correo-error correo-success"
                                    class="input input-bordered w-full border-blue-300
                                           focus:border-blue-500 focus:ring-blue-500 text-blue-700"/>
                             <span id="correo-error"   class="error-message"   aria-live="polite"></span>
@@ -137,7 +153,7 @@
                                    required pattern="[0-9]{10}"
                                    title="Ingresa un número de 10 dígitos"
                                    autocomplete="tel"
-                                   aria-describedby="telefono-error"
+                                   aria-describedby="telefono-error telefono-success"
                                    class="input input-bordered w-full border-blue-300
                                           focus:border-blue-500 focus:ring-blue-500 text-blue-700"/>
                             <span id="telefono-error"   class="error-message"   aria-live="polite"></span>
@@ -145,7 +161,6 @@
                         </div>
                     </div>
 
-                    <!-- Cédula + Contraseña -->
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
                         <div>
                             <label for="cedula" class="block text-sm font-medium text-gray-700">
@@ -156,7 +171,7 @@
                                    required pattern="[0-9]{10}"
                                    title="Ingresa una cédula de 10 dígitos"
                                    autocomplete="off"
-                                   aria-describedby="cedula-error"
+                                   aria-describedby="cedula-error cedula-success"
                                    class="input input-bordered w-full border-blue-300
                                           focus:border-blue-500 focus:ring-blue-500 text-blue-700"/>
                             <span id="cedula-error"   class="error-message"   aria-live="polite"></span>
@@ -179,37 +194,21 @@
                                     class="toggle-password absolute right-2 top-9
                                            text-gray-500 hover:text-gray-700"
                                     data-target="contrasena">
-                                <svg class="h-5 w-5 eye-open"
-                                     xmlns="http://www.w3.org/2000/svg" fill="none"
-                                     viewBox="0 0 24 24" stroke="currentColor">
-                                    <path stroke-linecap="round" stroke-linejoin="round"
-                                          stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
-                                    <path stroke-linecap="round" stroke-linejoin="round"
-                                          stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.477
-                                          0 8.268 2.943 9.542 7-1.274 4.057-5.065 7-9.542 7-4.477
-                                          0-8.268-2.943-9.542-7z"/>
+                                <svg class="h-5 w-5 eye-open" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.477 0 8.268 2.943 9.542 7-1.274 4.057-5.065 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/>
                                 </svg>
-                                <svg class="h-5 w-5 eye-closed hidden"
-                                     xmlns="http://www.w3.org/2000/svg" fill="none"
-                                     viewBox="0 0 24 24" stroke="currentColor">
-                                    <path stroke-linecap="round" stroke-linejoin="round"
-                                          stroke-width="2" d="M13.875 18.825A10.05 10.05 0 0112
-                                          19c-4.478 0-8.269-2.944-9.543-7a9.967 9.967 0
-                                          012.783-4.423m2.93-2.931A9.953 9.953 0 0112 5c4.478 0
-                                          8.269 2.944 9.543 7a9.965 9.965 0
-                                          01-3.494 4.705M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
-                                    <path stroke-linecap="round" stroke-linejoin="round"
-                                          stroke-width="2" d="M3 3l18 18"/>
+                                <svg class="h-5 w-5 eye-closed hidden" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.269-2.944-9.543-7a9.967 9.967 0 012.783-4.423m2.93-2.931A9.953 9.953 0 0112 5c4.478 0 8.269 2.944 9.543 7a9.965 9.965 0 01-3.494 4.705M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 3l18 18"/>
                                 </svg>
                             </button>
                             <span id="contrasena-error" class="error-message" aria-live="polite"></span>
                         </div>
                     </div>
 
-                    <!-- Confirmar contraseña -->
                     <div class="form-row mb-4 relative">
-                        <label for="confirmarContrasena"
-                               class="block text-sm font-medium text-gray-700">
+                        <label for="confirmarContrasena" class="block text-sm font-medium text-gray-700">
                             Confirmar contraseña
                         </label>
                         <input id="confirmarContrasena" name="confirmarContrasena"
@@ -225,27 +224,13 @@
                                 class="toggle-password absolute right-2 top-9
                                        text-gray-500 hover:text-gray-700"
                                 data-target="confirmarContrasena">
-                            <svg class="h-5 w-5 eye-open"
-                                 xmlns="http://www.w3.org/2000/svg" fill="none"
-                                 viewBox="0 0 24 24" stroke="currentColor">
-                                <path stroke-linecap="round" stroke-linejoin="round"
-                                      stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
-                                <path stroke-linecap="round" stroke-linejoin="round"
-                                      stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.477
-                                      0 8.268 2.943 9.542 7-1.274 4.057-5.065 7-9.542 7-4.477
-                                      0-8.268-2.943-9.542-7z"/>
+                            <svg class="h-5 w-5 eye-open" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.477 0 8.268 2.943 9.542 7-1.274 4.057-5.065 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/>
                             </svg>
-                            <svg class="h-5 w-5 eye-closed hidden"
-                                 xmlns="http://www.w3.org/2000/svg" fill="none"
-                                 viewBox="0 0 24 24" stroke="currentColor">
-                                <path stroke-linecap="round" stroke-linejoin="round"
-                                      stroke-width="2" d="M13.875 18.825A10.05 10.05 0 0112
-                                      19c-4.478 0-8.269-2.944-9.543-7a9.967 9.967 0
-                                      012.783-4.423m2.93-2.931A9.953 9.953 0 0112 5c4.478 0
-                                      8.269 2.944 9.543 7a9.965 9.965 0
-                                      01-3.494 4.705M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
-                                <path stroke-linecap="round" stroke-linejoin="round"
-                                      stroke-width="2" d="M3 3l18 18"/>
+                            <svg class="h-5 w-5 eye-closed hidden" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.269-2.944-9.543-7a9.967 9.967 0 012.783-4.423m2.93-2.931A9.953 9.953 0 0112 5c4.478 0 8.269 2.944 9.543 7a9.965 9.965 0 01-3.494 4.705M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 3l18 18"/>
                             </svg>
                         </button>
                         <span id="confirmar-error" class="error-message" aria-live="polite"></span>
@@ -259,7 +244,6 @@
                     </button>
                 </div>
             </div>
-            <!-- FIN PASO 1 -->
 
 
             <!-- PASO 2 CLIENTE: Datos del vehículo -->
@@ -276,15 +260,11 @@
                         Datos del vehículo (Cliente)
                     </legend>
 
-                    <!-- Placa + Tipo -->
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
                         <div>
-                            <label for="placa" class="block text-sm font-medium text-gray-700">
-                                Placa
-                            </label>
+                            <label for="placa" class="block text-sm font-medium text-gray-700">Placa</label>
                             <input id="placa" name="placa" type="text"
-                                   placeholder="ABC123"
-                                   required autocomplete="off"
+                                   placeholder="ABC123" required autocomplete="off"
                                    pattern="[A-Z]{3}[0-9]{3}"
                                    title="Formato: 3 letras mayúsculas seguidas de 3 números (ej. ABC123)"
                                    aria-describedby="placa-error"
@@ -294,9 +274,7 @@
                             <span id="placa-error" class="error-message" aria-live="polite"></span>
                         </div>
                         <div>
-                            <label for="tipoVehiculo" class="block text-sm font-medium text-gray-700">
-                                Tipo de vehículo
-                            </label>
+                            <label for="tipoVehiculo" class="block text-sm font-medium text-gray-700">Tipo de vehículo</label>
                             <select id="tipoVehiculo" name="tipoVehiculo" required
                                     class="select select-bordered w-full border-blue-300
                                            focus:border-blue-500 focus:ring-blue-500 text-blue-700">
@@ -310,12 +288,9 @@
                         </div>
                     </div>
 
-                    <!-- Marca + Color -->
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
                         <div>
-                            <label for="marca" class="block text-sm font-medium text-gray-700">
-                                Marca
-                            </label>
+                            <label for="marca" class="block text-sm font-medium text-gray-700">Marca</label>
                             <select id="marca" name="marca" required
                                     class="select select-bordered w-full border-blue-300
                                            focus:border-blue-500 focus:ring-blue-500 text-blue-700">
@@ -324,9 +299,7 @@
                             <span id="marca-error" class="error-message" aria-live="polite"></span>
                         </div>
                         <div>
-                            <label for="color" class="block text-sm font-medium text-gray-700">
-                                Color
-                            </label>
+                            <label for="color" class="block text-sm font-medium text-gray-700">Color</label>
                             <input id="color" name="color" type="text"
                                    placeholder="Rojo" autocomplete="off"
                                    class="input input-bordered w-full border-blue-300
@@ -334,11 +307,8 @@
                         </div>
                     </div>
 
-                    <!-- Año -->
                     <div class="form-row mb-4">
-                        <label for="anio" class="block text-sm font-medium text-gray-700">
-                            Año
-                        </label>
+                        <label for="anio" class="block text-sm font-medium text-gray-700">Año</label>
                         <input id="anio" name="anio" type="number"
                                min="1900" max="2025" placeholder="2020" autocomplete="off"
                                class="input input-bordered w-full border-blue-300
@@ -348,8 +318,7 @@
 
                 <div class="flex justify-between">
                     <button type="button" id="backCliente"
-                            class="btn btn-outline btn-secondary text-blue-700
-                                   border-blue-300 hover:bg-blue-50">
+                            class="btn btn-outline btn-secondary text-blue-700 border-blue-300 hover:bg-blue-50">
                         Atrás
                     </button>
                     <button type="button" id="nextCliente"
@@ -376,9 +345,7 @@
                     </legend>
 
                     <div class="form-row mb-4">
-                        <label for="nombreSede" class="block text-sm font-medium text-gray-700">
-                            Nombre de la sede
-                        </label>
+                        <label for="nombreSede" class="block text-sm font-medium text-gray-700">Nombre de la sede</label>
                         <input id="nombreSede" name="nombreSede" type="text"
                                placeholder="Sede Centro"
                                required minlength="3" maxlength="100"
@@ -396,17 +363,17 @@
                                required pattern="[0-9]{9}-[0-9]"
                                title="Formato: 123456789-0"
                                autocomplete="off"
-                               aria-describedby="nit-error"
+                               aria-describedby="nit-error nit-success"
                                class="input input-bordered w-full border-blue-300
                                       focus:border-blue-500 focus:ring-blue-500 text-blue-700" />
-                        <span id="nit-error" class="error-message" aria-live="polite"></span>
+                        <span id="nit-error"   class="error-message"   aria-live="polite"></span>
+                        <span id="nit-success" class="success-message" aria-live="polite"></span>
                     </div>
                 </fieldset>
 
                 <div class="flex justify-between">
                     <button type="button" id="backSede2"
-                            class="btn btn-outline btn-secondary text-blue-700
-                                   border-blue-300 hover:bg-blue-50">
+                            class="btn btn-outline btn-secondary text-blue-700 border-blue-300 hover:bg-blue-50">
                         Atrás
                     </button>
                     <button type="button" id="nextSede2"
@@ -417,7 +384,7 @@
             </div>
 
 
-            <!-- PASO 3 SEDE: Dirección -->
+            <!-- PASO 3 SEDE: Dirección + Mini-mapa -->
             <div class="step" id="stepSede3">
                 <fieldset class="mb-6">
                     <legend class="text-lg font-semibold text-blue-700 mb-4 flex items-center">
@@ -491,12 +458,30 @@
                             <span id="barrio-error" class="error-message" aria-live="polite"></span>
                         </div>
                     </div>
+
+                    <!-- MINI-MAPA DE CONFIRMACIÓN -->
+                    <div id="mapaRegistroWrapper" class="mt-2" style="display:none;">
+                        <div class="flex items-center justify-between mb-2">
+                            <label class="block text-sm font-medium text-gray-700">
+                                📍 Confirma la ubicación exacta
+                            </label>
+                            <span id="mapaRegistroEstado" class="text-xs text-blue-500 italic">
+                                Arrastrá el marcador si es necesario
+                            </span>
+                        </div>
+                        <div id="mapaRegistro"
+                             style="height:260px; border-radius:0.5rem; border:1px solid #93c5fd; z-index:0;">
+                        </div>
+                        <p class="text-xs text-gray-500 mt-1">
+                            Si el pin no está en la posición correcta, hacé click en el mapa o arrastralo al lugar exacto.
+                        </p>
+                    </div>
+
                 </fieldset>
 
                 <div class="flex justify-between">
                     <button type="button" id="backSede3"
-                            class="btn btn-outline btn-secondary text-blue-700
-                                   border-blue-300 hover:bg-blue-50">
+                            class="btn btn-outline btn-secondary text-blue-700 border-blue-300 hover:bg-blue-50">
                         Atrás
                     </button>
                     <button type="button" id="nextSede3"
@@ -520,11 +505,8 @@
                         Detalles Operativos de la Sede
                     </legend>
 
-                    <!-- Cupos totales -->
                     <div class="form-row mb-4">
-                        <label for="cuposTotales" class="block text-sm font-medium text-gray-700">
-                            Cupos totales
-                        </label>
+                        <label for="cuposTotales" class="block text-sm font-medium text-gray-700">Cupos totales</label>
                         <input id="cuposTotales" name="cuposTotales" type="number"
                                min="1" placeholder="50" required
                                aria-describedby="cupos-error"
@@ -533,7 +515,6 @@
                         <span id="cupos-error" class="error-message" aria-live="polite"></span>
                     </div>
 
-                    <!-- Tarifas -->
                     <div class="mb-6">
                         <h3 class="text-md font-semibold text-blue-700 mb-3 flex items-center">
                             <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
@@ -548,90 +529,60 @@
                             Tarifas
                         </h3>
 
-                        <!-- Tarifas Plenas -->
                         <div class="bg-blue-50 p-4 rounded-lg mb-4">
-                            <h4 class="text-sm font-semibold text-blue-800 mb-3">
-                                Tarifas Plenas (Todo el día)
-                            </h4>
+                            <h4 class="text-sm font-semibold text-blue-800 mb-3">Tarifas Plenas (Todo el día)</h4>
                             <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                                 <div>
-                                    <label for="tarifaPlenaC"
-                                           class="block text-sm font-medium text-gray-700 mb-1">
-                                        🚗 Tarifa Plena Carro
-                                    </label>
+                                    <label for="tarifaPlenaC" class="block text-sm font-medium text-gray-700 mb-1">🚗 Tarifa Plena Carro</label>
                                     <div class="relative">
-                                        <span class="absolute left-3 top-1/2 transform
-                                                     -translate-y-1/2 text-gray-500">$</span>
+                                        <span class="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-500">$</span>
                                         <input id="tarifaPlenaC" name="tarifaPlenaC"
                                                type="number" step="0.01" min="0.01"
                                                placeholder="15000" required
                                                aria-describedby="tarifaPlenaC-error"
-                                               class="input input-bordered w-full pl-7
-                                                      border-blue-300 focus:border-blue-500
-                                                      focus:ring-blue-500 text-blue-700" />
+                                               class="input input-bordered w-full pl-7 border-blue-300 focus:border-blue-500 focus:ring-blue-500 text-blue-700" />
                                     </div>
                                     <span id="tarifaPlenaC-error" class="error-message" aria-live="polite"></span>
                                 </div>
                                 <div>
-                                    <label for="tarifaPlenaM"
-                                           class="block text-sm font-medium text-gray-700 mb-1">
-                                        🏍️ Tarifa Plena Moto
-                                    </label>
+                                    <label for="tarifaPlenaM" class="block text-sm font-medium text-gray-700 mb-1">🏍️ Tarifa Plena Moto</label>
                                     <div class="relative">
-                                        <span class="absolute left-3 top-1/2 transform
-                                                     -translate-y-1/2 text-gray-500">$</span>
+                                        <span class="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-500">$</span>
                                         <input id="tarifaPlenaM" name="tarifaPlenaM"
                                                type="number" step="0.01" min="0.01"
                                                placeholder="8000" required
                                                aria-describedby="tarifaPlenaM-error"
-                                               class="input input-bordered w-full pl-7
-                                                      border-blue-300 focus:border-blue-500
-                                                      focus:ring-blue-500 text-blue-700" />
+                                               class="input input-bordered w-full pl-7 border-blue-300 focus:border-blue-500 focus:ring-blue-500 text-blue-700" />
                                     </div>
                                     <span id="tarifaPlenaM-error" class="error-message" aria-live="polite"></span>
                                 </div>
                             </div>
                         </div>
 
-                        <!-- Tarifas por Minuto -->
                         <div class="bg-green-50 p-4 rounded-lg">
-                            <h4 class="text-sm font-semibold text-green-800 mb-3">
-                                Tarifas por Minuto
-                            </h4>
+                            <h4 class="text-sm font-semibold text-green-800 mb-3">Tarifas por Minuto</h4>
                             <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                                 <div>
-                                    <label for="tarifaMinutoC"
-                                           class="block text-sm font-medium text-gray-700 mb-1">
-                                        🚗 Tarifa por Minuto Carro
-                                    </label>
+                                    <label for="tarifaMinutoC" class="block text-sm font-medium text-gray-700 mb-1">🚗 Tarifa por Minuto Carro</label>
                                     <div class="relative">
-                                        <span class="absolute left-3 top-1/2 transform
-                                                     -translate-y-1/2 text-gray-500">$</span>
+                                        <span class="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-500">$</span>
                                         <input id="tarifaMinutoC" name="tarifaMinutoC"
                                                type="number" step="0.01" min="0.01"
                                                placeholder="50" required
                                                aria-describedby="tarifaMinutoC-error"
-                                               class="input input-bordered w-full pl-7
-                                                      border-green-300 focus:border-green-500
-                                                      focus:ring-green-500 text-green-700" />
+                                               class="input input-bordered w-full pl-7 border-green-300 focus:border-green-500 focus:ring-green-500 text-green-700" />
                                     </div>
                                     <span id="tarifaMinutoC-error" class="error-message" aria-live="polite"></span>
                                 </div>
                                 <div>
-                                    <label for="tarifaMinutoM"
-                                           class="block text-sm font-medium text-gray-700 mb-1">
-                                        🏍️ Tarifa por Minuto Moto
-                                    </label>
+                                    <label for="tarifaMinutoM" class="block text-sm font-medium text-gray-700 mb-1">🏍️ Tarifa por Minuto Moto</label>
                                     <div class="relative">
-                                        <span class="absolute left-3 top-1/2 transform
-                                                     -translate-y-1/2 text-gray-500">$</span>
+                                        <span class="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-500">$</span>
                                         <input id="tarifaMinutoM" name="tarifaMinutoM"
                                                type="number" step="0.01" min="0.01"
                                                placeholder="30" required
                                                aria-describedby="tarifaMinutoM-error"
-                                               class="input input-bordered w-full pl-7
-                                                      border-green-300 focus:border-green-500
-                                                      focus:ring-green-500 text-green-700" />
+                                               class="input input-bordered w-full pl-7 border-green-300 focus:border-green-500 focus:ring-green-500 text-green-700" />
                                     </div>
                                     <span id="tarifaMinutoM-error" class="error-message" aria-live="polite"></span>
                                 </div>
@@ -639,11 +590,8 @@
                         </div>
                     </div>
 
-                    <!-- Horario -->
                     <div class="form-row mb-4">
-                        <label for="horarioSede" class="block text-sm font-medium text-gray-700">
-                            Horario
-                        </label>
+                        <label for="horarioSede" class="block text-sm font-medium text-gray-700">Horario</label>
                         <input id="horarioSede" name="horarioSede" type="text"
                                placeholder="7:00 - 22:00"
                                required minlength="5" maxlength="50"
@@ -657,8 +605,7 @@
 
                 <div class="flex justify-between">
                     <button type="button" id="backSede4"
-                            class="btn btn-outline btn-secondary text-blue-700
-                                   border-blue-300 hover:bg-blue-50">
+                            class="btn btn-outline btn-secondary text-blue-700 border-blue-300 hover:bg-blue-50">
                         Atrás
                     </button>
                     <button type="button" id="nextSede4"
@@ -676,8 +623,7 @@
 
                 <div class="flex justify-between">
                     <button type="button" id="backFinal"
-                            class="btn btn-outline btn-secondary text-blue-700
-                                   border-blue-300 hover:bg-blue-50">
+                            class="btn btn-outline btn-secondary text-blue-700 border-blue-300 hover:bg-blue-50">
                         Atrás
                     </button>
                     <button type="submit"
@@ -686,7 +632,6 @@
                     </button>
                 </div>
             </div>
-
 
             <!-- Enlace a login -->
             <div class="text-center mt-4">
@@ -698,8 +643,7 @@
                 </p>
             </div>
 
-            <!-- Mensaje de resultado -->
-            <div id="mensaje" class="mensaje" role="alert" aria-live="assertive"></div>
+            <div id="mensajeJS" class="mt-4" role="alert" aria-live="assertive"></div>
 
             <!-- Campos ocultos para sede -->
             <input type="hidden" name="hiddenNombreSede"   id="hiddenNombreSede">
@@ -713,10 +657,12 @@
             <input type="hidden" name="hiddenTarifaMinutoC" id="hiddenTarifaMinutoC">
             <input type="hidden" name="hiddenTarifaMinutoM" id="hiddenTarifaMinutoM">
             <input type="hidden" name="hiddenHorarioSede"   id="hiddenHorarioSede">
+            <!-- Coordenadas del mini-mapa -->
+            <input type="hidden" name="hiddenLatitud"  id="hiddenLatitud">
+            <input type="hidden" name="hiddenLongitud" id="hiddenLongitud">
         </form>
     </section>
 </main>
-
 
 <script src="/js/Registro.js"></script>
 

@@ -14,17 +14,22 @@ import java.util.Optional;
 
 @Repository
 public interface UsuarioRepository extends JpaRepository<Usuario, Long> {
+
     List<Usuario> findByRol(Rolenum rol);
     Optional<Usuario> findByCorreo(String correo);
     List<Usuario> findByEstado(EstadoGeneral estado);
     List<Usuario> findByTipoCliente(TipoCliente tipoCliente);
+
     @Query("SELECT u FROM Usuario u WHERE LOWER(u.nombre) LIKE LOWER(CONCAT('%', :nombre, '%'))")
     List<Usuario> findByNombreContainingIgnoreCase(@Param("nombre") String nombre);
 
-    // AGREGADO: Métodos para teléfono y cédula
     Optional<Usuario> findByTelefono(String telefono);
     Optional<Usuario> findByCedula(String cedula);
-
-    // AGREGADO: Método para buscar por múltiples roles
     List<Usuario> findByRolIn(List<Rolenum> roles);
+
+    // ✅ RIESGO #8: Queries de conteo directas en BD — eliminan findAll() en memoria
+    // Antes: usuarioRepository.findAll().stream().filter(...).count()
+    //        → cargaba TODA la tabla en memoria para contar
+    // Ahora: SELECT COUNT(*) WHERE estado = ? — operación O(1) en BD
+    long countByEstado(EstadoGeneral estado);
 }

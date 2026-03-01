@@ -1,14 +1,33 @@
 // ============================================
+// CLIENTED.JS — AparcaYA
+// Ruta: /js/ClienteD.js
+//
+// CAMBIOS APLICADOS:
+// ✅ FIX C-01: userId eliminado de sessionStorage — ya no se usa
+//             para construir el body de la reserva. El backend
+//             obtiene el usuario autenticado de SecurityContextHolder.
+// ✅ FIX C-03: cancelarReserva() lee data.message del backend
+//             en lugar de mostrar string hardcodeado.
+// ✅ FIX C-04: 11 alert()/confirm() reemplazados por toasts y
+//             modal de confirmación (mismo sistema que AdminD.js).
+// ✅ FIX JS:   crearReserva() envía vehiculoId en lugar de placa.
+//             La placa está en Vehiculo, no en Reservacion/Cupo.
+//             El modal ahora tiene un select de vehículos del cliente.
+// ============================================
+
+// ============================================
 // VARIABLES GLOBALES
 // ============================================
 let map = null;
 let marcadores = [];
 let sedes = [];
 let sedeSeleccionada = null;
-let ID_USUARIO_ACTUAL;
 
-if (typeof window.userId !== 'undefined') {
-    ID_USUARIO_ACTUAL = window.userId;
+// ✅ FIX C-01: ID_USUARIO_ACTUAL eliminado.
+// Ya no se envía en el body — el backend lo lee de SecurityContextHolder.
+// window.userId sigue disponible si se necesita para display (nombre, etc.)
+
+if (typeof window.sedesData !== 'undefined') {
     sedes = window.sedesData || [];
 }
 
@@ -60,20 +79,113 @@ const COORDENADAS_BARRIOS = {
 };
 
 const COORDENADAS_LOCALIDADES = {
-    'USAQUEN': { lat: 4.7110, lon: -74.0300 },
+    'USAQUEN':   { lat: 4.7110, lon: -74.0300 },
     'CHAPINERO': { lat: 4.6400, lon: -74.0620 },
-    'SANTA_FE': { lat: 4.6097, lon: -74.0730 },
-    'SUBA': { lat: 4.7500, lon: -74.0800 },
-    'KENNEDY': { lat: 4.6280, lon: -74.1550 }
+    'SANTA_FE':  { lat: 4.6097, lon: -74.0730 },
+    'SUBA':      { lat: 4.7500, lon: -74.0800 },
+    'KENNEDY':   { lat: 4.6280, lon: -74.1550 }
 };
+
+// ============================================
+// SISTEMA DE NOTIFICACIONES
+// ✅ FIX C-04: Reemplaza los 11 alert()/confirm() del código original.
+// Consistente con AdminD.js y loginD.js.
+// ============================================
+
+function showToast(mensaje, tipo = 'info', duracion = 4000) {
+    let contenedor = document.getElementById('toast-contenedor');
+    if (!contenedor) {
+        contenedor = document.createElement('div');
+        contenedor.id = 'toast-contenedor';
+        contenedor.style.cssText = [
+            'position:fixed', 'top:1.5rem', 'right:1.5rem',
+            'z-index:9999', 'display:flex', 'flex-direction:column', 'gap:0.5rem'
+        ].join(';');
+        document.body.appendChild(contenedor);
+    }
+
+    const palette = {
+        success: 'background:#f0fdf4;border:1px solid #86efac;color:#166534',
+        error:   'background:#fef2f2;border:1px solid #fca5a5;color:#991b1b',
+        warning: 'background:#fffbeb;border:1px solid #fcd34d;color:#92400e',
+        info:    'background:#eff6ff;border:1px solid #93c5fd;color:#1e40af'
+    };
+    const iconos = { success: '✅', error: '❌', warning: '⚠️', info: 'ℹ️' };
+
+    const toast = document.createElement('div');
+    toast.setAttribute('role', 'alert');
+    toast.setAttribute('aria-live', 'polite');
+    toast.style.cssText = [
+        palette[tipo] || palette.info,
+        'padding:0.75rem 1rem', 'border-radius:0.5rem',
+        'box-shadow:0 4px 12px rgba(0,0,0,.1)', 'font-size:0.875rem',
+        'display:flex', 'align-items:center', 'gap:0.5rem',
+        'max-width:360px', 'transition:opacity 0.3s'
+    ].join(';');
+    toast.innerHTML = `<span>${iconos[tipo] || ''}</span><span>${mensaje}</span>`;
+    contenedor.appendChild(toast);
+
+    setTimeout(() => {
+        toast.style.opacity = '0';
+        setTimeout(() => toast.remove(), 350);
+    }, duracion);
+}
+
+function showConfirm(titulo, cuerpo, btnTexto = 'Confirmar', btnColor = 'danger') {
+    return new Promise(resolve => {
+        let overlay = document.getElementById('confirm-overlay');
+        if (!overlay) {
+            overlay = document.createElement('div');
+            overlay.id = 'confirm-overlay';
+            overlay.style.cssText = [
+                'position:fixed', 'inset:0', 'z-index:10000',
+                'background:rgba(0,0,0,0.5)',
+                'display:flex', 'align-items:center', 'justify-content:center',
+                'padding:1rem'
+            ].join(';');
+            document.body.appendChild(overlay);
+        }
+
+        const btnColors = {
+            danger:  'background:#dc2626;color:#fff',
+            warning: 'background:#f59e0b;color:#fff'
+        };
+
+        overlay.innerHTML = `
+            <div role="dialog" aria-modal="true"
+                 style="background:#fff;border-radius:0.75rem;padding:2rem;max-width:420px;
+                        width:100%;box-shadow:0 20px 60px rgba(0,0,0,.3);">
+                <h3 style="font-size:1.125rem;font-weight:700;color:#0f172a;margin:0 0 0.75rem;">
+                    ${titulo}
+                </h3>
+                <p style="font-size:0.875rem;color:#64748b;margin:0 0 1.5rem;line-height:1.6;">
+                    ${cuerpo}
+                </p>
+                <div style="display:flex;justify-content:flex-end;gap:0.75rem;">
+                    <button id="confirm-cancel"
+                            style="padding:0.5rem 1.25rem;border:1px solid #e2e8f0;
+                                   border-radius:0.5rem;background:#fff;color:#374151;cursor:pointer;">
+                        Cancelar
+                    </button>
+                    <button id="confirm-ok"
+                            style="padding:0.5rem 1.25rem;border:none;border-radius:0.5rem;
+                                   ${btnColors[btnColor] || btnColors.danger};
+                                   cursor:pointer;font-weight:600;">
+                        ${btnTexto}
+                    </button>
+                </div>
+            </div>`;
+        overlay.style.display = 'flex';
+
+        document.getElementById('confirm-ok').onclick     = () => { overlay.style.display = 'none'; resolve(true);  };
+        document.getElementById('confirm-cancel').onclick = () => { overlay.style.display = 'none'; resolve(false); };
+    });
+}
 
 // ============================================
 // INICIALIZACIÓN
 // ============================================
-document.addEventListener('DOMContentLoaded', function() {
-    console.log('🚀 Iniciando aplicación cliente...');
-    console.log('Sedes cargadas:', sedes.length);
-
+document.addEventListener('DOMContentLoaded', function () {
     inicializarNavegacion();
     inicializarPerfilMenu();
     cargarDatosUsuario();
@@ -88,58 +200,56 @@ document.addEventListener('DOMContentLoaded', function() {
 // ============================================
 function inicializarNavegacion() {
     document.querySelectorAll('.aparca-sidebar-nav a').forEach(link => {
-        link.addEventListener('click', function(e) {
+        link.addEventListener('click', function (e) {
             e.preventDefault();
             const targetTab = this.getAttribute('data-tab');
 
-            document.querySelectorAll('.aparca-content-section').forEach(section => {
-                section.classList.add('hidden');
-            });
+            document.querySelectorAll('.aparca-content-section')
+                .forEach(s => s.classList.add('hidden'));
             document.getElementById(targetTab)?.classList.remove('hidden');
 
-            document.querySelectorAll('.aparca-sidebar-nav a').forEach(l => {
-                l.classList.remove('active');
-            });
+            document.querySelectorAll('.aparca-sidebar-nav a')
+                .forEach(l => { l.classList.remove('active'); l.removeAttribute('aria-current'); });
             this.classList.add('active');
+            this.setAttribute('aria-current', 'page');
 
-            if (targetTab === 'perfil' && map) {
-                setTimeout(() => map.invalidateSize(), 100);
-            }
+            if (targetTab === 'perfil' && map) setTimeout(() => map.invalidateSize(), 100);
         });
     });
 }
 
 function inicializarPerfilMenu() {
-    const profileBtn = document.getElementById('profileBtn');
+    const profileBtn      = document.getElementById('profileBtn');
     const profileDropdown = document.getElementById('profileDropdown');
 
     if (profileBtn && profileDropdown) {
-        profileBtn.addEventListener('click', function(e) {
+        profileBtn.addEventListener('click', function (e) {
             e.stopPropagation();
+            const expanded = this.getAttribute('aria-expanded') === 'true';
+            this.setAttribute('aria-expanded', !expanded);
             profileDropdown.classList.toggle('show');
         });
 
-        document.addEventListener('click', function(e) {
+        document.addEventListener('click', function (e) {
             if (!profileBtn.contains(e.target) && !profileDropdown.contains(e.target)) {
                 profileDropdown.classList.remove('show');
+                profileBtn.setAttribute('aria-expanded', 'false');
             }
         });
     }
 }
 
 // ============================================
-// CARGAR DATOS DEL USUARIO
+// DATOS DEL USUARIO
 // ============================================
 async function cargarDatosUsuario() {
     try {
-        const response = await fetch(`/cliente/perfil`);
+        const response = await fetch('/cliente/perfil');
         if (response.ok) {
             const usuario = await response.json();
-            if (usuario) {
-                const welcomeH2 = document.querySelector('.cli-welcome-section h2');
-                if (welcomeH2) {
-                    welcomeH2.textContent = `Bienvenido, ${usuario.nombre || 'Usuario'}`;
-                }
+            const welcomeH2 = document.querySelector('.cli-welcome-section h2');
+            if (welcomeH2 && usuario?.nombre) {
+                welcomeH2.textContent = `Bienvenido, ${usuario.nombre}`;
             }
         }
     } catch (error) {
@@ -148,11 +258,11 @@ async function cargarDatosUsuario() {
 }
 
 // ============================================
-// CARGAR RESERVAS
+// RESERVAS
 // ============================================
 async function cargarReservas() {
     try {
-        const response = await fetch(`/cliente/reservas`);
+        const response = await fetch('/cliente/reservas');
         if (response.ok) {
             const reservas = await response.json();
             actualizarTablaReservas(reservas);
@@ -167,67 +277,47 @@ function actualizarTablaReservas(reservas) {
     const tbody = document.querySelector('#reservasTableBody');
     if (!tbody) return;
 
-    tbody.innerHTML = '';
-
     if (reservas.length === 0) {
         tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;">No tienes reservas.</td></tr>';
         return;
     }
 
-    reservas.forEach(reserva => {
-        const row = document.createElement('tr');
+    tbody.innerHTML = reservas.map(reserva => {
         const fechaInicio = new Date(reserva.fechaInicio);
-        const fechaFin = new Date(reserva.fechaFin);
+        const fechaFin    = new Date(reserva.fechaFin);
 
-        let nombreSede = 'Sede desconocida';
-        if (reserva.cupo && reserva.cupo.sede) {
-            nombreSede = reserva.cupo.sede.nombre;
-        }
+        const nombreSede = reserva.cupo?.sede?.nombre || 'Sede desconocida';
 
-        let estadoBadge = '';
-        let acciones = '';
+        const estadoBadges = {
+            ACTIVA:     '<span style="background:#22c55e;color:white;padding:4px 12px;border-radius:12px;font-size:0.85rem;font-weight:600;">✓ Activa</span>',
+            PENDIENTE:  '<span style="background:#f59e0b;color:white;padding:4px 12px;border-radius:12px;font-size:0.85rem;font-weight:600;">⏳ Pendiente</span>',
+            FINALIZADA: '<span style="background:#64748b;color:white;padding:4px 12px;border-radius:12px;font-size:0.85rem;font-weight:600;">✓ Finalizada</span>',
+            CANCELADA:  '<span style="background:#ef4444;color:white;padding:4px 12px;border-radius:12px;font-size:0.85rem;font-weight:600;">✗ Cancelada</span>',
+            RECHAZADA:  '<span style="background:#dc2626;color:white;padding:4px 12px;border-radius:12px;font-size:0.85rem;font-weight:600;">✗ Rechazada</span>'
+        };
 
-        switch(reserva.estado) {
-            case 'ACTIVA':
-                estadoBadge = '<span style="background:#22c55e;color:white;padding:4px 12px;border-radius:12px;font-size:0.85rem;font-weight:600;">✓ Activa</span>';
-                acciones = `<button onclick="cancelarReserva(${reserva.idReserva})" style="background:#ef4444;color:white;padding:4px 12px;border:none;border-radius:6px;cursor:pointer;">Cancelar</button>`;
-                break;
-            case 'PENDIENTE':
-                estadoBadge = '<span style="background:#f59e0b;color:white;padding:4px 12px;border-radius:12px;font-size:0.85rem;font-weight:600;">⏳ Pendiente</span>';
-                acciones = `<button onclick="cancelarReserva(${reserva.idReserva})" style="background:#ef4444;color:white;padding:4px 12px;border:none;border-radius:6px;cursor:pointer;">Cancelar</button>`;
-                break;
-            case 'FINALIZADA':
-                estadoBadge = '<span style="background:#64748b;color:white;padding:4px 12px;border-radius:12px;font-size:0.85rem;font-weight:600;">✓ Finalizada</span>';
-                acciones = '<span style="color:#64748b;">—</span>';
-                break;
-            case 'CANCELADA':
-                estadoBadge = '<span style="background:#ef4444;color:white;padding:4px 12px;border-radius:12px;font-size:0.85rem;font-weight:600;">✗ Cancelada</span>';
-                acciones = '<span style="color:#64748b;">—</span>';
-                break;
-            case 'RECHAZADA':
-                estadoBadge = '<span style="background:#dc2626;color:white;padding:4px 12px;border-radius:12px;font-size:0.85rem;font-weight:600;">✗ Rechazada</span>';
-                acciones = '<span style="color:#64748b;">—</span>';
-                break;
-            default:
-                estadoBadge = `<span style="background:#94a3b8;color:white;padding:4px 12px;border-radius:12px;font-size:0.85rem;font-weight:600;">${reserva.estado}</span>`;
-                acciones = '<span style="color:#64748b;">—</span>';
-        }
+        const estadoBadge = estadoBadges[reserva.estado] ||
+            `<span style="background:#94a3b8;color:white;padding:4px 12px;border-radius:12px;font-size:0.85rem;">${reserva.estado}</span>`;
 
-        row.innerHTML = `
+        const acciones = (reserva.estado === 'ACTIVA' || reserva.estado === 'PENDIENTE')
+            ? `<button onclick="cancelarReserva(${reserva.idReserva})"
+                       style="background:#ef4444;color:white;padding:4px 12px;border:none;
+                              border-radius:6px;cursor:pointer;">Cancelar</button>`
+            : '<span style="color:#64748b;">—</span>';
+
+        return `<tr>
             <td>${fechaInicio.toLocaleDateString('es-CO')}</td>
             <td>${nombreSede}</td>
-            <td>${fechaInicio.toLocaleTimeString('es-CO', {hour: '2-digit', minute: '2-digit'})}</td>
-            <td>${fechaFin.toLocaleTimeString('es-CO', {hour: '2-digit', minute: '2-digit'})}</td>
+            <td>${fechaInicio.toLocaleTimeString('es-CO', { hour: '2-digit', minute: '2-digit' })}</td>
+            <td>${fechaFin.toLocaleTimeString('es-CO', { hour: '2-digit', minute: '2-digit' })}</td>
             <td>${estadoBadge}</td>
             <td>${acciones}</td>
-        `;
-        tbody.appendChild(row);
-    });
+        </tr>`;
+    }).join('');
 }
 
 function actualizarContadorReservas(reservas) {
     const activas = reservas.filter(r => r.estado === 'ACTIVA').length;
-
     const welcomeSection = document.querySelector('.cli-welcome-section');
     if (!welcomeSection) return;
 
@@ -238,29 +328,39 @@ function actualizarContadorReservas(reservas) {
         contador.style.cssText = 'margin-top:1rem;font-size:1.125rem;color:#0369a1;font-weight:600;';
         welcomeSection.appendChild(contador);
     }
-
     contador.innerHTML = `🚗 Tienes <strong>${activas}</strong> reserva${activas !== 1 ? 's' : ''} activa${activas !== 1 ? 's' : ''}`;
 }
 
 // ============================================
 // CANCELAR RESERVA
+//
+// ✅ FIX C-03: Lee data.message del backend para mostrar el motivo real.
+// ✅ FIX C-04: confirm() nativo reemplazado por modal de confirmación.
 // ============================================
-function cancelarReserva(reservaId) {
-    if (!confirm('¿Estás seguro de cancelar esta reserva?')) return;
+async function cancelarReserva(reservaId) {
+    const confirmado = await showConfirm(
+        'Cancelar reserva',
+        '¿Estás seguro de que deseas cancelar esta reserva?<br>Esta acción no se puede deshacer.',
+        'Cancelar reserva',
+        'danger'
+    );
+    if (!confirmado) return;
 
-    fetch(`/cliente/reservas/${reservaId}/cancelar`, { method: 'POST' })
-        .then(res => {
-            if (res.ok) {
-                alert('Reserva cancelada exitosamente');
-                cargarReservas();
-            } else {
-                alert('Error al cancelar la reserva');
-            }
-        })
-        .catch(err => {
-            console.error(err);
-            alert('Error de conexión');
-        });
+    try {
+        const res  = await fetch(`/cliente/reservas/${reservaId}/cancelar`, { method: 'POST' });
+        const data = await res.json();
+
+        if (res.ok && data.success) {
+            showToast(data.message || 'Reserva cancelada correctamente', 'success');
+            cargarReservas();
+        } else {
+            // ✅ FIX C-03: muestra el motivo real del backend
+            showToast(data.message || 'Error al cancelar la reserva', 'error');
+        }
+    } catch (err) {
+        console.error(err);
+        showToast('Error de conexión', 'error');
+    }
 }
 
 // ============================================
@@ -272,13 +372,11 @@ async function cargarSedesYMapa() {
             const response = await fetch('/cliente/sedes');
             if (response.ok) {
                 sedes = await response.json();
-                console.log('📍 Sedes cargadas desde API:', sedes.length);
             }
         } catch (error) {
             console.error('Error cargando sedes:', error);
         }
     }
-
     initMap();
 }
 
@@ -286,12 +384,9 @@ function initMap() {
     const mapContainer = document.getElementById('map-container');
     if (!mapContainer || map) return;
 
-    console.log('🗺️ Inicializando mapa...');
     map = L.map('map-container').setView([4.6533, -74.0836], 12);
-
     L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-        attribution: '&copy; OpenStreetMap contributors',
-        maxZoom: 19
+        attribution: '&copy; OpenStreetMap contributors', maxZoom: 19
     }).addTo(map);
 
     agregarMarcadores();
@@ -299,103 +394,57 @@ function initMap() {
 
 async function agregarMarcadores() {
     if (!map) return;
-
     marcadores.forEach(m => m.remove());
     marcadores = [];
 
-    console.log(`📌 Agregando ${sedes.length} marcadores...`);
-
     for (const sede of sedes) {
         const coords = await geocodificarDireccion(sede.direccion, sede.localidad, sede.barrio);
+        if (!coords) continue;
 
-        if (coords) {
-            const iconColor = sede.estado === 'ACTIVO' ? '#00BFFF' : '#dc2626';
-            const customIcon = L.divIcon({
-                className: 'custom-marker',
-                html: `
-                    <div style="
-                        background-color: ${iconColor};
-                        width: 32px;
-                        height: 32px;
-                        border-radius: 50% 50% 50% 0;
-                        transform: rotate(-45deg);
-                        border: 3px solid white;
-                        box-shadow: 0 4px 8px rgba(0,0,0,0.3);
-                    ">
-                        <div style="
-                            transform: rotate(45deg);
-                            color: white;
-                            font-size: 16px;
-                            font-weight: bold;
-                            display: flex;
-                            align-items: center;
-                            justify-content: center;
-                            height: 100%;
-                        ">P</div>
-                    </div>
-                `,
-                iconSize: [32, 32],
-                iconAnchor: [16, 32],
-                popupAnchor: [0, -32]
-            });
+        const iconColor = sede.estado === 'ACTIVO' ? '#00BFFF' : '#dc2626';
+        const customIcon = L.divIcon({
+            className: 'custom-marker',
+            html: `<div style="background-color:${iconColor};width:32px;height:32px;
+                        border-radius:50% 50% 50% 0;transform:rotate(-45deg);
+                        border:3px solid white;box-shadow:0 4px 8px rgba(0,0,0,0.3);">
+                       <div style="transform:rotate(45deg);color:white;font-size:16px;
+                                   font-weight:bold;display:flex;align-items:center;
+                                   justify-content:center;height:100%;">P</div>
+                   </div>`,
+            iconSize: [32,32], iconAnchor: [16,32], popupAnchor: [0,-32]
+        });
 
-            const marker = L.marker([coords.lat, coords.lon], { icon: customIcon }).addTo(map);
+        const marker = L.marker([coords.lat, coords.lon], { icon: customIcon }).addTo(map);
 
-            const popupContent = `
-                <div style="min-width: 200px;">
-                    <h4 style="margin: 0 0 8px 0; font-size: 1.125rem; font-weight: 700; color: #0f172a;">
-                        ${sede.nombre}
-                    </h4>
-                    <p style="margin: 4px 0; color: #64748b; font-size: 0.875rem;">
-                        📍 ${sede.direccion}
-                    </p>
-                    <p style="margin: 4px 0; color: #64748b; font-size: 0.875rem;">
-                        🚗 Capacidad: ${sede.capacidad} vehículos
-                    </p>
-                    <button
-                        id="btn-sede-${sede.idSede}"
-                        style="
-                            margin-top: 12px;
-                            width: 100%;
-                            background: #00BFFF;
-                            color: white;
-                            border: none;
-                            padding: 8px 16px;
-                            border-radius: 6px;
-                            cursor: pointer;
-                            font-weight: 600;
-                        "
+        marker.bindPopup(`
+            <div style="min-width:200px;">
+                <h4 style="margin:0 0 8px;font-size:1.125rem;font-weight:700;color:#0f172a;">
+                    ${sede.nombre}
+                </h4>
+                <p style="margin:4px 0;color:#64748b;font-size:0.875rem;">📍 ${sede.direccion}</p>
+                <p style="margin:4px 0;color:#64748b;font-size:0.875rem;">🚗 Capacidad: ${sede.capacidad} vehículos</p>
+                <button id="btn-sede-${sede.idSede}"
+                        style="margin-top:12px;width:100%;background:#00BFFF;color:white;
+                               border:none;padding:8px 16px;border-radius:6px;cursor:pointer;font-weight:600;"
                         onmouseover="this.style.background='#0284c7'"
-                        onmouseout="this.style.background='#00BFFF'"
-                    >
-                        Ver detalles completos
-                    </button>
-                </div>
-            `;
+                        onmouseout="this.style.background='#00BFFF'">
+                    Ver detalles completos
+                </button>
+            </div>`, { maxWidth: 300 });
 
-            marker.bindPopup(popupContent, { maxWidth: 300 });
+        marker.on('popupopen', function () {
+            setTimeout(() => {
+                const btn = document.getElementById(`btn-sede-${sede.idSede}`);
+                if (btn) btn.onclick = () => mostrarDetallesSede(sede.idSede);
+            }, 100);
+        });
 
-            marker.on('popupopen', function() {
-                setTimeout(() => {
-                    const btn = document.getElementById(`btn-sede-${sede.idSede}`);
-                    if (btn) {
-                        btn.onclick = function() {
-                            mostrarDetallesSede(sede.idSede);
-                        };
-                    }
-                }, 100);
-            });
-
-            marcadores.push(marker);
-            await new Promise(resolve => setTimeout(resolve, 500));
-        }
+        marcadores.push(marker);
+        await new Promise(resolve => setTimeout(resolve, 1500));
     }
 
-    console.log(`✅ ${marcadores.length} marcadores agregados`);
-
     if (marcadores.length > 0) {
-        const group = L.featureGroup(marcadores);
-        map.fitBounds(group.getBounds().pad(0.1));
+        map.fitBounds(L.featureGroup(marcadores).getBounds().pad(0.1));
     }
 }
 
@@ -404,51 +453,38 @@ async function agregarMarcadores() {
 // ============================================
 function obtenerCoordenadasPorBarrio(localidad, barrio) {
     if (!localidad || !barrio) return null;
-
     const localidadKey = localidad.toUpperCase().trim();
-    const barrioNormalizado = barrio.trim();
+    const barrioNorm   = barrio.trim();
 
     if (COORDENADAS_BARRIOS[localidadKey]) {
-        if (COORDENADAS_BARRIOS[localidadKey][barrioNormalizado]) {
-            return COORDENADAS_BARRIOS[localidadKey][barrioNormalizado];
-        }
-
-        const barrioLower = barrioNormalizado.toLowerCase();
-        for (const [nombreBarrio, coords] of Object.entries(COORDENADAS_BARRIOS[localidadKey])) {
-            if (nombreBarrio.toLowerCase().includes(barrioLower) ||
-                barrioLower.includes(nombreBarrio.toLowerCase())) {
-                console.log(`📍 Match parcial: ${nombreBarrio}`);
-                return coords;
-            }
+        if (COORDENADAS_BARRIOS[localidadKey][barrioNorm]) return COORDENADAS_BARRIOS[localidadKey][barrioNorm];
+        const bl = barrioNorm.toLowerCase();
+        for (const [nb, coords] of Object.entries(COORDENADAS_BARRIOS[localidadKey])) {
+            if (nb.toLowerCase().includes(bl) || bl.includes(nb.toLowerCase())) return coords;
         }
     }
-
     return null;
 }
 
 function obtenerCoordenadasPorLocalidad(localidad) {
-    const localidadKey = (localidad || '').toUpperCase().trim();
-
-    if (COORDENADAS_LOCALIDADES[localidadKey]) {
+    const key = (localidad || '').toUpperCase().trim();
+    if (COORDENADAS_LOCALIDADES[key]) {
         return {
-            lat: COORDENADAS_LOCALIDADES[localidadKey].lat + (Math.random() - 0.5) * 0.015,
-            lon: COORDENADAS_LOCALIDADES[localidadKey].lon + (Math.random() - 0.5) * 0.015
+            lat: COORDENADAS_LOCALIDADES[key].lat + (Math.random() - 0.5) * 0.015,
+            lon: COORDENADAS_LOCALIDADES[key].lon + (Math.random() - 0.5) * 0.015
         };
     }
-
     return { lat: 4.6533 + (Math.random() - 0.5) * 0.08, lon: -74.0836 + (Math.random() - 0.5) * 0.08 };
 }
 
 async function geocodificarDireccion(direccion, localidad, barrio) {
     const coordsBarrio = obtenerCoordenadasPorBarrio(localidad, barrio);
-
     if (coordsBarrio) {
         return {
             lat: coordsBarrio.lat + (Math.random() - 0.5) * 0.002,
             lon: coordsBarrio.lon + (Math.random() - 0.5) * 0.002
         };
     }
-
     return obtenerCoordenadasPorLocalidad(localidad);
 }
 
@@ -456,29 +492,29 @@ async function geocodificarDireccion(direccion, localidad, barrio) {
 // BÚSQUEDA EN MAPA
 // ============================================
 function inicializarBusquedaMapa() {
-    const searchBtn = document.getElementById('searchBtn');
+    const searchBtn   = document.getElementById('searchBtn');
     const searchInput = document.getElementById('searchInput');
 
     if (searchBtn && searchInput) {
         searchBtn.addEventListener('click', buscarDireccion);
-        searchInput.addEventListener('keypress', function(e) {
-            if (e.key === 'Enter') buscarDireccion();
-        });
+        searchInput.addEventListener('keypress', e => { if (e.key === 'Enter') buscarDireccion(); });
     }
 }
 
 async function buscarDireccion() {
     const searchInput = document.getElementById('searchInput');
-    const direccion = searchInput.value.trim();
+    const direccion   = searchInput.value.trim();
 
     if (!direccion) {
-        alert('Por favor, ingresa una dirección');
+        showToast('Por favor ingresa una dirección', 'warning');
         return;
     }
 
     try {
-        const url = `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(direccion + ', Bogotá, Colombia')}&limit=1`;
-        const response = await fetch(url);
+        const url = `https://nominatim.openstreetmap.org/search?format=json` +
+            `&q=${encodeURIComponent(direccion + ', Bogotá, Colombia')}&limit=1`;
+
+        const response = await fetch(url, { headers: { 'User-Agent': 'AparcaYA/1.0' } });
 
         if (response.ok) {
             const data = await response.json();
@@ -486,17 +522,16 @@ async function buscarDireccion() {
                 const lat = parseFloat(data[0].lat);
                 const lon = parseFloat(data[0].lon);
                 map.setView([lat, lon], 15);
-
                 L.marker([lat, lon]).addTo(map)
                     .bindPopup(`📍 ${data[0].display_name}`)
                     .openPopup();
             } else {
-                alert('No se encontró la dirección');
+                showToast('No se encontró la dirección', 'warning');
             }
         }
     } catch (error) {
         console.error('Error en búsqueda:', error);
-        alert('Error al buscar la dirección');
+        showToast('Error al buscar la dirección', 'error');
     }
 }
 
@@ -504,58 +539,38 @@ async function buscarDireccion() {
 // MODAL DE DETALLES DE SEDE
 // ============================================
 function mostrarDetallesSede(sedeId) {
-    console.log('Mostrando detalles de sede:', sedeId);
     const sede = sedes.find(s => s.idSede === sedeId);
-    if (!sede) {
-        console.error('Sede no encontrada:', sedeId);
-        return;
-    }
+    if (!sede) return;
 
     sedeSeleccionada = sede;
     document.getElementById('modalSedeTitle').textContent = sede.nombre;
 
-    // ✅ CAMBIO: .badge/.badge-activo/.badge-inactivo → .cli-badge/.cli-badge-activo/.cli-badge-inactivo
     const estadoBadge = sede.estado === 'ACTIVO'
         ? '<span class="cli-badge cli-badge-activo">✓ Activa</span>'
         : '<span class="cli-badge cli-badge-inactivo">✗ Inactiva</span>';
 
-    // ✅ CAMBIO: .info-grid → .cliente-modal-sede-grid
-    // ✅ CAMBIO: .info-item → .cliente-modal-sede-item
-    // ✅ CAMBIO: .info-full → .cliente-modal-sede-full
-    // ✅ CAMBIO: .info-label → .cliente-modal-sede-label
-    // ✅ CAMBIO: .info-value → .cliente-modal-sede-value
-    // ✅ CAMBIO: style="line-height:1.8" → .cliente-modal-sede-tarifas
-    // ✅ CAMBIO: div de botones inline → .cliente-modal-sede-actions
-    // ✅ CAMBIO: botón Reservar inline → .cli-btn-confirm (ya en cliente.css)
-    // ✅ CAMBIO: botón Cerrar inline → .cliente-modal-sede-btn-cerrar
     document.getElementById('modalSedeBody').innerHTML = `
         <div class="cliente-modal-sede-grid">
-
             <div class="cliente-modal-sede-item cliente-modal-sede-full">
                 <div class="cliente-modal-sede-label">Estado</div>
                 <div class="cliente-modal-sede-value">${estadoBadge}</div>
             </div>
-
             <div class="cliente-modal-sede-item">
                 <div class="cliente-modal-sede-label">🚗 Capacidad</div>
                 <div class="cliente-modal-sede-value">${sede.capacidad} vehículos</div>
             </div>
-
             <div class="cliente-modal-sede-item">
                 <div class="cliente-modal-sede-label">📍 Localidad</div>
                 <div class="cliente-modal-sede-value">${sede.localidad || 'N/A'}</div>
             </div>
-
             <div class="cliente-modal-sede-item cliente-modal-sede-full">
                 <div class="cliente-modal-sede-label">🏘️ Barrio</div>
                 <div class="cliente-modal-sede-value">${sede.barrio || 'No especificado'}</div>
             </div>
-
             <div class="cliente-modal-sede-item cliente-modal-sede-full">
                 <div class="cliente-modal-sede-label">📌 Dirección</div>
                 <div class="cliente-modal-sede-value">${sede.direccion}</div>
             </div>
-
             <div class="cliente-modal-sede-item cliente-modal-sede-full">
                 <div class="cliente-modal-sede-label">💰 Tarifas</div>
                 <div class="cliente-modal-sede-value cliente-modal-sede-tarifas">
@@ -567,23 +582,15 @@ function mostrarDetallesSede(sedeId) {
                     • Por minuto: $${(sede.tarifaMinutoM || 0).toLocaleString('es-CO')} COP
                 </div>
             </div>
-
             <div class="cliente-modal-sede-item cliente-modal-sede-full">
                 <div class="cliente-modal-sede-label">🕐 Horario</div>
                 <div class="cliente-modal-sede-value">${sede.horarioSede || 'No especificado'}</div>
             </div>
-
         </div>
-
         <div class="cliente-modal-sede-actions">
-            <button onclick="abrirModalReserva()" class="cli-btn-confirm">
-                Reservar Ahora
-            </button>
-            <button onclick="cerrarModalSede()" class="cliente-modal-sede-btn-cerrar">
-                Cerrar
-            </button>
-        </div>
-    `;
+            <button onclick="abrirModalReserva()" class="cli-btn-confirm">Reservar Ahora</button>
+            <button onclick="cerrarModalSede()" class="cliente-modal-sede-btn-cerrar">Cerrar</button>
+        </div>`;
 
     const modal = document.getElementById('modalSede');
     modal.classList.add('show');
@@ -596,13 +603,14 @@ function cerrarModalSede() {
     modal.setAttribute('aria-hidden', 'true');
 }
 
-window.closeModalSede    = cerrarModalSede;
-window.closeReservaModal = cerrarReservaModal;
-
 // ============================================
 // MODAL DE RESERVA
+//
+// ✅ FIX JS: Reemplaza el campo "placa" (string suelto) por un select
+//           de vehículos del cliente. La placa está en Vehiculo,
+//           no en Reservacion ni en Cupo.
 // ============================================
-function abrirModalReserva() {
+async function abrirModalReserva() {
     if (!sedeSeleccionada) return;
 
     cerrarModalSede();
@@ -612,17 +620,45 @@ function abrirModalReserva() {
     ahora.setMinutes(ahora.getMinutes() - ahora.getTimezoneOffset());
     const fechaMin = ahora.toISOString().slice(0, 16);
 
-    document.getElementById('fechaInicio').min = fechaMin;
-    document.getElementById('fechaFin').min = fechaMin;
+    document.getElementById('fechaInicio').min   = fechaMin;
+    document.getElementById('fechaFin').min      = fechaMin;
     document.getElementById('fechaInicio').value = '';
-    document.getElementById('fechaFin').value = '';
-    document.getElementById('placa').value = '';
+    document.getElementById('fechaFin').value    = '';
+
+    // Cargar vehículos del cliente para el select
+    await cargarVehiculosSelect();
 
     const modal = document.getElementById('reservaModal');
     modal.classList.add('show');
     modal.setAttribute('aria-hidden', 'false');
 
     document.getElementById('reservarBtn').onclick = crearReserva;
+}
+
+async function cargarVehiculosSelect() {
+    const selectVehiculo = document.getElementById('vehiculoSelect');
+    if (!selectVehiculo) return;
+
+    selectVehiculo.innerHTML = '<option value="">Cargando vehículos...</option>';
+
+    try {
+        const response = await fetch('/cliente/vehiculos');
+        if (response.ok) {
+            const vehiculos = await response.json();
+            if (vehiculos.length === 0) {
+                selectVehiculo.innerHTML = '<option value="">No tienes vehículos registrados</option>';
+            } else {
+                selectVehiculo.innerHTML = '<option value="">Selecciona un vehículo</option>' +
+                    vehiculos.map(v =>
+                        `<option value="${v.idVehiculo}">${v.placa} — ${v.marca || ''} ${v.modelo || ''}</option>`
+                    ).join('');
+            }
+        } else {
+            selectVehiculo.innerHTML = '<option value="">Error al cargar vehículos</option>';
+        }
+    } catch (e) {
+        selectVehiculo.innerHTML = '<option value="">Error de conexión</option>';
+    }
 }
 
 function cerrarReservaModal() {
@@ -632,37 +668,42 @@ function cerrarReservaModal() {
 }
 
 async function crearReserva() {
-    const fechaInicio = document.getElementById('fechaInicio').value;
-    const fechaFin    = document.getElementById('fechaFin').value;
-    const placa       = document.getElementById('placa').value.trim().toUpperCase();
+    const fechaInicio  = document.getElementById('fechaInicio').value;
+    const fechaFin     = document.getElementById('fechaFin').value;
+    const vehiculoId   = document.getElementById('vehiculoSelect')?.value;
 
-    if (!fechaInicio || !fechaFin || !placa) {
-        alert('Por favor, completa todos los campos');
+    if (!fechaInicio || !fechaFin || !vehiculoId) {
+        showToast('Por favor completa todos los campos', 'warning');
         return;
     }
 
     if (new Date(fechaFin) <= new Date(fechaInicio)) {
-        alert('La fecha de fin debe ser posterior a la de inicio');
+        showToast('La fecha de fin debe ser posterior a la de inicio', 'warning');
         return;
     }
 
     try {
+        // Obtener cupo disponible de la sede
         const cuposRes = await fetch(`/api/cupos/sede/${sedeSeleccionada.idSede}`);
         if (!cuposRes.ok) {
-            alert('No hay cupos disponibles');
+            showToast('No hay cupos disponibles', 'warning');
             return;
         }
 
         const cupos = await cuposRes.json();
-        if (!cupos.length) {
-            alert('No hay cupos disponibles');
+        const cupoDisponible = cupos.find(c => c.estado === 'DISPONIBLE');
+
+        if (!cupoDisponible) {
+            showToast('No hay cupos disponibles en este momento', 'warning');
             return;
         }
 
+        // ✅ FIX C-01: cliente no se envía en el body.
+        //             El backend obtiene el usuario de SecurityContextHolder.
+        // ✅ FIX JS:   vehiculoId en lugar de placa — coincide con la entidad Reservacion.
         const reservaData = {
-            cliente:     { idUsuario: ID_USUARIO_ACTUAL },
-            cupoId:      cupos[0].idCupo,
-            placa:       placa,
+            cupoId:      cupoDisponible.idCupo,
+            vehiculoId:  parseInt(vehiculoId),
             fechaInicio: fechaInicio,
             fechaFin:    fechaFin
         };
@@ -674,16 +715,16 @@ async function crearReserva() {
         });
 
         if (response.ok) {
-            alert('¡Reserva creada exitosamente! Está pendiente de aprobación.');
+            showToast('¡Reserva creada! Está pendiente de aprobación.', 'success', 6000);
             cerrarReservaModal();
             cargarReservas();
         } else {
-            const error = await response.text();
-            alert('Error: ' + error);
+            const data = await response.json();
+            showToast(data.message || 'Error al crear la reserva', 'error');
         }
     } catch (error) {
         console.error(error);
-        alert('Error de conexión');
+        showToast('Error de conexión', 'error');
     }
 }
 
@@ -706,48 +747,53 @@ function actualizarTablaPagos(pagos) {
     const tbody = document.querySelector('#pagosTableBody');
     if (!tbody) return;
 
-    tbody.innerHTML = '';
-
     if (pagos.length === 0) {
         tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;">No tienes pagos registrados.</td></tr>';
         return;
     }
 
-    pagos.forEach(pago => {
-        const row = document.createElement('tr');
+    tbody.innerHTML = pagos.map(pago => {
         const fechaPago = new Date(pago.fechaPago);
 
-        let estadoBadge = '';
-        switch(pago.estado) {
-            case 'PAGADO':
-                estadoBadge = '<span style="background:#22c55e;color:white;padding:4px 12px;border-radius:12px;font-size:0.85rem;font-weight:600;">✓ Pagado</span>';
-                break;
-            case 'PENDIENTE':
-                estadoBadge = '<span style="background:#f59e0b;color:white;padding:4px 12px;border-radius:12px;font-size:0.85rem;font-weight:600;">⏳ Pendiente</span>';
-                break;
-            case 'RECHAZADO':
-                estadoBadge = '<span style="background:#ef4444;color:white;padding:4px 12px;border-radius:12px;font-size:0.85rem;font-weight:600;">✗ Rechazado</span>';
-                break;
-            case 'REEMBOLSADO':
-                estadoBadge = '<span style="background:#06b6d4;color:white;padding:4px 12px;border-radius:12px;font-size:0.85rem;font-weight:600;">↩ Reembolsado</span>';
-                break;
-            default:
-                estadoBadge = `<span style="background:#94a3b8;color:white;padding:4px 12px;border-radius:12px;font-size:0.85rem;font-weight:600;">${pago.estado}</span>`;
-        }
+        const estadoBadges = {
+            PAGADO:      '<span style="background:#22c55e;color:white;padding:4px 12px;border-radius:12px;font-size:0.85rem;font-weight:600;">✓ Pagado</span>',
+            PENDIENTE:   '<span style="background:#f59e0b;color:white;padding:4px 12px;border-radius:12px;font-size:0.85rem;font-weight:600;">⏳ Pendiente</span>',
+            RECHAZADO:   '<span style="background:#ef4444;color:white;padding:4px 12px;border-radius:12px;font-size:0.85rem;font-weight:600;">✗ Rechazado</span>',
+            REEMBOLSADO: '<span style="background:#06b6d4;color:white;padding:4px 12px;border-radius:12px;font-size:0.85rem;font-weight:600;">↩ Reembolsado</span>'
+        };
 
-        row.innerHTML = `
+        const estadoBadge = estadoBadges[pago.estado] ||
+            `<span style="background:#94a3b8;color:white;padding:4px 12px;border-radius:12px;font-size:0.85rem;">${pago.estado}</span>`;
+
+        return `<tr>
             <td>${fechaPago.toLocaleDateString('es-CO')}</td>
-            <td>Reserva #${pago.reservacion.idReserva}</td>
-            <td>$${pago.monto.toLocaleString('es-CO')} COP</td>
+            <td>Reserva #${pago.reservacion?.idReserva || 'N/A'}</td>
+            <td>$${pago.monto?.toLocaleString('es-CO')} COP</td>
             <td>${pago.metodoPago || 'N/A'}</td>
             <td>${estadoBadge}</td>
-        `;
-        tbody.appendChild(row);
-    });
+        </tr>`;
+    }).join('');
 }
 
-// Cerrar modales al hacer clic en el overlay
-document.addEventListener('click', (e) => {
+// ============================================
+// CERRAR MODALES CON OVERLAY O ESCAPE
+// ============================================
+document.addEventListener('click', e => {
     if (e.target.id === 'modalSede')    cerrarModalSede();
     if (e.target.id === 'reservaModal') cerrarReservaModal();
 });
+
+document.addEventListener('keydown', e => {
+    if (e.key === 'Escape') {
+        cerrarModalSede();
+        cerrarReservaModal();
+    }
+});
+
+// ============================================
+// EXPONER FUNCIONES GLOBALES
+// ============================================
+window.closeModalSede    = cerrarModalSede;
+window.closeReservaModal = cerrarReservaModal;
+window.cancelarReserva   = cancelarReserva;
+window.mostrarDetallesSede = mostrarDetallesSede;

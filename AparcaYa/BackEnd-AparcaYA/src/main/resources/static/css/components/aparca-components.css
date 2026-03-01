@@ -2,206 +2,504 @@
    APARCA-COMPONENTS.CSS
    Ruta: static/css/components/aparca-components.css
 
-   PROPÓSITO: Patrones visuales propios que se repiten en
-   más de una página del proyecto. Si un estilo aparece
-   solo en una página, va en css/pages/[pagina].css.
-
-   REGLA CRÍTICA: NUNCA redefinir clases de DaisyUI aquí.
-   Las clases de DaisyUI (.btn, .card, .modal, .badge,
-   .table, .alert, .input, .select, .navbar, .footer)
-   NO se tocan. Si se necesita modificar un componente
-   DaisyUI, se agrega una clase adicional propia.
+   SIDEBAR COLAPSABLE:
+   - Estado expandido: 220px — íconos + texto
+   - Estado mini:       64px — solo íconos + tooltip al hover
+   - El toggle es un botón en la parte inferior del sidebar
+   - body.sidebar-collapsed activa el estado mini
+   - SIEMPRE visible en todas las resoluciones
+   - Sin drawer, sin overlay, sin hamburguesa
 
    PREFIJO OBLIGATORIO: aparca-
    ============================================================ */
 
 
 /* ------------------------------------------------------------
-   1. SIDEBAR — Barra lateral de navegación
-   Usada en: admin, cliente, sede, trabajador.
-   Cada dashboard puede sobreescribir el color de acento
-   en su propio pages/[pagina].css sin tocar este base.
+   0. VARIABLES
    ------------------------------------------------------------ */
+:root {
+    --sidebar-expanded: 220px;
+    --sidebar-mini:      64px;
+    --sidebar-width:    220px; /* valor activo, JS lo sobreescribe via body class */
+    --header-height:     64px;
+    --transition-speed: 0.28s;
+}
+
+
+/* ============================================================
+   1. SIDEBAR — SIEMPRE VISIBLE, COLAPSABLE
+   ============================================================ */
 .aparca-sidebar {
-    position: fixed;          /* Fija en pantalla, no scrollea con el contenido */
+    position: fixed;
     top: 0;
     left: 0;
-    width: 220px;             /* Ancho estándar del sidebar en todos los dashboards */
-    height: 100vh;            /* Ocupa toda la altura visible */
+    width: var(--sidebar-expanded);
+    height: 100vh;
     display: flex;
     flex-direction: column;
-    z-index: 40;              /* Por encima del contenido pero debajo de modales (z:999) */
-    overflow-y: auto;         /* Scroll si el menú es muy largo */
+    z-index: 40;
+    overflow: hidden;           /* Oculta el texto al colapsar */
+    transition: width var(--transition-speed) ease;
+    scrollbar-width: none;
 }
 
+.aparca-sidebar::-webkit-scrollbar { display: none; }
+
+/* Estado colapsado: body recibe la clase sidebar-collapsed */
+body.sidebar-collapsed .aparca-sidebar {
+    width: var(--sidebar-mini);
+}
+
+
+/* ------------------------------------------------------------
+   HEADER DEL SIDEBAR
+   Estructura: logo-fila (ícono + título) + botón toggle abajo.
+
+   EXPANDIDO (220px):
+   ┌──────────────────────────────┐
+   │ 🅿  AparcaYA-Admin           │  ← logo-fila
+   ├──────────────────────────────┤  ← separador
+   │ [←] Colapsar                 │  ← toggle-fila
+   └──────────────────────────────┘
+
+   COLAPSADO (64px):
+   ┌────────┐
+   │   🅿   │  ← logo-fila (solo ícono centrado)
+   ├────────┤
+   │  [→]   │  ← toggle-fila (solo ícono centrado)
+   └────────┘
+   ------------------------------------------------------------ */
 .aparca-sidebar-header {
-    padding: 1.5rem 1rem;
+    display: flex;
+    flex-direction: column;   /* Apila logo-fila y toggle-fila */
+    flex-shrink: 0;
+    border-bottom: 1px solid rgba(255,255,255,0.12);
+    overflow: hidden;
+}
+
+/* Fila superior: ícono + título */
+.aparca-sidebar-logo-row {
+    height: var(--header-height);
     display: flex;
     align-items: center;
-    gap: 0.75rem;
-}
-
-.aparca-sidebar-header svg {
-    width: 32px;
-    height: 32px;
+    gap: 0.625rem;
+    padding: 0 1rem;
+    white-space: nowrap;
+    overflow: hidden;
     flex-shrink: 0;
 }
 
-.aparca-sidebar-header h1 {
-    font-size: 1.25rem;
-    font-weight: 700;
-    letter-spacing: 0.5px;
+/* Ícono del logo */
+.aparca-sidebar-logo-row > svg {
+    width: 26px;
+    height: 26px;
+    flex-shrink: 0;
 }
 
+/* Título */
+.aparca-sidebar-logo-row h1 {
+    font-size: 0.95rem;
+    font-weight: 800;
+    letter-spacing: 0.2px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    flex: 1;
+    min-width: 0;
+    transition: opacity var(--transition-speed) ease,
+    max-width var(--transition-speed) ease;
+    max-width: 160px;
+}
+
+/* Modo colapsado: logo-fila solo muestra el ícono centrado */
+body.sidebar-collapsed .aparca-sidebar-logo-row {
+    justify-content: center;
+    padding: 0;
+    gap: 0;
+}
+
+body.sidebar-collapsed .aparca-sidebar-logo-row h1 {
+    opacity: 0;
+    max-width: 0;
+    pointer-events: none;
+}
+
+
+/* ------------------------------------------------------------
+   NAV — Ítems del menú
+   ------------------------------------------------------------ */
 .aparca-sidebar-nav {
     display: flex;
     flex-direction: column;
-    padding: 0.5rem 0;
+    padding: 0.75rem 0.625rem 0;
     flex: 1;
+    overflow: hidden;
 }
 
 .aparca-sidebar-nav a {
     display: flex;
     align-items: center;
-    gap: 0.5rem;
-    padding: 0.75rem 1.25rem;
+    gap: 0.75rem;
+    padding: 0.65rem 0.75rem;
     text-decoration: none;
-    font-size: 0.9rem;
+    font-size: 0.875rem;
     font-weight: 500;
-    border-left: 4px solid transparent; /* Indicador de pestaña activa */
-    transition: background-color 0.2s, border-left-color 0.2s;
-    margin-bottom: 0.25rem;
-}
-
-/* El color específico del sidebar activo va en pages/[pagina].css
-   para no mezclar estilos entre dashboards */
-
-
-/* ------------------------------------------------------------
-   2. PAGE HEADER — Barra superior fija
-   Usada en: admin, cliente, sede, trabajador.
-   ------------------------------------------------------------ */
-.aparca-page-header {
-    position: fixed;
-    top: 0;
-    left: 220px;              /* Se desplaza el mismo ancho del sidebar */
-    right: 0;
-    height: 64px;
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    padding: 0 1.5rem;
-    z-index: 30;              /* Debajo del sidebar pero encima del contenido */
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-}
-
-.aparca-logo-section {
-    display: flex;
-    align-items: center;
-    gap: 0.5rem;
-    font-weight: 700;
-    font-size: 1.1rem;
-}
-
-.aparca-logo-section svg {
-    width: 28px;
-    height: 28px;
-}
-
-
-/* ------------------------------------------------------------
-   3. DROPDOWN DE PERFIL
-   CAMBIO CRÍTICO: era .dropdown-menu que colisiona con
-   el componente .dropdown de DaisyUI.
-   AHORA: .aparca-dropdown (clase única del proyecto).
-   ------------------------------------------------------------ */
-.aparca-profile-menu {
+    border-radius: 0.625rem;
+    white-space: nowrap;
+    overflow: hidden;
+    transition: background-color 0.2s, color 0.2s;
+    margin-bottom: 0.1rem;
     position: relative;
 }
 
-.aparca-profile-btn {
+.aparca-sidebar-nav a svg {
+    width: 18px;
+    height: 18px;
+    flex-shrink: 0;
+    opacity: 0.75;
+    transition: opacity 0.2s;
+}
+
+/* Texto del link */
+.aparca-sidebar-nav a .nav-label {
+    opacity: 1;
+    transition: opacity var(--transition-speed) ease;
+    overflow: hidden;
+    white-space: nowrap;
+    flex: 1;
+    min-width: 0;
+}
+
+/* Oculta el texto en modo mini */
+body.sidebar-collapsed .aparca-sidebar-nav a .nav-label {
+    opacity: 0;
+    width: 0;
+    pointer-events: none;
+}
+
+body.sidebar-collapsed .aparca-sidebar-nav a {
+    justify-content: center;
+    padding: 0.65rem 0;
+    gap: 0;
+}
+
+.aparca-sidebar-nav a:hover svg,
+.aparca-sidebar-nav a.active svg { opacity: 1; }
+
+/* Tooltip en modo mini — aparece al hover */
+body.sidebar-collapsed .aparca-sidebar-nav a::after {
+    content: attr(data-label);
+    position: absolute;
+    left: calc(100% + 12px);
+    top: 50%;
+    transform: translateY(-50%);
+    background: rgba(15, 23, 42, 0.9);
+    color: white;
+    font-size: 0.78rem;
+    font-weight: 600;
+    padding: 0.35rem 0.75rem;
+    border-radius: 0.4rem;
+    white-space: nowrap;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.15s;
+    z-index: 200;
+    /* Pequeña flecha apuntando al sidebar */
+    box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+}
+
+body.sidebar-collapsed .aparca-sidebar-nav a:hover::after {
+    opacity: 1;
+}
+
+/* Separador */
+.aparca-nav-divider {
+    height: 1px;
+    background: rgba(255,255,255,0.1);
+    margin: 0.5rem 0.25rem;
+    border: none;
+    flex-shrink: 0;
+    transition: margin var(--transition-speed) ease;
+}
+
+body.sidebar-collapsed .aparca-nav-divider {
+    margin: 0.4rem auto;
+    width: 28px;
+}
+
+
+/* ------------------------------------------------------------
+   FOOTER DEL SIDEBAR
+   Usuario logueado + botón de colapso
+   ------------------------------------------------------------ */
+.aparca-sidebar-footer {
+    padding: 0.75rem 0.625rem;
+    border-top: 1px solid rgba(255,255,255,0.12);
+    flex-shrink: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    overflow: hidden;
+}
+
+/* Usuario */
+.aparca-sidebar-user {
+    display: flex;
+    align-items: center;
+    gap: 0.625rem;
+    padding: 0.5rem 0.625rem;
+    border-radius: 0.625rem;
+    background: rgba(255,255,255,0.08);
+    transition: background-color 0.2s;
+    cursor: default;
+    overflow: hidden;
+    white-space: nowrap;
+}
+
+.aparca-sidebar-user:hover { background: rgba(255,255,255,0.14); }
+
+.aparca-sidebar-avatar {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    background: rgba(255,255,255,0.22);
+    border: 2px solid rgba(255,255,255,0.35);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 700;
+    font-size: 0.85rem;
+    color: white;
+    flex-shrink: 0;
+    text-transform: uppercase;
+}
+
+.aparca-sidebar-user-info {
+    flex: 1;
+    min-width: 0;
+    opacity: 1;
+    transition: opacity var(--transition-speed) ease;
+    overflow: hidden;
+}
+
+.aparca-sidebar-username {
+    font-size: 0.78rem;
+    font-weight: 700;
+    color: white;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    line-height: 1.3;
+}
+
+.aparca-sidebar-userrole {
+    font-size: 0.66rem;
+    color: rgba(255,255,255,0.55);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+/* Oculta info del usuario en mini */
+body.sidebar-collapsed .aparca-sidebar-user-info {
+    opacity: 0;
+    width: 0;
+    pointer-events: none;
+}
+
+body.sidebar-collapsed .aparca-sidebar-user {
+    justify-content: center;
+    padding: 0.5rem 0;
+    gap: 0;
+    border-radius: 50%;
     width: 40px;
     height: 40px;
+    margin: 0 auto;
+    background: rgba(255,255,255,0.1);
+}
+
+/* -------------------------------------------------------
+   BOTÓN DE COLAPSO — Fila propia debajo del logo.
+   Expandido: ícono + texto "Colapsar menú".
+   Colapsado: solo ícono centrado.
+   La flecha rota 180° para indicar la acción inversa.
+   ------------------------------------------------------- */
+.aparca-sidebar-toggle {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.55rem 1rem;
+    background: rgba(0,0,0,0.15);
+    border: none;
+    border-top: 1px solid rgba(255,255,255,0.08);
+    cursor: pointer;
+    color: rgba(255,255,255,0.7);
+    font-size: 0.78rem;
+    font-weight: 600;
+    white-space: nowrap;
+    overflow: hidden;
+    width: 100%;
+    flex-shrink: 0;
+    transition: background-color 0.2s, color 0.2s;
+    letter-spacing: 0.02em;
+}
+
+.aparca-sidebar-toggle:hover {
+    background: rgba(0,0,0,0.25);
+    color: white;
+}
+
+/* Flecha — siempre visible, no cambia de tamaño */
+.aparca-sidebar-toggle .toggle-arrow {
+    width: 15px;
+    height: 15px;
+    flex-shrink: 0;
+    transition: transform var(--transition-speed) ease;
+}
+
+/* Expandido: flecha apunta a la izquierda ← */
+.aparca-sidebar-toggle .toggle-arrow { transform: rotate(0deg); }
+
+/* Colapsado: flecha apunta a la derecha → */
+body.sidebar-collapsed .aparca-sidebar-toggle .toggle-arrow {
+    transform: rotate(180deg);
+}
+
+/* Texto del toggle */
+.aparca-sidebar-toggle .toggle-label {
+    transition: opacity var(--transition-speed) ease,
+    max-width var(--transition-speed) ease;
+    max-width: 140px;
+    overflow: hidden;
+}
+
+/* Colapsado: solo el ícono centrado */
+body.sidebar-collapsed .aparca-sidebar-toggle {
+    justify-content: center;
+    padding: 0.55rem 0;
+    gap: 0;
+}
+
+body.sidebar-collapsed .aparca-sidebar-toggle .toggle-label {
+    opacity: 0;
+    max-width: 0;
+    pointer-events: none;
+}
+
+
+/* ============================================================
+   2. PAGE HEADER — Se desplaza con el sidebar
+   ============================================================ */
+.aparca-page-header {
+    position: fixed;
+    top: 0;
+    left: var(--sidebar-expanded);
+    right: 0;
+    height: var(--header-height);
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    padding: 0 1.5rem;
+    z-index: 30;
+    box-shadow: 0 1px 0 rgba(0,0,0,0.06), 0 2px 8px rgba(0,0,0,0.04);
+    transition: left var(--transition-speed) ease;
+}
+
+/* Header se desplaza cuando el sidebar colapsa */
+body.sidebar-collapsed .aparca-page-header {
+    left: var(--sidebar-mini);
+}
+
+
+
+/* ============================================================
+   3. HAMBURGUESA Y OVERLAY — eliminados
+   ============================================================ */
+.aparca-menu-toggle     { display: none !important; }
+.aparca-sidebar-overlay { display: none !important; }
+
+
+/* ============================================================
+   4. DROPDOWN DE PERFIL
+   ============================================================ */
+.aparca-profile-menu { position: relative; }
+
+.aparca-profile-btn {
+    width: 38px;
+    height: 38px;
     border-radius: 50%;
     border: none;
     cursor: pointer;
     display: flex;
     align-items: center;
     justify-content: center;
-    transition: opacity 0.2s;
+    transition: opacity 0.2s, transform 0.15s;
 }
 
-.aparca-profile-btn:hover {
-    opacity: 0.85;
-}
-
-.aparca-profile-btn svg {
-    width: 22px;
-    height: 22px;
-}
+.aparca-profile-btn:hover { opacity: 0.85; transform: scale(1.06); }
+.aparca-profile-btn svg   { width: 20px; height: 20px; }
 
 .aparca-dropdown {
-    display: none;            /* Oculto por defecto */
+    display: none;
     position: absolute;
     right: 0;
-    top: calc(100% + 8px);   /* 8px de separación del botón */
-    min-width: 180px;
+    top: calc(100% + 8px);
+    min-width: 192px;
     background: white;
     border: 1px solid #e2e8f0;
-    border-radius: 0.5rem;
-    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
+    border-radius: 0.75rem;
+    box-shadow: 0 8px 32px rgba(0,0,0,0.12);
     z-index: 100;
     overflow: hidden;
-    /* Sin animación para mantener esta clase simple.
-       Si se requiere, usar aparca-slideUp de animations.css */
 }
 
-/* JS agrega .show para mostrar el dropdown */
 .aparca-dropdown.show {
     display: block;
+    animation: aparca-slideUp 0.2s ease;
 }
 
 .aparca-dropdown button {
-    display: block;
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
     width: 100%;
-    padding: 0.6rem 1rem;
+    padding: 0.65rem 1rem;
     background: none;
     border: none;
     text-align: left;
     cursor: pointer;
-    font-size: 0.9rem;
+    font-size: 0.875rem;
     color: #374151;
-    transition: background-color 0.15s;
+    transition: background-color 0.15s, color 0.15s;
 }
 
-.aparca-dropdown button:hover {
-    background-color: #f3f4f6;
-}
+.aparca-dropdown button svg { width: 15px; height: 15px; opacity: 0.55; flex-shrink: 0; }
+.aparca-dropdown button:hover { background-color: #f8fafc; color: #1e40af; }
+.aparca-dropdown button:hover svg { opacity: 1; }
 
 
-/* ------------------------------------------------------------
-   4. ÁREA PRINCIPAL DEL DASHBOARD
-   Usada en: admin, cliente, sede, trabajador.
-   margin-left debe coincidir con el ancho del .aparca-sidebar.
-   ------------------------------------------------------------ */
+/* ============================================================
+   5. ÁREA PRINCIPAL
+   ============================================================ */
 .aparca-dashboard-main {
-    margin-left: 220px;       /* Mismo ancho que .aparca-sidebar */
-    margin-top: 64px;         /* Mismo alto que .aparca-page-header */
+    margin-left: var(--sidebar-expanded);
+    margin-top: var(--header-height);
     padding: 2rem;
-    min-height: calc(100vh - 64px);
+    min-height: calc(100vh - var(--header-height));
+    transition: margin-left var(--transition-speed) ease;
+}
+
+body.sidebar-collapsed .aparca-dashboard-main {
+    margin-left: var(--sidebar-mini);
 }
 
 
-/* ------------------------------------------------------------
-   5. SECCIONES DE CONTENIDO (tabs del sidebar)
-   Cada <section> del dashboard se muestra/oculta con JS.
-   La clase .hidden de Tailwind se usa para ocultar,
-   esta clase define el estado visible base.
-   ------------------------------------------------------------ */
-.aparca-content-section {
-    animation: aparca-fadeInUp 0.3s ease-out;
-    /* Animación sutil al aparecer la sección */
-}
+/* ============================================================
+   6. SECCIONES DE CONTENIDO
+   ============================================================ */
+.aparca-content-section { animation: aparca-fadeInUp 0.3s ease-out; }
 
 .aparca-content-section h2 {
     font-size: 1.5rem;
@@ -212,50 +510,49 @@
 }
 
 
-/* ------------------------------------------------------------
-   6. BOTÓN PROPIO — Estilo primario
-   CAMBIO CRÍTICO: era .btn-primary que sobreescribe
-   el componente .btn-primary de DaisyUI.
-   AHORA: .aparca-btn-primary (clase propia independiente).
-   Se usa en formularios de correo y secciones fuera de
-   contexto DaisyUI.
-   ------------------------------------------------------------ */
+/* ============================================================
+   7. BOTÓN PRIMARIO
+   ============================================================ */
 .aparca-btn-primary {
     display: inline-flex;
     align-items: center;
     gap: 0.5rem;
-    padding: 0.6rem 1.25rem;
-    background-color: #1e40af;  /* Azul oscuro AparcaYA */
+    padding: 0.65rem 1.5rem;
+    background-color: #1e40af;
     color: white;
     border: none;
-    border-radius: 0.5rem;
+    border-radius: 0.625rem;
     font-weight: 600;
     font-size: 0.9rem;
     cursor: pointer;
-    transition: background-color 0.2s, transform 0.1s;
+    transition: background-color 0.2s, transform 0.15s, box-shadow 0.2s;
+    box-shadow: 0 2px 8px rgba(30,64,175,0.28);
 }
 
-.aparca-btn-primary:hover {
+.aparca-btn-primary:hover:not(:disabled) {
     background-color: #1e3a8a;
+    box-shadow: 0 4px 14px rgba(30,64,175,0.38);
+    transform: translateY(-1px);
 }
 
-.aparca-btn-primary:active {
-    transform: scale(0.98);
+.aparca-btn-primary:active:not(:disabled) {
+    transform: scale(0.98) translateY(0);
+    box-shadow: 0 1px 4px rgba(30,64,175,0.3);
 }
 
-.aparca-btn-primary svg {
-    width: 18px;
-    height: 18px;
-    flex-shrink: 0;
+.aparca-btn-primary:disabled {
+    opacity: 0.58;
+    cursor: not-allowed;
+    transform: none;
+    box-shadow: none;
 }
 
+.aparca-btn-primary svg { width: 17px; height: 17px; flex-shrink: 0; }
 
-/* ------------------------------------------------------------
-   7. BOTÓN PROPIO — Estilo outline
-   CAMBIO CRÍTICO: era .btn-outline que sobreescribe
-   el modificador .btn-outline de DaisyUI.
-   AHORA: .aparca-btn-outline
-   ------------------------------------------------------------ */
+
+/* ============================================================
+   8. BOTÓN OUTLINE
+   ============================================================ */
 .aparca-btn-outline {
     display: inline-flex;
     align-items: center;
@@ -263,40 +560,35 @@
     padding: 0.5rem 1rem;
     background-color: transparent;
     color: #1e40af;
-    border: 2px solid #1e40af;
-    border-radius: 0.5rem;
+    border: 1.5px solid #1e40af;
+    border-radius: 0.625rem;
     font-weight: 600;
     font-size: 0.875rem;
     cursor: pointer;
-    transition: background-color 0.2s, color 0.2s;
+    transition: background-color 0.2s, color 0.2s, box-shadow 0.2s;
 }
 
 .aparca-btn-outline:hover {
     background-color: #1e40af;
     color: white;
+    box-shadow: 0 2px 8px rgba(30,64,175,0.25);
 }
 
 
-/* ------------------------------------------------------------
-   8. MODAL OVERLAY PROPIO (no DaisyUI)
-   Para modales que son <div> controlados por JS,
-   no los <dialog> de DaisyUI.
-   CAMBIO: era .modal-overlay → .aparca-modal-overlay
-   ------------------------------------------------------------ */
+/* ============================================================
+   9. MODAL
+   ============================================================ */
 .aparca-modal-overlay {
-    display: none;            /* Oculto por defecto */
+    display: none;
     position: fixed;
-    inset: 0;                 /* Cubre toda la pantalla */
-    background: rgba(0, 0, 0, 0.5);
+    inset: 0;
+    background: rgba(0,0,0,0.5);
     z-index: 999;
     align-items: center;
     justify-content: center;
 }
 
-/* JS agrega .show para activar el modal */
-.aparca-modal-overlay.show {
-    display: flex;
-}
+.aparca-modal-overlay.show { display: flex; }
 
 .aparca-modal-content {
     background: white;
@@ -305,7 +597,7 @@
     max-width: 560px;
     max-height: 90vh;
     overflow-y: auto;
-    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.2);
+    box-shadow: 0 20px 40px rgba(0,0,0,0.2);
     animation: aparca-slideUp 0.3s ease;
 }
 
@@ -317,11 +609,7 @@
     border-bottom: 1px solid #e2e8f0;
 }
 
-.aparca-modal-header h3 {
-    font-size: 1.1rem;
-    font-weight: 700;
-    margin: 0;
-}
+.aparca-modal-header h3 { font-size: 1.1rem; font-weight: 700; margin: 0; }
 
 .aparca-modal-close {
     background: none;
@@ -335,85 +623,156 @@
     transition: color 0.15s, background-color 0.15s;
 }
 
-.aparca-modal-close:hover {
-    color: #111827;
-    background-color: #f3f4f6;
-}
-
-.aparca-modal-body {
-    padding: 1.5rem;
-}
+.aparca-modal-close:hover { color: #111827; background-color: #f3f4f6; }
+.aparca-modal-body { padding: 1.5rem; }
 
 
-/* ------------------------------------------------------------
-   9. TABLA PROPIA
-   CAMBIO CRÍTICO: selectores globales table, th, td
-   afectaban tablas internas de DaisyUI y Leaflet.
-   AHORA: .aparca-table (solo afecta nuestras tablas).
-   ------------------------------------------------------------ */
+/* ============================================================
+   10. TABLA
+   ============================================================ */
 .aparca-table {
     width: 100%;
     border-collapse: collapse;
     background: white;
-    border-radius: 8px;
+    border-radius: 0.75rem;
     overflow: hidden;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+    box-shadow: 0 1px 4px rgba(0,0,0,0.04);
 }
 
 .aparca-table th,
 .aparca-table td {
     padding: 0.875rem 1.25rem;
-    border-bottom: 1px solid #e2e8f0;
+    border-bottom: 1px solid #f1f5f9;
     text-align: left;
     color: #334155;
-    font-size: 0.9rem;
+    font-size: 0.875rem;
 }
 
 .aparca-table th {
     font-weight: 700;
-    font-size: 0.8rem;
+    font-size: 0.75rem;
     text-transform: uppercase;
-    letter-spacing: 0.05em;
+    letter-spacing: 0.06em;
     color: #64748b;
 }
 
-.aparca-table tbody tr {
-    transition: background-color 0.15s;
+.aparca-table tbody tr { transition: background-color 0.15s; }
+.aparca-table tbody tr:last-child td { border-bottom: none; }
+.aparca-table .loading { text-align: center; color: #94a3b8; padding: 3rem; font-style: italic; }
+
+
+/* ============================================================
+   11. CORREOS — Cards por campo
+   ============================================================ */
+.aparca-mail-card {
+    background: white;
+    border-radius: 1.25rem;
+    border: 1px solid #e2e8f0;
+    box-shadow: 0 4px 24px rgba(0,0,0,0.07);
+    overflow: hidden;
+    max-width: 760px;
 }
 
-.aparca-table tbody tr:last-child td {
-    border-bottom: none;
+.aparca-mail-header {
+    padding: 1.5rem 2rem 1.25rem;
+    background: linear-gradient(135deg, #f8faff 0%, #eef2ff 100%);
+    border-bottom: 1px solid #e2e8f0;
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
 }
 
-/* El color de hover de la tabla va en pages/[pagina].css
-   porque cada dashboard tiene su color de acento propio */
-
-.aparca-table .loading {
-    text-align: center;
-    color: #94a3b8;
-    padding: 2rem;
-    font-style: italic;
+.aparca-mail-header-icon {
+    width: 42px;
+    height: 42px;
+    border-radius: 0.75rem;
+    background: white;
+    border: 1px solid #e0e7ff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    box-shadow: 0 1px 4px rgba(99,102,241,0.1);
 }
 
+.aparca-mail-header-icon svg { width: 20px; height: 20px; color: #4f46e5; }
 
-/* ------------------------------------------------------------
-   10. FORMULARIO PROPIO (fuera de contexto DaisyUI)
-   CAMBIO CRÍTICO: era .form-control que sobreescribe
-   el componente .form-control de DaisyUI.
-   AHORA: .aparca-form-control
-   ------------------------------------------------------------ */
-.aparca-form-control {
-    margin-bottom: 1.25rem;
+.aparca-mail-header-text h3 { font-size: 1rem; font-weight: 700; color: #1e293b; margin: 0 0 2px; }
+.aparca-mail-header-text p  { font-size: 0.78rem; color: #64748b; margin: 0; }
+
+.aparca-mail-body { padding: 1.5rem 2rem 0.5rem; }
+
+.aparca-field-card {
+    background: #f8fafc;
+    border: 1.5px solid #e9eef5;
+    border-radius: 0.875rem;
+    padding: 0.875rem 1.125rem;
+    margin-bottom: 0.875rem;
+    transition: border-color 0.2s, box-shadow 0.2s, background-color 0.2s;
 }
 
-.aparca-form-control label {
-    display: block;
-    font-weight: 600;
-    font-size: 0.875rem;
-    color: #374151;
+.aparca-field-card:focus-within {
+    border-color: #6366f1;
+    box-shadow: 0 0 0 3px rgba(99,102,241,0.1);
+    background: white;
+}
+
+.aparca-field-label-row {
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
     margin-bottom: 0.4rem;
 }
 
+.aparca-field-label-row svg { width: 14px; height: 14px; color: #94a3b8; flex-shrink: 0; transition: color 0.2s; }
+.aparca-field-card:focus-within .aparca-field-label-row svg { color: #6366f1; }
+
+.aparca-field-label-row label {
+    font-size: 0.72rem;
+    font-weight: 700;
+    color: #94a3b8;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    cursor: pointer;
+    transition: color 0.2s;
+}
+
+.aparca-field-card:focus-within .aparca-field-label-row label { color: #6366f1; }
+
+.aparca-field-card input,
+.aparca-field-card textarea {
+    width: 100%;
+    background: transparent;
+    border: none;
+    outline: none;
+    font-size: 0.9rem;
+    color: #111827;
+    padding: 0;
+    resize: none;
+    box-sizing: border-box;
+    font-family: inherit;
+    line-height: 1.5;
+}
+
+.aparca-field-card textarea { min-height: 130px; resize: vertical; line-height: 1.65; }
+.aparca-field-card input::placeholder,
+.aparca-field-card textarea::placeholder { color: #c0cada; }
+
+.aparca-mail-footer {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0.75rem 2rem 1.75rem;
+    gap: 1rem;
+    flex-wrap: wrap;
+}
+
+.aparca-char-counter { font-size: 0.72rem; color: #c0cada; font-variant-numeric: tabular-nums; transition: color 0.2s; }
+.aparca-char-counter.warning { color: #f59e0b; font-weight: 600; }
+.aparca-char-counter.danger  { color: #ef4444; font-weight: 700; }
+
+.aparca-form-control { margin-bottom: 1.25rem; }
+.aparca-form-control label { display: block; font-weight: 600; font-size: 0.875rem; color: #374151; margin-bottom: 0.4rem; }
 .aparca-form-control input,
 .aparca-form-control textarea,
 .aparca-form-control select {
@@ -426,119 +785,69 @@
     background: white;
     transition: border-color 0.2s, box-shadow 0.2s;
     box-sizing: border-box;
+    font-family: inherit;
 }
-
 .aparca-form-control input:focus,
 .aparca-form-control textarea:focus,
 .aparca-form-control select:focus {
     outline: none;
     border-color: #3b82f6;
-    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.15);
+    box-shadow: 0 0 0 3px rgba(59,130,246,0.15);
 }
-
-.aparca-form-control textarea {
-    resize: vertical;
-    min-height: 100px;
-}
+.aparca-form-control textarea { resize: vertical; min-height: 100px; }
 
 
-/* ------------------------------------------------------------
-   11. PESTAÑAS PROPIAS (tabs de navegación interna)
-   CAMBIO CRÍTICO: era .tabs que colisiona con el
-   componente .tabs de DaisyUI.
-   AHORA: .aparca-tabs
-   ------------------------------------------------------------ */
+/* ============================================================
+   12. PESTAÑAS
+   ============================================================ */
 .aparca-tabs {
     display: flex;
-    gap: 0.5rem;
     border-bottom: 2px solid #e2e8f0;
-    margin-bottom: 1.5rem;
+    overflow-x: auto;
+    scrollbar-width: none;
 }
+
+.aparca-tabs::-webkit-scrollbar { display: none; }
 
 .aparca-tabs button {
     display: inline-flex;
     align-items: center;
-    gap: 0.4rem;
-    padding: 0.6rem 1rem;
+    gap: 0.45rem;
+    padding: 0.75rem 1.25rem;
     background: none;
     border: none;
     border-bottom: 3px solid transparent;
-    margin-bottom: -2px;    /* Solapa el border-bottom del contenedor */
+    margin-bottom: -2px;
     font-size: 0.875rem;
     font-weight: 500;
     color: #6b7280;
     cursor: pointer;
-    transition: color 0.2s, border-color 0.2s;
+    transition: color 0.2s, border-color 0.2s, background-color 0.15s;
+    white-space: nowrap;
+    flex-shrink: 0;
 }
 
-.aparca-tabs button svg {
-    width: 18px;
-    height: 18px;
-}
-
-.aparca-tabs button:hover {
-    color: #1e40af;
-}
-
-/* JS agrega .active al tab seleccionado */
-.aparca-tabs button.active {
-    color: #1e40af;
-    border-bottom-color: #1e40af;
-    font-weight: 700;
-}
+.aparca-tabs button svg { width: 16px; height: 16px; flex-shrink: 0; }
+.aparca-tabs button:hover { color: #1e40af; background: rgba(30,64,175,0.04); }
+.aparca-tabs button.active { color: #1e40af; border-bottom-color: #1e40af; font-weight: 700; }
 
 
-/* ------------------------------------------------------------
-   12. RESPONSIVE — Sidebar en móvil
-   En pantallas < 768px el sidebar pasa a ser
-   una barra de navegación fija en la parte inferior.
-   ------------------------------------------------------------ */
+/* ============================================================
+   13. RESPONSIVE — Solo ajustes de padding en mobile.
+   El sidebar sigue visible y colapsable en todas las resoluciones.
+   ============================================================ */
 @media (max-width: 768px) {
+    .aparca-dashboard-main { padding: 1.25rem; }
+    .aparca-mail-card      { max-width: 100%; }
+}
 
-    .aparca-sidebar {
-        position: fixed;
-        height: auto;
-        width: 100%;
-        bottom: 0;
-        left: 0;
-        top: auto;
-        flex-direction: row;
-        justify-content: space-around;
-        padding: 0.5rem 0;
-        z-index: 50;
-    }
-
-    .aparca-sidebar-header {
-        display: none;        /* Oculta logo en móvil */
-    }
-
-    .aparca-sidebar-nav {
-        flex-direction: row;
-        width: 100%;
-        justify-content: space-around;
-        padding: 0;
-        margin: 0;
-    }
-
-    .aparca-sidebar-nav a {
-        border-left: none;
-        border-top: 3px solid transparent;
-        padding: 0.4rem 0.5rem;
-        margin-bottom: 0;
-        text-align: center;
-        font-size: 0.7rem;
-        flex-direction: column;
-        gap: 0.2rem;
-    }
-
-    .aparca-page-header {
-        left: 0;              /* Header ocupa todo el ancho */
-    }
-
-    .aparca-dashboard-main {
-        margin-left: 0;
-        margin-top: 64px;
-        margin-bottom: 70px; /* Deja espacio para el nav inferior */
-        padding: 1rem;
-    }
+@media (max-width: 480px) {
+    .aparca-dashboard-main { padding: 0.875rem 0.75rem; }
+    .aparca-content-section h2 { font-size: 1.2rem; }
+    .aparca-mail-body,
+    .aparca-mail-footer { padding-left: 1rem; padding-right: 1rem; }
+    .aparca-mail-footer { flex-direction: column; align-items: stretch; }
+    .aparca-mail-footer .aparca-btn-primary { justify-content: center; width: 100%; }
+    .aparca-table th,
+    .aparca-table td { padding: 0.625rem 0.75rem; font-size: 0.8rem; }
 }

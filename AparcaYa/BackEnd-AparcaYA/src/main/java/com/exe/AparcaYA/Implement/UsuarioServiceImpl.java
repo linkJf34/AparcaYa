@@ -70,12 +70,12 @@ public class UsuarioServiceImpl implements UsuarioService {
         return usuarioRepository.findByRolIn(roles);
     }
 
-    // ✅ CAMBIO #2: Lógica de conteo movida desde AdminController
+    // ✅ RIESGO #8: countByEstado() delega a BD — elimina findAll() en memoria
+    // Antes: findAll().stream().filter(ACTIVO).count() → O(n) en memoria
+    // Ahora: SELECT COUNT(*) WHERE estado = 'ACTIVO' → O(1) en BD
     @Override
     public long contarActivos() {
-        return usuarioRepository.findAll().stream()
-                .filter(u -> u.getEstado() == EstadoGeneral.ACTIVO)
-                .count();
+        return usuarioRepository.countByEstado(EstadoGeneral.ACTIVO);
     }
 
     @Override

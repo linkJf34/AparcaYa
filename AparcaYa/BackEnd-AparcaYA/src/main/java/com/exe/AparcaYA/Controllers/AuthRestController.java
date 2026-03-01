@@ -1,4 +1,4 @@
-package com.exe.AparcaYA.Controllers;
+/*package com.exe.AparcaYA.Controllers;
 
 import com.exe.AparcaYA.Dto.ApiResponse;
 import com.exe.AparcaYA.Dto.ForgotPasswordRequest;
@@ -95,4 +95,4 @@ public class AuthRestController {
                     .body(new ApiResponse(false, "Error al actualizar contraseña."));
         }
     }
-}
+}*/

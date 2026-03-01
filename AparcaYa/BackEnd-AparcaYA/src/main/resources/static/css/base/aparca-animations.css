@@ -70,6 +70,7 @@
    3. PULSE
    Efecto de escala pulsante para botones CTA.
    Usada en: index (btn-pulse), registro (btn-pulse).
+
    NOTA CRÍTICA: Tailwind define su propio @keyframes pulse
    para .animate-pulse. Este usa el prefijo aparca- para
    no colisionar bajo ninguna circunstancia.

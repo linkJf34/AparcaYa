@@ -5,14 +5,17 @@ import com.exe.AparcaYA.Enum.MetodoPago;
 import com.exe.AparcaYA.Enum.Rolenum;
 import com.exe.AparcaYA.Enum.TipoCliente;
 import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.*;
+import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Pattern;
+import jakarta.validation.constraints.Size;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+
 import java.util.ArrayList;
 import java.util.List;
 
@@ -33,18 +36,22 @@ public class Usuario {
     private String nombre;
 
     @NotBlank(message = "El correo es obligatorio")
+    @Email(message = "Formato de correo inválido")
     @Column(nullable = false, unique = true)
     private String correo;
 
     @NotBlank(message = "El teléfono es obligatorio")
+    @Pattern(regexp = "[0-9]{10}", message = "El teléfono debe tener exactamente 10 dígitos")
     @Column(nullable = false, unique = true)
     private String telefono;
 
     @NotBlank(message = "La cédula es obligatoria")
+    @Pattern(regexp = "[0-9]{10}", message = "La cédula debe tener exactamente 10 dígitos")
     @Column(nullable = false, unique = true)
     private String cedula;
 
     @NotBlank(message = "La contraseña es obligatoria")
+    @Size(min = 8, message = "La contraseña debe tener al menos 8 caracteres")
     @Column(nullable = false)
     private String contrasena;
 
@@ -71,12 +78,18 @@ public class Usuario {
     @Column(columnDefinition = "TEXT")
     private String descripcion;
 
-    @ManyToOne(fetch = FetchType.LAZY)
+    // ✅ FetchType.EAGER — antes era LAZY, causaba proxy no inicializado cuando
+    // el JWT expiraba y el usuario se recargaba fuera de una sesión Hibernate activa.
+    // Síntoma: tras tiempo de inactividad/recarga, getSedeAsignada() retornaba null
+    // aunque la sede existía en BD — NPE en todos los endpoints del Controller.
+    // LAZY es correcto para colecciones @OneToMany, pero para este @ManyToOne simple
+    // que se necesita en casi todos los endpoints, EAGER es la opción correcta.
+    @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "id_sede_asignada")
     @JsonIgnore
     private Sede sedeAsignada;
 
-   @OneToMany(mappedBy = "idUsuario", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    @OneToMany(mappedBy = "idUsuario", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     @JsonIgnore
     private List<Sede> sedes = new ArrayList<>();
 

@@ -2,13 +2,11 @@ package com.exe.AparcaYA.Dto;
 
 import com.exe.AparcaYA.Enum.EstadoGeneral;
 import com.exe.AparcaYA.Enum.Rolenum;
-import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
 @Data
 @NoArgsConstructor
-@AllArgsConstructor
 public class UsuarioDTO {
 
     private Long id;

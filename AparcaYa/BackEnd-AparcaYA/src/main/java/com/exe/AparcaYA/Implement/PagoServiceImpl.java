@@ -33,7 +33,6 @@ public class PagoServiceImpl implements PagoService {
 
     @Override
     public Pago update(Pago pago) {
-        // ✅ CAMBIO #8: Implementado — antes retornaba null
         if (pagoRepository.existsById(pago.getIdPago())) {
             return pagoRepository.save(pago);
         }
@@ -42,36 +41,23 @@ public class PagoServiceImpl implements PagoService {
 
     @Override
     public void delete(Long id) {
-        // ✅ CAMBIO #8: Implementado — antes era cuerpo vacío
         pagoRepository.deleteById(id);
     }
 
     @Override
     public List<Pago> findByCliente_IdUsuario(Long idUsuario) {
-        // ✅ CAMBIO #7: Implementado — antes retornaba List.of()
-        // PagoRepository expone findByReservacion_Cliente_IdUsuario que navega
-        // la relación Pago → Reservacion → Cliente para filtrar por usuario
         return pagoRepository.findByReservacion_Cliente_IdUsuario(idUsuario);
     }
 
     @Override
     public List<Pago> findByEstado(EstadoPago estado) {
-        // ✅ CAMBIO #8: Implementado — antes retornaba List.of()
         return pagoRepository.findByEstado(estado);
     }
 
     @Override
     public List<Pago> findByReservacion_IdReserva(Long idReserva) {
-        // ✅ CAMBIO #8: Implementado — antes retornaba List.of()
-        return pagoRepository.findByReservacion_IdReserva(idReserva);
-    }
-
-    @Override
-    public List<Pago> findByReserva_IdReserva(Long idReserva) {
-        // ✅ CAMBIO #8: Implementado — delegado al método correcto del Repository
-        // El nombre del método en PagoService usaba "Reserva" (sin "cion")
-        // pero el Repository usa "Reservacion" — se unifica aquí sin cambiar
-        // la firma del Service para no romper quien ya lo llame
+        // ✅ C6: Eliminado findByReserva_IdReserva — este es el único método correcto.
+        // El nombre "Reservacion" coincide con la entidad real y con el Repository.
         return pagoRepository.findByReservacion_IdReserva(idReserva);
     }
 }

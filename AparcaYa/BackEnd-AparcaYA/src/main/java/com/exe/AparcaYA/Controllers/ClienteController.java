@@ -1,66 +1,73 @@
 package com.exe.AparcaYA.Controllers;
 
-import com.exe.AparcaYA.Entity.Usuario;
-import com.exe.AparcaYA.Entity.Reservacion;
-import com.exe.AparcaYA.Entity.Sede;
+import com.exe.AparcaYA.Dto.SedeDTO;
+import com.exe.AparcaYA.Dto.UsuarioDTO;
 import com.exe.AparcaYA.Entity.Pago;
+import com.exe.AparcaYA.Entity.Reservacion;
+import com.exe.AparcaYA.Entity.Usuario;
 import com.exe.AparcaYA.Enum.EstadoGeneral;
 import com.exe.AparcaYA.Enum.EstadoReservacion;
-import com.exe.AparcaYA.Service.UsuarioService;
+import com.exe.AparcaYA.Service.PagoService;
 import com.exe.AparcaYA.Service.ReservacionService;
 import com.exe.AparcaYA.Service.SedeService;
-import com.exe.AparcaYA.Service.PagoService;
+import com.exe.AparcaYA.Service.UsuarioService;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 
-import jakarta.servlet.http.HttpSession;
 import java.util.List;
 import java.util.Map;
-import java.util.HashMap;
+import java.util.stream.Collectors;
 
+@Slf4j
 @Controller
 @RequestMapping("/cliente")
 public class ClienteController {
 
-    @Autowired
-    private UsuarioService usuarioService;
+    @Autowired private UsuarioService     usuarioService;
+    @Autowired private ReservacionService reservacionService;
+    @Autowired private SedeService        sedeService;
+    @Autowired private PagoService        pagoService;
 
-    @Autowired
-    private ReservacionService reservacionService;
+    // =========================================================
+    // UTILIDAD: obtener usuario autenticado desde SecurityContext
+    //
+    // ✅ FIX C-05: Reemplaza session.getAttribute("userId") manual.
+    // Antes: el controller leía userId de HttpSession — si el
+    //        AuthenticationSuccessHandler no lo guardaba explícitamente,
+    //        userId era siempre null y todos los usuarios veían el login.
+    // Ahora: Spring Security garantiza que getName() retorna el correo
+    //        del usuario autenticado en cualquier request protegido.
+    // =========================================================
+    private Usuario getUsuarioAutenticado() {
+        String correo = SecurityContextHolder.getContext()
+                .getAuthentication()
+                .getName();
+        return usuarioService.findByCorreo(correo).orElse(null);
+    }
 
-    @Autowired
-    private SedeService sedeService;
-
-    @Autowired
-    private PagoService pagoService;
-
-    /**
-     * Dashboard principal del cliente
-     */
+    // =========================================================
+    // DASHBOARD PRINCIPAL
+    // =========================================================
     @GetMapping("/dashboard")
-    public String mostrarDashboard(HttpSession session, Model model) {
-        Long userId = (Long) session.getAttribute("userId");
+    public String mostrarDashboard(Model model) {
+        Usuario usuario = getUsuarioAutenticado();
 
-        if (userId == null) {
+        if (usuario == null) {
             return "redirect:/login";
         }
 
         try {
-            Usuario usuario = usuarioService.findById(userId).orElse(null);
-
-            if (usuario == null) {
-                return "redirect:/login";
-            }
-
-            model.addAttribute("usuario", usuario);
             model.addAttribute("nombreUsuario", usuario.getNombre());
-            model.addAttribute("userId", userId);
+            model.addAttribute("userId",        usuario.getIdUsuario());
 
-            List<Reservacion> reservaciones = reservacionService.findByCliente_IdUsuario(userId);
+            List<Reservacion> reservaciones =
+                    reservacionService.findByCliente_IdUsuario(usuario.getIdUsuario());
             model.addAttribute("reservaciones", reservaciones);
 
             long reservasActivas = reservaciones.stream()
@@ -68,75 +75,64 @@ public class ClienteController {
                     .count();
             model.addAttribute("reservasActivas", reservasActivas);
 
-            List<Sede> sedesActivas = sedeService.findByEstado(EstadoGeneral.ACTIVO);
+            // ✅ FIX C-06: SedeDTO en lugar de entidad Sede completa
+            List<SedeDTO> sedesActivas = sedeService
+                    .findByEstado(EstadoGeneral.ACTIVO)
+                    .stream()
+                    .map(SedeDTO::fromEntity)
+                    .collect(Collectors.toList());
             model.addAttribute("sedes", sedesActivas);
 
             return "cliente/dashboard";
 
         } catch (Exception e) {
-            model.addAttribute("error", "Error cargando el dashboard: " + e.getMessage());
+            log.error("Error cargando dashboard cliente: {}", e.getMessage());
+            model.addAttribute("error", "Error cargando el dashboard");
             return "error";
         }
     }
 
+    // =========================================================
+    // PERFIL
+    // =========================================================
+
     /**
-     * Obtiene el perfil del usuario (JSON)
+     * GET /cliente/perfil — retorna UsuarioDTO (sin contraseña ni campos sensibles)
      */
     @GetMapping("/perfil")
     @ResponseBody
-    public ResponseEntity<Usuario> obtenerPerfil(HttpSession session) {
-        Long userId = (Long) session.getAttribute("userId");
+    public ResponseEntity<UsuarioDTO> obtenerPerfil() {
+        Usuario usuario = getUsuarioAutenticado();
 
-        if (userId == null) {
+        if (usuario == null) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
         }
 
-        Usuario usuario = usuarioService.findById(userId).orElse(null);
-
-        if (usuario == null) {
-            return ResponseEntity.notFound().build();
-        }
-
-        return ResponseEntity.ok(usuario);
+        return ResponseEntity.ok(UsuarioDTO.fromEntity(usuario));
     }
 
     /**
-     * Actualiza el perfil del usuario
+     * POST /cliente/perfil/actualizar — whitelist explícita, solo nombre/correo/telefono
      */
     @PostMapping("/perfil/actualizar")
     @ResponseBody
     public ResponseEntity<Map<String, Object>> actualizarPerfil(
-            @RequestBody Usuario usuarioActualizado,
-            HttpSession session) {
+            @RequestBody Map<String, String> campos) {
 
-        Long userId = (Long) session.getAttribute("userId");
+        Usuario usuario = getUsuarioAutenticado();
 
-        // ✅ CAMBIO #2: Reemplazado JSON como String literal por Map<String, Object>
-        if (userId == null) {
+        if (usuario == null) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
                     .body(Map.of("success", false, "message", "No autenticado"));
         }
 
         try {
-            Usuario usuario = usuarioService.findById(userId).orElse(null);
-
-            if (usuario == null) {
-                return ResponseEntity.status(HttpStatus.NOT_FOUND)
-                        .body(Map.of("success", false, "message", "Usuario no encontrado"));
-            }
-
-            if (usuarioActualizado.getNombre() != null) {
-                usuario.setNombre(usuarioActualizado.getNombre());
-            }
-            if (usuarioActualizado.getCorreo() != null) {
-                usuario.setCorreo(usuarioActualizado.getCorreo());
-            }
-            if (usuarioActualizado.getTelefono() != null) {
-                usuario.setTelefono(usuarioActualizado.getTelefono());
-            }
+            // Whitelist — rol, contrasena, estado, sedeAsignada ignorados aunque vengan
+            if (campos.containsKey("nombre"))   usuario.setNombre(campos.get("nombre"));
+            if (campos.containsKey("correo"))   usuario.setCorreo(campos.get("correo"));
+            if (campos.containsKey("telefono")) usuario.setTelefono(campos.get("telefono"));
 
             usuarioService.update(usuario);
-
             return ResponseEntity.ok(Map.of("success", true, "message", "Perfil actualizado correctamente"));
 
         } catch (Exception e) {
@@ -145,35 +141,41 @@ public class ClienteController {
         }
     }
 
+    // =========================================================
+    // RESERVAS
+    // =========================================================
+
     /**
-     * Obtiene las reservas del cliente (JSON)
+     * GET /cliente/reservas — reservas del usuario autenticado únicamente
      */
     @GetMapping("/reservas")
     @ResponseBody
-    public ResponseEntity<List<Reservacion>> obtenerReservas(HttpSession session) {
-        Long userId = (Long) session.getAttribute("userId");
+    public ResponseEntity<List<Reservacion>> obtenerReservas() {
+        Usuario usuario = getUsuarioAutenticado();
 
-        if (userId == null) {
+        if (usuario == null) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
         }
 
-        List<Reservacion> reservas = reservacionService.findByCliente_IdUsuario(userId);
-        return ResponseEntity.ok(reservas);
+        return ResponseEntity.ok(
+                reservacionService.findByCliente_IdUsuario(usuario.getIdUsuario())
+        );
     }
 
     /**
-     * Cancela una reserva del cliente
+     * POST /cliente/reservas/{reservaId}/cancelar
+     *
+     * ✅ Ownership check: verifica que la reserva pertenece al usuario autenticado.
+     * ✅ Estado check: solo se pueden cancelar reservas ACTIVA o PENDIENTE.
      */
     @PostMapping("/reservas/{reservaId}/cancelar")
     @ResponseBody
     public ResponseEntity<Map<String, Object>> cancelarReserva(
-            @PathVariable Long reservaId,
-            HttpSession session) {
+            @PathVariable Long reservaId) {
 
-        Long userId = (Long) session.getAttribute("userId");
+        Usuario usuario = getUsuarioAutenticado();
 
-        // ✅ CAMBIO #3: Reemplazado JSON como String literal por Map<String, Object>
-        if (userId == null) {
+        if (usuario == null) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
                     .body(Map.of("success", false, "message", "No autenticado"));
         }
@@ -186,7 +188,10 @@ public class ClienteController {
                         .body(Map.of("success", false, "message", "Reserva no encontrada"));
             }
 
-            if (!reserva.getCliente().getIdUsuario().equals(userId)) {
+            // Ownership check — el cliente solo puede cancelar sus propias reservas
+            if (!reserva.getCliente().getIdUsuario().equals(usuario.getIdUsuario())) {
+                log.warn("Cliente {} intentó cancelar reserva {} de otro usuario",
+                        usuario.getIdUsuario(), reservaId);
                 return ResponseEntity.status(HttpStatus.FORBIDDEN)
                         .body(Map.of("success", false, "message", "No autorizado"));
             }
@@ -194,7 +199,8 @@ public class ClienteController {
             if (reserva.getEstado() != EstadoReservacion.ACTIVA &&
                     reserva.getEstado() != EstadoReservacion.PENDIENTE) {
                 return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-                        .body(Map.of("success", false, "message", "La reserva no se puede cancelar"));
+                        .body(Map.of("success", false, "message",
+                                "Solo se pueden cancelar reservas activas o pendientes"));
             }
 
             reserva.setEstado(EstadoReservacion.CANCELADA);
@@ -208,53 +214,73 @@ public class ClienteController {
         }
     }
 
-    /**
-     * Obtiene todas las sedes activas (JSON)
-     */
+    // =========================================================
+    // SEDES
+    //
+    // ✅ FIX C-06: Retorna List<SedeDTO> en lugar de List<Sede>.
+    // Antes: la entidad Sede podía incluir la relación con el
+    //        Usuario administrador — exponía datos del admin al cliente.
+    // Ahora: SedeDTO.fromEntity() expone solo los campos públicos.
+    // =========================================================
     @GetMapping("/sedes")
     @ResponseBody
-    public ResponseEntity<List<Sede>> obtenerSedesActivas() {
-        List<Sede> sedes = sedeService.findByEstado(EstadoGeneral.ACTIVO);
+    public ResponseEntity<List<SedeDTO>> obtenerSedesActivas() {
+        List<SedeDTO> sedes = sedeService.findByEstado(EstadoGeneral.ACTIVO)
+                .stream()
+                .map(SedeDTO::fromEntity)
+                .collect(Collectors.toList());
         return ResponseEntity.ok(sedes);
     }
 
-    /**
-     * Obtiene información de una sede específica (JSON)
-     */
     @GetMapping("/sedes/{sedeId}")
     @ResponseBody
-    public ResponseEntity<Sede> obtenerSede(@PathVariable Long sedeId) {
-        Sede sede = sedeService.findById(sedeId).orElse(null);
-
-        if (sede == null) {
-            return ResponseEntity.notFound().build();
-        }
-
-        return ResponseEntity.ok(sede);
+    public ResponseEntity<SedeDTO> obtenerSede(@PathVariable Long sedeId) {
+        return sedeService.findById(sedeId)
+                .map(sede -> ResponseEntity.ok(SedeDTO.fromEntity(sede)))
+                .orElse(ResponseEntity.notFound().build());
     }
 
-    /**
-     * Obtiene los pagos del cliente (JSON)
-     */
+    // =========================================================
+    // PAGOS
+    // =========================================================
     @GetMapping("/pagos")
     @ResponseBody
-    public ResponseEntity<List<Pago>> obtenerPagos(HttpSession session) {
-        Long userId = (Long) session.getAttribute("userId");
+    public ResponseEntity<List<Pago>> obtenerPagos() {
+        Usuario usuario = getUsuarioAutenticado();
 
-        if (userId == null) {
+        if (usuario == null) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
         }
 
-        List<Pago> pagos = pagoService.findByCliente_IdUsuario(userId);
-        return ResponseEntity.ok(pagos);
+        return ResponseEntity.ok(
+                pagoService.findByCliente_IdUsuario(usuario.getIdUsuario())
+        );
     }
 
-    /**
-     * Cierra la sesión del usuario
-     */
+    // =========================================================
+    // LOGOUT
+    //
+    // ✅ FIX C-07: Eliminado logout manual con session.invalidate().
+    // Antes: solo destruía la HttpSession pero dejaba el SecurityContext
+    //        activo — el token CSRF y la autenticación podían reutilizarse.
+    // Ahora: redirige a POST /logout de Spring Security que hace limpieza
+    //        completa: SecurityContext, sesión, cookies de remember-me.
+    //
+    // IMPORTANTE: el HTML debe enviar un POST con el token CSRF, no un GET.
+    // Ejemplo correcto en Thymeleaf:
+    //   <form th:action="@{/logout}" method="post">
+    //     <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}"/>
+    //     <button type="submit">Cerrar sesión</button>
+    //   </form>
+    //
+    // Este endpoint GET se mantiene solo como respaldo de compatibilidad
+    // pero redirige a Spring Security en lugar de hacer invalidación manual.
+    // =========================================================
     @GetMapping("/logout")
-    public String cerrarSesion(HttpSession session) {
-        session.invalidate();
-        return "redirect:/login";
+    public String cerrarSesion() {
+        // Redirige al endpoint de Spring Security que hace logout completo.
+        // Spring Security maneja la invalidación del SecurityContext,
+        // la sesión HTTP y las cookies de autenticación.
+        return "redirect:/logout";
     }
 }

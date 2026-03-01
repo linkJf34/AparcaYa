@@ -16,8 +16,14 @@ public class ReservacionServiceImpl implements ReservacionService {
     @Autowired
     private ReservacionRepository reservacionRepository;
 
+    // ✅ CAMBIO #4: Estado PENDIENTE por defecto movido del Controller al Service
+    // Antes: if (getEstado() == null) en ReservacionController.createReservacion()
+    // Ahora: cualquier llamante (Controller, otro Service) obtiene el comportamiento correcto
     @Override
     public Reservacion save(Reservacion reservacion) {
+        if (reservacion.getEstado() == null) {
+            reservacion.setEstado(EstadoReservacion.PENDIENTE);
+        }
         return reservacionRepository.save(reservacion);
     }
 

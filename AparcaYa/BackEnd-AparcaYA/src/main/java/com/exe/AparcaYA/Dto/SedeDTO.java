@@ -2,7 +2,6 @@ package com.exe.AparcaYA.Dto;
 
 import com.exe.AparcaYA.Enum.EstadoGeneral;
 import com.exe.AparcaYA.Enum.Localidad;
-import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
@@ -10,7 +9,6 @@ import java.time.LocalDateTime;
 
 @Data
 @NoArgsConstructor
-@AllArgsConstructor
 public class SedeDTO {
     private Long id;        // ✅ Campo principal que consume el JS (s.id, editarSede(s.id), eliminarSede(s.id))
     private Long idSede;    // Mantenido para compatibilidad interna
@@ -27,6 +25,10 @@ public class SedeDTO {
     private String horarioSede;
     private EstadoGeneral estado;
     private LocalDateTime fechaCreacion;
+
+    // ✅ NUEVO: coordenadas — el JS las lee directamente sin llamar a Nominatim
+    private Double latitud;
+    private Double longitud;
 
     public static SedeDTO fromEntity(com.exe.AparcaYA.Entity.Sede sede) {
         SedeDTO dto = new SedeDTO();
@@ -45,6 +47,8 @@ public class SedeDTO {
         dto.setHorarioSede(sede.getHorarioSede());
         dto.setEstado(sede.getEstado());
         dto.setFechaCreacion(sede.getFechaCreacion());
+        dto.setLatitud(sede.getLatitud());
+        dto.setLongitud(sede.getLongitud());
         return dto;
     }
 }

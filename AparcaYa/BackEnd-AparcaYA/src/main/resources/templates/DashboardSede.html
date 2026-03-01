@@ -7,84 +7,220 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>Dashboard Administrador de Sede - AparcaYA</title>
 
-    <!-- 1. Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdn.jsdelivr.net/npm/daisyui@4.12.10/dist/full.min.css" rel="stylesheet"/>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
-    <!-- 2. DaisyUI -->
-    <link href="https://cdn.jsdelivr.net/npm/daisyui@4.12.10/dist/full.min.css"
-          rel="stylesheet" />
-
-    <!-- 3. CSS propio: base → components → pages -->
-    <link rel="stylesheet" href="/css/base/aparca-animations.css" />
-    <link rel="stylesheet" href="/css/components/aparca-components.css" />
-    <link rel="stylesheet" href="/css/pages/Sede.css" />
-
-    <!-- 4. CSS de modales -->
-    <link rel="stylesheet" href="/css/modals/sede-modal-dinamico.css" />
+    <link rel="stylesheet" href="/css/base/aparca-animations.css"/>
+    <link rel="stylesheet" href="/css/components/aparca-components.css"/>
+    <link rel="stylesheet" href="/css/pages/Sede.css"/>
+    <link rel="stylesheet" href="/css/modals/sede-modal-dinamico.css"/>
 </head>
 <body>
 
-<!-- SIDEBAR -->
-<aside class="aparca-sidebar sede-sidebar animate-fade-in-up"
-       id="sidebar"
-       aria-label="Menú principal">
+<!-- ==================================================
+     SIDEBAR — Mismo patrón colapsable que Admin.
+     Logo-row arriba, toggle-row debajo, nav, footer usuario.
+     ================================================== -->
+<aside class="aparca-sidebar animate-fade-in-up"
+       id="mainSidebar"
+       aria-label="Menú principal de sede">
 
-    <div class="aparca-sidebar-header sede-sidebar-header" role="banner">
-        <svg xmlns="http://www.w3.org/2000/svg" fill="none"
-             viewBox="0 0 24 24" stroke-width="1.5"
-             stroke="currentColor" aria-hidden="true">
-            <path stroke-linecap="round" stroke-linejoin="round"
-                  d="M8.25 18.75a1.5 1.5 0 01-3 0V15a6 6 0 0112
-                  0v3.75a1.5 1.5 0 01-3 0V15a3 3 0 00-6
-                  0v3.75zM12 9a3 3 0 100-6 3 3 0 000 6z" />
-        </svg>
-        <h1>AparcaYa</h1>
+    <!-- Header: logo + título + toggle -->
+    <div class="aparca-sidebar-header" role="banner">
+
+        <!-- Fila 1: ícono + título -->
+        <div class="aparca-sidebar-logo-row">
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none"
+                 viewBox="0 0 24 24" stroke-width="1.5"
+                 stroke="currentColor" aria-hidden="true">
+                <path stroke-linecap="round" stroke-linejoin="round"
+                      d="M8.25 18.75a1.5 1.5 0 01-3 0V15a6 6 0 0112
+                      0v3.75a1.5 1.5 0 01-3 0V15a3 3 0 00-6 0v3.75z
+                      M12 9a3 3 0 100-6 3 3 0 000 6z"/>
+            </svg>
+            <h1>AparcaYA-Sede</h1>
+        </div>
+
+        <!-- Fila 2: botón de colapso -->
+        <button class="aparca-sidebar-toggle"
+                id="sidebarToggleBtn"
+                type="button"
+                aria-label="Colapsar menú lateral"
+                onclick="toggleSidebar()">
+            <svg class="toggle-arrow"
+                 xmlns="http://www.w3.org/2000/svg"
+                 fill="none" viewBox="0 0 24 24"
+                 stroke-width="2" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round"
+                      d="M15.75 19.5L8.25 12l7.5-7.5"/>
+            </svg>
+            <span class="toggle-label">Colapsar menú</span>
+        </button>
+
     </div>
 
-    <nav class="aparca-sidebar-nav" role="navigation">
-        <a href="#" class="active" data-tab="usuarios">Usuarios</a>
-        <a href="#" data-tab="correo">Enviar correo</a>
-        <a href="#" data-tab="graficas">Gráficas</a>
-        <a href="#" data-tab="gestion">🚗 Gestión Vehículos</a>
-        <a href="#" data-tab="historial">📊 Historial</a>
-        <a href="#" data-tab="reservaciones">📅 Reservaciones</a>
-        <a href="#" data-tab="cargamasiva">📤 Carga Masiva</a>
+    <!-- Navegación -->
+    <nav class="aparca-sidebar-nav"
+         role="navigation"
+         aria-label="Secciones del dashboard de sede">
+
+        <a href="#" class="active"
+           data-tab="usuarios"
+           data-label="Usuarios"
+           aria-current="page">
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none"
+                 viewBox="0 0 24 24" stroke-width="1.5"
+                 stroke="currentColor" aria-hidden="true">
+                <path stroke-linecap="round" stroke-linejoin="round"
+                      d="M15 19.128a9.38 9.38 0 002.625.372 9.337 9.337
+                      0 004.121-.952 4.125 4.125 0 00-7.533-2.493M15
+                      19.128v-.003c0-1.113-.285-2.16-.786-3.07M15
+                      19.128v.106A12.318 12.318 0 018.624 21c-2.331
+                      0-4.512-.645-6.374-1.766l-.001-.109a6.375 6.375
+                      0 0111.964-3.07M12 6.375a3.375 3.375 0 11-6.75
+                      0 3.375 3.375 0 016.75 0zm8.25 2.25a2.625 2.625
+                      0 11-5.25 0 2.625 2.625 0 015.25 0z"/>
+            </svg>
+            <span class="nav-label">Usuarios</span>
+        </a>
+
+        <a href="#"
+           data-tab="correo"
+           data-label="Correos">
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none"
+                 viewBox="0 0 24 24" stroke-width="1.5"
+                 stroke="currentColor" aria-hidden="true">
+                <path stroke-linecap="round" stroke-linejoin="round"
+                      d="M21.75 6.75v10.5a2.25 2.25 0 01-2.25 2.25h-15
+                      a2.25 2.25 0 01-2.25-2.25V6.75m19.5 0A2.25 2.25
+                      0 0019.5 4.5h-15a2.25 2.25 0 00-2.25 2.25m19.5
+                      0v.243a2.25 2.25 0 01-1.07 1.916l-7.5 4.615a2.25
+                      2.25 0 01-2.36 0L3.32 8.91a2.25 2.25 0
+                      01-1.07-1.916V6.75"/>
+            </svg>
+            <span class="nav-label">Enviar correo</span>
+        </a>
+
+        <a href="#"
+           data-tab="graficas"
+           data-label="Gráficas">
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none"
+                 viewBox="0 0 24 24" stroke-width="1.5"
+                 stroke="currentColor" aria-hidden="true">
+                <path stroke-linecap="round" stroke-linejoin="round"
+                      d="M3 13.125C3 12.504 3.504 12 4.125 12h2.25c.621
+                      0 1.125.504 1.125 1.125v6.75C7.5 20.496 6.996 21
+                      6.375 21h-2.25A1.125 1.125 0 013 19.875v-6.75z
+                      M9.75 8.625c0-.621.504-1.125 1.125-1.125h2.25
+                      c.621 0 1.125.504 1.125 1.125v11.25c0 .621-.504
+                      1.125-1.125 1.125h-2.25a1.125 1.125 0
+                      01-1.125-1.125V8.625zM16.5 4.125c0-.621.504-1.125
+                      1.125-1.125h2.25C20.496 3 21 3.504 21 4.125v15.75
+                      c0 .621-.504 1.125-1.125 1.125h-2.25a1.125 1.125
+                      0 01-1.125-1.125V4.125z"/>
+            </svg>
+            <span class="nav-label">Gráficas</span>
+        </a>
+
+        <a href="#"
+           data-tab="gestion"
+           data-label="Vehículos">
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none"
+                 viewBox="0 0 24 24" stroke-width="1.5"
+                 stroke="currentColor" aria-hidden="true">
+                <path stroke-linecap="round" stroke-linejoin="round"
+                      d="M8.25 18.75a1.5 1.5 0 01-3 0m3 0a1.5 1.5
+                      0 00-3 0m3 0h6m-9 0H3.375a1.125 1.125 0
+                      01-1.125-1.125V14.25m17.25 4.5a1.5 1.5 0 01-3
+                      0m3 0a1.5 1.5 0 00-3 0m3 0h1.125c.621 0
+                      1.129-.504 1.09-1.124a17.902 17.902 0
+                      00-3.213-9.193 2.056 2.056 0 00-1.58-.86H14.25
+                      M16.5 18.75h-2.25m0-11.177v-.958c0-.568-.422-1.048-.987-1.106
+                      a48.554 48.554 0 00-10.026 0 1.106 1.106 0
+                      00-.987 1.106v7.635m12-6.677v6.677m0 4.5v-4.5
+                      m0 0h-12"/>
+            </svg>
+            <span class="nav-label">Gestión Vehículos</span>
+        </a>
+
+        <a href="#"
+           data-tab="historial"
+           data-label="Historial">
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none"
+                 viewBox="0 0 24 24" stroke-width="1.5"
+                 stroke="currentColor" aria-hidden="true">
+                <path stroke-linecap="round" stroke-linejoin="round"
+                      d="M3.75 3v11.25A2.25 2.25 0 006 16.5h2.25M3.75
+                      3h-1.5m1.5 0h16.5m0 0h1.5m-1.5 0v11.25A2.25
+                      2.25 0 0118 16.5h-2.25m-7.5 0h7.5m-7.5
+                      0l-1 3m8.5-3l1 3m0 0l.5 1.5m-.5-1.5h-9.5
+                      m0 0l-.5 1.5M9 11.25v1.5M12 9v3.75m3-6v6"/>
+            </svg>
+            <span class="nav-label">Historial</span>
+        </a>
+
+        <a href="#"
+           data-tab="reservaciones"
+           data-label="Reservaciones">
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none"
+                 viewBox="0 0 24 24" stroke-width="1.5"
+                 stroke="currentColor" aria-hidden="true">
+                <path stroke-linecap="round" stroke-linejoin="round"
+                      d="M6.75 3v2.25M17.25 3v2.25M3 18.75V7.5a2.25
+                      2.25 0 012.25-2.25h13.5A2.25 2.25 0 0121 7.5v11.25
+                      m-18 0A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0
+                      0021 18.75m-18 0v-7.5A2.25 2.25 0 015.25 9h13.5
+                      A2.25 2.25 0 0121 11.25v7.5"/>
+            </svg>
+            <span class="nav-label">Reservaciones</span>
+        </a>
+
+        <hr class="aparca-nav-divider" aria-hidden="true"/>
+
+        <a href="#"
+           data-tab="cargamasiva"
+           data-label="Carga Masiva">
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none"
+                 viewBox="0 0 24 24" stroke-width="1.5"
+                 stroke="currentColor" aria-hidden="true">
+                <path stroke-linecap="round" stroke-linejoin="round"
+                      d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25
+                      2.25 0 0021 18.75V16.5m-13.5-9L12 3m0 0l4.5 4.5
+                      M12 3v13.5"/>
+            </svg>
+            <span class="nav-label">Carga Masiva</span>
+        </a>
     </nav>
+
+    <!-- Footer: usuario logueado -->
+    <div class="aparca-sidebar-footer">
+        <div class="aparca-sidebar-user" aria-label="Usuario actual">
+            <div class="aparca-sidebar-avatar"
+                 id="sidebarAvatarInitial"
+                 aria-hidden="true">A</div>
+            <div class="aparca-sidebar-user-info">
+                <div class="aparca-sidebar-username"
+                     id="sidebarUsername"
+                     th:text="${#authentication?.name ?: 'Admin Sede'}">
+                    Admin Sede
+                </div>
+                <div class="aparca-sidebar-userrole">Admin de Sede</div>
+            </div>
+        </div>
+    </div>
+
 </aside>
 
 
-<!-- HEADER -->
+<!-- ==================================================
+     HEADER — Solo el menú de perfil (sin título duplicado)
+     ================================================== -->
 <header class="aparca-page-header animate-fade-in-up" id="pageHeader">
-
-    <div class="aparca-logo-section">
-        <button id="sidebarToggle"
-                class="btn btn-ghost btn-circle mr-3"
-                aria-label="Mostrar/ocultar menú lateral"
-                type="button">
-            <svg xmlns="http://www.w3.org/2000/svg"
-                 class="inline-block w-6 h-6 stroke-current"
-                 fill="none" viewBox="0 0 24 24" stroke-width="2"
-                 aria-hidden="true">
-                <path stroke-linecap="round" stroke-linejoin="round"
-                      d="M4 6h16M4 12h16M4 18h16"/>
-            </svg>
-        </button>
-
-        <svg xmlns="http://www.w3.org/2000/svg" fill="none"
-             viewBox="0 0 24 24" stroke-width="1.5"
-             stroke="currentColor" aria-hidden="true"
-             class="sede-logo-icon">
-            <path stroke-linecap="round" stroke-linejoin="round"
-                  d="M8.25 18.75a1.5 1.5 0 01-3 0V15a6 6 0 0112
-                  0v3.75a1.5 1.5 0 01-3 0V15a3 3 0 00-6
-                  0v3.75zM12 9a3 3 0 100-6 3 3 0 000 6z" />
-        </svg>
-        <h1>AparcaYa</h1>
-    </div>
 
     <div class="aparca-profile-menu">
         <button id="profileBtn"
-                class="aparca-profile-btn sede-profile-btn"
+                class="aparca-profile-btn"
                 type="button"
                 aria-label="Menú de perfil"
                 aria-expanded="false"
@@ -94,53 +230,95 @@
                  viewBox="0 0 24 24" stroke-width="1.5"
                  stroke="currentColor" aria-hidden="true">
                 <path stroke-linecap="round" stroke-linejoin="round"
-                      d="M15.75 6a3.75 3.75 0 11-7.5 0 3.75
-                      3.75 0 017.5 0zM4.501 20.118a7.5 7.5 0
-                      0114.998 0A17.933 17.933 0 0112 21.75
-                      c-2.676 0-5.216-.584-7.499-1.632z" />
+                      d="M15.75 6a3.75 3.75 0 11-7.5 0 3.75 3.75 0
+                      017.5 0zM4.501 20.118a7.5 7.5 0 0114.998
+                      0A17.933 17.933 0 0112 21.75c-2.676
+                      0-5.216-.584-7.499-1.632z"/>
             </svg>
         </button>
 
-        <div id="profileDropdown"
-             class="aparca-dropdown"
-             role="menu"
-             aria-label="Opciones de perfil">
+        <menu id="profileDropdown"
+              class="aparca-dropdown"
+              role="menu"
+              aria-label="Opciones de perfil">
             <button type="button" role="menuitem" onclick="irConfiguracion()">
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none"
+                     viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round"
+                          d="M9.594 3.94c.09-.542.56-.94 1.11-.94h2.593c.55
+                          0 1.02.398 1.11.94l.213 1.281c.063.374.313.686.645.87
+                          .074.04.147.083.22.127.324.196.72.257 1.075.124l1.217-.456
+                          a1.125 1.125 0 011.37.49l1.296 2.247a1.125 1.125 0
+                          01-.26 1.431l-1.003.827c-.293.24-.438.613-.431.992a6.759
+                          6.759 0 010 .255c-.007.378.138.75.43.99l1.005.828c.424.35
+                          .534.954.26 1.43l-1.298 2.247a1.125 1.125 0
+                          01-1.369.491l-1.217-.456c-.355-.133-.75-.072-1.076.124a6.57
+                          6.57 0 01-.22.128c-.331.183-.581.495-.644.869l-.213
+                          1.28c-.09.543-.56.941-1.11.941h-2.594c-.55
+                          0-1.02-.398-1.11-.94l-.213-1.281c-.062-.374-.312-.686-.644-.87
+                          a6.52 6.52 0 01-.22-.127c-.325-.196-.72-.257-1.076-.124l-1.217.456
+                          a1.125 1.125 0 01-1.369-.49l-1.297-2.247a1.125 1.125 0
+                          01.26-1.431l1.004-.827c.292-.24.437-.613.43-.992a6.932 6.932
+                          0 010-.255c.007-.378-.138-.75-.43-.99l-1.004-.828a1.125 1.125
+                          0 01-.26-1.43l1.297-2.247a1.125 1.125 0 011.37-.491l1.216.456
+                          c.356.133.751.072 1.076-.124.072-.044.146-.087.22-.128.332-.183
+                          .582-.495.644-.869l.214-1.281z"/>
+                    <path stroke-linecap="round" stroke-linejoin="round"
+                          d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
+                </svg>
                 Configuración
             </button>
             <button type="button" role="menuitem" onclick="irAyuda()">
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none"
+                     viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round"
+                          d="M9.879 7.519c1.171-1.025 3.071-1.025 4.242
+                          0 1.172 1.025 1.172 2.687 0 3.712-.203.179-.43.326-.67.442
+                          -.745.361-1.45.999-1.45 1.827v.75M21 12a9 9 0 11-18 0 9
+                          9 0 0118 0zm-9 5.25h.008v.008H12v-.008z"/>
+                </svg>
                 Ayuda
             </button>
             <button type="button" role="menuitem" onclick="cerrarSesion()">
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none"
+                     viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round"
+                          d="M15.75 9V5.25A2.25 2.25 0 0013.5 3h-6a2.25
+                          2.25 0 00-2.25 2.25v13.5A2.25 2.25 0 007.5 21h6
+                          a2.25 2.25 0 002.25-2.25V15M12 9l-3 3m0 0l3 3
+                          m-3-3h12.75"/>
+                </svg>
                 Cerrar sesión
             </button>
-        </div>
+        </menu>
     </div>
+
 </header>
 
 
-<!-- ÁREA PRINCIPAL -->
-<main class="aparca-dashboard-main sede-dashboard-main animate-fade-in-up"
+<!-- ==================================================
+     ÁREA PRINCIPAL
+     ================================================== -->
+<main class="aparca-dashboard-main animate-fade-in-up"
       id="mainContent">
 
 
-    <!-- SECCIÓN USUARIOS -->
-    <section id="usuarios" class="aparca-content-section">
+    <!-- ── SECCIÓN USUARIOS ── -->
+    <section id="usuarios" class="aparca-content-section" aria-labelledby="h2-usuarios">
+        <h2 id="h2-usuarios">Gestión de Usuarios</h2>
 
         <div class="user-indicators" aria-label="Indicadores de la sede">
-
             <article class="stats-card" aria-label="Usuarios conectados">
                 <div class="stats-label">Usuarios Conectados</div>
                 <div class="donut-container">
                     <svg class="donut-svg" width="110" height="110"
                          viewBox="0 0 42 42" aria-hidden="true">
-                        <circle class="donut-ring" cx="21" cy="21" r="15.9155" />
+                        <circle class="donut-ring" cx="21" cy="21" r="15.9155"/>
                         <circle class="donut-segment usuario-segment"
                                 cx="21" cy="21" r="15.9155"
-                                stroke-dasharray="53 100"
-                                stroke-dashoffset="0" />
+                                stroke-dasharray="0 100"/>
                     </svg>
-                    <div class="donut-text">53%</div>
+                    <div class="donut-text">0%</div>
                 </div>
             </article>
 
@@ -149,13 +327,12 @@
                 <div class="donut-container">
                     <svg class="donut-svg" width="110" height="110"
                          viewBox="0 0 42 42" aria-hidden="true">
-                        <circle class="donut-ring" cx="21" cy="21" r="15.9155" />
+                        <circle class="donut-ring" cx="21" cy="21" r="15.9155"/>
                         <circle class="donut-segment cuota-segment"
                                 cx="21" cy="21" r="15.9155"
-                                stroke-dasharray="75 100"
-                                stroke-dashoffset="0" />
+                                stroke-dasharray="0 100"/>
                     </svg>
-                    <div class="donut-text">75%</div>
+                    <div class="donut-text">0%</div>
                 </div>
             </article>
         </div>
@@ -164,12 +341,10 @@
             <button class="sede-btn-primary"
                     onclick="openRegistrarTrabajadorModal()"
                     type="button">
-                <svg xmlns="http://www.w3.org/2000/svg"
-                     class="h-5 w-5" fill="none"
-                     viewBox="0 0 24 24" stroke="currentColor"
-                     aria-hidden="true">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5"
+                     fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path stroke-linecap="round" stroke-linejoin="round"
-                          stroke-width="2" d="M12 4v16m8-8H4" />
+                          stroke-width="2" d="M12 4v16m8-8H4"/>
                 </svg>
                 Registrar Trabajador
             </button>
@@ -179,87 +354,71 @@
             <button id="btnUsuarios" class="active"
                     role="tab" aria-selected="true"
                     aria-controls="tablaUsuarios" type="button">
-                <svg xmlns="http://www.w3.org/2000/svg"
-                     class="h-6 w-6" fill="none"
-                     viewBox="0 0 24 24" stroke="currentColor"
-                     aria-hidden="true">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4"
+                     fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path stroke-linecap="round" stroke-linejoin="round"
                           stroke-width="2"
-                          d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6
-                          6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197
-                          M13 7a4 4 0 11-8 0 4 4 0 018 0z"/>
+                          d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6
+                          0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4
+                          4 0 11-8 0 4 4 0 018 0z"/>
                 </svg>
-                <span>Usuarios</span>
+                Usuarios
             </button>
-
             <button id="btnSedes"
                     role="tab" aria-selected="false"
                     aria-controls="tablaSedes" type="button">
-                <svg xmlns="http://www.w3.org/2000/svg"
-                     class="h-6 w-6" fill="none"
-                     viewBox="0 0 24 24" stroke="currentColor"
-                     aria-hidden="true">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4"
+                     fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path stroke-linecap="round" stroke-linejoin="round"
                           stroke-width="2"
-                          d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2
-                          2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1
-                          4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1
-                          1 0 011 1v5m-4 0h4"/>
+                          d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14
+                          0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1
+                          m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/>
                 </svg>
-                <span>Sedes</span>
+                Sedes
             </button>
         </div>
 
-        <div class="flex justify-end mb-4 gap-4 flex-wrap">
+        <div class="flex justify-end mb-4 gap-2 flex-wrap">
             <button class="sede-btn-outline" onclick="generarPDF()" type="button">
-                <svg xmlns="http://www.w3.org/2000/svg"
-                     class="h-4 w-4" fill="none"
-                     viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4"
+                     fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path stroke-linecap="round" stroke-linejoin="round"
                           stroke-width="2"
                           d="M7 21h10a2 2 0 002-2V9.414a1 1 0
-                          00-.293-.707l-5.414-5.414A1 1 0
-                          0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z" />
+                          00-.293-.707l-5.414-5.414A1 1 0 0012.586
+                          3H7a2 2 0 00-2 2v14a2 2 0 002 2z"/>
                 </svg>
                 Generar PDF
             </button>
             <button class="sede-btn-outline" onclick="generarExcel()" type="button">
-                <svg xmlns="http://www.w3.org/2000/svg"
-                     class="h-4 w-4" fill="none"
-                     viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4"
+                     fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path stroke-linecap="round" stroke-linejoin="round"
                           stroke-width="2"
-                          d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0
-                          01-2-2V5a2 2 0 012-2h5.586a1 1 0
-                          01.707.293l5.414 5.414a1 1 0
-                          01.293.707V19a2 2 0 01-2 2z" />
+                          d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5
+                          a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414
+                          a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
                 </svg>
                 Generar Excel
             </button>
         </div>
 
-        <div class="flex justify-between items-center mb-6 gap-4 flex-wrap">
-            <div class="flex items-center w-full md:w-1/2 border-2
-                        border-gray-300 rounded-lg px-3 py-2
-                        focus-within:border-blue-500 transition-colors">
-                <svg xmlns="http://www.w3.org/2000/svg"
-                     class="h-5 w-5 text-gray-400" fill="none"
-                     viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
+        <div class="flex flex-col md:flex-row gap-3 mb-5">
+            <div class="flex items-center flex-1 bg-white border border-gray-200
+                        rounded-lg px-3 py-2 shadow-sm">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-gray-400 flex-shrink-0"
+                     fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path stroke-linecap="round" stroke-linejoin="round"
-                          stroke-width="2"
-                          d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                          stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
                 </svg>
-                <input id="busquedaInput"
-                       type="text"
+                <input id="busquedaInput" type="search"
                        placeholder="Buscar por nombre, correo o rol..."
-                       class="ml-2 w-full focus:outline-none"
-                       aria-label="Buscar usuarios">
+                       class="ml-2 w-full focus:outline-none text-sm bg-transparent"
+                       aria-label="Buscar usuarios"/>
             </div>
-
             <select id="filtroEstado"
-                    class="border-2 border-gray-300 rounded-lg px-4
-                           py-2 text-gray-700 w-full md:w-auto
-                           focus:outline-none focus:border-blue-500"
+                    class="border border-gray-200 rounded-lg px-3 py-2 text-sm bg-white shadow-sm"
                     aria-label="Filtrar por estado">
                 <option value="">Todos los estados</option>
                 <option value="activo">Activo</option>
@@ -268,77 +427,64 @@
         </div>
 
         <div id="tablaUsuarios" class="overflow-x-auto">
-            <table class="aparca-table sede-table">
+            <table class="aparca-table">
                 <thead>
                 <tr>
-                    <th>Nombre</th>
-                    <th>Correo</th>
-                    <th>Rol</th>
-                    <th>Estado</th>
-                    <th>Acciones</th>
+                    <th>Nombre</th><th>Correo</th>
+                    <th>Rol</th><th>Estado</th><th>Acciones</th>
                 </tr>
                 </thead>
                 <tbody id="usuariosTableBody">
-                <tr>
-                    <td colspan="5" class="loading">Cargando usuarios...</td>
-                </tr>
+                <tr><td colspan="5" class="loading">Cargando usuarios...</td></tr>
                 </tbody>
             </table>
         </div>
 
         <div id="tablaSedes" class="overflow-x-auto hidden">
-            <table class="aparca-table sede-table">
+            <table class="aparca-table">
                 <thead>
                 <tr>
-                    <th>Nombre</th>
-                    <th>Dirección</th>
-                    <th>Capacidad</th>
-                    <th>Estado</th>
-                    <th>Acciones</th>
+                    <th>Nombre</th><th>Dirección</th>
+                    <th>Capacidad</th><th>Estado</th><th>Acciones</th>
                 </tr>
                 </thead>
                 <tbody id="sedesTableBody">
-                <tr>
-                    <td colspan="5" class="loading">Cargando sedes...</td>
-                </tr>
+                <tr><td colspan="5" class="loading">Cargando sedes...</td></tr>
                 </tbody>
             </table>
         </div>
     </section>
 
 
-    <!-- SECCIÓN CORREO -->
-    <section id="correo" class="aparca-content-section hidden">
-        <h2 class="text-2xl font-semibold text-blue-700 mb-6">Enviar Correo</h2>
+    <!-- ── SECCIÓN CORREO ── -->
+    <section id="correo" class="aparca-content-section hidden" aria-labelledby="h2-correo">
+        <h2 id="h2-correo">Enviar Correo</h2>
 
         <div class="sede-tabs" role="tablist">
             <button id="tab-mailuno" class="active"
                     role="tab" aria-selected="true" type="button">
-                <svg xmlns="http://www.w3.org/2000/svg"
-                     class="h-5 w-5" fill="none"
-                     viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4"
+                     fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path stroke-linecap="round" stroke-linejoin="round"
                           stroke-width="2"
-                          d="M3 8l7.89 5.26a2 2 0 002.22 0L21
-                          8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5
-                          a2 2 0 00-2 2v10a2 2 0 002 2z" />
+                          d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14
+                          a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10
+                          a2 2 0 002 2z"/>
                 </svg>
                 Correo Uno a Uno
             </button>
             <button id="tab-mailmasivo"
                     role="tab" aria-selected="false" type="button">
-                <svg xmlns="http://www.w3.org/2000/svg"
-                     class="h-5 w-5" fill="none"
-                     viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4"
+                     fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path stroke-linecap="round" stroke-linejoin="round"
                           stroke-width="2"
-                          d="M17 20h5v-2a3 3 0 00-5.356-1.857M17
-                          20H7m10 0v-2c0-.656-.126-1.283-.356-1.857
-                          M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2
-                          c0-.656.126-1.283.356-1.857m0 0a5.002
-                          5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3
-                          0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0z
-                          M7 10a2 2 0 11-4 0 2 2 0 014 0z" />
+                          d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10
+                          0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3
+                          0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857
+                          m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3
+                          3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2
+                          2 0 11-4 0 2 2 0 014 0z"/>
                 </svg>
                 Correo Masivo
             </button>
@@ -348,27 +494,23 @@
             <form onsubmit="event.preventDefault(); enviarCorreoUno();">
                 <div class="sede-form-control">
                     <label for="emailSingle">Correo del destinatario</label>
-                    <input type="email" id="emailSingle"
-                           placeholder="ejemplo@correo.com" required>
+                    <input type="email" id="emailSingle" placeholder="ejemplo@correo.com" required/>
                 </div>
                 <div class="sede-form-control">
                     <label for="subjectSingle">Asunto</label>
-                    <input type="text" id="subjectSingle"
-                           placeholder="Asunto del correo" required>
+                    <input type="text" id="subjectSingle" placeholder="Asunto del correo" required/>
                 </div>
                 <div class="sede-form-control">
                     <label for="messageSingle">Mensaje</label>
-                    <textarea id="messageSingle"
+                    <textarea id="messageSingle" rows="6"
                               placeholder="Escribe el contenido del correo..."
-                              rows="6" required></textarea>
+                              required></textarea>
                 </div>
                 <button type="submit" class="sede-btn-primary">
-                    <svg xmlns="http://www.w3.org/2000/svg"
-                         class="h-5 w-5" fill="none"
-                         viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4"
+                         fill="none" viewBox="0 0 24 24" stroke="currentColor">
                         <path stroke-linecap="round" stroke-linejoin="round"
-                              stroke-width="2"
-                              d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8" />
+                              stroke-width="2" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8"/>
                     </svg>
                     Enviar Correo
                 </button>
@@ -379,28 +521,25 @@
             <form onsubmit="event.preventDefault(); enviarCorreoMasivo();">
                 <div class="sede-form-control">
                     <label for="emailsMassive">Lista de correos (separados por coma)</label>
-                    <textarea id="emailsMassive"
+                    <textarea id="emailsMassive" rows="4"
                               placeholder="correo1@ejemplo.com, correo2@ejemplo.com, ..."
-                              rows="4" required></textarea>
+                              required></textarea>
                 </div>
                 <div class="sede-form-control">
                     <label for="subjectMassive">Asunto</label>
-                    <input type="text" id="subjectMassive"
-                           placeholder="Asunto del correo" required>
+                    <input type="text" id="subjectMassive" placeholder="Asunto del correo" required/>
                 </div>
                 <div class="sede-form-control">
                     <label for="messageMassive">Mensaje</label>
-                    <textarea id="messageMassive"
+                    <textarea id="messageMassive" rows="6"
                               placeholder="Escribe el contenido del correo..."
-                              rows="6" required></textarea>
+                              required></textarea>
                 </div>
                 <button type="submit" class="sede-btn-primary">
-                    <svg xmlns="http://www.w3.org/2000/svg"
-                         class="h-5 w-5" fill="none"
-                         viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4"
+                         fill="none" viewBox="0 0 24 24" stroke="currentColor">
                         <path stroke-linecap="round" stroke-linejoin="round"
-                              stroke-width="2"
-                              d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8" />
+                              stroke-width="2" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8"/>
                     </svg>
                     Enviar Masivamente
                 </button>
@@ -409,34 +548,29 @@
     </section>
 
 
-    <!-- SECCIÓN GRÁFICAS -->
-    <section id="graficas" class="aparca-content-section hidden">
-        <h2 class="text-2xl font-semibold text-blue-700 mb-6">
-            Gráficas y Estadísticas
-        </h2>
+    <!-- ── SECCIÓN GRÁFICAS ── -->
+    <section id="graficas" class="aparca-content-section hidden" aria-labelledby="h2-graficas">
+        <h2 id="h2-graficas">Gráficas y Estadísticas</h2>
         <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            <article class="p-6 bg-white rounded-lg shadow-lg">
+            <article class="p-6 bg-white rounded-lg shadow border border-teal-100">
                 <h3 class="font-semibold text-lg text-center mb-4 text-gray-700">
                     Ocupación de Sedes
                 </h3>
                 <div class="flex justify-center">
                     <svg width="150" height="150" viewBox="0 0 42 42"
-                         aria-label="Gráfica de ocupación: 53%">
+                         aria-label="Gráfica de ocupación">
                         <circle cx="21" cy="21" r="15.9155"
-                                stroke="#90ee90" stroke-width="10"
-                                fill="none" opacity="0.5"/>
+                                stroke="#ccfbf1" stroke-width="10" fill="none"/>
                         <circle cx="21" cy="21" r="15.9155"
-                                stroke="#32cd32" stroke-width="10"
-                                fill="none" stroke-linecap="round"
-                                stroke-dasharray="53 100"
-                                stroke-dashoffset="0"
-                                transform="rotate(-90 21 21)"/>
-                        <text x="50%" y="50%"
-                              dominant-baseline="middle"
-                              text-anchor="middle"
-                              fill="#32cd32"
-                              font-size="8"
-                              font-weight="bold">53%</text>
+                                stroke="#14b8a6" stroke-width="10" fill="none"
+                                stroke-linecap="round"
+                                stroke-dasharray="0 100"
+                                transform="rotate(-90 21 21)"
+                                class="donut-segment cuota-segment"/>
+                        <text x="50%" y="50%" dominant-baseline="middle"
+                              text-anchor="middle" fill="#0f766e"
+                              font-size="8" font-weight="bold"
+                              class="donut-text">0%</text>
                     </svg>
                 </div>
             </article>
@@ -444,86 +578,78 @@
     </section>
 
 
-    <!-- SECCIÓN GESTIÓN VEHÍCULOS -->
-    <section id="gestion" class="aparca-content-section hidden">
-        <h2 class="section-title">🚗 Gestión de Vehículos</h2>
+    <!-- ── SECCIÓN GESTIÓN VEHÍCULOS ── -->
+    <section id="gestion" class="aparca-content-section hidden" aria-labelledby="h2-gestion">
+        <h2 id="h2-gestion">Gestión de Vehículos</h2>
 
         <div class="sub-section">
-            <h3 class="sub-section-title">➕ Registrar Entrada de Vehículo</h3>
+            <h3 class="sub-section-title">Registrar Entrada de Vehículo</h3>
 
-            <div style="margin-bottom: 1rem; display: flex; gap: 0.5rem;">
-                <input type="text"
-                       id="buscarPlaca"
+            <div class="flex gap-2 mb-4">
+                <input type="text" id="buscarPlaca"
                        placeholder="Buscar por placa..."
-                       style="padding: 0.5rem; border: 1px solid #cbd5e1;
-                              border-radius: 0.5rem; flex: 1;"
-                       aria-label="Buscar por placa">
+                       class="flex-1 px-3 py-2 border border-gray-200
+                              rounded-lg text-sm focus:outline-none
+                              focus:border-teal-400 focus:ring-2 focus:ring-teal-100"
+                       aria-label="Buscar por placa"/>
                 <button class="sede-btn-primary" type="button"
                         onclick="buscarPorPlacaIntegrado()">
-                    🔍 Buscar
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4"
+                         fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round"
+                              stroke-width="2"
+                              d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
+                    </svg>
+                    Buscar
                 </button>
             </div>
 
             <form id="registroEntradaForm" novalidate>
-                <input type="hidden" name="rol" value="CLIENTE">
+                <input type="hidden" name="rol" value="CLIENTE"/>
 
-                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
-
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div class="sede-form-group">
                         <label for="nombre">Nombre Cliente *</label>
                         <input type="text" id="nombre" name="nombre"
                                required minlength="2" maxlength="100"
-                               autocomplete="name" placeholder="Ej: Juan Pérez">
+                               autocomplete="name" placeholder="Ej: Juan Pérez"/>
                         <span id="nombre-error" class="error-message" aria-live="polite"></span>
                     </div>
-
                     <div class="sede-form-group">
                         <label for="telefono">Teléfono *</label>
                         <input type="tel" id="telefono" name="telefono"
                                required pattern="[0-9]{10}"
-                               title="Ingresa un número de 10 dígitos"
-                               autocomplete="tel" placeholder="Ej: 3001234567">
+                               autocomplete="tel" placeholder="Ej: 3001234567"/>
                         <span id="telefono-error" class="error-message" aria-live="polite"></span>
                         <span id="telefono-success" class="success-message" aria-live="polite"></span>
                     </div>
-
                     <div class="sede-form-group">
                         <label for="correo1">Email *</label>
                         <input type="email" id="correo1" name="correo"
                                required autocomplete="email"
-                               placeholder="ejemplo@correo.com">
+                               placeholder="ejemplo@correo.com"/>
                         <span id="correo-error" class="error-message" aria-live="polite"></span>
                         <span id="correo-success" class="success-message" aria-live="polite"></span>
                     </div>
-
                     <div class="sede-form-group">
                         <label for="cedula">Cédula *</label>
                         <input type="text" id="cedula" name="cedula"
                                required pattern="[0-9]{10}"
-                               title="Ingresa una cédula de 10 dígitos"
-                               autocomplete="off" placeholder="Ej: 1234567890">
+                               autocomplete="off" placeholder="Ej: 1234567890"/>
                         <span id="cedula-error" class="error-message" aria-live="polite"></span>
                         <span id="cedula-success" class="success-message" aria-live="polite"></span>
                     </div>
-
-                    <input type="hidden" id="contrasena" name="contrasena" value="">
-                    <input type="hidden" id="confirmarContrasena"
-                           name="confirmarContrasena" value="">
-
+                    <input type="hidden" id="contrasena" name="contrasena" value=""/>
+                    <input type="hidden" id="confirmarContrasena" name="confirmarContrasena" value=""/>
                     <div class="sede-form-group">
                         <label for="placa">Placa *</label>
                         <input type="text" id="placa" name="placa"
-                               required maxlength="6"
-                               pattern="[A-Z]{3}[0-9]{3}"
-                               title="Formato: 3 letras mayúsculas + 3 números (ej: ABC123)"
+                               required maxlength="6" pattern="[A-Z]{3}[0-9]{3}"
                                placeholder="ABC123"
-                               style="text-transform: uppercase;"
-                               oninput="this.value = this.value.toUpperCase()
-                                        .replace(/[^A-Z0-9]/g, '')
-                                        .substring(0, 6);">
+                               style="text-transform:uppercase"
+                               oninput="this.value=this.value.toUpperCase().replace(/[^A-Z0-9]/g,'').substring(0,6)"/>
                         <span id="placa-error" class="error-message" aria-live="polite"></span>
                     </div>
-
                     <div class="sede-form-group">
                         <label for="tipoVehiculo">Tipo Vehículo *</label>
                         <select id="tipoVehiculo" name="tipoVehiculo" required>
@@ -535,7 +661,6 @@
                         </select>
                         <span id="tipoVehiculo-error" class="error-message" aria-live="polite"></span>
                     </div>
-
                     <div class="sede-form-group">
                         <label for="marca">Marca *</label>
                         <select id="marca" name="marca" required>
@@ -543,75 +668,86 @@
                         </select>
                         <span id="marca-error" class="error-message" aria-live="polite"></span>
                     </div>
-
                     <div class="sede-form-group">
                         <label for="color">Color</label>
-                        <input type="text" id="color" name="color" placeholder="Ej: Rojo">
+                        <input type="text" id="color" name="color" placeholder="Ej: Rojo"/>
                     </div>
-
                     <div class="sede-form-group">
                         <label for="anio">Año</label>
                         <input type="number" id="anio" name="anio"
-                               min="2000" max="2025" placeholder="Ej: 2020">
+                               min="2000" max="2025" placeholder="Ej: 2020"/>
                     </div>
                 </div>
 
-                <div style="margin-top: 1rem; display: flex; gap: 0.5rem;">
+                <div class="flex gap-2 mt-4">
                     <button type="submit" class="sede-btn-success">
-                        ✅ Registrar Entrada
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4"
+                             fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round"
+                                  stroke-width="2" d="M5 13l4 4L19 7"/>
+                        </svg>
+                        Registrar Entrada
                     </button>
                     <button type="button" class="sede-btn-secondary"
                             onclick="limpiarFormularioEntrada()">
-                        🔄 Limpiar
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4"
+                             fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round"
+                                  stroke-width="2"
+                                  d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0
+                                  0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357
+                                  2H15"/>
+                        </svg>
+                        Limpiar
                     </button>
                 </div>
             </form>
         </div>
 
         <div class="sub-section">
-            <h3 class="sub-section-title">⏱️ Vehículos en Parqueadero (Temporizando)</h3>
-            <table class="aparca-table sede-table">
-                <thead>
-                <tr>
-                    <th>Placa</th><th>Tipo</th><th>Cliente</th>
-                    <th>Teléfono</th><th>Hora Entrada</th>
-                    <th>Tiempo</th><th>Cobro Est.</th><th>Acción</th>
-                </tr>
-                </thead>
-                <tbody id="vehiculosActivosBody">
-                <tr>
-                    <td colspan="8" class="loading">Cargando...</td>
-                </tr>
-                </tbody>
-            </table>
+            <h3 class="sub-section-title">Vehículos en Parqueadero (Temporizando)</h3>
+            <div class="overflow-x-auto">
+                <table class="aparca-table">
+                    <thead>
+                    <tr>
+                        <th>Placa</th><th>Tipo</th><th>Cliente</th>
+                        <th>Teléfono</th><th>Hora Entrada</th>
+                        <th>Tiempo</th><th>Cobro Est.</th><th>Acción</th>
+                    </tr>
+                    </thead>
+                    <tbody id="vehiculosActivosBody">
+                    <tr><td colspan="8" class="loading">Cargando...</td></tr>
+                    </tbody>
+                </table>
+            </div>
         </div>
 
         <div class="sub-section">
-            <h3 class="sub-section-title">💰 Pendientes de Cobro</h3>
-            <table class="aparca-table sede-table">
-                <thead>
-                <tr>
-                    <th>Placa</th><th>Cliente</th><th>Entrada</th>
-                    <th>Salida</th><th>Tiempo Total</th>
-                    <th>Total a Pagar</th><th>Acción</th>
-                </tr>
-                </thead>
-                <tbody id="pendientesCobroBody">
-                <tr>
-                    <td colspan="7" class="loading">No hay vehículos pendientes</td>
-                </tr>
-                </tbody>
-            </table>
+            <h3 class="sub-section-title">Pendientes de Cobro</h3>
+            <div class="overflow-x-auto">
+                <table class="aparca-table">
+                    <thead>
+                    <tr>
+                        <th>Placa</th><th>Cliente</th><th>Entrada</th>
+                        <th>Salida</th><th>Tiempo Total</th>
+                        <th>Total a Pagar</th><th>Acción</th>
+                    </tr>
+                    </thead>
+                    <tbody id="pendientesCobroBody">
+                    <tr><td colspan="7" class="loading">No hay vehículos pendientes</td></tr>
+                    </tbody>
+                </table>
+            </div>
         </div>
     </section>
 
 
-    <!-- SECCIÓN HISTORIAL -->
-    <section id="historial" class="aparca-content-section hidden">
-        <h2 class="section-title">📊 Historial de Registros</h2>
+    <!-- ── SECCIÓN HISTORIAL ── -->
+    <section id="historial" class="aparca-content-section hidden" aria-labelledby="h2-historial">
+        <h2 id="h2-historial">Historial de Registros</h2>
 
         <div class="filter-bar">
-            <input type="date" id="filtroFecha" aria-label="Filtrar por fecha">
+            <input type="date" id="filtroFecha" aria-label="Filtrar por fecha"/>
             <select id="filtroEstado1" aria-label="Filtrar por estado">
                 <option value="">Todos los estados</option>
                 <option value="ACTIVO">Activo</option>
@@ -619,183 +755,149 @@
                 <option value="COBRADO">Cobrado</option>
             </select>
             <button class="sede-btn-primary" onclick="loadHistorial()" type="button">
-                🔍 Filtrar
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4"
+                     fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round"
+                          stroke-width="2"
+                          d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
+                </svg>
+                Filtrar
             </button>
         </div>
 
-        <table class="aparca-table sede-table">
-            <thead>
-            <tr>
-                <th>Placa</th><th>Tipo</th><th>Cliente</th><th>Teléfono</th>
-                <th>Entrada</th><th>Salida</th><th>Tiempo</th>
-                <th>Precio</th><th>Estado</th>
-            </tr>
-            </thead>
-            <tbody id="historialBody">
-            <tr>
-                <td colspan="9" class="loading">Seleccione filtros y presione Filtrar</td>
-            </tr>
-            </tbody>
-        </table>
+        <div class="overflow-x-auto">
+            <table class="aparca-table">
+                <thead>
+                <tr>
+                    <th>Placa</th><th>Tipo</th><th>Cliente</th><th>Teléfono</th>
+                    <th>Entrada</th><th>Salida</th><th>Tiempo</th>
+                    <th>Precio</th><th>Estado</th>
+                </tr>
+                </thead>
+                <tbody id="historialBody">
+                <tr><td colspan="9" class="loading">Seleccione filtros y presione Filtrar</td></tr>
+                </tbody>
+            </table>
+        </div>
     </section>
 
 
-    <!-- SECCIÓN RESERVACIONES -->
-    <section id="reservaciones" class="aparca-content-section hidden">
-        <h2 class="section-title">📅 Reservaciones Pendientes</h2>
+    <!-- ── SECCIÓN RESERVACIONES ── -->
+    <section id="reservaciones" class="aparca-content-section hidden" aria-labelledby="h2-reservaciones">
+        <h2 id="h2-reservaciones">Reservaciones Pendientes</h2>
 
-        <table class="aparca-table sede-table">
-            <thead>
-            <tr>
-                <th>Cliente</th><th>Teléfono</th><th>Placa</th><th>Tipo</th>
-                <th>Fecha Inicio</th><th>Fecha Fin</th><th>Cupo</th><th>Acciones</th>
-            </tr>
-            </thead>
-            <tbody id="reservacionesBody">
-            <tr>
-                <td colspan="8" class="loading">Cargando...</td>
-            </tr>
-            </tbody>
-        </table>
+        <div class="overflow-x-auto">
+            <table class="aparca-table">
+                <thead>
+                <tr>
+                    <th>Cliente</th><th>Teléfono</th><th>Placa</th><th>Tipo</th>
+                    <th>Fecha Inicio</th><th>Fecha Fin</th><th>Cupo</th><th>Acciones</th>
+                </tr>
+                </thead>
+                <tbody id="reservacionesBody">
+                <tr><td colspan="8" class="loading">Cargando...</td></tr>
+                </tbody>
+            </table>
+        </div>
     </section>
 
 
-    <!-- SECCIÓN CARGA MASIVA -->
-    <section id="cargamasiva" class="aparca-content-section hidden">
-        <h2 class="section-title">📤 Carga Masiva desde Excel</h2>
+    <!-- ── SECCIÓN CARGA MASIVA ── -->
+    <section id="cargamasiva" class="aparca-content-section hidden" aria-labelledby="h2-carga">
+        <h2 id="h2-carga">Carga Masiva desde Excel</h2>
 
         <div class="sub-section">
-            <h3 class="sub-section-title">📥 Paso 1: Descargar Plantilla</h3>
-            <p style="margin-bottom: 1rem; color: #64748b; font-size: 0.9rem;">
+            <h3 class="sub-section-title">Paso 1 — Descargar Plantilla</h3>
+            <p class="text-sm text-gray-500 mb-4">
                 Descarga la plantilla de Excel y completa los datos
                 según el tipo de registro que necesites.
             </p>
-
-            <div style="display: flex; gap: 1rem; flex-wrap: wrap; margin-bottom: 1rem;">
+            <div class="flex gap-3 flex-wrap mb-4">
                 <button class="sede-btn-primary"
                         onclick="descargarPlantillaCompleta()" type="button">
-                    📥 Plantilla Completa (Clientes + Vehículos)
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4"
+                         fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round"
+                              stroke-width="2"
+                              d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4
+                              4m0 0l-4-4m4 4V4"/>
+                    </svg>
+                    Plantilla Completa
                 </button>
-                <button class="sede-btn-info"
+                <button class="sede-btn-outline"
                         onclick="descargarPlantillaVehiculosSolo()" type="button">
-                    🚗 Solo Vehículos
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4"
+                         fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round"
+                              stroke-width="2"
+                              d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4
+                              4m0 0l-4-4m4 4V4"/>
+                    </svg>
+                    Solo Vehículos
                 </button>
-            </div>
-
-            <div style="margin-top: 1rem; padding: 1rem; background: #f1f5f9;
-                        border-radius: 0.5rem; border-left: 4px solid #3b82f6;">
-                <strong style="color: #1e40af;">📋 Formato de la Plantilla:</strong>
-
-                <details style="margin-top: 0.5rem;" open>
-                    <summary style="cursor: pointer; font-weight: 600;
-                                    color: #059669; padding: 0.5rem 0;">
-                        🧑‍💼 Registrar Cliente
-                    </summary>
-                    <ul style="margin: 0.5rem 0 0 1.5rem;
-                               color: #475569; font-size: 0.9rem;">
-                        <li><strong>Tipo:</strong> "Cliente"</li>
-                        <li><strong>Nombre:</strong> Nombre completo</li>
-                        <li><strong>Teléfono:</strong> 10 dígitos</li>
-                        <li><strong>Email:</strong> correo@example.com</li>
-                        <li><strong>Cédula:</strong> 10 dígitos</li>
-                    </ul>
-                </details>
-
-                <details style="margin-top: 0.5rem;">
-                    <summary style="cursor: pointer; font-weight: 600;
-                                    color: #2563eb; padding: 0.5rem 0;">
-                        🚗 Registrar Vehículo
-                    </summary>
-                    <ul style="margin: 0.5rem 0 0 1.5rem;
-                               color: #475569; font-size: 0.9rem;">
-                        <li><strong>Tipo:</strong> "Vehiculo" o "Vehículo"</li>
-                        <li><strong>Placa:</strong> 3 letras + 3 números (ABC123)</li>
-                        <li><strong>Tipo Vehículo:</strong> CARRO, MOTO, BICICLETA, OTRO</li>
-                        <li><strong>Marca:</strong> TOYOTA, CHEVROLET, MAZDA, etc.</li>
-                        <li><strong>Color:</strong> Color del vehículo</li>
-                        <li><strong>Año:</strong> 2000-2025</li>
-                        <li><strong>Email Cliente:</strong> debe estar registrado primero</li>
-                    </ul>
-                </details>
-
-                <div style="margin-top: 1rem; padding: 0.75rem; background: #fef3c7;
-                            border-radius: 0.5rem; border-left: 3px solid #f59e0b;">
-                    <strong style="color: #92400e;">⚠️ Orden importante:</strong>
-                    <p style="margin: 0.25rem 0 0; color: #78350f; font-size: 0.85rem;">
-                        1. Primero registra los Clientes<br>
-                        2. Luego registra los Vehículos
-                    </p>
-                </div>
             </div>
         </div>
 
         <div class="sub-section">
-            <h3 class="sub-section-title">📁 Paso 2: Subir Archivo Excel</h3>
-            <p style="margin-bottom: 1rem; color: #64748b; font-size: 0.9rem;">
+            <h3 class="sub-section-title">Paso 2 — Subir Archivo Excel</h3>
+            <p class="text-sm text-gray-500 mb-4">
                 Selecciona el archivo Excel con los datos completados.
             </p>
-
-            <div style="display: flex; gap: 1rem; align-items: center; flex-wrap: wrap;">
-                <div style="flex: 1; min-width: 250px;">
-                    <input type="file" id="excelFile"
-                           accept=".xlsx,.xls"
+            <div class="flex gap-3 items-center flex-wrap">
+                <div class="flex-1 min-w-60">
+                    <input type="file" id="excelFile" accept=".xlsx,.xls"
                            aria-label="Seleccionar archivo Excel"
-                           style="width: 100%; padding: 0.75rem;
-                                  border: 2px dashed #cbd5e1;
-                                  border-radius: 0.5rem; cursor: pointer;"
-                           onchange="mostrarArchivoSeleccionado()">
+                           onchange="mostrarArchivoSeleccionado()"
+                           class="w-full px-3 py-2 border-2 border-dashed
+                                  border-gray-200 rounded-lg cursor-pointer
+                                  text-sm text-gray-500 hover:border-teal-300
+                                  transition-colors"/>
                 </div>
                 <button class="sede-btn-success"
                         onclick="cargarExcel()"
-                        style="white-space: nowrap;" type="button">
-                    📤 Cargar Excel
+                        style="white-space:nowrap" type="button">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4"
+                         fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round"
+                              stroke-width="2"
+                              d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25
+                              2.25 0 0021 18.75V16.5m-13.5-9L12 3m0 0l4.5
+                              4.5M12 3v13.5"/>
+                    </svg>
+                    Cargar Excel
                 </button>
             </div>
-
             <div id="archivoSeleccionado"
-                 style="margin-top: 0.5rem; font-size: 0.85rem; color: #64748b;">
-            </div>
+                 class="mt-2 text-sm text-gray-500"></div>
         </div>
 
-        <div id="progressContainer" class="sub-section" style="display: none;">
-            <div style="background: #f1f5f9; border-radius: 0.5rem;
-                        padding: 0.5rem; margin-bottom: 0.5rem;">
+        <div id="progressContainer" class="sub-section" style="display:none">
+            <div class="bg-gray-100 rounded-lg p-1 mb-2">
                 <div id="progressBar"
-                     style="height: 1.5rem;
-                            background: linear-gradient(90deg, #3b82f6, #2563eb);
-                            border-radius: 0.25rem; width: 0%;
-                            transition: width 0.3s ease;
-                            display: flex; align-items: center;
-                            justify-content: center; color: white;
-                            font-size: 0.85rem; font-weight: 600;">
-                </div>
+                     style="height:1.5rem;background:linear-gradient(90deg,#14b8a6,#0f766e);
+                            border-radius:0.25rem;width:0%;transition:width 0.3s ease;
+                            display:flex;align-items:center;justify-content:center;
+                            color:white;font-size:0.85rem;font-weight:600;"></div>
             </div>
-            <p id="progressText"
-               style="text-align: center; color: #64748b; font-size: 0.9rem;"></p>
+            <p id="progressText" class="text-center text-gray-500 text-sm"></p>
         </div>
 
-        <div class="sub-section" id="resultadosCarga" style="display: none;">
-            <h3 class="sub-section-title">📋 Resultados de la Carga</h3>
-            <div id="resumenCarga" style="margin-bottom: 1.5rem;"></div>
-            <div id="erroresContainer" style="display: none; margin-bottom: 1.5rem;">
-                <div style="background: #fef2f2; border-left: 4px solid #ef4444;
-                            padding: 1rem; border-radius: 0.5rem;">
-                    <h4 style="color: #dc2626; margin: 0 0 0.5rem;">
-                        ⚠️ Errores Encontrados:
-                    </h4>
+        <div class="sub-section" id="resultadosCarga" style="display:none">
+            <h3 class="sub-section-title">Resultados de la Carga</h3>
+            <div id="resumenCarga" class="mb-4"></div>
+            <div id="erroresContainer" style="display:none" class="mb-4">
+                <div class="bg-red-50 border-l-4 border-red-400 p-4 rounded-lg">
+                    <h4 class="text-red-600 font-semibold mb-2">Errores encontrados:</h4>
                     <ul id="listaErrores"
-                        style="margin: 0; padding-left: 1.5rem;
-                               color: #7f1d1d; font-size: 0.9rem;"></ul>
+                        class="text-red-800 text-sm list-disc ml-5"></ul>
                 </div>
             </div>
-            <div style="overflow-x: auto;">
-                <table class="aparca-table sede-table">
+            <div class="overflow-x-auto">
+                <table class="aparca-table">
                     <thead>
                     <tr>
-                        <th>Tipo</th>
-                        <th>Detalle Principal</th>
-                        <th>Información Adicional</th>
-                        <th>Estado</th>
+                        <th>Tipo</th><th>Detalle Principal</th>
+                        <th>Información Adicional</th><th>Estado</th>
                     </tr>
                     </thead>
                     <tbody id="resultadosCargaBody"></tbody>
@@ -807,24 +909,48 @@
 </main>
 
 
-<!-- ==================================================
-     MODALES — integrados vía Thymeleaf
-     ❌ ELIMINADOS del HTML original
-     ✅ Incluidos como fragmentos externos
-     ================================================== -->
-
-<!-- Modal registrar trabajador -->
+<!-- Modales Thymeleaf -->
 <div th:replace="modals/sede-modal-registrar-trabajador :: modal"></div>
-
-<!-- Modal salida de vehículo -->
 <div th:replace="modals/sede-modal-salida :: modal"></div>
-
-<!-- Modal cobro -->
 <div th:replace="modals/sede-modal-cobro :: modal"></div>
 
-
-<!-- Script principal del módulo sede -->
 <script src="/js/SedeD.js"></script>
+
+<script>
+    /* ============================================================
+       SIDEBAR TOGGLE — idéntico al Admin
+       ============================================================ */
+    function toggleSidebar() {
+        const collapsed = document.body.classList.toggle('sidebar-collapsed');
+        const btn = document.getElementById('sidebarToggleBtn');
+        if (btn) btn.setAttribute('aria-label',
+            collapsed ? 'Expandir menú lateral' : 'Colapsar menú lateral');
+        try { localStorage.setItem('sede-sidebar-collapsed', collapsed ? '1' : '0'); } catch(e) {}
+    }
+
+    /* Restaura el estado al cargar */
+    (function() {
+        try {
+            if (localStorage.getItem('sede-sidebar-collapsed') === '1') {
+                document.body.classList.add('sidebar-collapsed');
+                const btn = document.getElementById('sidebarToggleBtn');
+                if (btn) btn.setAttribute('aria-label', 'Expandir menú lateral');
+            }
+        } catch(e) {}
+    })();
+
+    /* Inicial del avatar */
+    document.addEventListener('DOMContentLoaded', () => {
+        const usernameEl = document.getElementById('sidebarUsername');
+        const avatarEl   = document.getElementById('sidebarAvatarInitial');
+        if (usernameEl && avatarEl) {
+            const nombre = usernameEl.textContent.trim();
+            if (nombre) avatarEl.textContent = nombre.charAt(0).toUpperCase();
+        }
+    });
+
+    window.toggleSidebar = toggleSidebar;
+</script>
 
 </body>
 </html>

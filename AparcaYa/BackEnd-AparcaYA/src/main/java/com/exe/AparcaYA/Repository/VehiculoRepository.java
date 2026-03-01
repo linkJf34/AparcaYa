@@ -11,9 +11,16 @@ import java.util.Optional;
 
 @Repository
 public interface VehiculoRepository extends JpaRepository<Vehiculo, Long> {
+
     @Query("SELECT v FROM Vehiculo v WHERE LOWER(v.placa) LIKE LOWER(CONCAT('%', :placa, '%'))")
     List<Vehiculo> findByPlacaContainingIgnoreCase(@Param("placa") String placa);
+
     List<Vehiculo> findByTipo(String tipo);
-    List<Vehiculo> findByIdUsuario_IdUsuario(Long idUsuario);  // Busca por ID del usuario
-    Optional<Vehiculo> findByPlaca(String placa);  // Ya estaba, perfecto para búsqueda exacta
+
+    List<Vehiculo> findByIdUsuario_IdUsuario(Long idUsuario);
+
+    Optional<Vehiculo> findByPlaca(String placa);
+
+    // ✅ NUEVO: verificación proactiva de placa antes de intentar persistir
+    boolean existsByPlaca(String placa);
 }

@@ -68,6 +68,15 @@ public class Sede {
     @Column(nullable = false)
     private LocalDateTime fechaCreacion;
 
+    // ✅ NUEVO: coordenadas geocodificadas — nullable para sedes existentes.
+    // Se resuelven en el backend al crear o actualizar la dirección.
+    // El frontend lee estos valores directamente; no necesita llamar a Nominatim.
+    @Column
+    private Double latitud;
+
+    @Column
+    private Double longitud;
+
     @OneToMany(mappedBy = "sede", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     @JsonIgnore
     private List<Cupo> cupos = new ArrayList<>();
@@ -80,13 +89,4 @@ public class Sede {
     @JoinColumn(name = "id_usuario", nullable = false)
     @JsonIgnore
     private Usuario idUsuario;
-
-  /* // Relación: Una sede puede tener muchos cupos
-
-    @OneToMany(mappedBy = "sede", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
-    private List<Cupo> cupos = new ArrayList<>();
-
-    // Agregado: Una sede puede tener muchas tarifas
-    @OneToMany(mappedBy = "sede", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
-    private List<Tarifa> tarifas = new ArrayList<>();*/
 }

@@ -14,7 +14,10 @@ public interface PagoService {
     void delete(Long id);
     List<Pago> findByCliente_IdUsuario(Long idUsuario);
     List<Pago> findByEstado(EstadoPago estado);
-    List<Pago> findByReservacion_IdReserva(Long idReserva);
 
-    List<Pago> findByReserva_IdReserva(Long idReserva);
+    // ✅ C6: Eliminado findByReserva_IdReserva (nombre incorrecto sin "cion")
+    // Era idéntico a findByReservacion_IdReserva — generaba confusión silenciosa:
+    // cualquier llamante podía usar cualquiera de los dos sin saber cuál era el correcto.
+    // Se conserva solo el nombre que coincide con la entidad (Reservacion).
+    List<Pago> findByReservacion_IdReserva(Long idReserva);
 }

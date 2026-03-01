@@ -3,8 +3,13 @@ package com.exe.AparcaYA.Controllers;
 import com.exe.AparcaYA.Dto.RegistroRequest;
 import com.exe.AparcaYA.Entity.*;
 import com.exe.AparcaYA.Enum.*;
+import com.exe.AparcaYA.Repository.SedeRepository;
+import com.exe.AparcaYA.Repository.VehiculoRepository;
 import com.exe.AparcaYA.Service.*;
 import jakarta.mail.MessagingException;
+import jakarta.mail.internet.MimeMessage;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpSession;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.dao.DataIntegrityViolationException;
@@ -20,18 +25,11 @@ import org.springframework.stereotype.Controller;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
-import jakarta.mail.internet.MimeMessage;
-import jakarta.servlet.http.HttpServletRequest;
-import jakarta.servlet.http.HttpSession;
 
 import java.time.LocalDateTime;
 import java.util.Arrays;
+import java.util.Map;
 import java.util.Optional;
-
-// ✅ CAMBIO #2: Creación de tarifas delegada a TarifaService.crearTarifasParaSede()
-// ✅ CAMBIO #6: Creación de cupos delegada a CupoService.crearCuposParaSede()
-// ✅ CAMBIO #4/#8: Eliminada doble conversión RegistroRequest → UsuarioDTO → toEntity()
-//                  El Usuario se construye directamente desde RegistroRequest
 
 @Slf4j
 @Controller
@@ -39,16 +37,36 @@ import java.util.Optional;
 @CrossOrigin(origins = "*")
 public class UsuarioController {
 
-    private final UsuarioService usuarioService;
-    private final VehiculoService vehiculoService;
-    private final SedeService sedeService;
-    private final CupoService cupoService;
-    private final TarifaService tarifaService;
-    private final PasswordEncoder passwordEncoder;
-    private final JavaMailSender mailSender;
-    private final AuthenticationManager authenticationManager;
+    private final UsuarioService         usuarioService;
+    private final VehiculoService        vehiculoService;
+    private final SedeService            sedeService;
+    private final CupoService            cupoService;
+    private final TarifaService          tarifaService;
+    private final PasswordEncoder        passwordEncoder;
+    private final JavaMailSender         mailSender;
+    private final AuthenticationManager  authenticationManager;
+    private final SedeRepository         sedeRepository;
+    private final VehiculoRepository     vehiculoRepository;
 
-    // ==================== REGISTRO ====================
+    // =====================================================================
+    // REGISTRO
+    //
+    // PATRÓN: validate-all → then-save
+    //
+    // ANTES (problema):
+    //   save(usuario) → validar placa → si falla: return redirect
+    //   → @Transactional NO hace rollback porque no hay excepción
+    //   → el usuario queda guardado en BD sin vehículo ni sede
+    //
+    // AHORA (solución):
+    //   FASE 1 — Validar TODO (campos, formatos, duplicados usuario,
+    //            duplicados placa/NIT, campos sede/vehículo)
+    //            Si cualquier validación falla → redirect SIN haber
+    //            guardado nada todavía
+    //   FASE 2 — Guardar TODO en una sola transacción atómica
+    //            Si algo falla aquí (race condition) → @Transactional
+    //            hace rollback completo: ni usuario, ni vehículo, ni sede
+    // =====================================================================
 
     @PostMapping("/registrar")
     @Transactional(rollbackFor = Exception.class)
@@ -59,34 +77,150 @@ public class UsuarioController {
 
         log.info("Iniciando registro para correo: {}", request.getCorreo());
 
-        // Validar campos obligatorios
-        if (request.getNombre() == null || request.getCorreo() == null || request.getCedula() == null) {
+        // =====================================================================
+        // FASE 1 — VALIDACIONES COMPLETAS (sin guardar nada todavía)
+        // =====================================================================
+
+        // ── 1.1 Campos obligatorios ──────────────────────────────────────────
+        if (request.getNombre()     == null || request.getNombre().isBlank()     ||
+                request.getCorreo()     == null || request.getCorreo().isBlank()     ||
+                request.getCedula()     == null || request.getCedula().isBlank()     ||
+                request.getTelefono()   == null || request.getTelefono().isBlank()   ||
+                request.getContrasena() == null || request.getContrasena().isBlank() ||
+                request.getRol()        == null) {
             log.warn("Campos obligatorios faltantes en registro");
             redirectAttributes.addFlashAttribute("error", "Campos obligatorios faltantes");
             return "redirect:/registro";
         }
 
-        // Verificar duplicados
+        // ── 1.2 Formatos server-side ─────────────────────────────────────────
+        if (!request.getCorreo().matches("^[^\\s@]+@[^\\s@]+\\.[^\\s@]+$")) {
+            log.warn("Formato de correo inválido: {}", request.getCorreo());
+            redirectAttributes.addFlashAttribute("error", "Formato de correo inválido");
+            return "redirect:/registro";
+        }
+        if (!request.getTelefono().matches("[0-9]{10}")) {
+            log.warn("Formato de teléfono inválido: {}", request.getTelefono());
+            redirectAttributes.addFlashAttribute("error", "El teléfono debe tener exactamente 10 dígitos");
+            return "redirect:/registro";
+        }
+        if (!request.getCedula().matches("[0-9]{10}")) {
+            log.warn("Formato de cédula inválido: {}", request.getCedula());
+            redirectAttributes.addFlashAttribute("error", "La cédula debe tener exactamente 10 dígitos");
+            return "redirect:/registro";
+        }
+        if (request.getContrasena().length() < 8) {
+            log.warn("Contraseña demasiado corta para: {}", request.getCorreo());
+            redirectAttributes.addFlashAttribute("error", "La contraseña debe tener al menos 8 caracteres");
+            return "redirect:/registro";
+        }
+
+        // ── 1.3 Duplicados de usuario ────────────────────────────────────────
         if (usuarioService.findByCorreo(request.getCorreo()).isPresent()) {
             log.warn("Correo ya registrado: {}", request.getCorreo());
-            redirectAttributes.addFlashAttribute("error", "Correo ya registrado");
+            redirectAttributes.addFlashAttribute("error", "El correo ya está registrado");
             return "redirect:/registro";
         }
         if (usuarioService.findByTelefono(request.getTelefono()) != null) {
             log.warn("Teléfono ya registrado: {}", request.getTelefono());
-            redirectAttributes.addFlashAttribute("error", "Teléfono ya registrado");
+            redirectAttributes.addFlashAttribute("error", "El teléfono ya está registrado");
             return "redirect:/registro";
         }
         if (usuarioService.findByCedula(request.getCedula()) != null) {
             log.warn("Cédula ya registrada: {}", request.getCedula());
-            redirectAttributes.addFlashAttribute("error", "Cédula ya registrada");
+            redirectAttributes.addFlashAttribute("error", "La cédula ya está registrada");
             return "redirect:/registro";
         }
 
+        // ── 1.4 Validaciones específicas por rol ─────────────────────────────
+        //
+        // ✅ FIX PRINCIPAL: estas validaciones estaban DESPUÉS de save(usuario),
+        // lo que causaba que el usuario quedara guardado aunque fallara la placa o el NIT.
+        // Ahora se ejecutan ANTES de guardar cualquier cosa.
+
+        if (request.getRol() == Rolenum.CLIENTE) {
+
+            // Placa obligatoria para cliente
+            if (request.getPlaca() == null || request.getPlaca().isBlank()) {
+                log.warn("Placa faltante para cliente: {}", request.getCorreo());
+                redirectAttributes.addFlashAttribute("error", "La placa del vehículo es obligatoria");
+                return "redirect:/registro";
+            }
+
+            // Formato de placa
+            String placaNormalizada = request.getPlaca().trim().toUpperCase();
+            if (!placaNormalizada.matches("[A-Z]{3}[0-9]{3}")) {
+                log.warn("Formato de placa inválido: {}", request.getPlaca());
+                redirectAttributes.addFlashAttribute("error", "Formato de placa inválido (ej. ABC123)");
+                return "redirect:/registro";
+            }
+
+            // ✅ Duplicado de placa — verificado ANTES de guardar usuario
+            if (vehiculoRepository.existsByPlaca(placaNormalizada)) {
+                log.warn("Placa ya registrada: {}", placaNormalizada);
+                redirectAttributes.addFlashAttribute("error", "La placa ya está registrada");
+                return "redirect:/registro";
+            }
+
+            // Guardar la placa normalizada para usarla en fase 2
+            request.setPlaca(placaNormalizada);
+
+        } else if (request.getRol() == Rolenum.ADMINISTRADOR_SEDE) {
+
+            // Campos obligatorios de sede
+            if (request.getHiddenNombreSede()  == null || request.getHiddenNit()          == null ||
+                    request.getHiddenDireccion()   == null || request.getHiddenLocalidad()     == null ||
+                    request.getHiddenBarrio()      == null || request.getHiddenCuposTotales()  == null ||
+                    request.getTarifaPlenaC()      == null || request.getTarifaPlenaM()        == null ||
+                    request.getTarifaMinutoC()     == null || request.getTarifaMinutoM()       == null ||
+                    request.getHiddenHorarioSede() == null) {
+                log.warn("Campos obligatorios de sede faltantes para: {}", request.getCorreo());
+                redirectAttributes.addFlashAttribute("error", "Faltan datos obligatorios de la sede");
+                return "redirect:/registro";
+            }
+
+            // Formato de NIT
+            if (!request.getHiddenNit().matches("[0-9]{9}-[0-9]")) {
+                log.warn("Formato de NIT inválido: {}", request.getHiddenNit());
+                redirectAttributes.addFlashAttribute("error", "Formato de NIT inválido (ej. 123456789-0)");
+                return "redirect:/registro";
+            }
+
+            // ✅ Duplicado de NIT — verificado ANTES de guardar usuario
+            if (sedeRepository.existsByNit(request.getHiddenNit())) {
+                log.warn("NIT ya registrado: {}", request.getHiddenNit());
+                redirectAttributes.addFlashAttribute("error", "El NIT ya está registrado");
+                return "redirect:/registro";
+            }
+
+            // Validar barrio coherente con localidad
+            String barrio = request.getHiddenBarrio();
+            try {
+                boolean barrioValido = Arrays.asList(
+                        Localidad.valueOf(request.getHiddenLocalidad()).getBarrios()
+                ).contains(barrio);
+                if (!barrioValido) {
+                    log.warn("Barrio inválido: {} para localidad {}", barrio, request.getHiddenLocalidad());
+                    redirectAttributes.addFlashAttribute("error", "Barrio inválido para la localidad seleccionada");
+                    return "redirect:/registro";
+                }
+            } catch (IllegalArgumentException e) {
+                log.warn("Localidad inválida: {}", request.getHiddenLocalidad());
+                redirectAttributes.addFlashAttribute("error", "Localidad inválida");
+                return "redirect:/registro";
+            }
+        }
+
+        // =====================================================================
+        // FASE 2 — GUARDADO ATÓMICO
+        //
+        // Llegamos aquí solo si TODAS las validaciones de la Fase 1 pasaron.
+        // Si cualquier operación de guardado falla, @Transactional hace rollback
+        // completo: ni usuario, ni vehículo, ni sede quedan en BD.
+        // =====================================================================
+
         try {
-            // ✅ CAMBIO #4/#8: Usuario construido directamente desde RegistroRequest
-            // Antes: RegistroRequest → UsuarioDTO (set de 10 campos) → toEntity() (set de 10 campos)
-            // Ahora: RegistroRequest → Usuario directamente, sin DTO intermedio
+            // ── 2.1 Guardar usuario ──────────────────────────────────────────
             Usuario usuario = new Usuario();
             usuario.setNombre(request.getNombre());
             usuario.setCorreo(request.getCorreo());
@@ -97,156 +231,88 @@ public class UsuarioController {
             usuario.setMetodoPago(MetodoPago.EFECTIVO);
             usuario.setEstado(EstadoGeneral.ACTIVO);
             usuario.setDescripcion("");
-            if (request.getContrasena() != null && !request.getContrasena().isEmpty()) {
-                usuario.setContrasena(passwordEncoder.encode(request.getContrasena()));
-            }
+            usuario.setContrasena(passwordEncoder.encode(request.getContrasena()));
 
             Usuario guardado = usuarioService.save(usuario);
             log.info("Usuario guardado: id={} rol={}", guardado.getIdUsuario(), guardado.getRol());
 
-            // ========== ASIGNAR OPERARIO A SEDE ==========
+            // ── 2.2 OPERARIO — asignar sede del admin autenticado ────────────
             if (request.getRol() == Rolenum.OPERARIO) {
                 try {
-                    Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+                    Authentication auth    = SecurityContextHolder.getContext().getAuthentication();
                     Optional<Usuario> adminOpt = usuarioService.findByCorreo(auth.getName());
-
                     if (adminOpt.isPresent()) {
                         Sede sedeAdmin = sedeService.findByIdUsuario(adminOpt.get().getIdUsuario());
                         if (sedeAdmin != null) {
                             guardado.setSedeAsignada(sedeAdmin);
                             usuarioService.save(guardado);
                             log.info("Operario id={} asignado a sede: {}", guardado.getIdUsuario(), sedeAdmin.getNombre());
-                        } else {
-                            log.warn("Administrador {} no tiene sede asignada", auth.getName());
                         }
-                    } else {
-                        log.warn("No se encontró el administrador autenticado: {}", auth.getName());
                     }
                 } catch (Exception e) {
                     log.error("Error asignando operario a sede: {}", e.getMessage(), e);
                 }
             }
 
-            // ========== GUARDAR SEDE SI ES ADMINISTRADOR_SEDE ==========
-            if (request.getRol() == Rolenum.ADMINISTRADOR_SEDE &&
-                    request.getHiddenNombreSede() != null &&
-                    request.getHiddenNit() != null &&
-                    request.getHiddenDireccion() != null &&
-                    request.getHiddenLocalidad() != null &&
-                    request.getHiddenBarrio() != null &&
-                    request.getHiddenCuposTotales() != null &&
-                    request.getTarifaPlenaC() != null &&
-                    request.getTarifaPlenaM() != null &&
-                    request.getTarifaMinutoC() != null &&
-                    request.getTarifaMinutoM() != null &&
-                    request.getHiddenHorarioSede() != null) {
+            // ── 2.3 ADMINISTRADOR_SEDE — guardar sede + cupos + tarifas ─────
+            if (request.getRol() == Rolenum.ADMINISTRADOR_SEDE) {
+                Sede sede = new Sede();
+                sede.setNombre(request.getHiddenNombreSede());
+                sede.setNit(request.getHiddenNit());
+                sede.setDireccion(request.getHiddenDireccion());
+                sede.setLocalidad(Localidad.valueOf(request.getHiddenLocalidad()));
+                sede.setBarrio(request.getHiddenBarrio());
+                sede.setCapacidad(request.getHiddenCuposTotales());
+                sede.setTarifaPlenaC(request.getTarifaPlenaC());
+                sede.setTarifaPlenaM(request.getTarifaPlenaM());
+                sede.setTarifaMinutoC(request.getTarifaMinutoC());
+                sede.setTarifaMinutoM(request.getTarifaMinutoM());
+                sede.setHorarioSede(request.getHiddenHorarioSede());
+                sede.setIdUsuario(guardado);
+                sede.setEstado(EstadoGeneral.ACTIVO);
+                sede.setFechaCreacion(LocalDateTime.now());
 
-                try {
-                    log.info("Creando sede: nombre={} nit={}", request.getHiddenNombreSede(), request.getHiddenNit());
+                Sede sedeGuardada = sedeService.save(sede);
+                log.info("Sede guardada: id={}", sedeGuardada.getIdSede());
 
-                    // Validar barrio
-                    String barrio = request.getHiddenBarrio();
-                    if (barrio != null && !barrio.isEmpty()) {
-                        boolean barrioValido = Arrays.asList(
-                                Localidad.valueOf(request.getHiddenLocalidad()).getBarrios()
-                        ).contains(barrio);
-                        if (!barrioValido) {
-                            log.warn("Barrio inválido: {} para localidad {}", barrio, request.getHiddenLocalidad());
-                            redirectAttributes.addFlashAttribute("error", "Barrio inválido para la localidad.");
-                            return "redirect:/registro";
-                        }
-                    }
+                cupoService.crearCuposParaSede(sedeGuardada);
+                log.info("Cupos creados para sede id={}: total={}",
+                        sedeGuardada.getIdSede(), sedeGuardada.getCapacidad());
 
-                    Sede sede = new Sede();
-                    sede.setNombre(request.getHiddenNombreSede());
-                    sede.setNit(request.getHiddenNit());
-                    sede.setDireccion(request.getHiddenDireccion());
-                    sede.setLocalidad(Localidad.valueOf(request.getHiddenLocalidad()));
-                    sede.setBarrio(barrio);
-                    sede.setCapacidad(request.getHiddenCuposTotales());
-                    sede.setTarifaPlenaC(request.getTarifaPlenaC());
-                    sede.setTarifaPlenaM(request.getTarifaPlenaM());
-                    sede.setTarifaMinutoC(request.getTarifaMinutoC());
-                    sede.setTarifaMinutoM(request.getTarifaMinutoM());
-                    sede.setHorarioSede(request.getHiddenHorarioSede());
-                    sede.setIdUsuario(guardado);
-                    sede.setEstado(EstadoGeneral.ACTIVO);
-                    sede.setFechaCreacion(LocalDateTime.now());
-
-                    Sede sedeGuardada = sedeService.save(sede);
-                    log.info("Sede guardada: id={}", sedeGuardada.getIdSede());
-
-                    // ✅ CAMBIO #6: Creación de cupos delegada al Service
-                    // Antes: bucle for con new Cupo() inline en el Controller (12 líneas)
-                    cupoService.crearCuposParaSede(sedeGuardada);
-                    log.info("Cupos creados para sede id={}: total={}", sedeGuardada.getIdSede(), sedeGuardada.getCapacidad());
-
-                    // ✅ CAMBIO #2: Creación de tarifas delegada al Service
-                    // Antes: bloque de 4 tarifas inline en el Controller (16 líneas)
-                    // duplicado también en SedeController — ahora ambos usan el mismo Service
-                    tarifaService.crearTarifasParaSede(sedeGuardada);
-                    log.info("Tarifas creadas para sede id={}", sedeGuardada.getIdSede());
-
-                } catch (DataIntegrityViolationException e) {
-                    log.error("Error de integridad al guardar sede (NIT duplicado?): {}", e.getMessage());
-                    redirectAttributes.addFlashAttribute("error", "NIT duplicado o error en sede.");
-                    return "redirect:/registro";
-                } catch (Exception e) {
-                    log.error("Error guardando sede: {}", e.getMessage(), e);
-                    redirectAttributes.addFlashAttribute("error", "Error guardando sede.");
-                    return "redirect:/registro";
-                }
-
-            } else if (request.getRol() == Rolenum.ADMINISTRADOR_SEDE) {
-                log.warn("Sede no guardada — faltan campos obligatorios para ADMINISTRADOR_SEDE");
-                redirectAttributes.addFlashAttribute("error", "Faltan datos obligatorios de la sede.");
+                tarifaService.crearTarifasParaSede(sedeGuardada);
+                log.info("Tarifas creadas para sede id={}", sedeGuardada.getIdSede());
             }
 
-            // ========== GUARDAR VEHÍCULO SI ES CLIENTE ==========
-            if (request.getRol() == Rolenum.CLIENTE &&
-                    request.getPlaca() != null &&
-                    !request.getPlaca().trim().isEmpty()) {
+            // ── 2.4 CLIENTE — guardar vehículo ───────────────────────────────
+            if (request.getRol() == Rolenum.CLIENTE) {
+                Vehiculo vehiculo = new Vehiculo();
+                vehiculo.setPlaca(request.getPlaca()); // ya normalizada en Fase 1
+                vehiculo.setTipo(request.getTipoVehiculo());
+                vehiculo.setMarca(request.getMarca());
+                vehiculo.setColor(request.getColor());
+                vehiculo.setAnio(request.getAnio());
+                vehiculo.setIdUsuario(guardado);
 
-                try {
-                    Vehiculo vehiculo = new Vehiculo();
-                    vehiculo.setPlaca(request.getPlaca().trim().toUpperCase());
-                    vehiculo.setTipo(request.getTipoVehiculo());
-                    vehiculo.setMarca(request.getMarca());
-                    vehiculo.setColor(request.getColor());
-                    vehiculo.setAnio(request.getAnio());
-                    vehiculo.setIdUsuario(guardado);
-
-                    Vehiculo vehiculoGuardado = vehiculoService.save(vehiculo);
-                    log.info("Vehículo guardado: id={} placa={}", vehiculoGuardado.getIdVehiculo(), vehiculoGuardado.getPlaca());
-
-                } catch (DataIntegrityViolationException e) {
-                    log.error("Placa duplicada: {}", request.getPlaca());
-                    redirectAttributes.addFlashAttribute("error", "La placa ya está registrada");
-                    return "redirect:/registro";
-                } catch (Exception e) {
-                    log.error("Error guardando vehículo: {}", e.getMessage(), e);
-                    redirectAttributes.addFlashAttribute("error", "Error al registrar el vehículo");
-                    return "redirect:/registro";
-                }
+                Vehiculo vehiculoGuardado = vehiculoService.save(vehiculo);
+                log.info("Vehículo guardado: id={} placa={}",
+                        vehiculoGuardado.getIdVehiculo(), vehiculoGuardado.getPlaca());
             }
 
-            // ========== CORREO DE BIENVENIDA ==========
+            // ── 2.5 Correo de bienvenida ─────────────────────────────────────
             try {
                 sendWelcomeEmail(guardado.getCorreo(), guardado.getNombre(), guardado.getRol());
                 log.info("Correo de bienvenida enviado a: {}", guardado.getCorreo());
             } catch (Exception e) {
-                log.warn("No se pudo enviar correo de bienvenida a {}: {}", guardado.getCorreo(), e.getMessage());
+                // No crítico — el registro ya está completo
+                log.warn("No se pudo enviar correo de bienvenida a {}: {}",
+                        guardado.getCorreo(), e.getMessage());
             }
 
-            String extra = "";
-            if (request.getRol() == Rolenum.CLIENTE && request.getPlaca() != null) extra = " con vehículo";
-            if (request.getRol() == Rolenum.ADMINISTRADOR_SEDE && request.getHiddenNombreSede() != null) extra = " con sede, cupos y tarifa";
-            redirectAttributes.addFlashAttribute("success", "Usuario registrado exitosamente" + extra);
-
-            // ========== AUTENTICAR AUTOMÁTICAMENTE ==========
+            // ── 2.6 Autenticación automática post-registro ───────────────────
             try {
                 Authentication authentication = authenticationManager.authenticate(
-                        new UsernamePasswordAuthenticationToken(guardado.getCorreo(), request.getContrasena())
+                        new UsernamePasswordAuthenticationToken(
+                                guardado.getCorreo(), request.getContrasena())
                 );
                 SecurityContextHolder.getContext().setAuthentication(authentication);
                 HttpSession session = httpRequest.getSession(true);
@@ -258,6 +324,15 @@ public class UsuarioController {
                 log.error("Error autenticando usuario tras registro: {}", e.getMessage());
                 return "redirect:/login";
             }
+
+            // ── 2.7 Redirect al dashboard correspondiente ────────────────────
+            String extra = switch (guardado.getRol()) {
+                case CLIENTE            -> " con vehículo";
+                case ADMINISTRADOR_SEDE -> " con sede, cupos y tarifa";
+                default                 -> "";
+            };
+            redirectAttributes.addFlashAttribute("success",
+                    "Usuario registrado exitosamente" + extra);
 
             String redirectUrl = switch (guardado.getRol()) {
                 case ADMIN              -> "/dashboard/administradorGeneral";
@@ -271,19 +346,76 @@ public class UsuarioController {
             return "redirect:" + redirectUrl;
 
         } catch (DataIntegrityViolationException e) {
-            log.error("Error de integridad en registro: {}", e.getMessage());
-            redirectAttributes.addFlashAttribute("error", "Datos duplicados: " + e.getMessage());
+            // Race condition: dos registros simultáneos con los mismos datos únicos.
+            // @Transactional hace rollback completo — ningún dato queda en BD.
+            log.error("Race condition en registro (integridad): {}", e.getMessage());
+            redirectAttributes.addFlashAttribute("error",
+                    "Datos duplicados detectados. Otro usuario se registró con los mismos datos.");
             return "redirect:/registro";
+
         } catch (Exception e) {
+            // Cualquier otra excepción en Fase 2 también hace rollback completo.
             log.error("Error general en registro: {}", e.getMessage(), e);
-            redirectAttributes.addFlashAttribute("error", "Error interno: " + e.getMessage());
+            redirectAttributes.addFlashAttribute("error", "Error interno del sistema");
             return "redirect:/registro";
         }
     }
 
-    // ==================== CORREO DE BIENVENIDA ====================
+    // =====================================================================
+    // VERIFICACIÓN DE DUPLICADOS — endpoints para el JS (fetch en blur)
+    // =====================================================================
 
-    private void sendWelcomeEmail(String correo, String nombre, Rolenum rol) throws MessagingException {
+    /** GET /check/correo?value=email@ejemplo.com */
+    @GetMapping("/check/correo")
+    @ResponseBody
+    public Map<String, Object> checkCorreo(@RequestParam String value) {
+        boolean disponible = usuarioService.findByCorreo(value.trim()).isEmpty();
+        return Map.of(
+                "disponible", disponible,
+                "mensaje", disponible ? "Correo disponible" : "El correo ya está registrado"
+        );
+    }
+
+    /** GET /check/cedula?value=1234567890 */
+    @GetMapping("/check/cedula")
+    @ResponseBody
+    public Map<String, Object> checkCedula(@RequestParam String value) {
+        boolean disponible = (usuarioService.findByCedula(value.trim()) == null);
+        return Map.of(
+                "disponible", disponible,
+                "mensaje", disponible ? "Cédula disponible" : "La cédula ya está registrada"
+        );
+    }
+
+    /** GET /check/telefono?value=3001234567 */
+    @GetMapping("/check/telefono")
+    @ResponseBody
+    public Map<String, Object> checkTelefono(@RequestParam String value) {
+        boolean disponible = (usuarioService.findByTelefono(value.trim()) == null);
+        return Map.of(
+                "disponible", disponible,
+                "mensaje", disponible ? "Teléfono disponible" : "El teléfono ya está registrado"
+        );
+    }
+
+    /** GET /check/nit?value=123456789-0 */
+    @GetMapping("/check/nit")
+    @ResponseBody
+    public Map<String, Object> checkNit(@RequestParam String value) {
+        boolean disponible = !sedeRepository.existsByNit(value.trim());
+        return Map.of(
+                "disponible", disponible,
+                "mensaje", disponible ? "NIT disponible" : "El NIT ya está registrado"
+        );
+    }
+
+    // =====================================================================
+    // CORREO DE BIENVENIDA
+    // =====================================================================
+
+    private void sendWelcomeEmail(String correo, String nombre, Rolenum rol)
+            throws MessagingException {
+
         String rolDescripcion = switch (rol) {
             case ADMIN              -> "Administrador General";
             case ADMINISTRADOR_SEDE -> "Administrador de Sede";
@@ -300,18 +432,24 @@ public class UsuarioController {
                 <style>
                     * { margin:0; padding:0; box-sizing:border-box; }
                     body { font-family:'Segoe UI',sans-serif; background:#f5f7fa; padding:20px; }
-                    .container { max-width:600px; margin:0 auto; background:#fff; border-radius:12px; overflow:hidden; box-shadow:0 4px 12px rgba(0,0,0,.1); }
-                    .header { background:linear-gradient(135deg,#667eea,#764ba2); padding:40px 30px; text-align:center; }
+                    .container { max-width:600px; margin:0 auto; background:#fff; border-radius:12px;
+                                 overflow:hidden; box-shadow:0 4px 12px rgba(0,0,0,.1); }
+                    .header { background:linear-gradient(135deg,#667eea,#764ba2);
+                              padding:40px 30px; text-align:center; }
                     .header h1 { color:#fff; font-size:28px; margin:0; }
-                    .icon { width:80px; height:80px; background:rgba(255,255,255,.2); border-radius:50%%; margin:0 auto 15px; font-size:40px; line-height:80px; text-align:center; }
+                    .icon { width:80px; height:80px; background:rgba(255,255,255,.2);
+                            border-radius:50%%; margin:0 auto 15px; font-size:40px;
+                            line-height:80px; text-align:center; }
                     .body { padding:40px 35px; color:#333; line-height:1.8; }
                     .body h2 { color:#667eea; font-size:22px; margin-bottom:20px; }
-                    .card { background:#f8f9fa; padding:25px; border-radius:8px; border-left:4px solid #667eea; margin:25px 0; }
+                    .card { background:#f8f9fa; padding:25px; border-radius:8px;
+                            border-left:4px solid #667eea; margin:25px 0; }
                     .card h3 { color:#2c3e50; margin-bottom:15px; }
                     ul { list-style:none; padding:0; }
                     li { padding:10px 0; border-bottom:1px solid #e9ecef; color:#555; font-size:15px; }
                     li:last-child { border-bottom:none; }
-                    .footer { background:#f8f9fa; padding:30px; text-align:center; border-top:1px solid #e9ecef; }
+                    .footer { background:#f8f9fa; padding:30px; text-align:center;
+                              border-top:1px solid #e9ecef; }
                     .footer p { color:#6c757d; font-size:13px; margin:6px 0; }
                 </style>
             </head>
@@ -351,7 +489,9 @@ public class UsuarioController {
         mailSender.send(message);
     }
 
-    // ==================== DASHBOARDS POR ROL ====================
+    // =====================================================================
+    // DASHBOARDS POR ROL
+    // =====================================================================
 
     @GetMapping("/dashboard/administradorGeneral")
     public String dashboardAdminGeneral() { return "DashboardAdmin"; }

@@ -5,6 +5,7 @@ import com.exe.AparcaYA.Enum.TipoVehiculo;
 import com.fasterxml.jackson.annotation.JsonBackReference;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.Pattern;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -25,7 +26,9 @@ public class Vehiculo {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long idVehiculo;
 
+    // ✅ NUEVO: @Pattern para validar formato colombiano de placa (ej. ABC123)
     @NotBlank(message = "La placa es obligatoria")
+    @Pattern(regexp = "[A-Z]{3}[0-9]{3}", message = "Formato de placa inválido (ej. ABC123)")
     @Column(nullable = false, unique = true)
     private String placa;
 
@@ -43,13 +46,11 @@ public class Vehiculo {
     @Column(nullable = false)
     private Integer anio;
 
-    // Relación: FK directa a id_usuario
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "id_usuario")
     @JsonBackReference("usuario-vehiculos")
     private Usuario idUsuario;
 
-    // Agregado: Un vehículo puede tener muchas reservaciones
     @OneToMany(mappedBy = "vehiculo", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     private List<Reservacion> reservaciones = new ArrayList<>();
 }
