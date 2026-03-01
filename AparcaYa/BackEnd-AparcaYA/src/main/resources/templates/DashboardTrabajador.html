@@ -1,69 +1,172 @@
 <!DOCTYPE html>
-<html lang="es">
+<html lang="es"
+      data-theme="light"
+      xmlns:th="http://www.thymeleaf.org">
 <head>
-    <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>Dashboard Trabajador - AparcaYA</title>
 
     <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://cdn.jsdelivr.net/npm/daisyui@4.12.10/dist/full.min.css"
-          rel="stylesheet" />
+    <link href="https://cdn.jsdelivr.net/npm/daisyui@4.12.10/dist/full.min.css" rel="stylesheet"/>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
-    <!-- Rutas corregidas a minúsculas + carga de CSS base -->
-    <link rel="stylesheet" href="/css/base/aparca-animations.css" />
-    <link rel="stylesheet" href="/css/components/aparca-components.css" />
-    <link rel="stylesheet" href="/css/pages/Trabajador.css" />
+    <link rel="stylesheet" href="/css/base/aparca-animations.css"/>
+    <link rel="stylesheet" href="/css/components/aparca-components.css"/>
+    <link rel="stylesheet" href="/css/pages/Trabajador.css"/>
 </head>
 <body>
 
-<!-- SIDEBAR -->
-<aside class="aparca-sidebar trab-sidebar" aria-label="Menú principal">
+<!-- ==================================================
+     SIDEBAR
+     ================================================== -->
+<aside class="aparca-sidebar animate-fade-in-up"
+       id="mainSidebar"
+       aria-label="Menú principal del trabajador">
 
-    <div class="aparca-sidebar-header trab-sidebar-header" role="banner">
-        <svg xmlns="http://www.w3.org/2000/svg" fill="none"
-             viewBox="0 0 24 24" stroke-width="1.5"
-             stroke="currentColor" aria-hidden="true">
-            <path stroke-linecap="round" stroke-linejoin="round"
-                  d="M8.25 18.75a1.5 1.5 0 01-3 0V15a6 6 0 0112
-                  0v3.75a1.5 1.5 0 01-3 0V15a3 3 0 00-6 0v3.75z
-                  M12 9a3 3 0 100-6 3 3 0 000 6z" />
-        </svg>
-        <h1>AparcaYA</h1>
+    <div class="aparca-sidebar-header" role="banner">
+
+        <div class="aparca-sidebar-logo-row">
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none"
+                 viewBox="0 0 24 24" stroke-width="1.5"
+                 stroke="currentColor" aria-hidden="true">
+                <path stroke-linecap="round" stroke-linejoin="round"
+                      d="M8.25 18.75a1.5 1.5 0 01-3 0V15a6 6 0 0112
+                      0v3.75a1.5 1.5 0 01-3 0V15a3 3 0 00-6 0v3.75z
+                      M12 9a3 3 0 100-6 3 3 0 000 6z"/>
+            </svg>
+            <h1>AparcaYA</h1>
+        </div>
+
+        <button class="aparca-sidebar-toggle"
+                id="sidebarToggleBtn"
+                type="button"
+                aria-label="Colapsar menú lateral"
+                onclick="toggleSidebar()">
+            <svg class="toggle-arrow"
+                 xmlns="http://www.w3.org/2000/svg"
+                 fill="none" viewBox="0 0 24 24"
+                 stroke-width="2" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round"
+                      d="M15.75 19.5L8.25 12l7.5-7.5"/>
+            </svg>
+            <span class="toggle-label">Colapsar menú</span>
+        </button>
+
     </div>
 
-    <nav class="aparca-sidebar-nav" role="navigation">
-        <a href="#" class="active" data-tab="inicio">🏠 Inicio</a>
-        <a href="#" data-tab="gestion">🚗 Gestión Vehículos</a>
-        <a href="#" data-tab="historial">📊 Historial</a>
-        <a href="#" data-tab="reservaciones">📅 Reservaciones</a>
-        <a href="#" data-tab="cargamasiva">📤 Carga Masiva</a>
+    <nav class="aparca-sidebar-nav"
+         role="navigation"
+         aria-label="Secciones del dashboard trabajador">
+
+        <a href="#" class="active"
+           data-tab="inicio"
+           aria-current="page">
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none"
+                 viewBox="0 0 24 24" stroke-width="1.5"
+                 stroke="currentColor" aria-hidden="true">
+                <path stroke-linecap="round" stroke-linejoin="round"
+                      d="M2.25 12l8.954-8.955c.44-.439 1.152-.439 1.591 0L21.75
+                      12M4.5 9.75v10.125c0 .621.504 1.125 1.125 1.125H9.75v-4.875
+                      c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125
+                      1.125V21h4.125c.621 0 1.125-.504 1.125-1.125V9.75M8.25 21h8.25"/>
+            </svg>
+            <span class="nav-label">Inicio</span>
+        </a>
+
+        <a href="#" data-tab="gestion">
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none"
+                 viewBox="0 0 24 24" stroke-width="1.5"
+                 stroke="currentColor" aria-hidden="true">
+                <path stroke-linecap="round" stroke-linejoin="round"
+                      d="M8.25 18.75a1.5 1.5 0 01-3 0m3 0a1.5 1.5
+                      0 00-3 0m3 0h6m-9 0H3.375a1.125 1.125 0
+                      01-1.125-1.125V14.25m17.25 4.5a1.5 1.5 0 01-3
+                      0m3 0a1.5 1.5 0 00-3 0m3 0h1.125c.621 0
+                      1.129-.504 1.09-1.124a17.902 17.902 0
+                      00-3.213-9.193 2.056 2.056 0 00-1.58-.86H14.25
+                      M16.5 18.75h-2.25m0-11.177v-.958c0-.568-.422-1.048-.987-1.106
+                      a48.554 48.554 0 00-10.026 0 1.106 1.106 0
+                      00-.987 1.106v7.635m12-6.677v6.677m0 4.5v-4.5m0 0h-12"/>
+            </svg>
+            <span class="nav-label">Gestión Vehículos</span>
+        </a>
+
+        <a href="#" data-tab="historial">
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none"
+                 viewBox="0 0 24 24" stroke-width="1.5"
+                 stroke="currentColor" aria-hidden="true">
+                <path stroke-linecap="round" stroke-linejoin="round"
+                      d="M3.75 3v11.25A2.25 2.25 0 006 16.5h2.25M3.75
+                      3h-1.5m1.5 0h16.5m0 0h1.5m-1.5 0v11.25A2.25
+                      2.25 0 0118 16.5h-2.25m-7.5 0h7.5m-7.5
+                      0l-1 3m8.5-3l1 3m0 0l.5 1.5m-.5-1.5h-9.5
+                      m0 0l-.5 1.5M9 11.25v1.5M12 9v3.75m3-6v6"/>
+            </svg>
+            <span class="nav-label">Historial</span>
+        </a>
+
+        <a href="#" data-tab="reservaciones">
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none"
+                 viewBox="0 0 24 24" stroke-width="1.5"
+                 stroke="currentColor" aria-hidden="true">
+                <path stroke-linecap="round" stroke-linejoin="round"
+                      d="M6.75 3v2.25M17.25 3v2.25M3 18.75V7.5a2.25
+                      2.25 0 012.25-2.25h13.5A2.25 2.25 0 0121 7.5v11.25
+                      m-18 0A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0
+                      0021 18.75m-18 0v-7.5A2.25 2.25 0 015.25 9h13.5
+                      A2.25 2.25 0 0121 11.25v7.5"/>
+            </svg>
+            <span class="nav-label">Reservaciones</span>
+        </a>
+
+        <hr class="aparca-nav-divider" aria-hidden="true"/>
+
+        <a href="#" data-tab="cargamasiva">
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none"
+                 viewBox="0 0 24 24" stroke-width="1.5"
+                 stroke="currentColor" aria-hidden="true">
+                <path stroke-linecap="round" stroke-linejoin="round"
+                      d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25
+                      2.25 0 0021 18.75V16.5m-13.5-9L12 3m0 0l4.5 4.5
+                      M12 3v13.5"/>
+            </svg>
+            <span class="nav-label">Carga Masiva</span>
+        </a>
+
     </nav>
+
+    <div class="aparca-sidebar-footer">
+        <div class="aparca-sidebar-user" aria-label="Usuario actual">
+            <div class="aparca-sidebar-avatar"
+                 id="sidebarAvatarInitial"
+                 aria-hidden="true">T</div>
+            <div class="aparca-sidebar-user-info">
+                <div class="aparca-sidebar-username"
+                     id="sidebarUsername"
+                     th:text="${#authentication?.name ?: 'Trabajador'}">
+                    Trabajador
+                </div>
+                <div class="aparca-sidebar-userrole">Trabajador</div>
+            </div>
+        </div>
+    </div>
+
 </aside>
 
 
-<!-- HEADER -->
-<header class="aparca-page-header">
-
-    <div class="aparca-logo-section trab-logo-section">
-        <svg xmlns="http://www.w3.org/2000/svg" fill="none"
-             viewBox="0 0 24 24" stroke-width="1.5"
-             stroke="currentColor" aria-hidden="true"
-             class="trab-logo-icon">
-            <path stroke-linecap="round" stroke-linejoin="round"
-                  d="M8.25 18.75a1.5 1.5 0 01-3 0V15a6 6 0 0112
-                  0v3.75a1.5 1.5 0 01-3 0V15a3 3 0 00-6 0v3.75z
-                  M12 9a3 3 0 100-6 3 3 0 000 6z" />
-        </svg>
-        <h1>AparcaYA - <span id="sedeNombre">Parqueadero</span></h1>
-    </div>
+<!-- ==================================================
+     HEADER
+     ================================================== -->
+<header class="aparca-page-header animate-fade-in-up" id="pageHeader">
 
     <div class="aparca-profile-menu">
         <button id="profileBtn"
                 class="aparca-profile-btn"
                 type="button"
                 aria-label="Menú de perfil"
-                aria-haspopup="true"
                 aria-expanded="false"
+                aria-haspopup="true"
                 aria-controls="profileDropdown">
             <svg xmlns="http://www.w3.org/2000/svg" fill="none"
                  viewBox="0 0 24 24" stroke-width="1.5"
@@ -72,7 +175,7 @@
                       d="M15.75 6a3.75 3.75 0 11-7.5 0 3.75 3.75 0
                       017.5 0zM4.501 20.118a7.5 7.5 0 0114.998
                       0A17.933 17.933 0 0112 21.75c-2.676
-                      0-5.216-.584-7.499-1.632z" />
+                      0-5.216-.584-7.499-1.632z"/>
             </svg>
         </button>
 
@@ -81,140 +184,142 @@
               role="menu"
               aria-label="Opciones de perfil">
             <button type="button" role="menuitem" onclick="handleLogout()">
-                🚪 Cerrar sesión
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none"
+                     viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round"
+                          d="M15.75 9V5.25A2.25 2.25 0 0013.5 3h-6a2.25 2.25 0
+                          00-2.25 2.25v13.5A2.25 2.25 0 007.5 21h6a2.25 2.25 0
+                          002.25-2.25V15M12 9l-3 3m0 0l3 3m-3-3h12.75"/>
+                </svg>
+                Cerrar sesión
             </button>
         </menu>
     </div>
+
 </header>
 
 
-<!-- ÁREA PRINCIPAL -->
-<main class="aparca-dashboard-main trab-dashboard-main">
+<!-- ==================================================
+     ÁREA PRINCIPAL
+     ================================================== -->
+<main class="aparca-dashboard-main animate-fade-in-up" id="mainContent">
 
 
-    <!-- SECCIÓN INICIO -->
-    <section id="inicio" class="aparca-content-section trab-content-section">
-        <h2 class="section-title">🏠 Panel de Control</h2>
+    <!-- ── INICIO ── -->
+    <section id="inicio" class="aparca-content-section">
+        <h2>Panel de Control</h2>
 
-        <div class="indicator-cards">
+        <p class="text-sm text-gray-500 mb-5">
+            Sede: <span id="sedeNombre" class="font-semibold text-teal-700">Cargando...</span>
+        </p>
 
-            <div class="indicator-card" id="cardOcupacion">
-                <div class="indicator-title">Ocupación</div>
-                <div class="indicator-value" id="ocupacionActual">0/0</div>
-                <div class="indicator-subtitle" id="porcentajeOcupacion">0%</div>
-            </div>
+        <div class="trab-kpi-grid">
 
-            <div class="indicator-card">
-                <div class="indicator-title">Cupos Libres</div>
-                <div class="indicator-value" id="cuposLibres">0</div>
-            </div>
+            <article class="trab-kpi-card" id="cardOcupacion">
+                <div class="trab-kpi-label">Ocupación</div>
+                <div class="trab-kpi-value" id="ocupacionActual">0/0</div>
+                <div class="trab-kpi-sub" id="porcentajeOcupacion">0%</div>
+            </article>
 
-            <div class="indicator-card">
-                <div class="indicator-title">Vehículos Hoy</div>
-                <div class="indicator-value" id="vehiculosHoy">0</div>
-            </div>
+            <article class="trab-kpi-card">
+                <div class="trab-kpi-label">Cupos Libres</div>
+                <div class="trab-kpi-value trab-kpi-green" id="cuposLibres">0</div>
+            </article>
 
-            <div class="indicator-card">
-                <div class="indicator-title">Ingresos Día</div>
-                <div class="indicator-value" id="ingresosDia">$0</div>
-            </div>
+            <article class="trab-kpi-card">
+                <div class="trab-kpi-label">Vehículos Hoy</div>
+                <div class="trab-kpi-value" id="vehiculosHoy">0</div>
+            </article>
 
-            <div class="indicator-card">
-                <div class="indicator-title">Pend. Cobro</div>
-                <div class="indicator-value" id="pendientesCobro">0</div>
-            </div>
+            <article class="trab-kpi-card">
+                <div class="trab-kpi-label">Ingresos Día</div>
+                <div class="trab-kpi-value trab-kpi-green" id="ingresosDia">$0</div>
+            </article>
 
-            <div class="indicator-card">
-                <div class="indicator-title">Tarifas</div>
-                <div class="indicator-value"
-                     style="font-size: 0.7rem; line-height: 1.4;">
-                    <div id="tarifaDisplay">Cargando...</div>
-                </div>
-            </div>
+            <article class="trab-kpi-card trab-kpi-warn">
+                <div class="trab-kpi-label">Pend. Cobro</div>
+                <div class="trab-kpi-value" id="pendientesCobro">0</div>
+            </article>
+
+            <article class="trab-kpi-card trab-kpi-rates">
+                <div class="trab-kpi-label">Tarifas</div>
+                <div class="trab-kpi-rates-body" id="tarifaDisplay">Cargando...</div>
+            </article>
+
         </div>
     </section>
 
 
-    <!-- SECCIÓN GESTIÓN VEHÍCULOS -->
-    <section id="gestion" class="aparca-content-section trab-content-section hidden">
-        <h2 class="section-title">🚗 Gestión de Vehículos</h2>
+    <!-- ── GESTIÓN VEHÍCULOS ── -->
+    <section id="gestion" class="aparca-content-section hidden">
+        <h2>Gestión de Vehículos</h2>
 
+        <!-- Registrar entrada -->
         <div class="sub-section">
-            <h3 class="sub-section-title">➕ Registrar Entrada de Vehículo</h3>
+            <h3 class="sub-section-title">Registrar Entrada de Vehículo</h3>
 
-            <div style="margin-bottom: 1rem; display: flex; gap: 0.5rem;">
-                <input type="text"
-                       id="buscarPlaca"
+            <div class="flex gap-2 mb-4">
+                <input type="text" id="buscarPlaca"
                        placeholder="Buscar por placa..."
-                       style="padding: 0.5rem; border: 1px solid #cbd5e1;
-                              border-radius: 0.5rem; flex: 1;">
-                <button class="trab-btn-primary" type="button"
+                       class="flex-1 px-3 py-2 border border-gray-200 rounded-lg
+                              text-sm focus:outline-none focus:border-teal-400
+                              focus:ring-2 focus:ring-teal-100"/>
+                <button class="sede-btn-primary" type="button"
                         onclick="buscarPorPlacaIntegrado()">
-                    🔍 Buscar
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4"
+                         fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round"
+                              stroke-width="2"
+                              d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
+                    </svg>
+                    Buscar
                 </button>
             </div>
 
             <form id="registroEntradaForm" novalidate>
-                <input type="hidden" name="rol" value="CLIENTE">
+                <input type="hidden" id="contrasena"          name="contrasena"          value=""/>
+                <input type="hidden" id="confirmarContrasena" name="confirmarContrasena" value=""/>
+                <input type="hidden" name="rol" value="CLIENTE"/>
 
-                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
 
-                    <div class="trab-form-group">
+                    <div class="sede-form-group">
                         <label for="nombre">Nombre Cliente *</label>
                         <input type="text" id="nombre" name="nombre"
-                               required minlength="2" maxlength="100"
-                               autocomplete="name" placeholder="Ej: Juan Pérez">
-                        <span id="nombre-error" class="error-message" aria-live="polite"></span>
+                               required placeholder="Ej: Juan Pérez"/>
+                        <span id="nombre-error" class="error-message"></span>
                     </div>
 
-                    <div class="trab-form-group">
+                    <div class="sede-form-group">
                         <label for="telefono">Teléfono *</label>
                         <input type="tel" id="telefono" name="telefono"
-                               required pattern="[0-9]{10}"
-                               title="Ingresa un número de 10 dígitos"
-                               autocomplete="tel" placeholder="Ej: 3001234567">
-                        <span id="telefono-error" class="error-message" aria-live="polite"></span>
-                        <span id="telefono-success" class="success-message" aria-live="polite"></span>
+                               required placeholder="3001234567"/>
+                        <span id="telefono-error" class="error-message"></span>
                     </div>
 
-                    <div class="trab-form-group">
+                    <div class="sede-form-group">
                         <label for="correo">Email *</label>
                         <input type="email" id="correo" name="correo"
-                               required autocomplete="email"
-                               placeholder="ejemplo@correo.com">
-                        <span id="correo-error" class="error-message" aria-live="polite"></span>
-                        <span id="correo-success" class="success-message" aria-live="polite"></span>
+                               required placeholder="ejemplo@correo.com"/>
+                        <span id="correo-error" class="error-message"></span>
                     </div>
 
-                    <div class="trab-form-group">
+                    <div class="sede-form-group">
                         <label for="cedula">Cédula *</label>
                         <input type="text" id="cedula" name="cedula"
-                               required pattern="[0-9]{10}"
-                               title="Ingresa una cédula de 10 dígitos"
-                               autocomplete="off" placeholder="Ej: 1234567890">
-                        <span id="cedula-error" class="error-message" aria-live="polite"></span>
-                        <span id="cedula-success" class="success-message" aria-live="polite"></span>
+                               required placeholder="1234567890"/>
+                        <span id="cedula-error" class="error-message"></span>
                     </div>
 
-                    <input type="hidden" id="contrasena" name="contrasena" value="">
-                    <input type="hidden" id="confirmarContrasena"
-                           name="confirmarContrasena" value="">
-
-                    <div class="trab-form-group">
+                    <div class="sede-form-group">
                         <label for="placa">Placa *</label>
                         <input type="text" id="placa" name="placa"
-                               required maxlength="6"
-                               pattern="[A-Z]{3}[0-9]{3}"
-                               title="Formato: 3 letras mayúsculas + 3 números (ej: ABC123)"
-                               placeholder="ABC123"
-                               style="text-transform: uppercase;"
-                               oninput="this.value = this.value.toUpperCase()
-                                        .replace(/[^A-Z0-9]/g, '')
-                                        .substring(0, 6);">
-                        <span id="placa-error" class="error-message" aria-live="polite"></span>
+                               required maxlength="6" placeholder="ABC123"
+                               style="text-transform:uppercase"/>
+                        <span id="placa-error" class="error-message"></span>
                     </div>
 
-                    <div class="trab-form-group">
+                    <div class="sede-form-group">
                         <label for="tipoVehiculo">Tipo Vehículo *</label>
                         <select id="tipoVehiculo" name="tipoVehiculo" required>
                             <option value="">Selecciona un tipo</option>
@@ -223,272 +328,268 @@
                             <option value="BICICLETA">Bicicleta</option>
                             <option value="OTRO">Otro</option>
                         </select>
-                        <span id="tipoVehiculo-error" class="error-message" aria-live="polite"></span>
+                        <span id="tipoVehiculo-error" class="error-message"></span>
                     </div>
 
-                    <div class="trab-form-group">
+                    <div class="sede-form-group">
                         <label for="marca">Marca *</label>
                         <select id="marca" name="marca" required>
                             <option value="">Selecciona una marca</option>
                         </select>
-                        <span id="marca-error" class="error-message" aria-live="polite"></span>
+                        <span id="marca-error" class="error-message"></span>
                     </div>
 
-                    <div class="trab-form-group">
+                    <div class="sede-form-group">
                         <label for="color">Color</label>
-                        <input type="text" id="color" name="color"
-                               placeholder="Ej: Rojo">
+                        <input type="text" id="color" name="color" placeholder="Ej: Rojo"/>
                     </div>
 
-                    <div class="trab-form-group">
+                    <div class="sede-form-group">
                         <label for="anio">Año</label>
                         <input type="number" id="anio" name="anio"
-                               min="2000" max="2025" placeholder="Ej: 2020">
+                               min="2000" max="2025" placeholder="2020"/>
                     </div>
+
                 </div>
 
-                <div style="margin-top: 1rem; display: flex; gap: 0.5rem;">
-                    <button type="submit" class="trab-btn-success">
-                        ✅ Registrar Entrada
+                <div class="flex gap-2 mt-4">
+                    <button type="submit" class="sede-btn-success">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4"
+                             fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round"
+                                  stroke-width="2" d="M5 13l4 4L19 7"/>
+                        </svg>
+                        Registrar Entrada
                     </button>
-                    <button type="button" class="trab-btn-secondary"
+                    <button type="button" class="sede-btn-secondary"
                             onclick="limpiarFormularioEntrada()">
-                        🔄 Limpiar
+                        Limpiar
                     </button>
                 </div>
             </form>
         </div>
 
+        <!-- Vehículos activos -->
         <div class="sub-section">
-            <h3 class="sub-section-title">⏱️ Vehículos en Parqueadero (Temporizando)</h3>
-            <table class="aparca-table trab-table">
-                <thead>
-                <tr>
-                    <th>Placa</th><th>Tipo</th><th>Cliente</th>
-                    <th>Teléfono</th><th>Hora Entrada</th>
-                    <th>Tiempo</th><th>Cobro Est.</th><th>Acción</th>
-                </tr>
-                </thead>
-                <tbody id="vehiculosActivosBody">
-                <tr>
-                    <td colspan="8" class="loading">Cargando...</td>
-                </tr>
-                </tbody>
-            </table>
+            <h3 class="sub-section-title">⏱ Vehículos en Parqueadero</h3>
+            <div class="overflow-x-auto">
+                <table class="aparca-table">
+                    <thead>
+                    <tr>
+                        <th>Placa</th><th>Tipo</th><th>Cliente</th>
+                        <th>Teléfono</th><th>Hora Entrada</th>
+                        <th>Tiempo</th><th>Cobro Est.</th><th>Acción</th>
+                    </tr>
+                    </thead>
+                    <tbody id="vehiculosActivosBody">
+                    <tr><td colspan="8" class="loading">Cargando...</td></tr>
+                    </tbody>
+                </table>
+            </div>
         </div>
 
+        <!-- Pendientes de cobro -->
         <div class="sub-section">
             <h3 class="sub-section-title">💰 Pendientes de Cobro</h3>
-            <table class="aparca-table trab-table">
-                <thead>
-                <tr>
-                    <th>Placa</th><th>Cliente</th><th>Entrada</th>
-                    <th>Salida</th><th>Tiempo Total</th>
-                    <th>Total a Pagar</th><th>Acción</th>
-                </tr>
-                </thead>
-                <tbody id="pendientesCobroBody">
-                <tr>
-                    <td colspan="7" class="loading">No hay vehículos pendientes</td>
-                </tr>
-                </tbody>
-            </table>
+            <div class="overflow-x-auto">
+                <table class="aparca-table">
+                    <thead>
+                    <tr>
+                        <th>Placa</th><th>Cliente</th><th>Entrada</th>
+                        <th>Salida</th><th>Tiempo Total</th>
+                        <th>Total a Pagar</th><th>Acción</th>
+                    </tr>
+                    </thead>
+                    <tbody id="pendientesCobroBody">
+                    <tr><td colspan="7" class="loading">No hay vehículos pendientes</td></tr>
+                    </tbody>
+                </table>
+            </div>
         </div>
     </section>
 
 
-    <!-- SECCIÓN HISTORIAL -->
-    <section id="historial" class="aparca-content-section trab-content-section hidden">
-        <h2 class="section-title">📊 Historial de Registros</h2>
+    <!-- ── HISTORIAL ── -->
+    <section id="historial" class="aparca-content-section hidden">
+        <h2>Historial de Registros</h2>
 
         <div class="filter-bar">
-            <input type="date" id="filtroFecha" aria-label="Filtrar por fecha">
-            <select id="filtroEstado" aria-label="Filtrar por estado">
+            <input type="date" id="filtroFecha"/>
+            <select id="filtroEstado">
                 <option value="">Todos los estados</option>
                 <option value="ACTIVO">Activo</option>
                 <option value="FINALIZADO">Pendiente Cobro</option>
                 <option value="COBRADO">Cobrado</option>
             </select>
-            <button class="trab-btn-primary" onclick="loadHistorial()">
-                🔍 Filtrar
+            <button class="sede-btn-primary" type="button" onclick="loadHistorial()">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4"
+                     fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round"
+                          stroke-width="2"
+                          d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
+                </svg>
+                Filtrar
             </button>
         </div>
 
-        <table class="aparca-table trab-table">
-            <thead>
-            <tr>
-                <th>Placa</th><th>Tipo</th><th>Cliente</th><th>Teléfono</th>
-                <th>Entrada</th><th>Salida</th><th>Tiempo</th>
-                <th>Precio</th><th>Estado</th>
-            </tr>
-            </thead>
-            <tbody id="historialBody">
-            <tr>
-                <td colspan="9" class="loading">
-                    Seleccione filtros y presione Filtrar
-                </td>
-            </tr>
-            </tbody>
-        </table>
+        <div class="overflow-x-auto">
+            <table class="aparca-table">
+                <thead>
+                <tr>
+                    <th>Placa</th><th>Tipo</th><th>Cliente</th><th>Teléfono</th>
+                    <th>Entrada</th><th>Salida</th><th>Tiempo</th>
+                    <th>Precio</th><th>Estado</th>
+                </tr>
+                </thead>
+                <tbody id="historialBody">
+                <tr><td colspan="9" class="loading">Seleccione filtros y presione Filtrar</td></tr>
+                </tbody>
+            </table>
+        </div>
     </section>
 
 
-    <!-- SECCIÓN RESERVACIONES -->
-    <section id="reservaciones" class="aparca-content-section trab-content-section hidden">
-        <h2 class="section-title">📅 Reservaciones Pendientes</h2>
+    <!-- ── RESERVACIONES ── -->
+    <section id="reservaciones" class="aparca-content-section hidden">
+        <h2>Reservaciones Pendientes</h2>
 
-        <table class="aparca-table trab-table">
-            <thead>
-            <tr>
-                <th>Cliente</th><th>Teléfono</th><th>Placa</th><th>Tipo</th>
-                <th>Fecha Inicio</th><th>Fecha Fin</th><th>Cupo</th><th>Acciones</th>
-            </tr>
-            </thead>
-            <tbody id="reservacionesBody">
-            <tr>
-                <td colspan="8" class="loading">Cargando...</td>
-            </tr>
-            </tbody>
-        </table>
+        <div class="overflow-x-auto">
+            <table class="aparca-table">
+                <thead>
+                <tr>
+                    <th>Cliente</th><th>Teléfono</th><th>Placa</th><th>Tipo</th>
+                    <th>Fecha Inicio</th><th>Fecha Fin</th><th>Cupo</th><th>Acciones</th>
+                </tr>
+                </thead>
+                <tbody id="reservacionesBody">
+                <tr><td colspan="8" class="loading">Cargando...</td></tr>
+                </tbody>
+            </table>
+        </div>
     </section>
 
 
-    <!-- SECCIÓN CARGA MASIVA -->
-    <section id="cargamasiva" class="aparca-content-section trab-content-section hidden">
-        <h2 class="section-title">📤 Carga Masiva desde Excel</h2>
+    <!-- ── CARGA MASIVA ── -->
+    <section id="cargamasiva" class="aparca-content-section hidden">
+        <h2>Carga Masiva desde Excel</h2>
 
         <div class="sub-section">
-            <h3 class="sub-section-title">📥 Paso 1: Descargar Plantilla</h3>
-            <p style="margin-bottom: 1rem; color: #64748b; font-size: 0.9rem;">
-                Descarga la plantilla de Excel y completa los datos
-                según el tipo de registro que necesites.
+            <h3 class="sub-section-title">Paso 1 — Descargar Plantilla</h3>
+            <p class="text-sm text-gray-500 mb-4">
+                Descarga la plantilla y completa los datos según el tipo de registro.
             </p>
-
-            <div style="display: flex; gap: 1rem; flex-wrap: wrap; margin-bottom: 1rem;">
-                <button class="trab-btn-primary"
+            <div class="flex gap-3 flex-wrap mb-4">
+                <button class="sede-btn-primary" type="button"
                         onclick="descargarPlantillaCompleta()">
-                    📥 Plantilla Completa (Clientes + Vehículos)
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4"
+                         fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round"
+                              stroke-width="2"
+                              d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4
+                              4m0 0l-4-4m4 4V4"/>
+                    </svg>
+                    Plantilla Completa
                 </button>
-                <button class="trab-btn-info"
+                <button class="sede-btn-outline" type="button"
                         onclick="descargarPlantillaVehiculosSolo()">
-                    🚗 Solo Vehículos
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4"
+                         fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round"
+                              stroke-width="2"
+                              d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4
+                              4m0 0l-4-4m4 4V4"/>
+                    </svg>
+                    Solo Vehículos
                 </button>
             </div>
 
-            <div style="margin-top: 1rem; padding: 1rem; background: #f1f5f9;
-                        border-radius: 0.5rem; border-left: 4px solid #3b82f6;">
-                <strong style="color: #1e40af;">📋 Formato de la Plantilla:</strong>
-
-                <details style="margin-top: 0.5rem;" open>
-                    <summary style="cursor: pointer; font-weight: 600;
-                                    color: #059669; padding: 0.5rem 0;">
-                        🧑‍💼 Registrar Cliente
-                    </summary>
-                    <ul style="margin: 0.5rem 0 0 1.5rem;
-                               color: #475569; font-size: 0.9rem;">
+            <div class="trab-instrucciones">
+                <details open>
+                    <summary>Registrar Cliente</summary>
+                    <ul class="list-disc ml-5 mt-2 text-sm text-gray-600 space-y-1">
                         <li><strong>Tipo:</strong> "Cliente"</li>
-                        <li><strong>Nombre:</strong> Nombre completo</li>
+                        <li><strong>Nombre</strong> completo</li>
                         <li><strong>Teléfono:</strong> 10 dígitos</li>
-                        <li><strong>Email:</strong> correo@example.com</li>
+                        <li><strong>Email:</strong> correo@ejemplo.com</li>
                         <li><strong>Cédula:</strong> 10 dígitos</li>
                     </ul>
                 </details>
-
-                <details style="margin-top: 0.5rem;">
-                    <summary style="cursor: pointer; font-weight: 600;
-                                    color: #2563eb; padding: 0.5rem 0;">
-                        🚗 Registrar Vehículo
-                    </summary>
-                    <ul style="margin: 0.5rem 0 0 1.5rem;
-                               color: #475569; font-size: 0.9rem;">
-                        <li><strong>Tipo:</strong> "Vehiculo" o "Vehículo"</li>
-                        <li><strong>Placa:</strong> 3 letras + 3 números (ABC123)</li>
+                <details class="mt-2">
+                    <summary>Registrar Vehículo</summary>
+                    <ul class="list-disc ml-5 mt-2 text-sm text-gray-600 space-y-1">
+                        <li><strong>Tipo:</strong> "Vehiculo"</li>
+                        <li><strong>Placa:</strong> ABC123</li>
                         <li><strong>Tipo Vehículo:</strong> CARRO, MOTO, BICICLETA, OTRO</li>
-                        <li><strong>Marca:</strong> TOYOTA, CHEVROLET, MAZDA, etc.</li>
-                        <li><strong>Color:</strong> Color del vehículo</li>
-                        <li><strong>Año:</strong> 2000-2025</li>
                         <li><strong>Email Cliente:</strong> debe estar registrado primero</li>
                     </ul>
                 </details>
-
-                <div style="margin-top: 1rem; padding: 0.75rem; background: #fef3c7;
-                            border-radius: 0.5rem; border-left: 3px solid #f59e0b;">
-                    <strong style="color: #92400e;">⚠️ Orden importante:</strong>
-                    <p style="margin: 0.25rem 0 0; color: #78350f; font-size: 0.85rem;">
-                        1. Primero registra los Clientes<br>
-                        2. Luego registra los Vehículos
-                    </p>
+                <div class="trab-tip mt-3">
+                    <strong>Orden importante:</strong>
+                    1. Primero los Clientes → 2. Luego los Vehículos
                 </div>
             </div>
         </div>
 
         <div class="sub-section">
-            <h3 class="sub-section-title">📁 Paso 2: Subir Archivo Excel</h3>
-            <p style="margin-bottom: 1rem; color: #64748b; font-size: 0.9rem;">
+            <h3 class="sub-section-title">Paso 2 — Subir Archivo Excel</h3>
+            <p class="text-sm text-gray-500 mb-4">
                 Selecciona el archivo Excel con los datos completados.
             </p>
-
-            <div style="display: flex; gap: 1rem; align-items: center; flex-wrap: wrap;">
-                <div style="flex: 1; min-width: 250px;">
-                    <input type="file" id="excelFile"
-                           accept=".xlsx,.xls"
-                           aria-label="Seleccionar archivo Excel"
-                           style="width: 100%; padding: 0.75rem;
-                                  border: 2px dashed #cbd5e1;
-                                  border-radius: 0.5rem; cursor: pointer;"
-                           onchange="mostrarArchivoSeleccionado()">
+            <div class="flex gap-3 items-center flex-wrap">
+                <div class="flex-1 min-w-60">
+                    <input type="file" id="excelFile" accept=".xlsx,.xls"
+                           onchange="mostrarArchivoSeleccionado()"
+                           class="w-full px-3 py-2 border-2 border-dashed
+                                  border-gray-200 rounded-lg cursor-pointer
+                                  text-sm text-gray-500 hover:border-teal-300
+                                  transition-colors"/>
                 </div>
-                <button class="trab-btn-success"
+                <button class="sede-btn-success" type="button"
                         onclick="cargarExcel()"
-                        style="white-space: nowrap;">
-                    📤 Cargar Excel
+                        style="white-space:nowrap">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4"
+                         fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round"
+                              stroke-width="2"
+                              d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25
+                              2.25 0 0021 18.75V16.5m-13.5-9L12 3m0 0l4.5
+                              4.5M12 3v13.5"/>
+                    </svg>
+                    Cargar Excel
                 </button>
             </div>
-
-            <div id="archivoSeleccionado"
-                 style="margin-top: 0.5rem; font-size: 0.85rem; color: #64748b;">
-            </div>
+            <div id="archivoSeleccionado" class="mt-2 text-sm text-gray-500"></div>
         </div>
 
-        <div id="progressContainer" class="sub-section" style="display: none;">
-            <div style="background: #f1f5f9; border-radius: 0.5rem;
-                        padding: 0.5rem; margin-bottom: 0.5rem;">
+        <div id="progressContainer" class="sub-section" style="display:none">
+            <div class="bg-gray-100 rounded-lg p-1 mb-2">
                 <div id="progressBar"
-                     style="height: 1.5rem;
-                            background: linear-gradient(90deg, #3b82f6, #2563eb);
-                            border-radius: 0.25rem; width: 0%;
-                            transition: width 0.3s ease;
-                            display: flex; align-items: center;
-                            justify-content: center; color: white;
-                            font-size: 0.85rem; font-weight: 600;">
-                </div>
+                     style="height:1.5rem;
+                            background:linear-gradient(90deg,#14b8a6,#0f766e);
+                            border-radius:0.25rem;width:0%;
+                            transition:width 0.3s ease;
+                            display:flex;align-items:center;
+                            justify-content:center;
+                            color:white;font-size:0.85rem;font-weight:600;"></div>
             </div>
-            <p id="progressText"
-               style="text-align: center; color: #64748b; font-size: 0.9rem;"></p>
+            <p id="progressText" class="text-center text-gray-500 text-sm"></p>
         </div>
 
-        <div class="sub-section" id="resultadosCarga" style="display: none;">
-            <h3 class="sub-section-title">📋 Resultados de la Carga</h3>
-            <div id="resumenCarga" style="margin-bottom: 1.5rem;"></div>
-            <div id="erroresContainer" style="display: none; margin-bottom: 1.5rem;">
-                <div style="background: #fef2f2; border-left: 4px solid #ef4444;
-                            padding: 1rem; border-radius: 0.5rem;">
-                    <h4 style="color: #dc2626; margin: 0 0 0.5rem;">
-                        ⚠️ Errores Encontrados:
-                    </h4>
-                    <ul id="listaErrores"
-                        style="margin: 0; padding-left: 1.5rem;
-                               color: #7f1d1d; font-size: 0.9rem;"></ul>
+        <div class="sub-section" id="resultadosCarga" style="display:none">
+            <h3 class="sub-section-title">Resultados de la Carga</h3>
+            <div id="resumenCarga" class="mb-4"></div>
+            <div id="erroresContainer" style="display:none" class="mb-4">
+                <div class="bg-red-50 border-l-4 border-red-400 p-4 rounded-lg">
+                    <h4 class="text-red-600 font-semibold mb-2">Errores encontrados:</h4>
+                    <ul id="listaErrores" class="text-red-800 text-sm list-disc ml-5"></ul>
                 </div>
             </div>
-            <div style="overflow-x: auto;">
-                <table class="aparca-table trab-table">
+            <div class="overflow-x-auto">
+                <table class="aparca-table">
                     <thead>
                     <tr>
-                        <th>Tipo</th>
-                        <th>Detalle Principal</th>
-                        <th>Información Adicional</th>
-                        <th>Estado</th>
+                        <th>Tipo</th><th>Detalle Principal</th>
+                        <th>Información Adicional</th><th>Estado</th>
                     </tr>
                     </thead>
                     <tbody id="resultadosCargaBody"></tbody>
@@ -500,99 +601,182 @@
 </main>
 
 
-<!-- MODAL CONFIRMAR COBRO -->
-<div id="cobroModal" class="trab-modal" role="dialog" aria-modal="true"
-     aria-labelledby="cobroModalTitulo">
+<!-- ==================================================
+     MODAL SALIDA
+     ================================================== -->
+<div id="salidaModal"
+     style="display:none;position:fixed;inset:0;z-index:1000;
+            background:rgba(0,0,0,0.5);
+            align-items:center;justify-content:center;padding:1rem;"
+     role="dialog" aria-modal="true" aria-labelledby="salidaModalTitulo">
 
-    <div class="trab-modal-content">
-        <div class="trab-modal-header">
-            <h2 id="cobroModalTitulo">💰 Confirmar Cobro</h2>
-            <button class="trab-modal-close"
-                    onclick="cerrarModalCobro()"
-                    aria-label="Cerrar modal de cobro"
-                    type="button">
-                &times;
+    <div class="sede-modal-box" style="max-width:480px;width:100%;">
+
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:1.25rem;">
+            <h3 id="salidaModalTitulo" style="font-size:1.125rem;font-weight:700;color:#0f172a;margin:0;">
+                Registrar Salida
+            </h3>
+            <button type="button" onclick="cerrarModalSalida()"
+                    style="background:none;border:none;cursor:pointer;color:#64748b;padding:0.25rem;">
+                <svg xmlns="http://www.w3.org/2000/svg" style="width:1.25rem;height:1.25rem;"
+                     fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/>
+                </svg>
             </button>
         </div>
 
-        <div style="margin-bottom: 1rem;">
-            <p><strong>Cliente:</strong> <span id="cobroCliente"></span></p>
-            <p><strong>Placa:</strong> <span id="cobroPlaca"></span></p>
-            <p><strong>Tiempo Total:</strong> <span id="cobroTiempo"></span></p>
-            <p style="font-size: 1.5rem; color: #059669;
-                      font-weight: 700; margin-top: 1rem;">
-                Total: $<span id="cobroPrecio"></span> COP
-            </p>
+        <div style="background:#f0fdfa;border-radius:0.75rem;padding:1.25rem;margin-bottom:1.25rem;">
+            <div class="sede-modal-salida-row">
+                <strong>Placa:</strong>
+                <span id="salidaPlaca" style="font-weight:700;color:#0f766e;">—</span>
+            </div>
+            <div class="sede-modal-salida-row">
+                <strong>Cliente:</strong>
+                <span id="salidaCliente">—</span>
+            </div>
+            <div class="sede-modal-salida-row">
+                <strong>Hora Entrada:</strong>
+                <span id="salidaHoraEntrada">—</span>
+            </div>
+            <div class="sede-modal-salida-row">
+                <strong>Tiempo:</strong>
+                <span id="salidaTiempo" style="font-family:'Courier New',monospace;font-weight:700;color:#0f766e;">—</span>
+            </div>
+            <div id="salidaCobroEstimado"
+                 style="margin-top:0.75rem;padding-top:0.75rem;border-top:1px solid #ccfbf1;">
+            </div>
         </div>
 
-        <div class="trab-form-group">
-            <label for="metodoPago">Método de Pago</label>
-            <select id="metodoPago">
-                <option value="EFECTIVO">Efectivo</option>
-                <option value="TARJETA">Tarjeta</option>
-                <option value="TRANSFERENCIA">Transferencia</option>
-                <option value="NEQUI">Nequi</option>
-                <option value="DAVIPLATA">Daviplata</option>
+        <div class="sede-modal-action">
+            <button type="button" class="sede-btn-secondary" onclick="cerrarModalSalida()">
+                Cancelar
+            </button>
+            <button type="button" class="sede-btn-success" onclick="confirmarSalida()">
+                <svg xmlns="http://www.w3.org/2000/svg" style="width:1rem;height:1rem;"
+                     fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                    <path stroke-linecap="round" stroke-linejoin="round"
+                          d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0
+                             01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"/>
+                </svg>
+                Confirmar Salida
+            </button>
+        </div>
+
+    </div>
+</div>
+
+
+<!-- ==================================================
+     MODAL COBRO
+     ================================================== -->
+<div id="cobroModal"
+     style="display:none;position:fixed;inset:0;z-index:1000;
+            background:rgba(0,0,0,0.5);
+            align-items:center;justify-content:center;padding:1rem;"
+     role="dialog" aria-modal="true" aria-labelledby="cobroModalTitulo">
+
+    <div class="sede-modal-box" style="max-width:520px;width:100%;max-height:90vh;overflow-y:auto;">
+
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:1.25rem;">
+            <h3 id="cobroModalTitulo" style="font-size:1.125rem;font-weight:700;color:#0f172a;margin:0;">
+                💰 Procesar Cobro
+            </h3>
+            <button type="button" onclick="cerrarModalCobro()"
+                    style="background:none;border:none;cursor:pointer;color:#64748b;padding:0.25rem;">
+                <svg xmlns="http://www.w3.org/2000/svg" style="width:1.25rem;height:1.25rem;"
+                     fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/>
+                </svg>
+            </button>
+        </div>
+
+        <div style="background:#f0fdfa;border-radius:0.75rem;padding:1.25rem;margin-bottom:1rem;">
+            <div class="sede-modal-cobro-row">
+                <strong>Cliente:</strong>
+                <span id="cobroCliente">—</span>
+            </div>
+            <div class="sede-modal-cobro-row">
+                <strong>Placa:</strong>
+                <span id="cobroPlaca" style="font-weight:700;color:#0f766e;">—</span>
+            </div>
+            <div class="sede-modal-cobro-row">
+                <strong>Tiempo total:</strong>
+                <span id="cobroTiempo" style="font-family:'Courier New',monospace;font-weight:700;color:#0f766e;">—</span>
+            </div>
+            <div class="sede-modal-cobro-row"
+                 style="margin-top:0.5rem;padding-top:0.5rem;border-top:1px solid #ccfbf1;">
+                <strong>Total a cobrar:</strong>
+                <span style="font-size:1.25rem;font-weight:800;color:#059669;">
+                    $<span id="cobroPrecio">0</span>
+                </span>
+            </div>
+        </div>
+
+        <div id="tarifaSelectorContainer" style="margin-bottom:1rem;"></div>
+
+        <div class="sede-form-group" style="margin-bottom:1.25rem;">
+            <label for="metodoPago"
+                   style="font-size:0.85rem;font-weight:600;color:#374151;display:block;margin-bottom:0.4rem;">
+                Método de Pago
+            </label>
+            <select id="metodoPago"
+                    style="width:100%;padding:0.6rem 0.9rem;border:1px solid #d1d5db;
+                           border-radius:0.5rem;font-size:0.9rem;color:#374151;
+                           background:white;cursor:pointer;">
+                <option value="EFECTIVO">💵 Efectivo</option>
+                <option value="TARJETA">💳 Tarjeta</option>
+                <option value="TRANSFERENCIA">📱 Transferencia</option>
             </select>
         </div>
 
-        <div style="display: flex; gap: 1rem; margin-top: 1rem;">
-            <button class="trab-btn-success"
-                    onclick="procesarCobro()" style="flex: 1;">
-                ✅ Confirmar Cobro
+        <div class="sede-modal-action">
+            <button type="button" class="sede-btn-secondary" onclick="cerrarModalCobro()">
+                Cancelar
             </button>
-            <button class="trab-btn-danger"
-                    onclick="cerrarModalCobro()" style="flex: 1;">
-                ❌ Cancelar
+            <button type="button" class="sede-btn-primary" onclick="procesarCobro()">
+                Confirmar Cobro
             </button>
         </div>
+
     </div>
 </div>
 
 
-<!-- MODAL REGISTRAR SALIDA -->
-<div id="salidaModal" class="trab-modal" role="dialog" aria-modal="true"
-     aria-labelledby="salidaModalTitulo">
-
-    <div class="trab-modal-content">
-        <div class="trab-modal-header">
-            <h2 id="salidaModalTitulo">🚗 Registrar Salida</h2>
-            <button class="trab-modal-close"
-                    onclick="cerrarModalSalida()"
-                    aria-label="Cerrar modal de salida"
-                    type="button">
-                &times;
-            </button>
-        </div>
-
-        <div style="margin-bottom: 1rem;">
-            <p><strong>Placa:</strong> <span id="salidaPlaca"></span></p>
-            <p><strong>Cliente:</strong> <span id="salidaCliente"></span></p>
-            <p><strong>Hora Entrada:</strong> <span id="salidaHoraEntrada"></span></p>
-            <p><strong>Tiempo Transcurrido:</strong> <span id="salidaTiempo"></span></p>
-            <p style="font-size: 1.25rem; color: #0369a1;
-                      font-weight: 700; margin-top: 1rem;">
-                Cobro Estimado: $<span id="salidaCobroEstimado"></span> COP
-            </p>
-        </div>
-
-        <div style="display: flex; gap: 1rem; margin-top: 1rem;">
-            <button class="trab-btn-warning"
-                    onclick="confirmarSalida()" style="flex: 1;">
-                ✅ Confirmar Salida
-            </button>
-            <button class="trab-btn-danger"
-                    onclick="cerrarModalSalida()" style="flex: 1;">
-                ❌ Cancelar
-            </button>
-        </div>
-    </div>
-</div>
-
-
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 <script src="/js/TrabajadorD.js"></script>
-<!-- Activar cuando se use carga masiva: -->
-<!-- <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script> -->
+
+<script>
+    function toggleSidebar() {
+        var collapsed = document.body.classList.toggle('sidebar-collapsed');
+        var btn = document.getElementById('sidebarToggleBtn');
+        if (btn) {
+            btn.setAttribute('aria-label',
+                collapsed ? 'Expandir menú lateral' : 'Colapsar menú lateral');
+        }
+        try { localStorage.setItem('trab-sidebar-collapsed', collapsed ? '1' : '0'); } catch(e) {}
+    }
+
+    (function() {
+        try {
+            if (localStorage.getItem('trab-sidebar-collapsed') === '1') {
+                document.body.classList.add('sidebar-collapsed');
+                var btn = document.getElementById('sidebarToggleBtn');
+                if (btn) btn.setAttribute('aria-label', 'Expandir menú lateral');
+            }
+        } catch(e) {}
+    })();
+
+    document.addEventListener('DOMContentLoaded', function() {
+        var usernameEl = document.getElementById('sidebarUsername');
+        var avatarEl   = document.getElementById('sidebarAvatarInitial');
+        if (usernameEl && avatarEl) {
+            var nombre = usernameEl.textContent.trim();
+            if (nombre) avatarEl.textContent = nombre.charAt(0).toUpperCase();
+        }
+    });
+
+    window.toggleSidebar = toggleSidebar;
+</script>
 
 </body>
 </html>

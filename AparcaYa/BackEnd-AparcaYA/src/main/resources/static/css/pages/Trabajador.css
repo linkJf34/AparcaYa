@@ -1,472 +1,654 @@
 /* ============================================================
    TRABAJADOR.CSS
-   Ruta: static/css/pages/trabajador.css
+   Ruta: static/css/pages/Trabajador.css
 
-   PROPÓSITO: Estilos EXCLUSIVOS del Dashboard Trabajador.
+   Color de acento: teal/esmeralda — misma paleta que Sede.css.
+   El trabajador comparte la identidad visual del administrador
+   de sede, diferenciado solo por el subtítulo del sidebar.
 
-   Estructura base (sidebar, header, dashboard-main, dropdown,
-   modal overlay, tabla base) → aparca-components.css
-
-   Aquí solo van overrides y exclusivos del Trabajador:
-   1. Sidebar colores de acento
-   2. Sidebar-header centrado (distinto al Sede)
-   3. Logo-section h1 tamaño reducido
-   4. Content-section padding compacto
-   5. Tarjetas indicadoras del Panel de Control
-   6. Tabla con colores azules (distinto al Sede/Admin)
-   7. Botones trab-btn-*
-   8. Formularios trab-form-group
-   9. Badges trab-badge-*
-   10. Modal propio con animación slideUp
-   11. Utilidades: .tiempo-activo, .card-form, .filter-bar
+   Patrón idéntico a Sede.css:
+   - Variables propias
+   - Sidebar con gradiente teal
+   - page-header limpio (solo perfil)
+   - Componentes propios con prefijo trab-
    ============================================================ */
 
 
 /* ------------------------------------------------------------
-   1. SIDEBAR — Colores de acento del Trabajador
+   0. VARIABLES DEL TRABAJADOR
+      Mismas que Sede para coherencia visual.
    ------------------------------------------------------------ */
-.trab-sidebar {
-    background: #00BFFF;
-    color: white;
+:root {
+    --trab-gradient-start:  #0d9488;
+    --trab-gradient-mid:    #0f766e;
+    --trab-gradient-end:    #134e4a;
+    --trab-accent:          #14b8a6;
+    --trab-accent-light:    #ccfbf1;
+    --trab-accent-dark:     #0f766e;
+    --trab-surface:         #f0fdfa;
 }
 
-.trab-sidebar .aparca-sidebar-nav a {
-    color: white;
-    border-radius: 0 0.5rem 0.5rem 0;
-}
-
-.trab-sidebar .aparca-sidebar-nav a.active,
-.trab-sidebar .aparca-sidebar-nav a:hover {
-    background-color: rgba(255, 255, 255, 0.25);
-    border-left-color: white;
+body {
+    background-color: var(--trab-surface);
+    margin: 0;
+    font-family: system-ui, -apple-system, sans-serif;
 }
 
 
 /* ------------------------------------------------------------
-   2. SIDEBAR-HEADER — Centrado (distinto al Sede que usa columna
-   con display:flex; el trabajador usa text-align:center)
+   1. SIDEBAR — Gradiente teal, mismo patrón que Sede
    ------------------------------------------------------------ */
-.trab-sidebar-header {
-    text-align: center;
-    align-items: center;
-}
-
-.trab-sidebar-header svg {
-    width: 56px;
-    height: 56px;
+.aparca-sidebar {
+    background: linear-gradient(175deg,
+        var(--trab-gradient-start)  0%,
+        var(--trab-gradient-mid)   45%,
+        var(--trab-gradient-end)  100%);
     color: white;
-    margin: 0 auto;
-    display: block;
 }
 
-.trab-sidebar-header h1 {
-    font-size: 1.75rem;
-    letter-spacing: 3px;
-    margin-top: 0.5rem;
+.aparca-sidebar-logo-row h1  { color: white; }
+.aparca-sidebar-logo-row > svg { color: rgba(255,255,255,0.9); }
+
+.aparca-sidebar-nav a { color: rgba(255,255,255,0.72); }
+
+.aparca-sidebar-nav a:hover {
+    background-color: rgba(255,255,255,0.10);
+    color: white;
 }
 
-
-/* ------------------------------------------------------------
-   3. LOGO-SECTION — Tamaño de h1 reducido (1.5rem vs 1.75rem)
-   ------------------------------------------------------------ */
-.trab-logo-section h1 {
-    font-size: 1.5rem;
+.aparca-sidebar-nav a.active {
+    background-color: rgba(255,255,255,0.18);
+    color: white;
     font-weight: 700;
-    color: #0369a1;
+    box-shadow: inset 0 0 0 1px rgba(255,255,255,0.15);
 }
 
-.trab-logo-icon {
-    color: #00BFFF;
-    width: 40px;
-    height: 40px;
+.aparca-sidebar-nav a:hover svg,
+.aparca-sidebar-nav a.active svg { opacity: 1; }
+
+/* Toggle button */
+.aparca-sidebar-toggle {
+    background: rgba(0,0,0,0.15);
+    border-top: 1px solid rgba(255,255,255,0.08);
 }
+
+.aparca-sidebar-toggle:hover {
+    background: rgba(0,0,0,0.25);
+    color: white;
+}
+
+/* Footer usuario */
+.aparca-sidebar-user          { background: rgba(255,255,255,0.08); }
+.aparca-sidebar-user:hover    { background: rgba(255,255,255,0.14); }
 
 
 /* ------------------------------------------------------------
-   4. PERFIL — Color de hover del dropdown
+   2. PAGE HEADER
    ------------------------------------------------------------ */
-.aparca-profile-btn svg {
-    color: #00BFFF;
+.aparca-page-header {
+    background: white;
+    border-bottom: 1px solid #ccfbf1;
 }
+
+.aparca-profile-btn {
+    background-color: var(--trab-gradient-mid);
+    color: white;
+}
+
+.aparca-profile-btn:hover { opacity: 0.85; }
 
 .aparca-dropdown button:hover {
-    background-color: #e0f2fe;
-    color: #0284c7;
+    background-color: var(--trab-accent-light);
+    color: var(--trab-accent-dark);
 }
 
 
 /* ------------------------------------------------------------
-   5. ÁREA PRINCIPAL — Padding compacto del Trabajador
+   3. TABLAS
    ------------------------------------------------------------ */
-.trab-dashboard-main {
-    background: #f9fafb;
+.aparca-table th            { background-color: #f0fdfa; }
+.aparca-table tbody tr:hover { background-color: #f0fdfa; }
+
+
+/* ------------------------------------------------------------
+   4. ANIMACIÓN
+   ------------------------------------------------------------ */
+.animate-fade-in-up {
+    opacity: 0;
+    transform: translateY(20px);
+    animation: aparca-fadeInUp 0.8s ease forwards;
 }
 
 
 /* ------------------------------------------------------------
-   6. SECCIONES — Padding más compacto que el estándar
+   5. KPI CARDS — Panel de Control (Inicio)
+      Grid responsivo de 3 columnas en desktop.
+      El JS controla el color del cardOcupacion según %.
    ------------------------------------------------------------ */
-.trab-content-section {
-    padding: 1.5rem;
-    margin-bottom: 1.5rem;
-    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.06);
-}
-
-.section-title {
-    font-size: 1.25rem;
-    font-weight: 700;
-    color: #0369a1;
-    margin-bottom: 1rem;
-}
-
-
-/* ------------------------------------------------------------
-   7. SUBSECCIONES — Exclusivas del Trabajador
-   ------------------------------------------------------------ */
-.sub-section {
-    background: white;
-    padding: 1.5rem;
-    border-radius: 0.75rem;
-    margin-bottom: 1.5rem;
-    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
-}
-
-.sub-section-title {
-    font-size: 1rem;
-    font-weight: 700;
-    color: #334155;
-    margin-bottom: 1rem;
-    padding-bottom: 0.5rem;
-    border-bottom: 2px solid #00BFFF;
-}
-
-
-/* ------------------------------------------------------------
-   8. TARJETAS INDICADORAS — Panel de Control (exclusivas)
-   ------------------------------------------------------------ */
-.indicator-cards {
-    display: flex;
-    gap: 1rem;
-    flex-wrap: wrap;
+.trab-kpi-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 1.25rem;
     margin-bottom: 2rem;
 }
 
-.indicator-card {
-    background: #d0e8f2;
+@media (max-width: 900px) {
+    .trab-kpi-grid { grid-template-columns: repeat(2, 1fr); }
+}
+
+@media (max-width: 480px) {
+    .trab-kpi-grid { grid-template-columns: 1fr 1fr; }
+}
+
+.trab-kpi-card {
+    background: white;
     border-radius: 1rem;
-    box-shadow: 0 10px 30px rgba(0, 191, 255, 0.15);
-    width: 160px;
-    min-height: 100px;
+    padding: 1.25rem 1rem;
     display: flex;
     flex-direction: column;
     align-items: center;
     justify-content: center;
-    color: #075985;
-    padding: 1rem;
-}
-
-.indicator-title {
-    font-weight: 700;
-    font-size: 0.85rem;
-    margin-bottom: 0.5rem;
     text-align: center;
+    box-shadow: 0 1px 4px rgba(0,0,0,0.05), 0 4px 12px rgba(0,0,0,0.04);
+    border: 1px solid var(--trab-accent-light);
+    transition: box-shadow 0.25s, transform 0.25s;
+    min-height: 110px;
 }
 
-.indicator-value {
-    font-weight: 900;
-    font-size: 1.5rem;
+.trab-kpi-card:hover {
+    box-shadow: 0 4px 20px rgba(20,184,166,0.15);
+    transform: translateY(-3px);
 }
 
-.indicator-subtitle {
-    font-size: 0.7rem;
+/* Card de ocupación — el JS le agrega ocupacion-alta/media/libre */
+.trab-kpi-card.ocupacion-alta  { border-left: 4px solid #ef4444; }
+.trab-kpi-card.ocupacion-media { border-left: 4px solid #f59e0b; }
+.trab-kpi-card.ocupacion-libre { border-left: 4px solid var(--trab-accent); }
+
+/* Card pendientes de cobro — alerta naranja sutil */
+.trab-kpi-card.trab-kpi-warn {
+    border-left: 4px solid #f59e0b;
+}
+
+/* Card tarifas — más alta para mostrar la lista de tarifas */
+.trab-kpi-card.trab-kpi-rates {
+    align-items: flex-start;
+    text-align: left;
+    min-height: 120px;
+}
+
+.trab-kpi-label {
+    font-size: 0.72rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
     color: #64748b;
-    margin-top: 0.25rem;
+    margin-bottom: 0.4rem;
 }
 
-
-/* ------------------------------------------------------------
-   9. TABLA — Override colores azules (distinto al Sede/Admin verde)
-   ------------------------------------------------------------ */
-.trab-table th {
-    background-color: #bae6fd;
-    font-size: 0.85rem;
+.trab-kpi-value {
+    font-size: 1.75rem;
+    font-weight: 800;
+    color: var(--trab-gradient-mid);
+    line-height: 1.1;
+    letter-spacing: -0.01em;
 }
 
-.trab-table td {
-    font-size: 0.85rem;
-    padding: 0.6rem 0.8rem;
-}
+/* Valores en verde para ingresos y cupos libres */
+.trab-kpi-green { color: #059669; }
 
-.trab-table tbody tr:hover {
-    background-color: #f0f9ff;
-}
-
-
-/* ------------------------------------------------------------
-   10. BOTONES PROPIOS DEL TRABAJADOR
-   ------------------------------------------------------------ */
-.trab-btn-primary,
-.trab-btn-success,
-.trab-btn-danger,
-.trab-btn-warning,
-.trab-btn-info,
-.trab-btn-secondary {
-    border: none;
-    padding: 0.4rem 0.8rem;
-    border-radius: 0.4rem;
-    cursor: pointer;
+.trab-kpi-sub {
+    font-size: 0.75rem;
+    color: #64748b;
+    margin-top: 0.3rem;
     font-weight: 600;
-    font-size: 0.85rem;
-    color: white;
+}
+
+/* Cuerpo de tarifas — lista legible */
+.trab-kpi-rates-body {
+    font-size: 0.78rem;
+    line-height: 1.7;
+    color: #374151;
+    width: 100%;
+}
+
+
+/* ------------------------------------------------------------
+   6. SECCIONES
+   ------------------------------------------------------------ */
+.aparca-content-section {
+    background: white;
+    border-radius: 1rem;
+    padding: 2rem 2.5rem;
+    box-shadow: 0 1px 4px rgba(0,0,0,0.04),
+                0 8px 24px rgba(13,148,136,0.05);
+    margin-bottom: 1.5rem;
+    animation: aparca-fadeInUp 0.3s ease-out;
+}
+
+.aparca-content-section h2 {
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: var(--trab-gradient-mid);
+    margin-bottom: 1.5rem;
+    padding-bottom: 0.75rem;
+    border-bottom: 2px solid var(--trab-accent-light);
+}
+
+.sub-section {
+    background: #f8fffe;
+    padding: 1.5rem;
+    border-radius: 0.875rem;
+    margin-bottom: 1.5rem;
+    border: 1px solid #ccfbf1;
+    box-shadow: 0 1px 4px rgba(0,0,0,0.03);
+}
+
+.sub-section-title {
+    font-size: 0.95rem;
+    font-weight: 700;
+    color: var(--trab-gradient-mid);
+    margin-bottom: 1rem;
+    padding-bottom: 0.5rem;
+    border-bottom: 2px solid var(--trab-accent-light);
+}
+
+
+/* ------------------------------------------------------------
+   7. BOTONES — mismos que Sede para coherencia
+   ------------------------------------------------------------ */
+.sede-btn-primary {
     display: inline-flex;
     align-items: center;
-    gap: 0.4rem;
-    transition: background-color 0.2s;
+    gap: 0.5rem;
+    padding: 0.65rem 1.5rem;
+    background: var(--trab-gradient-mid);
+    color: white;
+    border: none;
+    border-radius: 0.625rem;
+    font-weight: 600;
+    font-size: 0.9rem;
+    cursor: pointer;
+    transition: background-color 0.2s, transform 0.15s, box-shadow 0.2s;
+    box-shadow: 0 2px 8px rgba(15,118,110,0.28);
 }
 
-.trab-btn-primary    { background-color: #00BFFF; }
-.trab-btn-primary:hover { background-color: #008dbf; }
+.sede-btn-primary:hover:not(:disabled) {
+    background: var(--trab-gradient-end);
+    box-shadow: 0 4px 14px rgba(15,118,110,0.38);
+    transform: translateY(-1px);
+}
 
-.trab-btn-success    { background-color: #10b981; }
-.trab-btn-success:hover { background-color: #059669; }
+.sede-btn-primary:disabled {
+    opacity: 0.58; cursor: not-allowed; transform: none; box-shadow: none;
+}
 
-.trab-btn-danger     { background-color: #ef4444; }
-.trab-btn-danger:hover { background-color: #dc2626; }
+.sede-btn-outline {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.5rem 1rem;
+    background: transparent;
+    color: var(--trab-gradient-mid);
+    border: 1.5px solid var(--trab-gradient-mid);
+    border-radius: 0.625rem;
+    font-weight: 600;
+    font-size: 0.875rem;
+    cursor: pointer;
+    transition: background-color 0.2s, color 0.2s, box-shadow 0.2s;
+}
 
-.trab-btn-warning    { background-color: #f59e0b; }
-.trab-btn-warning:hover { background-color: #d97706; }
+.sede-btn-outline:hover {
+    background: var(--trab-gradient-mid);
+    color: white;
+    box-shadow: 0 2px 8px rgba(15,118,110,0.25);
+}
 
-.trab-btn-info       { background-color: #3b82f6; }
-.trab-btn-info:hover { background-color: #2563eb; }
+.sede-btn-danger {
+    display: inline-flex; align-items: center; gap: 0.4rem;
+    padding: 0.5rem 1rem; background: #ef4444; color: white;
+    border: none; border-radius: 0.5rem; font-weight: 600;
+    font-size: 0.875rem; cursor: pointer;
+    transition: background-color 0.2s, transform 0.15s;
+}
+.sede-btn-danger:hover { background: #dc2626; transform: translateY(-1px); }
 
-.trab-btn-secondary  { background-color: #64748b; }
-.trab-btn-secondary:hover { background-color: #475569; }
+.sede-btn-success {
+    display: inline-flex; align-items: center; gap: 0.4rem;
+    padding: 0.5rem 1rem; background: #10b981; color: white;
+    border: none; border-radius: 0.5rem; font-weight: 600;
+    font-size: 0.875rem; cursor: pointer;
+    transition: background-color 0.2s, transform 0.15s;
+}
+.sede-btn-success:hover { background: #059669; transform: translateY(-1px); }
+
+.sede-btn-secondary {
+    display: inline-flex; align-items: center; gap: 0.4rem;
+    padding: 0.5rem 1rem; background: #64748b; color: white;
+    border: none; border-radius: 0.5rem; font-weight: 600;
+    font-size: 0.875rem; cursor: pointer;
+    transition: background-color 0.2s, transform 0.15s;
+}
+.sede-btn-secondary:hover { background: #475569; transform: translateY(-1px); }
+
+.sede-btn-info {
+    display: inline-flex; align-items: center; gap: 0.4rem;
+    padding: 0.5rem 1rem; background: #3b82f6; color: white;
+    border: none; border-radius: 0.5rem; font-weight: 600;
+    font-size: 0.875rem; cursor: pointer;
+    transition: background-color 0.2s, transform 0.15s;
+}
+.sede-btn-info:hover { background: #2563eb; transform: translateY(-1px); }
+
+/* Botones de acción generados por el JS en las tablas */
+.trab-btn-success {
+    display: inline-flex; align-items: center; gap: 0.35rem;
+    padding: 0.4rem 0.8rem; background: #10b981; color: white;
+    border: none; border-radius: 0.5rem; font-weight: 600;
+    font-size: 0.8rem; cursor: pointer;
+    transition: background-color 0.2s, transform 0.15s;
+    white-space: nowrap;
+}
+.trab-btn-success:hover { background: #059669; transform: translateY(-1px); }
+
+.trab-btn-warning {
+    display: inline-flex; align-items: center; gap: 0.35rem;
+    padding: 0.4rem 0.8rem; background: #f59e0b; color: white;
+    border: none; border-radius: 0.5rem; font-weight: 600;
+    font-size: 0.8rem; cursor: pointer;
+    transition: background-color 0.2s, transform 0.15s;
+    white-space: nowrap;
+}
+.trab-btn-warning:hover { background: #d97706; transform: translateY(-1px); }
+
+.trab-btn-danger {
+    display: inline-flex; align-items: center; gap: 0.35rem;
+    padding: 0.4rem 0.8rem; background: #ef4444; color: white;
+    border: none; border-radius: 0.5rem; font-weight: 600;
+    font-size: 0.8rem; cursor: pointer;
+    transition: background-color 0.2s, transform 0.15s;
+    white-space: nowrap;
+}
+.trab-btn-danger:hover { background: #dc2626; transform: translateY(-1px); }
 
 
 /* ------------------------------------------------------------
-   11. FORMULARIOS — Exclusivos del Trabajador
+   8. FORMULARIOS — mismo patrón que Sede
    ------------------------------------------------------------ */
-.trab-form-group {
-    margin-bottom: 1rem;
-}
+.sede-form-group { margin-bottom: 1rem; }
 
-.trab-form-group label {
+.sede-form-group label {
     display: block;
     font-weight: 600;
-    margin-bottom: 0.4rem;
-    color: #334155;
-    font-size: 0.9rem;
+    font-size: 0.85rem;
+    color: #374151;
+    margin-bottom: 0.35rem;
 }
 
-.trab-form-group input,
-.trab-form-group select {
+.sede-form-group input,
+.sede-form-group select {
     width: 100%;
-    padding: 0.6rem;
-    border: 1px solid #cbd5e1;
+    padding: 0.55rem 0.75rem;
+    border: 1px solid #d1d5db;
     border-radius: 0.5rem;
-    font-size: 0.9rem;
-    transition: border-color 0.2s, box-shadow 0.2s;
+    font-size: 0.875rem;
     background: white;
+    transition: border-color 0.2s, box-shadow 0.2s;
     box-sizing: border-box;
+    font-family: inherit;
 }
 
-.trab-form-group input:focus,
-.trab-form-group select:focus {
+.sede-form-group input:focus,
+.sede-form-group select:focus {
     outline: none;
-    border-color: #00BFFF;
-    box-shadow: 0 0 0 3px rgba(0, 191, 255, 0.2);
-}
-
-.error-message {
-    display: block;
-    color: #ef4444;
-    font-size: 0.78rem;
-    margin-top: 0.25rem;
-    min-height: 1rem;
-}
-
-.success-message {
-    display: block;
-    color: #10b981;
-    font-size: 0.78rem;
-    margin-top: 0.25rem;
-    min-height: 1rem;
+    border-color: var(--trab-accent);
+    box-shadow: 0 0 0 3px rgba(20,184,166,0.15);
 }
 
 
 /* ------------------------------------------------------------
-   12. BARRA DE FILTROS
+   9. VALIDACIÓN
+   ------------------------------------------------------------ */
+.error-message   { display: block; color: #ef4444; font-size: 0.75rem; margin-top: 0.2rem; min-height: 1rem; }
+.success-message { display: block; color: #10b981; font-size: 0.75rem; margin-top: 0.2rem; min-height: 1rem; }
+.border-red-500   { border-color: #ef4444 !important; box-shadow: 0 0 0 3px rgba(239,68,68,0.1); }
+.border-green-500 { border-color: #10b981 !important; box-shadow: 0 0 0 3px rgba(16,185,129,0.1); }
+
+
+/* ------------------------------------------------------------
+   10. HISTORIAL — barra de filtros
    ------------------------------------------------------------ */
 .filter-bar {
     display: flex;
-    gap: 1rem;
-    margin-bottom: 1rem;
+    gap: 0.875rem;
+    margin-bottom: 1.25rem;
     flex-wrap: wrap;
     align-items: center;
 }
 
 .filter-bar input,
 .filter-bar select {
-    padding: 0.5rem;
-    border: 1px solid #cbd5e1;
+    padding: 0.5rem 0.75rem;
+    border: 1px solid #d1d5db;
     border-radius: 0.5rem;
-    font-size: 0.85rem;
+    font-size: 0.875rem;
     background: white;
-    transition: border-color 0.2s;
+    transition: border-color 0.2s, box-shadow 0.2s;
+    font-family: inherit;
 }
 
 .filter-bar input:focus,
 .filter-bar select:focus {
     outline: none;
-    border-color: #00BFFF;
+    border-color: var(--trab-accent);
+    box-shadow: 0 0 0 3px rgba(20,184,166,0.12);
 }
 
 
 /* ------------------------------------------------------------
-   13. BADGES — Exclusivos del Trabajador
-   ------------------------------------------------------------ */
-.trab-badge {
-    padding: 0.2rem 0.6rem;
-    border-radius: 9999px;
-    font-size: 0.7rem;
-    font-weight: 600;
-    display: inline-block;
-}
-
-.trab-badge-success { background-color: #d1fae5; color: #065f46; }
-.trab-badge-warning { background-color: #fef3c7; color: #92400e; }
-.trab-badge-danger  { background-color: #fee2e2; color: #991b1b; }
-.trab-badge-info    { background-color: #dbeafe; color: #1e40af; }
-
-
-/* ------------------------------------------------------------
-   14. TIEMPO ACTIVO — Temporizador de vehículos
+   11. TEMPORIZADOR — tiempo activo en tabla
    ------------------------------------------------------------ */
 .tiempo-activo {
-    font-family: monospace;
-    font-size: 0.9rem;
+    font-family: 'Courier New', monospace;
+    font-size: 0.85rem;
     font-weight: 700;
-    color: #0369a1;
-    background: #e0f2fe;
-    padding: 0.2rem 0.4rem;
-    border-radius: 0.25rem;
+    color: var(--trab-gradient-mid);
+    background: var(--trab-accent-light);
+    padding: 0.2rem 0.5rem;
+    border-radius: 0.375rem;
+    letter-spacing: 0.02em;
 }
 
 
 /* ------------------------------------------------------------
-   15. TARJETA DE FORMULARIO — Para formularios standalone
+   12. BADGES — generados dinámicamente por el JS
    ------------------------------------------------------------ */
-.card-form {
-    background: white;
-    padding: 1.5rem;
-    border-radius: 1rem;
-    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
-    max-width: 600px;
+.trab-badge {
+    display: inline-block;
+    padding: 2px 10px;
+    border-radius: 20px;
+    font-size: 0.72rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+}
+
+.trab-badge-success { background: #d1fae5; color: #065f46; }
+.trab-badge-warning { background: #fef3c7; color: #92400e; }
+.trab-badge-danger  { background: #fee2e2; color: #991b1b; }
+.trab-badge-info    { background: #dbeafe; color: #1e40af; }
+
+
+/* ------------------------------------------------------------
+   13. INSTRUCCIONES DE CARGA MASIVA
+   ------------------------------------------------------------ */
+.trab-instrucciones {
+    margin-top: 1rem;
+    padding: 1rem 1.25rem;
+    background: var(--trab-accent-light);
+    border-radius: 0.75rem;
+    border-left: 4px solid var(--trab-accent);
+    font-size: 0.875rem;
+}
+
+.trab-instrucciones details { margin-bottom: 0.25rem; }
+
+.trab-instrucciones summary {
+    cursor: pointer;
+    font-weight: 600;
+    color: var(--trab-gradient-mid);
+    padding: 0.35rem 0;
+    list-style: none;
+    transition: color 0.15s;
+}
+
+.trab-instrucciones summary:hover { color: var(--trab-gradient-end); }
+
+.trab-tip {
+    padding: 0.6rem 0.9rem;
+    background: #fef9c3;
+    border-radius: 0.375rem;
+    border-left: 3px solid #f59e0b;
+    font-size: 0.82rem;
+    color: #78350f;
 }
 
 
 /* ------------------------------------------------------------
-   16. MODAL PROPIO — Cobro y Salida
-   Animación slideUp: diferente al .sede-modal que usa scale.
-   .aparca-modal-overlay en aparca-components.css es un overlay
-   simple sin animación; este tiene trab-fadeIn + trab-slideUp.
+   14. MODALES DEL TRABAJADOR
+       Los modales de salida y cobro son fragments Thymeleaf.
+       Usan el mismo patrón .sede-modal / .sede-modal-box
+       de Sede.css para que funcionen con el JS.
    ------------------------------------------------------------ */
-.trab-modal {
+.sede-modal {
     display: none;
     position: fixed;
-    z-index: 1000;
     inset: 0;
-    width: 100%;
-    height: 100%;
-    background-color: rgba(0, 0, 0, 0.5);
-    animation: trab-fadeIn 0.25s ease;
+    background: rgba(0,0,0,0.5);
+    z-index: 999;
+    opacity: 0;
+    transition: opacity 0.3s ease;
+    overflow-y: auto;
 }
 
-.trab-modal.show {
+.sede-modal.show {
+    display: flex !important;
+    align-items: center;
+    justify-content: center;
+    opacity: 1;
+}
+
+.sede-modal-box {
+    background: white;
+    border-radius: 1rem;
+    padding: 2rem;
+    max-width: 500px;
+    width: 90%;
+    box-shadow: 0 20px 40px rgba(0,0,0,0.2);
+    transform: scale(0.95);
+    transition: transform 0.3s ease;
+    position: relative;
+    z-index: 1000;
+    max-height: 90vh;
+    overflow-y: auto;
+}
+
+.sede-modal.show .sede-modal-box { transform: scale(1); }
+
+.sede-modal-box h3 {
+    font-size: 1.2rem;
+    font-weight: 700;
+    margin-bottom: 1.5rem;
+    color: var(--trab-gradient-mid);
+}
+
+.sede-modal-action {
+    display: flex;
+    justify-content: flex-end;
+    gap: 0.75rem;
+    margin-top: 1.5rem;
+}
+
+/* Filas de info dentro de los modales */
+.sede-modal-salida-row,
+.sede-modal-cobro-row {
+    display: flex;
+    justify-content: space-between;
+    padding: 0.4rem 0;
+    border-bottom: 1px solid #f1f5f9;
+    font-size: 0.9rem;
+}
+
+/* Opciones de tarifa en modal cobro */
+.sede-modal-cobro-selector {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+.sede-modal-cobro-opcion {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    padding: 0.75rem 1rem;
+    background: #f8fffe;
+    border: 1.5px solid var(--trab-accent-light);
+    border-radius: 0.625rem;
+    cursor: pointer;
+    transition: border-color 0.2s, background-color 0.2s;
+}
+
+.sede-modal-cobro-opcion:has(input:checked) {
+    border-color: var(--trab-accent);
+    background: var(--trab-accent-light);
+}
+
+/* Modal de confirmación personalizado (generado por el JS) */
+#confirm-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.5);
+    z-index: 9998;
     display: flex;
     align-items: center;
     justify-content: center;
 }
 
-.trab-modal-content {
-    background-color: #fefefe;
-    padding: 1.5rem;
-    width: 90%;
-    max-width: 500px;
+#confirm-overlay > div {
+    background: white;
     border-radius: 1rem;
-    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
-    animation: trab-slideUp 0.3s ease;
-    position: relative;
-}
-
-.trab-modal-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 1rem;
-    border-bottom: 1px solid #e2e8f0;
-    padding-bottom: 1rem;
-}
-
-.trab-modal-header h2 {
-    font-size: 1.25rem;
-    font-weight: 700;
-    color: #0369a1;
-    margin: 0;
-}
-
-.trab-modal-close {
-    color: #aaa;
-    font-size: 28px;
-    font-weight: bold;
-    cursor: pointer;
-    background: none;
-    border: none;
-    line-height: 1;
-    padding: 0;
-    transition: color 0.2s;
-}
-
-.trab-modal-close:hover {
-    color: #333;
+    padding: 2rem;
+    max-width: 420px;
+    width: 90%;
+    box-shadow: 0 20px 40px rgba(0,0,0,0.2);
 }
 
 
 /* ------------------------------------------------------------
-   17. ANIMACIONES — Exclusivas del módulo Trabajador
-   trab-fadeIn: solo opacidad (sin translateY, distinto a aparca-fadeInUp)
-   trab-slideUp: usado por el modal-content
+   15. TOAST DE NOTIFICACIONES
+       El JS inyecta .toast-notification con estilos inline.
+       Solo necesitamos la animación aquí.
    ------------------------------------------------------------ */
-@keyframes trab-fadeIn {
-    from { opacity: 0; }
-    to   { opacity: 1; }
-}
-
-@keyframes trab-slideUp {
-    from { transform: translateY(30px); opacity: 0; }
-    to   { transform: translateY(0);    opacity: 1; }
+@keyframes trabSlideIn {
+    from { transform: translateX(400px); opacity: 0; }
+    to   { transform: translateX(0);     opacity: 1; }
 }
 
 
 /* ------------------------------------------------------------
-   18. RESPONSIVE
+   16. RESPONSIVE
    ------------------------------------------------------------ */
 @media (max-width: 768px) {
+    .aparca-dashboard-main  { padding: 1.25rem; }
+    .aparca-content-section { padding: 1.25rem 1rem; }
+    .trab-kpi-grid          { grid-template-columns: repeat(2, 1fr); }
+}
 
-    .aparca-sidebar {
-        transform: translateX(-100%);
-    }
-
-    .aparca-page-header {
-        left: 0 !important;
-    }
-
-    .trab-dashboard-main {
-        margin-left: 0 !important;
-        padding: 1rem;
-    }
-
-    .indicator-cards {
-        justify-content: center;
-    }
+@media (max-width: 480px) {
+    .aparca-dashboard-main  { padding: 0.875rem 0.75rem; }
+    .aparca-content-section h2 { font-size: 1.2rem; }
+    .trab-kpi-grid          { grid-template-columns: 1fr 1fr; }
+    .sede-modal-box         { padding: 1.25rem; }
+    .filter-bar             { flex-direction: column; align-items: stretch; }
 }
