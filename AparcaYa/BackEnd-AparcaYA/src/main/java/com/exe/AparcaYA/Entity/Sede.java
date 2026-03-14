@@ -68,14 +68,41 @@ public class Sede {
     @Column(nullable = false)
     private LocalDateTime fechaCreacion;
 
-    // ✅ NUEVO: coordenadas geocodificadas — nullable para sedes existentes.
-    // Se resuelven en el backend al crear o actualizar la dirección.
-    // El frontend lee estos valores directamente; no necesita llamar a Nominatim.
+    // ── Coordenadas geocodificadas (existentes) ──────────────────────────────
     @Column
     private Double latitud;
 
     @Column
     private Double longitud;
+
+    // ── NUEVOS CAMPOS — módulo configuración de sede ─────────────────────────
+    // Todos nullable para compatibilidad con sedes existentes (sin migración forzada)
+
+    /** Ruta relativa de la imagen: "sedes/12/imagen.jpg" */
+    @Column(name = "imagen_sede")
+    private String imagenSede;
+
+    /** Teléfono de contacto de la sede (distinto al del admin-usuario) */
+    @Column(name = "telefono_sede")
+    private String telefonoSede;
+
+    /** Correo de contacto público de la sede */
+    @Column(name = "correo_sede")
+    private String correoSede;
+
+    /** Cupos disponibles para carros (permite controlar disponibilidad por tipo) */
+    @Column(name = "cupos_carro")
+    private Integer cuposCarro;
+
+    /** Cupos disponibles para motos */
+    @Column(name = "cupos_moto")
+    private Integer cuposMoto;
+
+    /** Cupos disponibles para bicicletas */
+    @Column(name = "cupos_bicicleta")
+    private Integer cuposBicicleta;
+
+    // ── Relaciones (sin cambios) ─────────────────────────────────────────────
 
     @OneToMany(mappedBy = "sede", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     @JsonIgnore

@@ -504,4 +504,7 @@ public class UsuarioController {
 
     @GetMapping("/dashboard/cliente")
     public String dashboardCliente() { return "DashboardCliente"; }
+
+    @GetMapping("/configuracion/sede")
+    public String configuracionSede() { return "ConfiguracionSede"; }
 }

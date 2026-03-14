@@ -1380,6 +1380,160 @@ async function enviarCorreoMasivo() {
     finally { if (btn) { btn.disabled = false; btn.textContent = 'Enviar Masivamente'; } }
 }
 
+// ============================================
+// MÓDULO FILTRO DESTINATARIOS — DASHBOARD SEDE
+// Solo clientes y trabajadores de la sede propia.
+// Otras sedes y admins del sistema NO aparecen.
+// ============================================
+
+let _sedeDestinatariosCache = [];
+
+async function sedeCargarDestinatarios() {
+    const rol      = document.getElementById('sedeFiltroRol')?.value;
+    const estadoEl = document.getElementById('sedeEstadoFiltro');
+    const listaEl  = document.getElementById('sedeListaDestinatarios');
+    const tablaEl  = document.getElementById('sedeTablaDestinatarios');
+    const contEl   = document.getElementById('sedeContadorLista');
+    const btnEl    = document.getElementById('btnSedeCargar');
+
+    if (!rol) {
+        showNotification('Selecciona un grupo primero', 'warning');
+        return;
+    }
+
+    // Estado visual de carga
+    if (estadoEl) estadoEl.textContent = 'Consultando base de datos...';
+    if (listaEl)  listaEl.style.display = 'none';
+    if (btnEl)    { btnEl.disabled = true; btnEl.textContent = 'Cargando...'; }
+
+    const endpoints = {
+        clientes:     `${API_BASE_URL}/correos/clientes`,
+        trabajadores: `${API_BASE_URL}/correos/trabajadores`
+    };
+
+    try {
+        const response = await fetch(endpoints[rol]);
+        if (!response.ok) throw new Error(`Error ${response.status}`);
+        const datos = await response.json();
+        _sedeDestinatariosCache = datos;
+
+        if (datos.length === 0) {
+            if (estadoEl) estadoEl.textContent =
+                rol === 'trabajadores'
+                    ? 'No hay trabajadores asignados a tu sede.'
+                    : 'No se encontraron clientes registrados.';
+            if (listaEl) listaEl.style.display = 'none';
+            return;
+        }
+
+        // Renderizar filas con checkbox
+        if (tablaEl) {
+            tablaEl.innerHTML = datos.map(d => `
+                <label style="display:flex; align-items:center; gap:0.75rem;
+                               padding:0.6rem 0.75rem; cursor:pointer;
+                               border-bottom:1px solid #f1f5f9;
+                               transition:background 0.15s;"
+                       onmouseover="this.style.background='#f0fdf9'"
+                       onmouseout="this.style.background='transparent'">
+                    <input type="checkbox"
+                           class="sede-dest-check"
+                           data-correo="${d.correo}"
+                           style="width:16px;height:16px;cursor:pointer;accent-color:#0d9488;"
+                           checked/>
+                    <div style="flex:1; min-width:0;">
+                        <div style="font-weight:600; font-size:0.875rem; color:#1e293b;
+                                    white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">
+                            ${d.nombre || '(sin nombre)'}
+                        </div>
+                        <div style="font-size:0.8rem; color:#64748b;
+                                    white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">
+                            ${d.correo}
+                        </div>
+                    </div>
+                    <span style="font-size:0.72rem; background:#ccfbf1; color:#0f766e;
+                                 border-radius:9999px; padding:0.15rem 0.5rem; white-space:nowrap;">
+                        ${d.rol === 'OPERARIO' ? 'Operario' : 'Cliente'}
+                    </span>
+                </label>
+            `).join('');
+        }
+
+        if (contEl)   contEl.textContent = `${datos.length} usuario(s) encontrado(s)`;
+        if (estadoEl) estadoEl.textContent = '';
+        if (listaEl)  listaEl.style.display = 'block';
+
+    } catch (e) {
+        console.error('sedeCargarDestinatarios:', e);
+        if (estadoEl) estadoEl.textContent = 'Error al consultar. Intenta de nuevo.';
+        showNotification('Error al consultar destinatarios', 'error');
+    } finally {
+        if (btnEl) { btnEl.disabled = false; btnEl.textContent = 'Consultar'; }
+    }
+}
+
+function sedeSeleccionarTodos(estado) {
+    document.querySelectorAll('.sede-dest-check')
+        .forEach(cb => { cb.checked = estado; });
+}
+
+function sedeAgregarSeleccionados() {
+    const seleccionados = [...document.querySelectorAll('.sede-dest-check:checked')]
+        .map(cb => cb.dataset.correo)
+        .filter(Boolean);
+
+    if (seleccionados.length === 0) {
+        showNotification('No hay destinatarios seleccionados', 'warning');
+        return;
+    }
+
+    const textarea = document.getElementById('emailsMassive');
+    if (!textarea) return;
+
+    // Fusiona sin duplicar con lo que ya existe en el textarea
+    const existentes = textarea.value
+        .split(',')
+        .map(e => e.trim())
+        .filter(Boolean);
+
+    const nuevos = seleccionados.filter(e => !existentes.includes(e));
+    const todos  = [...existentes, ...nuevos].filter(Boolean);
+
+    textarea.value = todos.join(', ');
+    _sedeActualizarBadge();
+
+    showNotification(`${nuevos.length} correo(s) agregado(s) al envío`, 'success');
+
+    // Colapsa el panel de selección tras agregar
+    const lista = document.getElementById('sedeListaDestinatarios');
+    if (lista) lista.style.display = 'none';
+    const estadoEl = document.getElementById('sedeEstadoFiltro');
+    if (estadoEl) estadoEl.textContent =
+        `✓ ${seleccionados.length} destinatario(s) cargados desde BD.`;
+}
+
+function _sedeActualizarBadge() {
+    const textarea = document.getElementById('emailsMassive');
+    const badge    = document.getElementById('sedeBadgeConteo');
+    if (!textarea || !badge) return;
+
+    const count = textarea.value
+        .split(',')
+        .map(e => e.trim())
+        .filter(e => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(e))
+        .length;
+
+    badge.textContent   = count;
+    badge.style.display = count > 0 ? 'inline' : 'none';
+}
+
+// Badge en tiempo real mientras escribe manualmente
+document.addEventListener('DOMContentLoaded', () => {
+    const textarea = document.getElementById('emailsMassive');
+    if (textarea) textarea.addEventListener('input', _sedeActualizarBadge);
+});
+
+
+
 // ==================== UI HELPERS ====================
 function setupSidebarToggle() {
     // no-op: el toggle vive en DashboardSede.html (inline script + onclick)
@@ -1406,7 +1560,9 @@ function cerrarSesion() {
     Object.values(timerIntervals).forEach(function(id) { clearInterval(id); });
     window.location.href = '/logout';
 }
-function irConfiguracion() { showNotification('Sección de configuración próximamente', 'info'); }
+
+function irConfiguracion() { window.location.href = '/configuracion/sede'; }
+
 function irAyuda()         { showNotification('Sección de ayuda próximamente', 'info'); }
 
 // ==================== ESCAPE Y CLIC FUERA ====================
@@ -1459,5 +1615,10 @@ if (typeof window.toggleSidebar === 'undefined') {
         try { localStorage.setItem('sede-sidebar-collapsed', collapsed ? '1' : '0'); } catch (e) {}
     };
 }
+
+// Exponer como globales para los onclick del HTML
+window.sedeCargarDestinatarios  = sedeCargarDestinatarios;
+window.sedeSeleccionarTodos     = sedeSeleccionarTodos;
+window.sedeAgregarSeleccionados = sedeAgregarSeleccionados;
 
 console.log('SedeD.js v2 — cargado correctamente');

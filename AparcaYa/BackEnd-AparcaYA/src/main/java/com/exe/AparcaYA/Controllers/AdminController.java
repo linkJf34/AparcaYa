@@ -3,6 +3,7 @@ package com.exe.AparcaYA.Controllers;
 import com.exe.AparcaYA.Dto.UsuarioDTO;
 import com.exe.AparcaYA.Entity.Sede;
 import com.exe.AparcaYA.Entity.Usuario;
+import com.exe.AparcaYA.Enum.Rolenum;
 import com.exe.AparcaYA.Service.*;
 import com.exe.AparcaYA.Dto.SedeDTO;
 import jakarta.mail.MessagingException;
@@ -49,6 +50,9 @@ public class AdminController {
 
     @Autowired
     private GeocodificacionService geocodificacionService;
+
+    @Autowired
+    private LogAccesoService logAccesoService;
     // =====================================================================
     // VISTA PRINCIPAL DEL DASHBOARD
     //
@@ -339,10 +343,46 @@ public class AdminController {
             indicadores.put("totalSedes",         totalSedes);
             indicadores.put("sedesActivas",       sedesActivas);
             indicadores.put("porcentajeSedes",    Math.round(porcentajeSedes));
-            indicadores.put("ingresosTotales",    0);
-            indicadores.put("porcentajeIngresos", 0);
+            Map<String, Long> ingresosPorRol = usuarioService.findAll()
+                    .stream()
+                    .collect(Collectors.groupingBy(
+                            u -> u.getRol().name(),
+                            Collectors.counting()
+                    ));
+            indicadores.put("ingresosPorRol", ingresosPorRol);
 
             return ResponseEntity.ok(indicadores);
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+        }
+    }
+
+    @GetMapping("/api/indicadores/ingresos-por-rol")
+    @ResponseBody
+    public ResponseEntity<Map<String, Object>> getIngresosPorRol() {
+        try {
+            List<Usuario> usuarios = usuarioService.findAll();
+
+            // Contar por rol usando el enum real
+            Map<String, Long> conteo = usuarios.stream()
+                    .collect(Collectors.groupingBy(
+                            u -> u.getRol().name(),
+                            Collectors.counting()
+                    ));
+
+            // Garantizar que todos los roles aparezcan aunque tengan 0
+            Map<String, Long> resultado = new LinkedHashMap<>();
+            for (Rolenum rol : Rolenum.values()) {
+                resultado.put(rol.name(), conteo.getOrDefault(rol.name(), 0L));
+            }
+
+            long totalUsuarios = usuarios.size();
+
+            return ResponseEntity.ok(Map.of(
+                    "porRol",   resultado,
+                    "total",    totalUsuarios,
+                    "etiqueta", "Usuarios registrados por rol"
+            ));
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
         }
@@ -372,21 +412,50 @@ public class AdminController {
         }
     }
 
-    @GetMapping("/api/grafica/ingresos")
+    @GetMapping("/api/grafica/accesos")
     @ResponseBody
-    public ResponseEntity<Map<String, Object>> getGraficaIngresos() {
-        // Datos en 0 hasta integrar RegistroEntradaSalida real.
-        // El endpoint está activo para no romper el JS — cuando haya datos reales
-        // solo hay que reemplazar este método sin tocar el frontend.
-        List<String> labels = List.of("Ene","Feb","Mar","Abr","May","Jun",
-                "Jul","Ago","Sep","Oct","Nov","Dic");
-        List<Integer> data  = List.of(0,0,0,0,0,0,0,0,0,0,0,0);
+    public ResponseEntity<Map<String, Object>> getGraficaAccesos() {
+        try {
+            List<String> labels    = List.of("Ene","Feb","Mar","Abr","May","Jun",
+                    "Jul","Ago","Sep","Oct","Nov","Dic");
+            long mesActual         = logAccesoService.contarAccesosMesActual();
+            long mesAnterior       = logAccesoService.contarAccesosMesAnterior();
+            long acumuladoAnio     = logAccesoService.contarAccesosAnioActual();
 
-        return ResponseEntity.ok(Map.of(
-                "labels",     labels,
-                "data",       data,
-                "advertencia","Datos pendientes — requiere integración con RegistroEntradaSalida"
-        ));
+            // Desglose por rol — nuevo
+            Map<String, List<Long>> porRol = logAccesoService.serieMensualPorRol();
+
+            // Serie total (suma de todos los roles por mes) — para compatibilidad
+            List<Long> dataTotal = new ArrayList<>();
+            for (int i = 0; i < 12; i++) {
+                int mes = i;
+                long suma = porRol.values().stream()
+                        .mapToLong(serie -> serie.get(mes))
+                        .sum();
+                dataTotal.add(suma);
+            }
+
+            long variacion = 0;
+            if (mesAnterior > 0) {
+                variacion = Math.round(
+                        ((double)(mesActual - mesAnterior) / mesAnterior) * 100
+                );
+            }
+
+            Map<String, Object> respuesta = new LinkedHashMap<>();
+            respuesta.put("labels",        labels);
+            respuesta.put("data",          dataTotal);   // serie total (retrocompatible)
+            respuesta.put("porRol",        porRol);       // NUEVO — desglose por rol
+            respuesta.put("mesActual",     mesActual);
+            respuesta.put("mesAnterior",   mesAnterior);
+            respuesta.put("acumuladoAnio", acumuladoAnio);
+            respuesta.put("variacion",     variacion);
+
+            return ResponseEntity.ok(respuesta);
+
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+        }
     }
 
     @GetMapping("/api/estadisticas/generales")
@@ -527,6 +596,67 @@ public class AdminController {
             response.put("status",  "error");
             response.put("message", "No fue posible enviar la notificación: " + e.getMessage());
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(response);
+        }
+    }
+
+    // =====================================================================
+// APIS PARA FILTRO DE DESTINATARIOS — MÓDULO CORREOS ADMIN
+// =====================================================================
+
+    @GetMapping("/api/correos/clientes")
+    @ResponseBody
+    public ResponseEntity<List<Map<String, String>>> getCorreosClientes() {
+        try {
+            List<Map<String, String>> resultado = usuarioService.findAll()
+                    .stream()
+                    .filter(u -> u.getRol() == Rolenum.CLIENTE)
+                    .map(u -> Map.of(
+                            "nombre", u.getNombre() != null ? u.getNombre() : "",
+                            "correo", u.getCorreo() != null ? u.getCorreo() : "",
+                            "rol",    "CLIENTE"
+                    ))
+                    .collect(Collectors.toList());
+            return ResponseEntity.ok(resultado);
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+        }
+    }
+
+    @GetMapping("/api/correos/sedes")
+    @ResponseBody
+    public ResponseEntity<List<Map<String, String>>> getCorreosSedes() {
+        try {
+            List<Map<String, String>> resultado = usuarioService.findAll()
+                    .stream()
+                    .filter(u -> u.getRol() == Rolenum.ADMINISTRADOR_SEDE)
+                    .map(u -> Map.of(
+                            "nombre", u.getNombre() != null ? u.getNombre() : "",
+                            "correo", u.getCorreo() != null ? u.getCorreo() : "",
+                            "rol",    "ADMINISTRADOR_SEDE"
+                    ))
+                    .collect(Collectors.toList());
+            return ResponseEntity.ok(resultado);
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+        }
+    }
+
+    @GetMapping("/api/correos/trabajadores")
+    @ResponseBody
+    public ResponseEntity<List<Map<String, String>>> getCorreosTrabajadores() {
+        try {
+            List<Map<String, String>> resultado = usuarioService.findAll()
+                    .stream()
+                    .filter(u -> u.getRol() == Rolenum.OPERARIO)
+                    .map(u -> Map.of(
+                            "nombre", u.getNombre() != null ? u.getNombre() : "",
+                            "correo", u.getCorreo() != null ? u.getCorreo() : "",
+                            "rol",    "OPERARIO"
+                    ))
+                    .collect(Collectors.toList());
+            return ResponseEntity.ok(resultado);
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
         }
     }
 }

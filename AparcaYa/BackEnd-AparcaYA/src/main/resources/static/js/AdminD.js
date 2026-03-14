@@ -188,15 +188,76 @@ navLinks.forEach(link => {
 // ============================================
 async function cargarIndicadores() {
     try {
-        const response = await fetch(`${API_BASE_URL}/indicadores`);
-        if (!response.ok) throw new Error('Error cargando indicadores');
-        const data = await response.json();
+        const [indResp, rolesResp] = await Promise.all([
+            fetch(`${API_BASE_URL}/indicadores`),
+            fetch(`${API_BASE_URL}/indicadores/ingresos-por-rol`)
+        ]);
+
+        if (!indResp.ok || !rolesResp.ok) throw new Error('Error cargando indicadores');
+
+        const data  = await indResp.json();
+        const roles = await rolesResp.json();
+
+        // Donuts (los dos primeros se mantienen igual)
         actualizarIndicador(0, data.totalUsuarios, data.porcentajeUsuarios);
-        actualizarIndicador(1, data.totalSedes, data.porcentajeSedes);
-        actualizarIndicador(2, `${(data.ingresosTotales / 1000).toFixed(0)}K`, data.porcentajeIngresos);
+        actualizarIndicador(1, data.totalSedes,    data.porcentajeSedes);
+
+        // KPIs de gráficas (antes quedaban en "—")
+        const kpiTotal   = document.getElementById('kpiUsuariosTotal');
+        const kpiActivos = document.getElementById('kpiUsuariosActivos');
+        const kpiSTotal  = document.getElementById('kpiSedesTotal');
+        if (kpiTotal)   kpiTotal.textContent   = data.totalUsuarios;
+        if (kpiActivos) kpiActivos.textContent  = data.usuariosActivos;
+        if (kpiSTotal)  kpiSTotal.textContent   = data.totalSedes;
+
+        // Nuevo widget de roles
+        renderIngresosPorRol(roles.porRol);
+
     } catch (error) {
         console.error('Error cargando indicadores:', error);
     }
+}
+// Mapa de etiquetas legibles para los roles del enum
+const ROL_LABELS = {
+    ADMIN:              'Admin',
+    ADMINISTRADOR_SEDE: 'Admin Sede',
+    OPERARIO:           'Operario',
+    CLIENTE:            'Cliente'
+};
+
+// Colores por rol (consistentes con las gráficas de barras)
+const ROL_COLORS = {
+    ADMIN:              '#6366f1',
+    ADMINISTRADOR_SEDE: '#f59e0b',
+    OPERARIO:           '#10b981',
+    CLIENTE:            '#3b82f6'
+};
+
+function renderIngresosPorRol(porRol) {
+    const container = document.getElementById('ingresosPorRolContainer');
+    if (!container || !porRol) return;
+
+    const total = Object.values(porRol).reduce((a, b) => a + b, 0);
+    if (total === 0) {
+        container.innerHTML = '<p class="admin-roles-empty">Sin usuarios registrados</p>';
+        return;
+    }
+
+    container.innerHTML = Object.entries(porRol).map(([rol, cantidad]) => {
+        const pct   = total > 0 ? Math.round((cantidad / total) * 100) : 0;
+        const color = ROL_COLORS[rol] || '#94a3b8';
+        const label = ROL_LABELS[rol] || rol;
+        return `
+        <div class="admin-rol-row">
+            <span class="admin-rol-badge" style="background:${color}20;color:${color}">
+                ${label}
+            </span>
+            <div class="admin-rol-bar-wrap">
+                <div class="admin-rol-bar" style="width:${pct}%;background:${color}"></div>
+            </div>
+            <span class="admin-rol-count">${cantidad}</span>
+        </div>`;
+    }).join('');
 }
 
 function actualizarIndicador(index, valor, porcentaje) {
@@ -783,21 +844,111 @@ async function inicializarGraficas() {
     await cargarGraficaSedes();
 }
 
+// Paleta y etiquetas de roles — consistente en todo el dashboard
+const ROL_CONFIG = {
+    ADMIN:              { label: 'Admin',       color: '#6366f1' },
+    ADMINISTRADOR_SEDE: { label: 'Admin Sede',  color: '#f59e0b' },
+    OPERARIO:           { label: 'Operario',    color: '#10b981' },
+    CLIENTE:            { label: 'Cliente',     color: '#3b82f6' }
+};
+
 async function cargarGraficaIngresos() {
     try {
-        const response = await fetch(`${API_BASE_URL}/grafica/ingresos`);
-        if (!response.ok) throw new Error();
+        const response = await fetch(`${API_BASE_URL}/grafica/accesos`);
+        if (!response.ok) throw new Error('Error cargando gráfica de accesos');
         const data = await response.json();
+
+        // ── KPIs ─────────────────────────────────────────────────────────
+        const kpiActual   = document.getElementById('kpiIngresosActual');
+        const kpiAnterior = document.getElementById('kpiIngresosAnterior');
+        const kpiAnio     = document.getElementById('kpiIngresosAnio');
+
+        if (kpiAnterior) kpiAnterior.textContent = data.mesAnterior.toLocaleString('es-CO');
+        if (kpiAnio)     kpiAnio.textContent     = data.acumuladoAnio.toLocaleString('es-CO');
+
+        if (kpiActual) {
+            const signo    = data.variacion >= 0 ? '+' : '';
+            const sufijo   = data.variacion !== 0 ? ` (${signo}${data.variacion}%)` : '';
+            kpiActual.textContent  = data.mesActual.toLocaleString('es-CO') + sufijo;
+            kpiActual.className    = 'admin-kpi-value';
+            if (data.variacion > 0)      kpiActual.classList.add('positive');
+            else if (data.variacion < 0) kpiActual.classList.add('negative');
+            else                         kpiActual.classList.add('accent');
+        }
+
+        // ── Leyenda custom con totales por rol ───────────────────────────
+        const legendContainer = document.getElementById('legendAccesos');
+        if (legendContainer && data.porRol) {
+            legendContainer.innerHTML = Object.entries(data.porRol)
+                .filter(([rol]) => ROL_CONFIG[rol])
+                .map(([rol, serie]) => {
+                    const cfg   = ROL_CONFIG[rol];
+                    const total = serie.reduce((a, b) => a + b, 0);
+                    return `
+                    <span class="admin-legend-item">
+                        <span class="admin-legend-dot"
+                              style="background:${cfg.color}"></span>
+                        ${cfg.label}
+                        <strong>${total.toLocaleString('es-CO')}</strong>
+                    </span>`;
+                }).join('');
+        }
+
+        // ── Gráfica apilada por rol ───────────────────────────────────────
         if (chartIngresos) chartIngresos.destroy();
         const canvas = document.getElementById('chartIngresos');
         if (!canvas) return;
+
+        // Construir datasets — uno por rol, apilados
+        const datasets = Object.entries(ROL_CONFIG).map(([rol, cfg]) => ({
+            label:           cfg.label,
+            data:            data.porRol?.[rol] || Array(12).fill(0),
+            backgroundColor: cfg.color,
+            borderRadius:    2,
+            borderWidth:     0,
+            stack:           'accesos'
+        }));
+
         chartIngresos = new Chart(canvas, {
-            type: 'line',
-            data: { labels: data.labels, datasets: [{ label: 'Ingresos ($)', data: data.data,
-                    borderColor: '#00BFFF', backgroundColor: 'rgba(0,191,255,0.2)', fill: true, tension: 0.4 }] },
-            options: { responsive: true, maintainAspectRatio: true, plugins: { legend: { position: 'top' } } }
+            type: 'bar',
+            data: { labels: data.labels, datasets },
+            options: {
+                responsive:          true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: { display: false }, // usamos leyenda custom
+                    tooltip: {
+                        callbacks: {
+                            label: ctx =>
+                                ` ${ctx.dataset.label}: ${ctx.parsed.y.toLocaleString('es-CO')} accesos`,
+                            footer: items => {
+                                const total = items.reduce((s, i) => s + i.parsed.y, 0);
+                                return 'Total mes: ' + total.toLocaleString('es-CO');
+                            }
+                        }
+                    }
+                },
+                scales: {
+                    x: {
+                        stacked: true,
+                        grid:    { display: false },
+                        ticks:   { autoSkip: false }
+                    },
+                    y: {
+                        stacked:     true,
+                        beginAtZero: true,
+                        grid:        { color: 'rgba(0,0,0,0.05)' },
+                        ticks:       { precision: 0 }
+                    }
+                }
+            }
         });
-    } catch (e) { console.error('Error gráfica ingresos:', e); }
+
+    } catch (e) {
+        console.error('Error gráfica accesos:', e);
+        ['kpiIngresosActual','kpiIngresosAnterior','kpiIngresosAnio']
+            .forEach(id => { const el = document.getElementById(id); if (el) el.textContent = '0'; });
+    }
 }
 
 async function cargarGraficaUsuarios() {
@@ -805,14 +956,59 @@ async function cargarGraficaUsuarios() {
         const response = await fetch(`${API_BASE_URL}/grafica/usuarios-rol`);
         if (!response.ok) throw new Error();
         const data = await response.json();
+
         if (chartUsuarios) chartUsuarios.destroy();
         const canvas = document.getElementById('chartUsuarios');
         if (!canvas) return;
+
+        // Paleta dinámica: un color por rol garantizado
+        const PALETA = {
+            ADMIN:              '#6366f1',
+            ADMINISTRADOR_SEDE: '#f59e0b',
+            OPERARIO:           '#10b981',
+            CLIENTE:            '#3b82f6'
+        };
+        const colores = data.labels.map(l => PALETA[l] || '#94a3b8');
+
+        // KPI total usuarios (fix P-03)
+        const total = data.data.reduce((a, b) => a + b, 0);
+        const kpiT  = document.getElementById('kpiUsuariosTotal');
+        if (kpiT) kpiT.textContent = total;
+
         chartUsuarios = new Chart(canvas, {
             type: 'bar',
-            data: { labels: data.labels, datasets: [{ label: 'Número de Usuarios', data: data.data,
-                    backgroundColor: ['#34a853','#00bfa5','#3b82f6'], borderWidth: 1 }] },
-            options: { responsive: true, maintainAspectRatio: true, plugins: { legend: { position: 'top' } } }
+            data: {
+                labels: data.labels.map(l => ROL_LABELS[l] || l),
+                datasets: [{
+                    label: 'Usuarios',
+                    data:  data.data,
+                    backgroundColor: colores,
+                    borderRadius:    6,
+                    borderWidth:     0
+                }]
+            },
+            options: {
+                responsive:          true,
+                maintainAspectRatio: false, // fix P-07
+                plugins: {
+                    legend: { display: false },
+                    tooltip: {
+                        callbacks: {
+                            label: ctx => ` ${ctx.parsed.y} usuarios`
+                        }
+                    }
+                },
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        grid: { color: 'rgba(0,0,0,0.05)' },
+                        ticks: { precision: 0 }
+                    },
+                    x: {
+                        grid: { display: false }
+                    }
+                }
+            }
         });
     } catch (e) { console.error('Error gráfica usuarios:', e); }
 }
@@ -822,14 +1018,59 @@ async function cargarGraficaSedes() {
         const response = await fetch(`${API_BASE_URL}/grafica/sedes`);
         if (!response.ok) throw new Error();
         const data = await response.json();
+
         if (chartSedes) chartSedes.destroy();
         const canvas = document.getElementById('chartSedes');
         if (!canvas) return;
+
+        // KPI capacidad total (fix P-03)
+        const capacidadTotal = data.data.reduce((a, b) => a + b, 0);
+        const kpiCap = document.getElementById('kpiSedesCapacidad');
+        const kpiST  = document.getElementById('kpiSedesTotal');
+        if (kpiCap) kpiCap.textContent = capacidadTotal.toLocaleString('es-CO');
+        if (kpiST)  kpiST.textContent  = data.labels.length;
+
         chartSedes = new Chart(canvas, {
             type: 'bar',
-            data: { labels: data.labels, datasets: [{ label: 'Capacidad', data: data.data,
-                    backgroundColor: '#f59e0b', borderWidth: 1 }] },
-            options: { responsive: true, maintainAspectRatio: true, plugins: { legend: { position: 'top' } } }
+            data: {
+                labels: data.labels,
+                datasets: [{
+                    label:           'Capacidad (vehículos)',
+                    data:            data.data,
+                    backgroundColor: '#f59e0b',
+                    borderRadius:    6,
+                    borderWidth:     0
+                }]
+            },
+            options: {
+                responsive:          true,
+                maintainAspectRatio: false, // fix P-07
+                plugins: {
+                    legend: { display: false },
+                    tooltip: {
+                        callbacks: {
+                            label: ctx => ` ${ctx.parsed.y} vehículos`
+                        }
+                    }
+                },
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        grid: { color: 'rgba(0,0,0,0.05)' },
+                        ticks: {
+                            precision: 0,
+                            callback: v => v + ' v.'
+                        }
+                    },
+                    x: {
+                        grid:  { display: false },
+                        ticks: {
+                            maxRotation: 35,
+                            autoSkip:    false
+                        }
+                    }
+                }
+            }
         });
     } catch (e) { console.error('Error gráfica sedes:', e); }
 }
@@ -1058,6 +1299,166 @@ function enviarCorreoMasivo(form) {
 }
 
 // ============================================
+// MÓDULO FILTRO DESTINATARIOS — DASHBOARD ADMIN
+// Funciones nuevas, no modifican ninguna existente
+// ============================================
+
+let _adminDestinatariosCache = [];
+
+async function adminCargarDestinatarios() {
+    const rol      = document.getElementById('adminFiltroRol')?.value;
+    const estadoEl = document.getElementById('adminEstadoFiltro');
+    const listaEl  = document.getElementById('adminListaDestinatarios');
+    const tablaEl  = document.getElementById('adminTablaDestinatarios');
+    const contEl   = document.getElementById('adminContadorLista');
+    const btnEl    = document.getElementById('btnAdminCargar');
+
+    if (!rol) {
+        showToast('Selecciona un grupo primero', 'warning');
+        return;
+    }
+
+    // Estado visual de carga
+    if (estadoEl) estadoEl.textContent = 'Consultando base de datos...';
+    if (listaEl)  listaEl.style.display = 'none';
+    if (btnEl)    { btnEl.disabled = true; btnEl.textContent = 'Cargando...'; }
+
+    const endpoints = {
+        clientes:     `${API_BASE_URL}/correos/clientes`,
+        sedes:        `${API_BASE_URL}/correos/sedes`,
+        trabajadores: `${API_BASE_URL}/correos/trabajadores`
+    };
+
+    try {
+        const response = await fetch(endpoints[rol]);
+        if (!response.ok) throw new Error(`Error ${response.status}`);
+        const datos = await response.json();
+        _adminDestinatariosCache = datos;
+
+        if (datos.length === 0) {
+            if (estadoEl) estadoEl.textContent = 'No se encontraron usuarios en este grupo.';
+            if (listaEl)  listaEl.style.display = 'none';
+            return;
+        }
+
+        // Renderizar filas con checkbox
+        if (tablaEl) {
+            tablaEl.innerHTML = datos.map(d => `
+                <label style="display:flex; align-items:center; gap:0.75rem;
+                               padding:0.6rem 0.75rem; cursor:pointer;
+                               border-bottom:1px solid #f1f5f9;
+                               transition:background 0.15s;"
+                       onmouseover="this.style.background='#f8fafc'"
+                       onmouseout="this.style.background='transparent'">
+                    <input type="checkbox"
+                           class="admin-dest-check"
+                           data-correo="${d.correo}"
+                           style="width:16px;height:16px;cursor:pointer;accent-color:#0ea5e9;"
+                           checked/>
+                    <div style="flex:1;min-width:0;">
+                        <div style="font-weight:600;font-size:0.875rem;color:#1e293b;
+                                    white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">
+                            ${d.nombre || '(sin nombre)'}
+                        </div>
+                        <div style="font-size:0.8rem;color:#64748b;
+                                    white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">
+                            ${d.correo}
+                        </div>
+                    </div>
+                    <span style="font-size:0.72rem;background:#e0f2fe;color:#0369a1;
+                                 border-radius:9999px;padding:0.15rem 0.5rem;white-space:nowrap;">
+                        ${_adminRolLabel(d.rol)}
+                    </span>
+                </label>
+            `).join('');
+        }
+
+        if (contEl)   contEl.textContent = `${datos.length} usuario(s) encontrado(s)`;
+        if (estadoEl) estadoEl.textContent = '';
+        if (listaEl)  listaEl.style.display = 'block';
+
+    } catch (e) {
+        console.error('adminCargarDestinatarios:', e);
+        if (estadoEl) estadoEl.textContent = 'Error al consultar. Intenta de nuevo.';
+        showToast('Error al consultar destinatarios', 'error');
+    } finally {
+        if (btnEl) { btnEl.disabled = false; btnEl.textContent = 'Consultar'; }
+    }
+}
+
+function _adminRolLabel(rol) {
+    const map = {
+        CLIENTE:            'Cliente',
+        ADMINISTRADOR_SEDE: 'Admin Sede',
+        OPERARIO:           'Operario'
+    };
+    return map[rol] || rol;
+}
+
+function adminSeleccionarTodos(estado) {
+    document.querySelectorAll('.admin-dest-check')
+        .forEach(cb => { cb.checked = estado; });
+}
+
+function adminAgregarSeleccionados() {
+    const seleccionados = [...document.querySelectorAll('.admin-dest-check:checked')]
+        .map(cb => cb.dataset.correo)
+        .filter(Boolean);
+
+    if (seleccionados.length === 0) {
+        showToast('No hay destinatarios seleccionados', 'warning');
+        return;
+    }
+
+    const textarea = document.getElementById('emailsMassive');
+    if (!textarea) return;
+
+    // Fusiona sin duplicar con lo que ya existe en el textarea
+    const existentes = textarea.value
+        .split(',')
+        .map(e => e.trim())
+        .filter(Boolean);
+
+    const nuevos = seleccionados.filter(e => !existentes.includes(e));
+    const todos  = [...existentes, ...nuevos].filter(Boolean);
+
+    textarea.value = todos.join(', ');
+    _adminActualizarBadge();
+
+    showToast(`${nuevos.length} correo(s) agregado(s) al envío`, 'success');
+
+    // Colapsa el panel de selección tras agregar
+    const lista = document.getElementById('adminListaDestinatarios');
+    if (lista) lista.style.display = 'none';
+    const estadoEl = document.getElementById('adminEstadoFiltro');
+    if (estadoEl) estadoEl.textContent =
+        `✓ ${seleccionados.length} destinatario(s) cargados desde BD.`;
+}
+
+function _adminActualizarBadge() {
+    const textarea = document.getElementById('emailsMassive');
+    const badge    = document.getElementById('adminBadgeConteo');
+    if (!textarea || !badge) return;
+
+    const count = textarea.value
+        .split(',')
+        .map(e => e.trim())
+        .filter(e => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(e))
+        .length;
+
+    badge.textContent   = count;
+    badge.style.display = count > 0 ? 'inline' : 'none';
+}
+
+// Badge en tiempo real mientras el admin escribe manualmente
+document.addEventListener('DOMContentLoaded', () => {
+    const textarea = document.getElementById('emailsMassive');
+    if (textarea) textarea.addEventListener('input', _adminActualizarBadge);
+});
+
+
+
+// ============================================
 // FUNCIONES DEL MENÚ PERFIL
 // ============================================
 function cerrarSesion() {
@@ -1129,3 +1530,7 @@ window.generarExcel           = generarExcel;
 window.mostrarDetallesSede    = mostrarDetallesSede;
 window.cerrarModalSede        = cerrarModalSede;
 window.toggleSidebar          = toggleSidebar;
+// Exponer como globales para los onclick del HTML
+window.adminCargarDestinatarios  = adminCargarDestinatarios;
+window.adminSeleccionarTodos     = adminSeleccionarTodos;
+window.adminAgregarSeleccionados = adminAgregarSeleccionados;

@@ -26,6 +26,7 @@ import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
+import java.nio.file.Path;
 import java.time.Duration;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -63,33 +64,27 @@ public class SedeController {
                 .orElseThrow(() -> new RuntimeException("Usuario autenticado no encontrado"));
     }
 
-    // ✅ NUEVO: necesario para todos los métodos operativos migrados
+
     private Sede getSedeDelUsuarioAutenticado() {
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
-        if (auth == null || !auth.isAuthenticated()) {
-            log.warn("No hay autenticación activa");
-            return null;
-        }
+        if (auth == null || !auth.isAuthenticated()) return null;
+
         Optional<Usuario> usuarioOpt = usuarioService.findByCorreo(auth.getName());
-        if (usuarioOpt.isEmpty()) {
-            log.error("No se encontró usuario con correo: {}", auth.getName());
-            return null;
-        }
+        if (usuarioOpt.isEmpty()) return null;
         Usuario user = usuarioOpt.get();
 
-        // OPERARIO → tiene sedeAsignada directamente
+        // OPERARIO — FK id_sede_asignada en tabla usuario
         if (user.getSedeAsignada() != null) {
             return user.getSedeAsignada();
         }
 
-        // ADMINISTRADOR_SEDE → su sede se busca por idUsuario
-        Sede sedePorAdmin = sedeService.findByIdUsuario(user.getIdUsuario());
-        if (sedePorAdmin != null) {
-            return sedePorAdmin;
-        }
-
-        log.error("El usuario {} no tiene sede asignada", user.getNombre());
-        return null;
+        // ADMINISTRADOR_SEDE — FK id_usuario en tabla sede
+        return sedeService.findFirstByAdminId(user.getIdUsuario())
+                .orElseGet(() -> {
+                    log.error("Sin sede para: {} (id={})",
+                            user.getNombre(), user.getIdUsuario());
+                    return null;
+                });
     }
 
     private double[] resolverTarifas(Sede sede, TipoVehiculo tipo) {
@@ -526,6 +521,57 @@ public class SedeController {
                     "status",  "error",
                     "message", "No fue posible enviar la notificación: " + e.getMessage()
             ));
+        }
+    }
+
+    // =====================================================================
+// APIS PARA FILTRO DE DESTINATARIOS — MÓDULO CORREOS SEDE
+// Solo clientes y operarios de la sede propia.
+// Otras sedes y admins del sistema están fuera del alcance.
+// =====================================================================
+
+    @GetMapping("/correos/clientes")
+    public ResponseEntity<List<Map<String, String>>> getCorreosClientesSede() {
+        try {
+            List<Map<String, String>> resultado = usuarioService
+                    .findByRolIn(List.of(Rolenum.CLIENTE))
+                    .stream()
+                    .map(u -> Map.of(
+                            "nombre", u.getNombre() != null ? u.getNombre() : "",
+                            "correo", u.getCorreo() != null ? u.getCorreo() : "",
+                            "rol",    "CLIENTE"
+                    ))
+                    .collect(Collectors.toList());
+            return ResponseEntity.ok(resultado);
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+        }
+    }
+
+    @GetMapping("/correos/trabajadores")
+    public ResponseEntity<List<Map<String, String>>> getCorreosTrabajadoresSede() {
+        try {
+            Sede sede = getSedeDelUsuarioAutenticado();
+
+            // Si no hay sede resuelta, devolver lista vacía en lugar de 500
+            if (sede == null) {
+                return ResponseEntity.ok(List.of());
+            }
+
+            List<Map<String, String>> resultado = usuarioService
+                    .findByRolIn(List.of(Rolenum.OPERARIO))
+                    .stream()
+                    .filter(u -> u.getSedeAsignada() != null
+                            && u.getSedeAsignada().getIdSede().equals(sede.getIdSede()))
+                    .map(u -> Map.of(
+                            "nombre", u.getNombre() != null ? u.getNombre() : "",
+                            "correo", u.getCorreo() != null ? u.getCorreo() : "",
+                            "rol",    "OPERARIO"
+                    ))
+                    .collect(Collectors.toList());
+            return ResponseEntity.ok(resultado);
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
         }
     }
 
@@ -1247,4 +1293,197 @@ public class SedeController {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(Map.of("error", e.getMessage()));
         }
     }
+
+    // =========================================================
+// ▼▼▼ PEGAR ESTOS MÉTODOS JUSTO ANTES DEL ÚLTIMO "}"
+//     DEL ARCHIVO SedeController.java EXISTENTE
+// =========================================================
+// DEPENDENCIAS YA IMPORTADAS EN LA CLASE:
+//   - PasswordEncoder passwordEncoder           ✅
+//   - UsuarioService usuarioService             ✅
+//   - SedeService sedeService                   ✅
+// IMPORT ADICIONAL NECESARIO al inicio del archivo:
+//   import org.springframework.web.multipart.MultipartFile;  ✅ ya importado
+//   import java.nio.file.*;                                   ← AGREGAR
+//   import java.util.UUID;                                    ✅ ya importado
+// =========================================================
+
+    // =========================================================
+    // CONFIGURACIÓN DE SEDE — módulo nuevo
+    // =========================================================
+
+    /**
+     * GET /api/sede/mi-configuracion
+     * Retorna todos los datos configurables de la sede autenticada.
+     */
+    @GetMapping("/mi-configuracion")
+    public ResponseEntity<?> getMiConfiguracion() {
+        try {
+            Sede sede = getSedeDelUsuarioAutenticado();
+            if (sede == null) {
+                return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                        .body(Map.of("error", "No se encontró la sede del usuario autenticado"));
+            }
+            return ResponseEntity.ok(SedeDTO.fromEntity(sede));
+        } catch (Exception e) {
+            log.error("Error al obtener configuración de sede: {}", e.getMessage(), e);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(Map.of("error", e.getMessage()));
+        }
+    }
+
+    /**
+     * PUT /api/sede/mi-configuracion
+     * Actualiza información básica, tarifas, cupos e imagen de la sede.
+     * Acepta multipart/form-data para incluir la imagen opcional.
+     */
+    @PutMapping(value = "/mi-configuracion", consumes = "multipart/form-data")
+    public ResponseEntity<?> updateMiConfiguracion(
+            @RequestParam(required = false) String nombre,
+            @RequestParam(required = false) String direccion,
+            @RequestParam(required = false) String telefonoSede,
+            @RequestParam(required = false) String correoSede,
+            @RequestParam(required = false) String horarioSede,
+            @RequestParam(required = false) Double tarifaPlenaC,
+            @RequestParam(required = false) Double tarifaPlenaM,
+            @RequestParam(required = false) Double tarifaMinutoC,
+            @RequestParam(required = false) Double tarifaMinutoM,
+            @RequestParam(required = false) Integer cuposCarro,
+            @RequestParam(required = false) Integer cuposMoto,
+            @RequestParam(required = false) Integer cuposBicicleta,
+            @RequestParam(value = "imagen", required = false) MultipartFile imagen) {
+        try {
+            Sede sede = getSedeDelUsuarioAutenticado();
+            if (sede == null) {
+                return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                        .body(Map.of("error", "No se encontró la sede del usuario autenticado"));
+            }
+
+            // ── Actualizar campos de texto ───────────────────────────────────
+            if (nombre        != null && !nombre.isBlank())        sede.setNombre(nombre.trim());
+            if (direccion     != null && !direccion.isBlank())     sede.setDireccion(direccion.trim());
+            if (telefonoSede  != null && !telefonoSede.isBlank())  sede.setTelefonoSede(telefonoSede.trim());
+            if (correoSede    != null && !correoSede.isBlank())    sede.setCorreoSede(correoSede.trim());
+            if (horarioSede   != null && !horarioSede.isBlank())   sede.setHorarioSede(horarioSede.trim());
+
+            // ── Actualizar tarifas ──────────────────────────────────────────
+            if (tarifaPlenaC  != null) sede.setTarifaPlenaC(tarifaPlenaC);
+            if (tarifaPlenaM  != null) sede.setTarifaPlenaM(tarifaPlenaM);
+            if (tarifaMinutoC != null) sede.setTarifaMinutoC(tarifaMinutoC);
+            if (tarifaMinutoM != null) sede.setTarifaMinutoM(tarifaMinutoM);
+
+            // ── Actualizar cupos ────────────────────────────────────────────
+            if (cuposCarro    != null && cuposCarro    >= 0) sede.setCuposCarro(cuposCarro);
+            if (cuposMoto     != null && cuposMoto     >= 0) sede.setCuposMoto(cuposMoto);
+            if (cuposBicicleta!= null && cuposBicicleta>= 0) sede.setCuposBicicleta(cuposBicicleta);
+
+            // ── Procesar imagen ─────────────────────────────────────────────
+            if (imagen != null && !imagen.isEmpty()) {
+                String contentType = imagen.getContentType();
+                if (contentType == null || !contentType.startsWith("image/")) {
+                    return ResponseEntity.badRequest()
+                            .body(Map.of("error", "El archivo debe ser una imagen (jpg, png, webp)"));
+                }
+                if (imagen.getSize() > 5 * 1024 * 1024) {
+                    return ResponseEntity.badRequest()
+                            .body(Map.of("error", "La imagen no puede superar 5 MB"));
+                }
+
+                // Carpeta: uploads/sedes/{idSede}/
+                String uploadDir = "uploads/sedes/" + sede.getIdSede();
+                Path uploadPath  = java.nio.file.Paths.get(uploadDir);
+                java.nio.file.Files.createDirectories(uploadPath);
+
+                // Nombre único para evitar colisiones
+                String ext      = obtenerExtension(imagen.getOriginalFilename());
+                String fileName = "imagen_" + UUID.randomUUID() + ext;
+                Path   filePath = uploadPath.resolve(fileName);
+
+                // Eliminar imagen anterior si existe
+                if (sede.getImagenSede() != null) {
+                    try {
+                        java.nio.file.Files.deleteIfExists(java.nio.file.Paths.get(sede.getImagenSede()));
+                    } catch (Exception ignored) {
+                        log.warn("No se pudo eliminar imagen anterior: {}", sede.getImagenSede());
+                    }
+                }
+
+                java.nio.file.Files.write(filePath, imagen.getBytes());
+                sede.setImagenSede(uploadDir + "/" + fileName);
+                log.info("Imagen de sede guardada: {}", sede.getImagenSede());
+            }
+
+            Sede updated = sedeService.save(sede);
+            Map<String, Object> resultado = new LinkedHashMap<>();
+            resultado.put("mensaje",       "Configuración actualizada correctamente");
+            resultado.put("sede",          SedeDTO.fromEntity(updated));
+            return ResponseEntity.ok(resultado);
+
+        } catch (Exception e) {
+            log.error("Error al actualizar configuración de sede: {}", e.getMessage(), e);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(Map.of("error", e.getMessage()));
+        }
+    }
+
+    /**
+     * PUT /api/sede/cambiar-contrasena
+     * Cambia la contraseña del administrador de sede autenticado.
+     * Body JSON: { "contrasenaActual": "...", "contrasenaNueva": "...", "confirmar": "..." }
+     */
+    @PutMapping("/cambiar-contrasena")
+    public ResponseEntity<Map<String, Object>> cambiarContrasena(
+            @RequestBody Map<String, String> datos) {
+        try {
+            String contrasenaActual = datos.get("contrasenaActual");
+            String contrasenaNueva  = datos.get("contrasenaNueva");
+            String confirmar        = datos.get("confirmar");
+
+            // ── Validaciones ────────────────────────────────────────────────
+            if (contrasenaActual == null || contrasenaActual.isBlank()) {
+                return ResponseEntity.badRequest()
+                        .body(Map.of("error", "La contraseña actual es obligatoria"));
+            }
+            if (contrasenaNueva == null || contrasenaNueva.length() < 8) {
+                return ResponseEntity.badRequest()
+                        .body(Map.of("error", "La nueva contraseña debe tener al menos 8 caracteres"));
+            }
+            if (!contrasenaNueva.equals(confirmar)) {
+                return ResponseEntity.badRequest()
+                        .body(Map.of("error", "Las contraseñas nuevas no coinciden"));
+            }
+
+            Usuario admin = getUsuarioAutenticado();
+
+            // ── Verificar contraseña actual ─────────────────────────────────
+            if (!passwordEncoder.matches(contrasenaActual, admin.getContrasena())) {
+                return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                        .body(Map.of("error", "La contraseña actual es incorrecta"));
+            }
+
+            // ── No permitir repetir la misma contraseña ─────────────────────
+            if (passwordEncoder.matches(contrasenaNueva, admin.getContrasena())) {
+                return ResponseEntity.badRequest()
+                        .body(Map.of("error", "La nueva contraseña no puede ser igual a la actual"));
+            }
+
+            admin.setContrasena(passwordEncoder.encode(contrasenaNueva));
+            usuarioService.save(admin);
+
+            log.info("Contraseña cambiada para admin id={}", admin.getIdUsuario());
+            return ResponseEntity.ok(Map.of("mensaje", "Contraseña actualizada correctamente"));
+
+        } catch (Exception e) {
+            log.error("Error al cambiar contraseña: {}", e.getMessage(), e);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(Map.of("error", e.getMessage()));
+        }
+    }
+
+    // ── Utilidad privada ─────────────────────────────────────────────────────
+    private String obtenerExtension(String nombreArchivo) {
+        if (nombreArchivo == null || !nombreArchivo.contains(".")) return ".jpg";
+        return nombreArchivo.substring(nombreArchivo.lastIndexOf(".")).toLowerCase();
+    }
+
 }

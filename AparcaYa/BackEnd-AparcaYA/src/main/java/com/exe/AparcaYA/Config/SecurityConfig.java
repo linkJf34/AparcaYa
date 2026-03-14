@@ -21,6 +21,7 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.AuthenticationSuccessHandler;
+import com.exe.AparcaYA.Service.LogAccesoService;
 import org.springframework.security.web.authentication.session.SessionAuthenticationException;
 
 import jakarta.servlet.ServletException;
@@ -38,6 +39,7 @@ public class SecurityConfig {
 
     private final UsuarioService           usuarioService;
     private final CustomUserDetailsService customUserDetailsService;
+    private final LogAccesoService logAccesoService;
 
     // ==================== PASSWORD ENCODER ====================
 
@@ -79,7 +81,16 @@ public class SecurityConfig {
                 Optional<Usuario> usuarioOpt = usuarioService.findByCorreo(correo);
 
                 if (usuarioOpt.isPresent()) {
-                    Rolenum rol = usuarioOpt.get().getRol();
+                    Usuario usuario = usuarioOpt.get();
+
+                    // ── NUEVO: registrar acceso en log ────────────────────────
+                    // Se ejecuta después de que Spring Security ya autenticó
+                    // al usuario. Si falla, el catch interno de LogAccesoServiceImpl
+                    // lo absorbe sin interrumpir el login.
+                    logAccesoService.registrarAcceso(usuario);
+                    // ─────────────────────────────────────────────────────────
+
+                    Rolenum rol = usuario.getRol();
                     String redirectUrl = switch (rol) {
                         case ADMIN              -> "/dashboard/administradorGeneral";
                         case ADMINISTRADOR_SEDE -> "/dashboard/administradorSede";

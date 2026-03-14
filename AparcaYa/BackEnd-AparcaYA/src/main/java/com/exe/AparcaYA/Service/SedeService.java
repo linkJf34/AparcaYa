@@ -21,4 +21,6 @@
         // ✅ CAMBIO #2: Métodos de conteo movidos desde AdminController
         long contarActivas();
         long contarTotal();
+
+        Optional<Sede> findFirstByAdminId(Long idUsuario);
     }

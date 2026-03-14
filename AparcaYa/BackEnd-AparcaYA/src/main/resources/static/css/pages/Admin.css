@@ -323,3 +323,83 @@ body {
 @media (max-width: 480px) {
     #admin-map-container { height: 250px; }
 }
+
+/* ============================================================
+   7. WIDGET — Usuarios por Rol (reemplaza donut de ingresos)
+   ============================================================ */
+.admin-stats-card--roles {
+    text-align: left;
+    min-height: 140px;
+}
+
+.admin-roles-list {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    margin-top: 0.25rem;
+}
+
+.admin-rol-row {
+    display: grid;
+    grid-template-columns: 90px 1fr 36px;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.admin-rol-badge {
+    font-size: 0.68rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    padding: 2px 8px;
+    border-radius: 20px;
+    white-space: nowrap;
+    text-align: center;
+}
+
+.admin-rol-bar-wrap {
+    height: 6px;
+    background: #f1f5f9;
+    border-radius: 3px;
+    overflow: hidden;
+}
+
+.admin-rol-bar {
+    height: 100%;
+    border-radius: 3px;
+    transition: width 0.8s ease;
+}
+
+.admin-rol-count {
+    font-size: 0.8rem;
+    font-weight: 700;
+    color: #1e293b;
+    text-align: right;
+}
+
+.admin-roles-skeleton {
+    height: 80px;
+    background: linear-gradient(90deg, #f1f5f9 25%, #e9eef5 50%, #f1f5f9 75%);
+    background-size: 200% 100%;
+    animation: skeleton-shimmer 1.4s infinite;
+    border-radius: 0.5rem;
+}
+
+@keyframes skeleton-shimmer {
+    0%   { background-position: 200% 0; }
+    100% { background-position: -200% 0; }
+}
+
+.admin-roles-empty {
+    font-size: 0.8rem;
+    color: #94a3b8;
+    text-align: center;
+    padding: 1rem 0;
+}
+
+/* Fix canvas height para gráficas (P-07) */
+.admin-chart-container canvas {
+    max-height: 260px;
+    min-height: 160px;
+    height: 260px !important; /* fuerza height en contenedor flex */
+}

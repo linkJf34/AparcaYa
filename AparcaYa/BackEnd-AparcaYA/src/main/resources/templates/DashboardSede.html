@@ -467,9 +467,8 @@
                      fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path stroke-linecap="round" stroke-linejoin="round"
                           stroke-width="2"
-                          d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14
-                          a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10
-                          a2 2 0 002 2z"/>
+                          d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0
+                      002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/>
                 </svg>
                 Correo Uno a Uno
             </button>
@@ -480,25 +479,28 @@
                     <path stroke-linecap="round" stroke-linejoin="round"
                           stroke-width="2"
                           d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10
-                          0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3
-                          0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857
-                          m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3
-                          3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2
-                          2 0 11-4 0 2 2 0 014 0z"/>
+                      0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3
+                      0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857
+                      m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3
+                      3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2
+                      2 0 11-4 0 2 2 0 014 0z"/>
                 </svg>
                 Correo Masivo
             </button>
         </div>
 
+        <!-- UNO A UNO — idéntico al original, sin ningún cambio -->
         <div id="correoUno">
             <form onsubmit="event.preventDefault(); enviarCorreoUno();">
                 <div class="sede-form-control">
                     <label for="emailSingle">Correo del destinatario</label>
-                    <input type="email" id="emailSingle" placeholder="ejemplo@correo.com" required/>
+                    <input type="email" id="emailSingle"
+                           placeholder="ejemplo@correo.com" required/>
                 </div>
                 <div class="sede-form-control">
                     <label for="subjectSingle">Asunto</label>
-                    <input type="text" id="subjectSingle" placeholder="Asunto del correo" required/>
+                    <input type="text" id="subjectSingle"
+                           placeholder="Asunto del correo" required/>
                 </div>
                 <div class="sede-form-control">
                     <label for="messageSingle">Mensaje</label>
@@ -510,41 +512,125 @@
                     <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4"
                          fill="none" viewBox="0 0 24 24" stroke="currentColor">
                         <path stroke-linecap="round" stroke-linejoin="round"
-                              stroke-width="2" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8"/>
+                              stroke-width="2"
+                              d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8"/>
                     </svg>
                     Enviar Correo
                 </button>
             </form>
         </div>
 
+        <!-- MASIVO — con el nuevo filtro -->
         <div id="correoMasivo" hidden>
             <form onsubmit="event.preventDefault(); enviarCorreoMasivo();">
+
+                <!-- ── NUEVO: panel de filtro por BD ── -->
                 <div class="sede-form-control">
-                    <label for="emailsMassive">Lista de correos (separados por coma)</label>
-                    <textarea id="emailsMassive" rows="4"
-                              placeholder="correo1@ejemplo.com, correo2@ejemplo.com, ..."
-                              required></textarea>
+                    <label>Agregar destinatarios desde base de datos</label>
+
+                    <div style="display:flex; gap:0.75rem; flex-wrap:wrap;
+                            align-items:center; margin-bottom:0.75rem;">
+                        <select id="sedeFiltroRol"
+                                style="flex:1; min-width:160px; padding:0.5rem 0.75rem;
+                                   border:1px solid #e2e8f0; border-radius:0.5rem;
+                                   font-size:0.875rem; background:#fff;">
+                            <option value="">— Seleccionar grupo —</option>
+                            <option value="clientes">Clientes</option>
+                            <option value="trabajadores">Trabajadores de mi sede</option>
+                        </select>
+                        <button type="button"
+                                class="sede-btn-primary"
+                                id="btnSedeCargar"
+                                style="white-space:nowrap;"
+                                onclick="sedeCargarDestinatarios()">
+                            Consultar
+                        </button>
+                    </div>
+
+                    <!-- Lista con checkboxes — oculta hasta consultar -->
+                    <div id="sedeListaDestinatarios" style="display:none;">
+                        <div style="display:flex; justify-content:space-between;
+                                align-items:center; margin-bottom:0.5rem;">
+                        <span id="sedeContadorLista"
+                              style="font-size:0.8rem; color:#64748b;"></span>
+                            <div style="display:flex; gap:0.5rem;">
+                                <button type="button" class="sede-btn-outline"
+                                        style="font-size:0.75rem; padding:0.25rem 0.75rem;"
+                                        onclick="sedeSeleccionarTodos(true)">
+                                    Todos
+                                </button>
+                                <button type="button" class="sede-btn-outline"
+                                        style="font-size:0.75rem; padding:0.25rem 0.75rem;"
+                                        onclick="sedeSeleccionarTodos(false)">
+                                    Ninguno
+                                </button>
+                            </div>
+                        </div>
+                        <div id="sedeTablaDestinatarios"
+                             style="max-height:200px; overflow-y:auto;
+                                border:1px solid #e2e8f0; border-radius:0.5rem;
+                                background:#fff;">
+                            <!-- Filas generadas por JS -->
+                        </div>
+                        <button type="button"
+                                class="sede-btn-success"
+                                style="margin-top:0.75rem; width:100%;"
+                                onclick="sedeAgregarSeleccionados()">
+                            ➕ Agregar al envío
+                        </button>
+                    </div>
+
+                    <!-- Mensaje de estado / feedback -->
+                    <div id="sedeEstadoFiltro"
+                         style="font-size:0.85rem; color:#94a3b8; padding:0.5rem 0;">
+                        Selecciona un grupo y presiona Consultar.
+                    </div>
                 </div>
+                <!-- ── FIN panel de filtro ── -->
+
+                <div class="sede-form-control">
+                    <label for="emailsMassive">
+                        Lista de correos
+                        <span id="sedeBadgeConteo"
+                              style="margin-left:0.5rem; background:#0d9488;
+                                 color:white; border-radius:9999px;
+                                 padding:0.1rem 0.6rem; font-size:0.75rem;
+                                 display:none;">0</span>
+                    </label>
+                    <textarea id="emailsMassive" rows="4"
+                              placeholder="correo1@ejemplo.com, correo2@ejemplo.com  ← manual o desde el filtro"
+                              required></textarea>
+                    <p style="font-size:0.75rem; color:#94a3b8; margin-top:0.25rem;">
+                        💡 Puedes combinar: filtra usuarios de la BD y agrega
+                        correos externos manualmente.
+                    </p>
+                </div>
+
                 <div class="sede-form-control">
                     <label for="subjectMassive">Asunto</label>
-                    <input type="text" id="subjectMassive" placeholder="Asunto del correo" required/>
+                    <input type="text" id="subjectMassive"
+                           placeholder="Asunto del correo" required/>
                 </div>
+
                 <div class="sede-form-control">
                     <label for="messageMassive">Mensaje</label>
                     <textarea id="messageMassive" rows="6"
                               placeholder="Escribe el contenido del correo..."
                               required></textarea>
                 </div>
+
                 <button type="submit" class="sede-btn-primary">
                     <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4"
                          fill="none" viewBox="0 0 24 24" stroke="currentColor">
                         <path stroke-linecap="round" stroke-linejoin="round"
-                              stroke-width="2" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8"/>
+                              stroke-width="2"
+                              d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8"/>
                     </svg>
                     Enviar Masivamente
                 </button>
             </form>
         </div>
+
     </section>
 
 
@@ -915,6 +1001,7 @@
 <div th:replace="modals/sede-modal-cobro :: modal"></div>
 
 <script src="/js/sessionHandler.js"></script>
+<script src="/js/sessionKeepalive.js"></script>
 <script src="/js/SedeD.js"></script>
 
 <script>

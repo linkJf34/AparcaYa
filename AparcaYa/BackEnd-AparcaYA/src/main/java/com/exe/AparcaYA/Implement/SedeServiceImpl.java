@@ -86,4 +86,9 @@ public class SedeServiceImpl implements SedeService {
     public long contarTotal() {
         return sedeRepository.count();
     }
+
+    @Override
+    public Optional<Sede> findFirstByAdminId(Long idUsuario) {
+        return sedeRepository.findFirstByIdUsuario_IdUsuario(idUsuario);
+    }
 }

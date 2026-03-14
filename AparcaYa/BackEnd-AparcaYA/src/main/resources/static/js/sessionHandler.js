@@ -19,7 +19,13 @@ const originalFetch = window.fetch;
 window.fetch = async function(...args) {
     let response;
     try {
-        response = await originalFetch(...args);
+        const [input, init = {}] = args;
+        const initConCredentials = {
+            ...init,
+            credentials: init.credentials ?? 'include'  // respeta si ya viene definido
+        };
+        response = await originalFetch(input, initConCredentials);
+
     } catch (networkError) {
         // Error de red real (servidor caído, sin conexión) — no tratar como sesión expirada
         throw networkError;
