@@ -30,6 +30,7 @@ public class VehiculoServiceImpl implements VehiculoService {
         return vehiculoRepository.findById(id);
     }
 
+
     @Override
     public Vehiculo update(Vehiculo vehiculo) {
         if (vehiculoRepository.existsById(vehiculo.getIdVehiculo())) {
@@ -48,9 +49,15 @@ public class VehiculoServiceImpl implements VehiculoService {
         return vehiculoRepository.findByPlacaContainingIgnoreCase(placa);
     }
 
-    // Agregado: Implementación para buscar por placa exacta
+    // DESPUÉS
     @Override
     public Optional<Vehiculo> findByPlaca(String placa) {
         return vehiculoRepository.findByPlaca(placa);
+    }
+
+    // ✅ CLI-C03: expone el query que ya existe en el repository
+    @Override
+    public List<Vehiculo> findByIdUsuario(Long idUsuario) {
+        return vehiculoRepository.findByIdUsuario_IdUsuario(idUsuario);
     }
 }

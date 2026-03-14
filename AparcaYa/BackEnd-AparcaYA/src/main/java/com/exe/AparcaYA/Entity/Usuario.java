@@ -45,11 +45,13 @@ public class Usuario {
     @Column(nullable = false, unique = true)
     private String telefono;
 
+    @JsonIgnore
     @NotBlank(message = "La cédula es obligatoria")
     @Pattern(regexp = "[0-9]{10}", message = "La cédula debe tener exactamente 10 dígitos")
     @Column(nullable = false, unique = true)
     private String cedula;
 
+    @JsonIgnore
     @NotBlank(message = "La contraseña es obligatoria")
     @Size(min = 8, message = "La contraseña debe tener al menos 8 caracteres")
     @Column(nullable = false)

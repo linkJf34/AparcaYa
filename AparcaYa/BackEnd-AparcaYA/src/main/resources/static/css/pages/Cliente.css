@@ -1,329 +1,596 @@
 /* ============================================================
    CLIENTE.CSS
-   Ruta: static/css/pages/cliente.css
+   Ruta: static/css/pages/Cliente.css
 
-   PROPÓSITO: Estilos EXCLUSIVOS del Dashboard Cliente.
-   Todo lo compartido (sidebar, header, modal, tabla base,
-   dropdown) vive en aparca-components.css.
+   Color de acento: violeta/morado
+   Diferencia visual respecto a Admin (azul), Sede/Trabajador (teal).
 
-   Aquí solo van:
-   1. Overrides de medidas del sidebar/header/main (180px)
-   2. Colores de acento propios del cliente (azul #00BFFF)
-   3. Componentes únicos: welcome, card-section, search-bar,
-      info-grid, badges, mapa, ayuda
+   Patrón idéntico a Trabajador.css:
+   - Variables propias --cli-*
+   - Sidebar con gradiente morado (override de color sobre estructura
+     de aparca-components.css)
+   - page-header limpio (solo perfil)
+   - Componentes exclusivos del cliente con prefijo cli-
    ============================================================ */
 
 
 /* ------------------------------------------------------------
-   1. OVERRIDES DE LAYOUT — El sidebar del cliente es 180px
-   en lugar de los 220px estándar. Se sobreescribe aquí.
+   0. VARIABLES DEL CLIENTE
    ------------------------------------------------------------ */
-.cli-sidebar {
-    width: 180px;
-    background: #00BFFF;
-    color: white;
+:root {
+    --cli-gradient-start:  #7c3aed;
+    --cli-gradient-mid:    #6d28d9;
+    --cli-gradient-end:    #4c1d95;
+    --cli-accent:          #8b5cf6;
+    --cli-accent-light:    #ede9fe;
+    --cli-accent-dark:     #6d28d9;
+    --cli-surface:         #f5f3ff;
 }
 
-/* Header empieza donde termina el sidebar del cliente */
-.cli-page-header {
-    left: 180px;
-}
-
-/* Main respeta el sidebar angosto del cliente */
-.cli-dashboard-main {
-    margin-left: 180px;
+body {
+    background-color: var(--cli-surface);
+    margin: 0;
+    font-family: system-ui, -apple-system, sans-serif;
 }
 
 
 /* ------------------------------------------------------------
-   2. SIDEBAR — Color de acento del cliente
-   aparca-components.css define la estructura base.
-   Aquí se define el color de hover y activo propio.
+   1. SIDEBAR — Override de color sobre aparca-components.css
+      La estructura (width, collapse, nav) viene de components.
+      Aquí solo se aplica el gradiente morado.
    ------------------------------------------------------------ */
-.cli-sidebar .aparca-sidebar-header h1 {
-    font-size: 1.5rem;
-    letter-spacing: 2px;
-}
-
-.cli-sidebar .aparca-sidebar-nav a {
+.aparca-sidebar {
+    background: linear-gradient(175deg,
+    var(--cli-gradient-start)  0%,
+    var(--cli-gradient-mid)   45%,
+    var(--cli-gradient-end)  100%);
     color: white;
-    margin-bottom: 1rem;
-    border-radius: 0 0.25rem 0.25rem 0;
 }
 
-.cli-sidebar .aparca-sidebar-nav a.active,
-.cli-sidebar .aparca-sidebar-nav a:hover {
-    background-color: rgba(255, 255, 255, 0.25);
-    border-left-color: white;
+.aparca-sidebar-logo-row h1  { color: white; }
+.aparca-sidebar-logo-row > svg { color: rgba(255,255,255,0.9); }
+
+.aparca-sidebar-nav a { color: rgba(255,255,255,0.72); }
+
+.aparca-sidebar-nav a:hover {
+    background-color: rgba(255,255,255,0.10);
+    color: white;
 }
 
-
-/* ------------------------------------------------------------
-   3. HEADER — Logo del cliente (texto, sin SVG)
-   ------------------------------------------------------------ */
-.aparca-logo-section h1 {
+.aparca-sidebar-nav a.active {
+    background-color: rgba(255,255,255,0.18);
+    color: white;
     font-weight: 700;
-    font-size: 1.5rem;
-    color: #0369a1;
+    box-shadow: inset 0 0 0 1px rgba(255,255,255,0.15);
 }
+
+.aparca-sidebar-nav a:hover svg,
+.aparca-sidebar-nav a.active svg { opacity: 1; }
+
+.aparca-sidebar-toggle {
+    background: rgba(0,0,0,0.15);
+    border-top: 1px solid rgba(255,255,255,0.08);
+}
+
+.aparca-sidebar-toggle:hover {
+    background: rgba(0,0,0,0.25);
+    color: white;
+}
+
+.aparca-sidebar-user       { background: rgba(255,255,255,0.08); }
+.aparca-sidebar-user:hover { background: rgba(255,255,255,0.14); }
 
 
 /* ------------------------------------------------------------
-   4. BOTÓN DE PERFIL — Cliente usa texto + flecha,
-   no el ícono SVG circular del admin.
+   2. PAGE HEADER
    ------------------------------------------------------------ */
-.cli-profile-btn {
-    background: transparent;
-    border: none;
-    cursor: pointer;
-    padding: 0.5rem 1rem;
-    border-radius: 0.5rem;
-    font-weight: 600;
-    color: #0369a1;
-    transition: background-color 0.2s;
-    font-size: 1rem;
+.aparca-page-header {
+    background: white;
+    border-bottom: 1px solid var(--cli-accent-light);
 }
 
-.cli-profile-btn:hover {
-    background: #e0f2fe;
+.aparca-profile-btn {
+    background-color: var(--cli-gradient-mid);
+    color: white;
 }
 
+.aparca-profile-btn:hover { opacity: 0.85; }
 
-/* ------------------------------------------------------------
-   5. DROPDOWN — Color de hover del cliente
-   La estructura base está en aparca-components.css.
-   ------------------------------------------------------------ */
 .aparca-dropdown button:hover {
-    background-color: #e0f2fe;
-    color: #0284c7;
+    background-color: var(--cli-accent-light);
+    color: var(--cli-accent-dark);
 }
 
 
 /* ------------------------------------------------------------
-   6. SECCIÓN DE BIENVENIDA — Exclusiva del cliente
+   3. TABLAS
+   ------------------------------------------------------------ */
+.aparca-table th             { background-color: var(--cli-accent-light); }
+.aparca-table tbody tr:hover { background-color: var(--cli-accent-light); }
+.cli-table th                { background-color: var(--cli-accent-light); }
+.cli-table tbody tr:hover    { background-color: var(--cli-accent-light); }
+
+
+/* ------------------------------------------------------------
+   4. ANIMACIÓN
+   ------------------------------------------------------------ */
+.animate-fade-in-up {
+    opacity: 0;
+    transform: translateY(20px);
+    animation: aparca-fadeInUp 0.8s ease forwards;
+}
+
+
+/* ------------------------------------------------------------
+   5. SECCIONES
+   ------------------------------------------------------------ */
+.aparca-content-section {
+    background: white;
+    border-radius: 1rem;
+    padding: 2rem 2.5rem;
+    box-shadow: 0 1px 4px rgba(0,0,0,0.04),
+    0 8px 24px rgba(109,40,217,0.05);
+    margin-bottom: 1.5rem;
+    animation: aparca-fadeInUp 0.3s ease-out;
+}
+
+.aparca-content-section h2,
+.aparca-content-section-title {
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: var(--cli-gradient-mid);
+    margin-bottom: 1.5rem;
+    padding-bottom: 0.75rem;
+    border-bottom: 2px solid var(--cli-accent-light);
+}
+
+.sub-section {
+    background: #faf8ff;
+    padding: 1.5rem;
+    border-radius: 0.875rem;
+    margin-bottom: 1.5rem;
+    border: 1px solid var(--cli-accent-light);
+    box-shadow: 0 1px 4px rgba(0,0,0,0.03);
+}
+
+.sub-section-title {
+    font-size: 0.95rem;
+    font-weight: 700;
+    color: var(--cli-gradient-mid);
+    margin-bottom: 1rem;
+    padding-bottom: 0.5rem;
+    border-bottom: 2px solid var(--cli-accent-light);
+}
+
+
+/* ------------------------------------------------------------
+   6. BOTONES
+   ------------------------------------------------------------ */
+.sede-btn-primary {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.65rem 1.5rem;
+    background: var(--cli-gradient-mid);
+    color: white;
+    border: none;
+    border-radius: 0.625rem;
+    font-weight: 600;
+    font-size: 0.9rem;
+    cursor: pointer;
+    transition: background-color 0.2s, transform 0.15s, box-shadow 0.2s;
+    box-shadow: 0 2px 8px rgba(109,40,217,0.28);
+}
+
+.sede-btn-primary:hover:not(:disabled) {
+    background: var(--cli-gradient-end);
+    box-shadow: 0 4px 14px rgba(109,40,217,0.38);
+    transform: translateY(-1px);
+}
+
+.sede-btn-primary:disabled {
+    opacity: 0.58; cursor: not-allowed; transform: none; box-shadow: none;
+}
+
+.sede-btn-outline {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.5rem 1rem;
+    background: transparent;
+    color: var(--cli-gradient-mid);
+    border: 1.5px solid var(--cli-gradient-mid);
+    border-radius: 0.625rem;
+    font-weight: 600;
+    font-size: 0.875rem;
+    cursor: pointer;
+    transition: background-color 0.2s, color 0.2s, box-shadow 0.2s;
+}
+
+.sede-btn-outline:hover {
+    background: var(--cli-gradient-mid);
+    color: white;
+    box-shadow: 0 2px 8px rgba(109,40,217,0.25);
+}
+
+.sede-btn-danger {
+    display: inline-flex; align-items: center; gap: 0.4rem;
+    padding: 0.5rem 1rem; background: #ef4444; color: white;
+    border: none; border-radius: 0.5rem; font-weight: 600;
+    font-size: 0.875rem; cursor: pointer;
+    transition: background-color 0.2s, transform 0.15s;
+}
+.sede-btn-danger:hover { background: #dc2626; transform: translateY(-1px); }
+
+.sede-btn-success {
+    display: inline-flex; align-items: center; gap: 0.4rem;
+    padding: 0.5rem 1rem; background: #10b981; color: white;
+    border: none; border-radius: 0.5rem; font-weight: 600;
+    font-size: 0.875rem; cursor: pointer;
+    transition: background-color 0.2s, transform 0.15s;
+}
+.sede-btn-success:hover { background: #059669; transform: translateY(-1px); }
+
+.sede-btn-secondary {
+    display: inline-flex; align-items: center; gap: 0.4rem;
+    padding: 0.5rem 1rem; background: #64748b; color: white;
+    border: none; border-radius: 0.5rem; font-weight: 600;
+    font-size: 0.875rem; cursor: pointer;
+    transition: background-color 0.2s, transform 0.15s;
+}
+.sede-btn-secondary:hover { background: #475569; transform: translateY(-1px); }
+
+/* Botón confirmar reserva — color morado */
+.cli-btn-confirm {
+    display: inline-flex; align-items: center; gap: 0.4rem;
+    padding: 0.65rem 1.5rem; background: var(--cli-gradient-mid); color: white;
+    border: none; border-radius: 0.625rem; font-weight: 600;
+    font-size: 0.9rem; cursor: pointer;
+    transition: background-color 0.2s, transform 0.15s, box-shadow 0.2s;
+    box-shadow: 0 2px 8px rgba(109,40,217,0.28);
+}
+.cli-btn-confirm:hover {
+    background: var(--cli-gradient-end);
+    transform: translateY(-1px);
+    box-shadow: 0 4px 14px rgba(109,40,217,0.38);
+}
+
+/* Botón cerrar en modal sede (generado por el JS) */
+.cliente-modal-sede-btn-cerrar {
+    display: inline-flex; align-items: center; gap: 0.4rem;
+    padding: 0.5rem 1rem; background: #64748b; color: white;
+    border: none; border-radius: 0.5rem; font-weight: 600;
+    font-size: 0.875rem; cursor: pointer;
+    transition: background-color 0.2s, transform 0.15s;
+}
+.cliente-modal-sede-btn-cerrar:hover { background: #475569; transform: translateY(-1px); }
+
+
+/* ------------------------------------------------------------
+   7. FORMULARIOS
+   ------------------------------------------------------------ */
+.sede-form-group { margin-bottom: 1rem; }
+
+.sede-form-group label {
+    display: block;
+    font-weight: 600;
+    font-size: 0.85rem;
+    color: #374151;
+    margin-bottom: 0.35rem;
+}
+
+.sede-form-group input,
+.sede-form-group select {
+    width: 100%;
+    padding: 0.55rem 0.75rem;
+    border: 1px solid #d1d5db;
+    border-radius: 0.5rem;
+    font-size: 0.875rem;
+    background: white;
+    transition: border-color 0.2s, box-shadow 0.2s;
+    box-sizing: border-box;
+    font-family: inherit;
+}
+
+.sede-form-group input:focus,
+.sede-form-group select:focus {
+    outline: none;
+    border-color: var(--cli-accent);
+    box-shadow: 0 0 0 3px rgba(139,92,246,0.15);
+}
+
+.error-message   { display: block; color: #ef4444; font-size: 0.75rem; margin-top: 0.2rem; min-height: 1rem; }
+.success-message { display: block; color: #10b981; font-size: 0.75rem; margin-top: 0.2rem; min-height: 1rem; }
+.border-red-500   { border-color: #ef4444 !important; box-shadow: 0 0 0 3px rgba(239,68,68,0.1); }
+.border-green-500 { border-color: #10b981 !important; box-shadow: 0 0 0 3px rgba(16,185,129,0.1); }
+
+
+/* ------------------------------------------------------------
+   8. BARRA DE BÚSQUEDA DEL MAPA
+   ------------------------------------------------------------ */
+.cli-search-bar {
+    display: flex;
+    gap: 0.75rem;
+    margin-bottom: 1rem;
+    align-items: center;
+    flex-wrap: wrap;
+}
+
+.cli-search-bar input {
+    flex: 1;
+    min-width: 200px;
+    padding: 0.55rem 0.75rem;
+    border: 1px solid #d1d5db;
+    border-radius: 0.5rem;
+    font-size: 0.875rem;
+    background: white;
+    transition: border-color 0.2s, box-shadow 0.2s;
+    font-family: inherit;
+}
+
+.cli-search-bar input:focus {
+    outline: none;
+    border-color: var(--cli-accent);
+    box-shadow: 0 0 0 3px rgba(139,92,246,0.12);
+}
+
+.cli-search-bar button {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    padding: 0.55rem 1rem;
+    background: var(--cli-gradient-mid);
+    color: white;
+    border: none;
+    border-radius: 0.5rem;
+    cursor: pointer;
+    font-weight: 600;
+    font-size: 0.875rem;
+    transition: background-color 0.2s;
+    white-space: nowrap;
+}
+.cli-search-bar button:hover { background: var(--cli-gradient-end); }
+
+
+/* ------------------------------------------------------------
+   9. SECCIÓN DE BIENVENIDA
    ------------------------------------------------------------ */
 .cli-welcome-section {
     background: white;
     border-radius: 1rem;
     padding: 2rem;
-    margin-bottom: 2.5rem;
-    box-shadow: 0 15px 36px rgba(0, 191, 255, 0.07);
+    margin-bottom: 1.75rem;
+    box-shadow: 0 4px 20px rgba(109,40,217,0.08);
     text-align: center;
+    border: 1px solid var(--cli-accent-light);
 }
 
 .cli-welcome-section h2 {
     font-weight: 700;
-    font-size: 2rem;
-    margin-bottom: 1rem;
-    color: #0f172a;
+    font-size: 1.75rem;
+    margin-bottom: 0.75rem;
+    color: var(--cli-gradient-mid);
+    border-bottom: none;
+    padding-bottom: 0;
 }
 
 .cli-welcome-section p {
-    font-size: 1.125rem;
-    color: #475569;
+    font-size: 1rem;
+    color: #64748b;
 }
 
 
 /* ------------------------------------------------------------
-   7. TARJETA DE CONTENIDO — Contenedor blanco con sombra azul
-   Usado en: mapa, reservas, pagos, ayuda.
+   10. TARJETA DE CONTENIDO
    ------------------------------------------------------------ */
 .cli-card-section {
     background: white;
     border-radius: 1rem;
-    padding: 2rem;
-    box-shadow: 0 10px 25px rgba(0, 191, 255, 0.1);
-    margin-bottom: 2rem;
+    padding: 1.75rem;
+    box-shadow: 0 4px 20px rgba(109,40,217,0.07);
+    margin-bottom: 1.5rem;
+    border: 1px solid var(--cli-accent-light);
 }
 
 .cli-card-section h2 {
     font-weight: 700;
-    font-size: 1.75rem;
-    margin-bottom: 1.5rem;
-    color: #256d43;
+    font-size: 1.25rem;
+    margin-bottom: 1.25rem;
+    color: var(--cli-gradient-mid);
+    border-bottom: 2px solid var(--cli-accent-light);
+    padding-bottom: 0.5rem;
 }
 
-/* Título de sección en h2 fuera de cli-card-section */
-.aparca-content-section-title {
-    font-size: 1.75rem;
-    font-weight: 700;
-    margin-bottom: 1.5rem;
-}
-
-
-/* ------------------------------------------------------------
-   8. TABLA — Override de colores del cliente (verde)
-   La estructura base está en aparca-components.css.
-   ------------------------------------------------------------ */
-.cli-table th {
-    background-color: #ecfdf5;
-}
-
-.cli-table tbody tr:hover {
-    background-color: #bbf7d0;
-}
-
-
-/* ------------------------------------------------------------
-   9. BARRA DE BÚSQUEDA — Exclusiva del cliente (mapa)
-   ------------------------------------------------------------ */
-.cli-search-bar {
-    margin-bottom: 1rem;
-    display: flex;
-    gap: 0.5rem;
-}
-
-.cli-search-bar input {
-    flex: 1;
-    padding: 0.5rem;
-    border: 1px solid #d1d5db;
-    border-radius: 0.5rem;
-    font-size: 0.9rem;
-    transition: border-color 0.2s;
-}
-
-.cli-search-bar input:focus {
-    outline: none;
-    border-color: #00BFFF;
-}
-
-.cli-search-bar button {
-    padding: 0.5rem 1rem;
-    background: #00BFFF;
-    color: white;
-    border: none;
-    border-radius: 0.5rem;
-    cursor: pointer;
+.cli-card-section h3 {
+    font-size: 1rem;
     font-weight: 600;
-    transition: background-color 0.2s;
-}
-
-.cli-search-bar button:hover {
-    background: #0284c7;
+    color: var(--cli-gradient-mid);
+    margin-bottom: 1rem;
 }
 
 
 /* ------------------------------------------------------------
-   10. MAPA DE LEAFLET — Requiere altura explícita
+   11. MAPA
    ------------------------------------------------------------ */
 #map-container {
     height: 400px;
     width: 100%;
-    border: 1px solid #ccc;
-    border-radius: 8px;
+    border: 1px solid var(--cli-accent-light);
+    border-radius: 0.75rem;
     z-index: 1;
 }
 
 
 /* ------------------------------------------------------------
-   11. INFO GRID — Modal de detalles de sede
+   12. INFO GRID — generado dinámicamente por el JS en modalSedeBody
    ------------------------------------------------------------ */
-.info-grid {
+.cliente-modal-sede-grid {
     display: grid;
     grid-template-columns: repeat(2, 1fr);
-    gap: 1rem;
+    gap: 0.875rem;
+    margin-bottom: 1.25rem;
 }
 
-.info-item {
+.cliente-modal-sede-item {
     padding: 0.75rem;
-    background: #f8fafc;
+    background: var(--cli-accent-light);
     border-radius: 0.5rem;
 }
 
-.info-item.info-full {
-    grid-column: 1 / -1;
-}
+.cliente-modal-sede-full { grid-column: 1 / -1; }
 
-.info-label {
-    font-size: 0.875rem;
-    font-weight: 600;
-    color: #64748b;
+.cliente-modal-sede-label {
+    font-size: 0.78rem;
+    font-weight: 700;
+    color: var(--cli-accent-dark);
     margin-bottom: 0.25rem;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
 }
 
-.info-value {
-    font-size: 1rem;
-    color: #0f172a;
+.cliente-modal-sede-value { font-size: 0.95rem; color: #0f172a; }
+
+.cliente-modal-sede-tarifas {
+    font-size: 0.875rem;
+    line-height: 1.8;
+    color: #374151;
+}
+
+.cliente-modal-sede-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 0.75rem;
+    margin-top: 1.25rem;
 }
 
 
 /* ------------------------------------------------------------
-   12. BADGES DE ESTADO — Exclusivos del módulo cliente
+   13. BADGES
    ------------------------------------------------------------ */
 .cli-badge {
-    padding: 4px 12px;
-    border-radius: 12px;
-    font-size: 0.875rem;
-    font-weight: 600;
     display: inline-block;
+    padding: 3px 12px;
+    border-radius: 20px;
+    font-size: 0.78rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
 }
 
-.cli-badge-activo {
-    background: #22c55e;
-    color: white;
-}
-
-.cli-badge-inactivo {
-    background: #ef4444;
-    color: white;
-}
+.cli-badge-activo   { background: #d1fae5; color: #065f46; }
+.cli-badge-inactivo { background: #fee2e2; color: #991b1b; }
 
 
 /* ------------------------------------------------------------
-   13. BOTÓN CONFIRMAR RESERVA — Exclusivo del modal de reserva
+   14. MODALES — sede y reserva (inline en el HTML)
    ------------------------------------------------------------ */
-.cli-btn-confirm {
-    background: #00BFFF;
-    color: white;
-    padding: 0.75rem 1.5rem;
-    border: none;
-    border-radius: 0.5rem;
-    cursor: pointer;
-    font-weight: 600;
-    transition: background-color 0.2s;
+#modalSede,
+#reservaModal {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.5);
+    z-index: 1000;
+    overflow-y: auto;
 }
 
-.cli-btn-confirm:hover {
-    background: #0284c7;
+#modalSede.show,
+#reservaModal.show {
+    display: flex !important;
+    align-items: center;
+    justify-content: center;
+}
+
+.sede-modal-box {
+    background: white;
+    border-radius: 1rem;
+    padding: 2rem;
+    max-width: 500px;
+    width: 90%;
+    box-shadow: 0 20px 40px rgba(0,0,0,0.2);
+    transform: scale(0.95);
+    transition: transform 0.3s ease;
+    position: relative;
+    z-index: 1001;
+    max-height: 90vh;
+    overflow-y: auto;
+}
+
+#modalSede.show .sede-modal-box,
+#reservaModal.show .sede-modal-box { transform: scale(1); }
+
+.sede-modal-box h3 {
+    font-size: 1.2rem;
+    font-weight: 700;
+    margin-bottom: 1.25rem;
+    color: var(--cli-gradient-mid);
+}
+
+.sede-modal-action {
+    display: flex;
+    justify-content: flex-end;
+    gap: 0.75rem;
+    margin-top: 1.5rem;
+}
+
+/* Modal de confirmación generado por el JS */
+#confirm-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.5);
+    z-index: 10000;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+#confirm-overlay > div {
+    background: white;
+    border-radius: 1rem;
+    padding: 2rem;
+    max-width: 420px;
+    width: 90%;
+    box-shadow: 0 20px 40px rgba(0,0,0,0.2);
 }
 
 
 /* ------------------------------------------------------------
-   14. SECCIÓN AYUDA — Tipografía de contacto
+   15. AYUDA
    ------------------------------------------------------------ */
 .cli-help-text {
     margin-bottom: 1rem;
-    color: #475569;
+    color: #64748b;
+    font-size: 0.95rem;
 }
 
 .cli-help-item {
     margin-bottom: 0.75rem;
+    font-size: 0.95rem;
+    color: #374151;
 }
 
 
 /* ------------------------------------------------------------
-   15. RESPONSIVE — Overrides móvil para el layout del cliente
+   16. TOAST DE NOTIFICACIONES (generado por el JS)
+   ------------------------------------------------------------ */
+@keyframes cliSlideIn {
+    from { transform: translateX(400px); opacity: 0; }
+    to   { transform: translateX(0);     opacity: 1; }
+}
+
+
+/* ------------------------------------------------------------
+   17. RESPONSIVE
    ------------------------------------------------------------ */
 @media (max-width: 768px) {
+    .aparca-dashboard-main      { padding: 1.25rem; }
+    .aparca-content-section     { padding: 1.25rem 1rem; }
+    .cliente-modal-sede-grid    { grid-template-columns: 1fr; }
+}
 
-    /* El sidebar del cliente también pasa a barra inferior */
-    .cli-sidebar {
-        width: 100%;
-    }
-
-    /* El header ocupa todo el ancho */
-    .cli-page-header {
-        left: 0;
-    }
-
-    /* Main sin margen lateral, con espacio inferior */
-    .cli-dashboard-main {
-        margin-left: 0;
-        margin-bottom: 80px;
-    }
-
-    /* Info grid pasa a una columna */
-    .info-grid {
-        grid-template-columns: 1fr;
-    }
+@media (max-width: 480px) {
+    .aparca-dashboard-main      { padding: 0.875rem 0.75rem; }
+    .aparca-content-section h2  { font-size: 1.2rem; }
+    .sede-modal-box             { padding: 1.25rem; }
+    .cli-search-bar             { flex-direction: column; align-items: stretch; }
 }

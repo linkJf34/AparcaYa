@@ -3,11 +3,13 @@ package com.exe.AparcaYA.Implement;
 import com.exe.AparcaYA.Entity.Cupo;
 import com.exe.AparcaYA.Entity.Sede;
 import com.exe.AparcaYA.Enum.EstadoCupo;
+import com.exe.AparcaYA.Enum.EstadoReservacion;
 import com.exe.AparcaYA.Repository.CupoRepository;
 import com.exe.AparcaYA.Service.CupoService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 
@@ -74,5 +76,21 @@ public class CupoServiceImpl implements CupoService {
             cupo.setSede(sede);
             cupoRepository.save(cupo);
         }
+    }
+    @Override
+    public List<Cupo> findCuposDisponiblesEnRango(Long sedeId,
+                                                  LocalDateTime fechaInicio,
+                                                  LocalDateTime fechaFin) {
+        // Pasa los estados como String — coincide con @Enumerated(EnumType.STRING)
+        List<String> estadosActivos = List.of(
+                EstadoReservacion.PENDIENTE.name(),
+                EstadoReservacion.ACTIVA.name()
+        );
+        return cupoRepository.findCuposDisponiblesEnRango(
+                sedeId,
+                fechaInicio,
+                fechaFin,
+                estadosActivos
+        );
     }
 }

@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1"/>
+    <title>403 — Acceso Denegado · AparcaYA</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdn.jsdelivr.net/npm/daisyui@4.12.10/dist/full.min.css" rel="stylesheet"/>
+    <link rel="stylesheet" href="/css/pages/error.css"/>
+</head>
+
+<body class="er-deny">
+
+<div class="er-bg" aria-hidden="true">
+    <div class="er-blob er-blob-1"></div>
+    <div class="er-blob er-blob-2"></div>
+    <div class="er-blob er-blob-3"></div>
+</div>
+
+<a href="/" class="er-brand" aria-label="Ir al inicio de AparcaYA">
+    <div class="er-brand-mark"><span class="er-brand-p">P</span></div>
+    <span class="er-brand-name">AparcaYA</span>
+</a>
+
+<div class="er-card" role="main">
+
+    <div class="er-icon-wrap" aria-hidden="true">
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none"
+             viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8">
+            <path stroke-linecap="round" stroke-linejoin="round"
+                  d="M16.5 10.5V6.75a4.5 4.5 0 10-9 0v3.75m-.75
+                  11.25h10.5a2.25 2.25 0 002.25-2.25v-6.75a2.25
+                  2.25 0 00-2.25-2.25H6.75a2.25 2.25 0
+                  00-2.25 2.25v6.75a2.25 2.25 0 002.25 2.25z"/>
+        </svg>
+    </div>
+
+    <span class="er-status-tag">403 · Forbidden</span>
+    <span class="er-code" aria-hidden="true">403</span>
+    <div class="er-divider"></div>
+    <h1 class="er-title">Acceso denegado</h1>
+    <p class="er-desc">
+        No tienes <strong>permisos suficientes</strong> para acceder
+        a esta sección. Si crees que esto es un error, contacta
+        al administrador o inicia sesión con la cuenta correcta.
+    </p>
+
+    <div class="er-actions">
+        <a href="/login" class="er-btn-secondary">
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none"
+                 viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                <path stroke-linecap="round" stroke-linejoin="round"
+                      d="M15.75 9V5.25A2.25 2.25 0 0013.5 3h-6a2.25
+                      2.25 0 00-2.25 2.25v13.5A2.25 2.25 0 007.5
+                      21h6a2.25 2.25 0 002.25-2.25V15M12 9l-3
+                      3m0 0l3 3m-3-3h12.75"/>
+            </svg>
+            Iniciar sesión
+        </a>
+        <a href="/" class="er-btn-primary">
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none"
+                 viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                <path stroke-linecap="round" stroke-linejoin="round"
+                      d="M2.25 12l8.954-8.955c.44-.439 1.152-.439
+                      1.591 0L21.75 12M4.5 9.75v10.125c0 .621.504
+                      1.125 1.125 1.125H9.75v-4.875c0-.621.504-1.125
+                      1.125-1.125h2.25c.621 0 1.125.504 1.125
+                      1.125V21h4.125c.621 0 1.125-.504
+                      1.125-1.125V9.75M8.25 21h8.25"/>
+            </svg>
+            Ir al inicio
+        </a>
+    </div>
+
+    <details class="er-detail">
+        <summary>Detalles técnicos</summary>
+        <div class="er-detail-body">
+            HTTP 403 Forbidden — El servidor comprendió la solicitud
+            pero se niega a autorizarla. Este usuario no cuenta con
+            el rol requerido para acceder al recurso solicitado.
+            Código: ACCESS_DENIED.
+            <br/><br/>
+            <span th:if="${message}" th:text="${message}"></span>
+        </div>
+    </details>
+
+</div>
+</body>
+</html>

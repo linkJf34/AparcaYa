@@ -33,10 +33,9 @@ public class DataInitializer implements CommandLineRunner {
                     .build();
 
             usuarioRepository.save(admin);
-            System.out.println("=== USUARIO ADMIN CREADO ===");
+
             System.out.println("Correo: admin@aparcaya.com");
-            System.out.println("Contraseña: admin123");
-            System.out.println("Rol: ADMIN");
+            System.out.println("Accede al sistema y cambia la contraseña por defecto.");
         } else {
             System.out.println("Usuario ADMIN ya existe.");
         }

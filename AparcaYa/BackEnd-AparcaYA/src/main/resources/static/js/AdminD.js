@@ -842,9 +842,8 @@ async function cargarEstadisticasDonut() {
         const response = await fetch(`${API_BASE_URL}/estadisticas/generales`);
         if (!response.ok) throw new Error();
         const data = await response.json();
-        actualizarTextoDonut('.admin-usuario-segment',  data.totalUsuarios);
-        actualizarTextoDonut('.admin-cuota-segment',    data.totalSedes);
-        actualizarTextoDonut('.admin-ingresos-segment', formatearIngresos(data.ingresosTotal || 0));
+        // Texto numérico gestionado exclusivamente por cargarIndicadores()
+        // para evitar sobreescritura no determinística del mismo elemento.
         animarDonut('.admin-usuario-segment',  data.totalUsuarios,      data.metaUsuarios  || 50);
         animarDonut('.admin-cuota-segment',    data.totalSedes,         data.metaSedes     || 10);
         animarDonut('.admin-ingresos-segment', data.ingresosTotal || 0, data.metaIngresos  || 100000);
@@ -894,6 +893,13 @@ async function generarPDF() {
     try {
         const response = await fetch('/admin/reporte/usuarios/pdf');
         if (!response.ok) throw new Error('Error generando PDF');
+        // Sesión expirada: Spring Security devuelve HTML del login en lugar del PDF
+        const contentType = response.headers.get('Content-Type') || '';
+        if (contentType.includes('text/html')) {
+            showToast('Tu sesión expiró. Por favor inicia sesión nuevamente.', 'warning', 5000);
+            setTimeout(() => { window.location.href = '/login'; }, 2000);
+            return;
+        }
         const blob = await response.blob();
         const url  = window.URL.createObjectURL(blob);
         const a    = document.createElement('a');
@@ -914,6 +920,13 @@ async function generarExcel() {
     try {
         const response = await fetch('/admin/reporte/usuarios/excel');
         if (!response.ok) throw new Error('Error generando Excel');
+        // Sesión expirada: Spring Security devuelve HTML del login en lugar del Excel
+        const contentType = response.headers.get('Content-Type') || '';
+        if (contentType.includes('text/html')) {
+            showToast('Tu sesión expiró. Por favor inicia sesión nuevamente.', 'warning', 5000);
+            setTimeout(() => { window.location.href = '/login'; }, 2000);
+            return;
+        }
         const blob = await response.blob();
         const url  = window.URL.createObjectURL(blob);
         const a    = document.createElement('a');

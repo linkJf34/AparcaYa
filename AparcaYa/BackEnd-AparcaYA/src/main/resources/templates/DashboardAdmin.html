@@ -729,38 +729,14 @@
 <div th:replace="modals/admin-modal-editar-sede :: modal"></div>
 <div th:replace="modals/admin-modal-detalle-sede :: modal"></div>
 
+<script src="/js/sessionHandler.js"></script>
 <script src="/js/AdminD.js"></script>
 
+<!-- DashboardAdmin.html — bloque <script> final -->
 <script>
-    /* ============================================================
-       SIDEBAR TOGGLE — Colapsar / Expandir
-       Persistencia en localStorage para recordar el estado.
-       ============================================================ */
-    function toggleSidebar() {
-        const collapsed = document.body.classList.toggle('sidebar-collapsed');
-        const btn       = document.getElementById('sidebarToggleBtn');
+    // toggleSidebar() y restauración de sidebar gestionados exclusivamente por AdminD.js
+    // para evitar doble definición y doble ejecución del IIFE de restauración.
 
-        // Actualiza aria-label del botón
-        btn.setAttribute('aria-label', collapsed ? 'Expandir menú lateral' : 'Colapsar menú lateral');
-
-        // Persiste el estado para la próxima carga de página
-        try { localStorage.setItem('sidebar-collapsed', collapsed ? '1' : '0'); } catch(e) {}
-    }
-
-    // Restaura el estado al cargar la página
-    (function() {
-        try {
-            if (localStorage.getItem('sidebar-collapsed') === '1') {
-                document.body.classList.add('sidebar-collapsed');
-                const btn = document.getElementById('sidebarToggleBtn');
-                if (btn) btn.setAttribute('aria-label', 'Expandir menú lateral');
-            }
-        } catch(e) {}
-    })();
-
-    /* ============================================================
-       UTILIDADES
-       ============================================================ */
     function actualizarContador(textareaId, contadorId, limite) {
         const textarea = document.getElementById(textareaId);
         const contador = document.getElementById(contadorId);
@@ -772,7 +748,6 @@
         if (len >= limite)      contador.classList.add('danger');
     }
 
-    // Inicial del avatar del sidebar
     document.addEventListener('DOMContentLoaded', () => {
         const usernameEl = document.getElementById('sidebarUsername');
         const avatarEl   = document.getElementById('sidebarAvatarInitial');
@@ -781,9 +756,6 @@
             if (nombre) avatarEl.textContent = nombre.charAt(0).toUpperCase();
         }
     });
-
-    // Exponer toggle para uso desde AdminD.js si fuera necesario
-    window.toggleSidebar = toggleSidebar;
 </script>
 
 </body>

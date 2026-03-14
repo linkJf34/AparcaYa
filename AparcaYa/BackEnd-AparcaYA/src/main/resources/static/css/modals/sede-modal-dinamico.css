@@ -1,27 +1,34 @@
 /* ============================================================
-   SEDE-MODAL-DINAMICO.CSS
+   SEDE-MODAL-DINAMICO.CSS  — v2 (paleta teal unificada)
    Ruta: static/css/modals/sede-modal-dinamico.css
 
-   MODALES: #salidaModal  y  #cobroModal
-   TIPO: DIV propio con display/visibility gestionados por JS
+   MODALES: #salidaModal  y  #cobroModal  (DashboardSede)
+   TIPO:    DIV overlay gestionado por JS con display:flex/none
 
-   ORIGEN DE LOS ESTILOS:
-   Extraídos de injectModalStyles() en SedeD.js.
-   Las clases .modal/.modal-content/.modal-header/.close
-   estaban sin prefijo y eran inyectadas dinámicamente.
-   Aquí se definen con prefijo sede-modal-dinamico-.
+   PALETA — alineada con Sede.css:
+     --sede-gradient-start : #0d9488
+     --sede-gradient-mid   : #0f766e
+     --sede-gradient-end   : #134e4a
+     --sede-accent         : #14b8a6
+     --sede-accent-light   : #ccfbf1
+     --sede-surface        : #f0fdfa
 
-   PREFIJO: sede-modal-dinamico-
+   BOTONES: .sede-btn-* ya definidos en Sede.css — reutilizados
+            sin duplicar.
 
-   NOTA: .sede-btn-success, .sede-btn-secondary, .sede-btn-*
-   están en sede.css y son reutilizados aquí sin duplicar.
+   CAMBIOS respecto a v1:
+     - Header: gradiente azul #0284c7/#00BFFF → teal #0d9488/#0f766e
+     - Body card: blanco plano → #f0fdfa (igual que Trabajador)
+     - Bordes internos: sin color → #ccfbf1
+     - Accent-color radio: #00BFFF → #0f766e
+     - Focus selects: #00BFFF → #14b8a6
+     - Total precio: mantiene #059669 (verde éxito — igual Trabajador)
    ============================================================ */
 
 
 /* ------------------------------------------------------------
    1. OVERLAY / BACKDROP
-   Reemplaza .modal de injectModalStyles()
-   JS controla display:block/none + visibility + opacity
+   JS controla display:block→flex / none
    ------------------------------------------------------------ */
 .sede-modal-dinamico {
     display: none;
@@ -32,70 +39,108 @@
     width: 100%;
     height: 100%;
     overflow: auto;
-    background-color: rgba(0, 0, 0, 0.6);
+    background-color: rgba(0, 0, 0, 0.5);
     backdrop-filter: blur(2px);
+    /* Centrado igual que Trabajador */
+    align-items: center;
+    justify-content: center;
+    padding: 1rem;
+    box-sizing: border-box;
+}
+
+/* Apertura: JS añade display:flex */
+.sede-modal-dinamico.open {
+    display: flex;
 }
 
 
 /* ------------------------------------------------------------
-   2. CONTENIDO DEL MODAL
-   Reemplaza .modal-content de injectModalStyles()
+   2. CAJA DEL MODAL
    ------------------------------------------------------------ */
 .sede-modal-dinamico-content {
     background-color: #ffffff;
-    margin: 5% auto;
-    padding: 0;
-    border: 1px solid #e5e7eb;
-    border-radius: 0.75rem;
-    width: 90%;
-    max-width: 600px;
-    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.35);
+    border-radius: 0.875rem;
+    width: 100%;
+    max-width: 520px;
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.25);
     position: relative;
     z-index: 1000000;
     pointer-events: auto;
+    overflow: hidden;
+    animation: sede-modal-in 0.25s ease-out;
+}
+
+/* Cobro necesita scroll interno */
+.sede-modal-dinamico-content--cobro {
+    max-height: 90vh;
+    overflow-y: auto;
+}
+
+@keyframes sede-modal-in {
+    from {
+        opacity: 0;
+        transform: translateY(20px) scale(0.97);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+    }
 }
 
 
 /* ------------------------------------------------------------
-   3. HEADER DEL MODAL
-   Reemplaza .modal-header de injectModalStyles()
-   Color de acento: #00BFFF (azul sede)
+   3. HEADER — gradiente teal (reemplaza azul anterior)
    ------------------------------------------------------------ */
 .sede-modal-dinamico-header {
-    padding: 1.5rem;
-    border-bottom: 1px solid #e5e7eb;
     display: flex;
     justify-content: space-between;
     align-items: center;
-    background: linear-gradient(135deg, #0284c7, #00BFFF);
-    border-radius: 0.75rem 0.75rem 0 0;
+    padding: 1.25rem 1.5rem;
+    border-bottom: 1px solid var(--sede-accent-light, #ccfbf1);
+    background: linear-gradient(135deg,
+    var(--sede-gradient-start, #0d9488),
+    var(--sede-gradient-mid,   #0f766e));
+    border-radius: 0.875rem 0.875rem 0 0;
 }
 
 .sede-modal-dinamico-header h2 {
     margin: 0;
-    font-size: 1.5rem;
-    color: white;
+    font-size: 1.125rem;
     font-weight: 700;
+    color: white;
 }
 
 
 /* ------------------------------------------------------------
-   4. BOTÓN CERRAR (×)
-   Reemplaza .close de injectModalStyles()
+   4. BOTÓN CERRAR
    ------------------------------------------------------------ */
 .sede-modal-dinamico-close {
-    color: rgba(255, 255, 255, 0.85);
-    font-size: 2rem;
-    font-weight: bold;
+    background: none;
+    border: none;
     cursor: pointer;
+    color: rgba(255, 255, 255, 0.8);
+    padding: 0.25rem;
+    border-radius: 0.375rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: color 0.2s, background-color 0.2s, transform 0.2s;
     line-height: 1;
-    transition: color 0.2s, transform 0.2s;
+    font-size: 1.5rem;
+    font-weight: bold;
     user-select: none;
 }
 
 .sede-modal-dinamico-close:hover {
     color: white;
-    transform: scale(1.15);
+    background-color: rgba(255, 255, 255, 0.15);
+    transform: scale(1.1);
+}
+
+/* Soporte tanto para SVG como para &times; */
+.sede-modal-dinamico-close svg {
+    width: 1.25rem;
+    height: 1.25rem;
 }
 
 
@@ -103,165 +148,229 @@
    5. CUERPO DEL MODAL
    ------------------------------------------------------------ */
 .sede-modal-dinamico-body {
-    padding: 1.5rem;
+    padding: 1.25rem 1.5rem 1.5rem;
 }
 
 
 /* ------------------------------------------------------------
-   6. FILAS DE DATOS (salida y cobro)
-   Reemplaza style="margin-bottom: 1rem;" de los div inline
-   del JS original.
+   6. TARJETA INTERNA DE DATOS
+   Fondo #f0fdfa — igual que el Trabajador
+   ------------------------------------------------------------ */
+.sede-modal-dinamico-card {
+    background: var(--sede-surface, #f0fdfa);
+    border-radius: 0.75rem;
+    padding: 1.25rem;
+    margin-bottom: 1.25rem;
+}
+
+
+/* ------------------------------------------------------------
+   7. FILAS DE DATOS (salida y cobro)
    ------------------------------------------------------------ */
 .sede-modal-salida-row {
-    margin-bottom: 1rem;
     display: flex;
-    gap: 0.5rem;
     align-items: flex-start;
-    font-size: 1rem;
+    gap: 0.5rem;
+    font-size: 0.9rem;
     color: #1f2937;
+    margin-bottom: 0.6rem;
+}
+
+.sede-modal-salida-row:last-child {
+    margin-bottom: 0;
 }
 
 .sede-modal-salida-row strong {
     min-width: 130px;
+    flex-shrink: 0;
     color: #374151;
+    font-weight: 600;
+}
+
+/* Alias para cobro — mismas reglas */
+.sede-modal-cobro-row {
+    display: flex;
+    align-items: flex-start;
+    gap: 0.5rem;
+    font-size: 0.9rem;
+    color: #1f2937;
+    margin-bottom: 0.6rem;
+}
+
+.sede-modal-cobro-row:last-child {
+    margin-bottom: 0;
+}
+
+.sede-modal-cobro-row strong {
+    min-width: 130px;
+    flex-shrink: 0;
+    color: #374151;
+    font-weight: 600;
+}
+
+/* Separador interno de la tarjeta */
+.sede-modal-dinamico-divider {
+    margin-top: 0.75rem;
+    padding-top: 0.75rem;
+    border-top: 1px solid var(--sede-accent-light, #ccfbf1);
 }
 
 
 /* ------------------------------------------------------------
-   7. SELECTOR DE TARIFA (cobro) — inyectado por JS
-   Reemplaza style inline del bloque tarifaSelector.
+   8. SELECTOR DE TARIFA (cobro) — inyectado por JS
    ------------------------------------------------------------ */
 .sede-modal-cobro-selector {
-    margin: 1.5rem 0;
-    padding: 1rem;
-    background: #f0f9ff;
-    border-radius: 0.5rem;
-}
-
-.sede-modal-cobro-selector h3 {
     margin-bottom: 1rem;
-    color: #0369a1;
-    font-weight: 700;
-    font-size: 1rem;
 }
 
-/* Cada opción de tarifa (label + radio) */
+.sede-modal-cobro-selector h3,
+.sede-modal-cobro-selector p {
+    margin: 0 0 0.75rem;
+    color: var(--sede-gradient-mid, #0f766e);
+    font-weight: 600;
+    font-size: 0.875rem;
+}
+
+/* Cada opción de tarifa */
 .sede-modal-cobro-opcion {
-    display: block;
-    padding: 1rem;
-    margin-bottom: 0.75rem;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.75rem;
+    padding: 0.75rem 1rem;
+    margin-bottom: 0.5rem;
     background: white;
-    border: 2px solid #3b82f6;
+    border: 2px solid var(--sede-accent-light, #ccfbf1);
     border-radius: 0.5rem;
     cursor: pointer;
     transition: border-color 0.2s, background-color 0.2s;
+    font-size: 0.88rem;
 }
 
 .sede-modal-cobro-opcion:hover {
-    border-color: #00BFFF;
-    background-color: #f0f9ff;
+    border-color: var(--sede-accent, #14b8a6);
+    background-color: var(--sede-surface, #f0fdfa);
+}
+
+.sede-modal-cobro-opcion:has(input:checked) {
+    border-color: var(--sede-accent, #14b8a6);
+    background-color: var(--sede-surface, #f0fdfa);
 }
 
 .sede-modal-cobro-opcion input[type="radio"] {
-    margin-right: 0.5rem;
-    accent-color: #00BFFF;
+    margin-right: 0.25rem;
+    accent-color: var(--sede-gradient-mid, #0f766e);
+    flex-shrink: 0;
 }
 
 
 /* ------------------------------------------------------------
-   8. MÉTODO DE PAGO (cobro)
+   9. MÉTODO DE PAGO (cobro)
    ------------------------------------------------------------ */
 .sede-modal-cobro-metodo {
-    margin-bottom: 1rem;
+    margin-bottom: 1.25rem;
 }
 
 .sede-modal-cobro-label {
     display: block;
     font-weight: 600;
+    font-size: 0.85rem;
     color: #374151;
-    margin-bottom: 0.5rem;
+    margin-bottom: 0.4rem;
 }
 
 .sede-modal-cobro-select {
     width: 100%;
-    padding: 0.5rem;
-    border: 1px solid #cbd5e1;
-    border-radius: 0.375rem;
-    font-size: 1rem;
+    padding: 0.6rem 0.9rem;
+    border: 1px solid #d1d5db;
+    border-radius: 0.5rem;
+    font-size: 0.9rem;
+    color: #374151;
     background: white;
-    transition: border-color 0.2s;
+    cursor: pointer;
+    transition: border-color 0.2s, box-shadow 0.2s;
     box-sizing: border-box;
 }
 
 .sede-modal-cobro-select:focus {
     outline: none;
-    border-color: #00BFFF;
-    box-shadow: 0 0 0 3px rgba(0, 191, 255, 0.1);
+    border-color: var(--sede-accent, #14b8a6);
+    box-shadow: 0 0 0 3px rgba(20, 184, 166, 0.15);
 }
 
 
 /* ------------------------------------------------------------
-   9. TOTAL A PAGAR (cobro)
+   10. TOTAL A PAGAR (cobro)
    ------------------------------------------------------------ */
 .sede-modal-cobro-total {
-    margin-bottom: 1rem;
-    padding: 1rem;
-    background: #f0f9ff;
-    border-radius: 0.5rem;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-top: 0.5rem;
+    padding-top: 0.5rem;
+    border-top: 1px solid var(--sede-accent-light, #ccfbf1);
 }
 
 .sede-modal-cobro-total strong {
-    color: #0369a1;
-    display: block;
-    margin-bottom: 0.25rem;
+    color: #374151;
+    font-size: 0.9rem;
 }
 
 .sede-modal-cobro-precio {
-    font-size: 2rem;
-    font-weight: 700;
+    font-size: 1.25rem;
+    font-weight: 800;
     color: #059669;
 }
 
 
 /* ------------------------------------------------------------
-   10. ÁREA DE ACCIONES (pie de modal)
-   Reemplaza style="display:flex;gap:0.5rem;justify-content:
-   flex-end;margin-top:1.5rem" de los div inline del JS original.
+   11. COBRO ESTIMADO (dentro de modal salida)
+   Inyectado por JS en #salidaCobroEstimado
+   ------------------------------------------------------------ */
+.sede-modal-cobro-estimado {
+    margin-top: 0.75rem;
+    padding-top: 0.75rem;
+    border-top: 1px solid var(--sede-accent-light, #ccfbf1);
+}
+
+
+/* ------------------------------------------------------------
+   12. ÁREA DE ACCIONES (pie del modal)
    ------------------------------------------------------------ */
 .sede-modal-dinamico-actions {
     display: flex;
-    gap: 0.5rem;
+    gap: 0.75rem;
     justify-content: flex-end;
-    margin-top: 1.5rem;
+    margin-top: 1.25rem;
     flex-wrap: wrap;
 }
 
 
 /* ------------------------------------------------------------
-   11. RESPONSIVE
+   13. RESPONSIVE
    ------------------------------------------------------------ */
-@media (max-width: 768px) {
+@media (max-width: 640px) {
     .sede-modal-dinamico-content {
-        width: 95%;
-        margin: 8% auto;
+        max-width: 100%;
     }
 
     .sede-modal-dinamico-actions {
-        flex-direction: column;
+        flex-direction: column-reverse;
     }
 
-    .sede-modal-dinamico-actions .sede-btn-success,
-    .sede-modal-dinamico-actions .sede-btn-secondary {
+    .sede-modal-dinamico-actions button {
         width: 100%;
         justify-content: center;
     }
 
-    .sede-modal-salida-row {
+    .sede-modal-salida-row,
+    .sede-modal-cobro-row {
         flex-direction: column;
-        gap: 0.25rem;
+        gap: 0.2rem;
     }
 
-    .sede-modal-salida-row strong {
+    .sede-modal-salida-row strong,
+    .sede-modal-cobro-row strong {
         min-width: unset;
     }
 }

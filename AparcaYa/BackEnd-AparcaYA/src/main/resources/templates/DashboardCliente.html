@@ -3,75 +3,163 @@
       data-theme="light"
       xmlns:th="http://www.thymeleaf.org">
 <head>
-    <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta charset="utf-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1"/>
     <title>Dashboard Cliente - AparcaYA</title>
 
-    <!-- 1. Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
-
-    <!-- 2. DaisyUI -->
-    <link href="https://cdn.jsdelivr.net/npm/daisyui@4.12.10/dist/full.min.css"
-          rel="stylesheet" />
-
-    <!-- 3. Leaflet CSS -->
-    <link rel="stylesheet"
-          href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
-
-    <!-- 4. CSS propio: base → components → pages -->
-    <link rel="stylesheet" href="/css/base/aparca-animations.css" />
-    <link rel="stylesheet" href="/css/components/aparca-components.css" />
-    <link rel="stylesheet" href="/css/pages/Cliente.css" />
-
-    <!-- 5. CSS de modales -->
-    <link rel="stylesheet" href="/css/modals/cliente-modal-detalle-sede.css" />
-    <link rel="stylesheet" href="/css/modals/cliente-modal-reserva.css" />
+    <link href="https://cdn.jsdelivr.net/npm/daisyui@4.12.10/dist/full.min.css" rel="stylesheet"/>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
+    <link rel="stylesheet" href="/css/base/aparca-animations.css"/>
+    <link rel="stylesheet" href="/css/components/aparca-components.css"/>
+    <link rel="stylesheet" href="/css/pages/Cliente.css"/>
 </head>
 <body>
 
-<!-- SIDEBAR -->
-<aside class="aparca-sidebar cli-sidebar" aria-label="Menú principal">
+<!-- ══════════════════════════════════════════════════
+     SIDEBAR
+     ══════════════════════════════════════════════════ -->
+<aside class="aparca-sidebar animate-fade-in-up"
+       id="mainSidebar"
+       aria-label="Menú principal del cliente">
 
-    <div class="aparca-sidebar-header">
-        <h1>AparcaYa</h1>
+    <div class="aparca-sidebar-header" role="banner">
+        <div class="aparca-sidebar-logo-row">
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none"
+                 viewBox="0 0 24 24" stroke-width="1.5"
+                 stroke="currentColor" aria-hidden="true">
+                <path stroke-linecap="round" stroke-linejoin="round"
+                      d="M8.25 18.75a1.5 1.5 0 01-3 0V15a6 6 0 0112
+                      0v3.75a1.5 1.5 0 01-3 0V15a3 3 0 00-6 0v3.75z
+                      M12 9a3 3 0 100-6 3 3 0 000 6z"/>
+            </svg>
+            <h1>AparcaYA</h1>
+        </div>
+
+        <button class="aparca-sidebar-toggle"
+                id="sidebarToggleBtn"
+                type="button"
+                aria-label="Colapsar menú lateral"
+                onclick="toggleSidebar()">
+            <svg class="toggle-arrow" xmlns="http://www.w3.org/2000/svg"
+                 fill="none" viewBox="0 0 24 24"
+                 stroke-width="2" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round"
+                      d="M15.75 19.5L8.25 12l7.5-7.5"/>
+            </svg>
+            <span class="toggle-label">Colapsar menú</span>
+        </button>
     </div>
 
-    <nav class="aparca-sidebar-nav" role="navigation">
-        <a href="#" class="active" data-tab="perfil">Mi Perfil</a>
-        <a href="#" data-tab="misreservas">Mis Reservas</a>
-        <a href="#" data-tab="pagos">Pagos</a>
-        <a href="#" data-tab="ayuda">Ayuda</a>
+    <nav class="aparca-sidebar-nav"
+         role="navigation"
+         aria-label="Secciones del dashboard cliente">
+
+        <a href="#" class="active" data-tab="perfil" aria-current="page">
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none"
+                 viewBox="0 0 24 24" stroke-width="1.5"
+                 stroke="currentColor" aria-hidden="true">
+                <path stroke-linecap="round" stroke-linejoin="round"
+                      d="M2.25 12l8.954-8.955c.44-.439 1.152-.439 1.591 0L21.75
+                      12M4.5 9.75v10.125c0 .621.504 1.125 1.125 1.125H9.75v-4.875
+                      c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125
+                      1.125V21h4.125c.621 0 1.125-.504 1.125-1.125V9.75M8.25 21h8.25"/>
+            </svg>
+            <span class="nav-label">Mi Perfil</span>
+        </a>
+
+        <a href="#" data-tab="misreservas">
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none"
+                 viewBox="0 0 24 24" stroke-width="1.5"
+                 stroke="currentColor" aria-hidden="true">
+                <path stroke-linecap="round" stroke-linejoin="round"
+                      d="M6.75 3v2.25M17.25 3v2.25M3 18.75V7.5a2.25
+                      2.25 0 012.25-2.25h13.5A2.25 2.25 0 0121 7.5v11.25
+                      m-18 0A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0
+                      0021 18.75m-18 0v-7.5A2.25 2.25 0 015.25 9h13.5
+                      A2.25 2.25 0 0121 11.25v7.5"/>
+            </svg>
+            <span class="nav-label">Mis Reservas</span>
+        </a>
+
+        <a href="#" data-tab="pagos">
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none"
+                 viewBox="0 0 24 24" stroke-width="1.5"
+                 stroke="currentColor" aria-hidden="true">
+                <path stroke-linecap="round" stroke-linejoin="round"
+                      d="M2.25 8.25h19.5M2.25 9h19.5m-16.5 5.25h6m-6
+                      2.25h3m-3.75 3h15a2.25 2.25 0 002.25-2.25V6.75A2.25
+                      2.25 0 0019.5 4.5h-15a2.25 2.25 0 00-2.25 2.25v10.5A2.25
+                      2.25 0 004.5 19.5z"/>
+            </svg>
+            <span class="nav-label">Pagos</span>
+        </a>
+
+        <a href="#" data-tab="ayuda">
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none"
+                 viewBox="0 0 24 24" stroke-width="1.5"
+                 stroke="currentColor" aria-hidden="true">
+                <path stroke-linecap="round" stroke-linejoin="round"
+                      d="M9.879 7.519c1.171-1.025 3.071-1.025 4.242 0 1.172
+                      1.025 1.172 2.687 0 3.712-.203.179-.43.326-.67.442-.745.361-1.45.999-1.45
+                      1.827v.75M21 12a9 9 0 11-18 0 9 9 0 0118 0zm-9 5.25h.008v.008H12v-.008z"/>
+            </svg>
+            <span class="nav-label">Ayuda</span>
+        </a>
+
     </nav>
+
+    <div class="aparca-sidebar-footer">
+        <div class="aparca-sidebar-user" aria-label="Usuario actual">
+            <div class="aparca-sidebar-avatar"
+                 id="sidebarAvatarInitial"
+                 aria-hidden="true">C</div>
+            <div class="aparca-sidebar-user-info">
+                <div class="aparca-sidebar-username"
+                     id="sidebarUsername"
+                     th:text="${#authentication?.name ?: 'Cliente'}">Cliente</div>
+                <div class="aparca-sidebar-userrole">Cliente</div>
+            </div>
+        </div>
+    </div>
 </aside>
 
 
-<!-- HEADER -->
-<header class="aparca-page-header cli-page-header">
-
-    <div class="aparca-logo-section">
-        <h1>AparcaYa</h1>
-    </div>
-
+<!-- ══════════════════════════════════════════════════
+     HEADER
+     ══════════════════════════════════════════════════ -->
+<header class="aparca-page-header animate-fade-in-up" id="pageHeader">
     <div class="aparca-profile-menu">
         <button id="profileBtn"
-                class="cli-profile-btn"
+                class="aparca-profile-btn"
                 type="button"
                 aria-label="Menú de perfil"
-                aria-haspopup="true"
                 aria-expanded="false"
+                aria-haspopup="true"
                 aria-controls="profileDropdown">
-            <span th:text="${nombreUsuario}">Usuario</span> ▾
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none"
+                 viewBox="0 0 24 24" stroke-width="1.5"
+                 stroke="currentColor" aria-hidden="true">
+                <path stroke-linecap="round" stroke-linejoin="round"
+                      d="M15.75 6a3.75 3.75 0 11-7.5 0 3.75 3.75 0
+                      017.5 0zM4.501 20.118a7.5 7.5 0 0114.998
+                      0A17.933 17.933 0 0112 21.75c-2.676
+                      0-5.216-.584-7.499-1.632z"/>
+            </svg>
         </button>
 
         <menu id="profileDropdown"
               class="aparca-dropdown"
               role="menu"
               aria-label="Opciones de perfil">
-            <button type="button" role="menuitem">Configuración</button>
-            <button type="button" role="menuitem">Ayuda</button>
-            <button type="button"
-                    role="menuitem"
-                    onclick="window.location.href='/cliente/logout'">
+            <button type="button" role="menuitem" onclick="handleLogout()">
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none"
+                     viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round"
+                          d="M15.75 9V5.25A2.25 2.25 0 0013.5 3h-6a2.25 2.25 0
+                          00-2.25 2.25v13.5A2.25 2.25 0 007.5 21h6a2.25 2.25 0
+                          002.25-2.25V15M12 9l-3 3m0 0l3 3m-3-3h12.75"/>
+                </svg>
                 Cerrar sesión
             </button>
         </menu>
@@ -79,45 +167,46 @@
 </header>
 
 
-<!-- ÁREA PRINCIPAL -->
-<main class="aparca-dashboard-main cli-dashboard-main">
+<!-- ══════════════════════════════════════════════════
+     ÁREA PRINCIPAL
+     ══════════════════════════════════════════════════ -->
+<main class="aparca-dashboard-main animate-fade-in-up" id="mainContent">
 
-
-    <!-- SECCIÓN PERFIL -->
+    <!-- ── MI PERFIL ── -->
     <section id="perfil" class="aparca-content-section">
-
         <div class="cli-welcome-section">
-            <h2 th:text="'Bienvenido, ' + ${nombreUsuario}">
-                Bienvenido, Usuario
+            <h2 th:text="'Bienvenido, ' + ${#authentication?.name ?: 'Cliente'}">
+                Bienvenido, Cliente
             </h2>
             <p>Revisa tus reservas y realiza pagos fácilmente desde aquí.</p>
         </div>
 
         <div class="cli-card-section">
             <h2>Mapa de Sedes</h2>
-
             <div class="cli-search-bar">
                 <input type="text"
                        id="searchInput"
                        placeholder="Buscar dirección (e.g., Calle Principal, Ciudad)"
-                       aria-label="Buscar dirección de parqueadero">
-                <button id="searchBtn" type="button">Buscar</button>
+                       aria-label="Buscar dirección de parqueadero"/>
+                <button id="searchBtn" type="button">
+                    <svg xmlns="http://www.w3.org/2000/svg" style="width:1rem;height:1rem;"
+                         fill="none" viewBox="0 0 24 24"
+                         stroke="currentColor" stroke-width="2">
+                        <path stroke-linecap="round" stroke-linejoin="round"
+                              d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
+                    </svg>
+                    Buscar
+                </button>
             </div>
-
-            <h3 class="font-bold text-xl mb-4">Encuentra tu parqueadero</h3>
-
-            <div id="map-container"
-                 aria-label="Mapa interactivo de parqueaderos">
-            </div>
+            <h3 class="font-bold text-lg mb-3">Encuentra tu parqueadero</h3>
+            <div id="map-container" aria-label="Mapa interactivo de parqueaderos"></div>
         </div>
     </section>
 
-
-    <!-- SECCIÓN MIS RESERVAS -->
+    <!-- ── MIS RESERVAS ── -->
     <section id="misreservas" class="aparca-content-section hidden">
-        <h2 class="aparca-content-section-title">Mis Reservas</h2>
-
-        <div class="cli-card-section">
+        <h2>Mis Reservas</h2>
+        <div class="overflow-x-auto">
             <table class="aparca-table cli-table">
                 <thead>
                 <tr>
@@ -130,20 +219,16 @@
                 </tr>
                 </thead>
                 <tbody id="reservasTableBody">
-                <tr>
-                    <td colspan="6" class="loading">Cargando...</td>
-                </tr>
+                <tr><td colspan="6" class="loading">Cargando...</td></tr>
                 </tbody>
             </table>
         </div>
     </section>
 
-
-    <!-- SECCIÓN PAGOS -->
+    <!-- ── PAGOS ── -->
     <section id="pagos" class="aparca-content-section hidden">
-        <h2 class="aparca-content-section-title">Historial de Pagos</h2>
-
-        <div class="cli-card-section">
+        <h2>Historial de Pagos</h2>
+        <div class="overflow-x-auto">
             <table class="aparca-table cli-table">
                 <thead>
                 <tr>
@@ -155,19 +240,15 @@
                 </tr>
                 </thead>
                 <tbody id="pagosTableBody">
-                <tr>
-                    <td colspan="5" class="loading">Cargando...</td>
-                </tr>
+                <tr><td colspan="5" class="loading">Cargando...</td></tr>
                 </tbody>
             </table>
         </div>
     </section>
 
-
-    <!-- SECCIÓN AYUDA -->
+    <!-- ── AYUDA ── -->
     <section id="ayuda" class="aparca-content-section hidden">
-        <h2 class="aparca-content-section-title">Ayuda y Soporte</h2>
-
+        <h2>Ayuda y Soporte</h2>
         <div class="cli-card-section">
             <p class="cli-help-text">¿Necesitas ayuda? Contáctanos:</p>
             <p class="cli-help-item"><strong>📧 Email:</strong> soporte@aparcaya.com</p>
@@ -179,42 +260,65 @@
 </main>
 
 
-<!-- ==================================================
-     MODALES — integrados vía Thymeleaf
-     ❌ ELIMINADOS del HTML original
-     ✅ Incluidos como fragmentos externos
-     ================================================== -->
-
-<!-- Modal detalles de sede -->
-<div th:replace="modals/cliente-modal-detalle-sede :: modal"></div>
-
-<!-- Modal de reserva -->
-<div th:replace="modals/cliente-modal-reserva :: modal"></div>
+<!-- ══════════════════════════════════════════════════
+     MODAL — DETALLES DE SEDE
+     Incluido via th:replace desde el fragmento
+     ══════════════════════════════════════════════════ -->
+<div th:replace="~{modals/cliente-modal-detalle-sede :: modal}"></div>
 
 
-<!-- DATOS DEL SERVIDOR → JavaScript -->
+<!-- ══════════════════════════════════════════════════
+     MODAL — RESERVA
+     Incluido via th:replace desde el fragmento
+     ══════════════════════════════════════════════════ -->
+<div th:replace="~{modals/cliente-modal-reserva :: modal}"></div>
+
+
+<!-- ── Datos del servidor → JS ── -->
 <script th:inline="javascript">
     /*<![CDATA[*/
-    window.userId        = /*[[${userId}]]*/ 1;
-    window.nombreUsuario = /*[[${nombreUsuario}]]*/ 'Usuario';
+    window.userId        = /*[[${userId}]]*/ null;
+    window.nombreUsuario = /*[[${nombreUsuario}]]*/ 'Cliente';
     window.sedesData     = /*[[${sedes}]]*/ [];
-
-    sessionStorage.setItem('userId',        window.userId);
-    sessionStorage.setItem('nombreUsuario', window.nombreUsuario);
-
-    console.log('✅ Datos cargados desde servidor:', {
-        userId:        window.userId,
-        nombreUsuario: window.nombreUsuario,
-        sedesCount:    window.sedesData.length
-    });
     /*]]>*/
 </script>
 
-<!-- Leaflet JS (antes del script principal) -->
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
-
-<!-- Script principal del módulo cliente -->
+<script src="/js/sessionHandler.js"></script>
 <script src="/js/ClienteD.js"></script>
+
+<script>
+    function toggleSidebar() {
+        var collapsed = document.body.classList.toggle('sidebar-collapsed');
+        var btn = document.getElementById('sidebarToggleBtn');
+        if (btn) {
+            btn.setAttribute('aria-label',
+                collapsed ? 'Expandir menú lateral' : 'Colapsar menú lateral');
+        }
+        try { localStorage.setItem('cli-sidebar-collapsed', collapsed ? '1' : '0'); } catch(e) {}
+    }
+
+    (function() {
+        try {
+            if (localStorage.getItem('cli-sidebar-collapsed') === '1') {
+                document.body.classList.add('sidebar-collapsed');
+                var btn = document.getElementById('sidebarToggleBtn');
+                if (btn) btn.setAttribute('aria-label', 'Expandir menú lateral');
+            }
+        } catch(e) {}
+    })();
+
+    document.addEventListener('DOMContentLoaded', function() {
+        var usernameEl = document.getElementById('sidebarUsername');
+        var avatarEl   = document.getElementById('sidebarAvatarInitial');
+        if (usernameEl && avatarEl) {
+            var nombre = usernameEl.textContent.trim();
+            if (nombre) avatarEl.textContent = nombre.charAt(0).toUpperCase();
+        }
+    });
+
+    window.toggleSidebar = toggleSidebar;
+</script>
 
 </body>
 </html>

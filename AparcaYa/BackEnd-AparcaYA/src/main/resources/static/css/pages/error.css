@@ -1,0 +1,294 @@
+/* ================================================
+   ERROR.CSS — AparcaYA
+   Ruta: static/css/pages/error.css
+   Prefijo: er-
+   Compartido por: 400.html 403.html 404.html 500.html 503.html
+   Font: Inter + Syne
+   Paleta: navy #1e3a8a / blue #1d4ed8 / sky #0ea5e9
+   ================================================ */
+
+@import url('https://fonts.googleapis.com/css2?family=Syne:wght@700;800&family=Inter:wght@400;500;600;700&display=swap');
+
+:root {
+    --er-navy:      #1e3a8a;
+    --er-navy-deep: #162d6e;
+    --er-blue:      #1d4ed8;
+    --er-sky:       #0ea5e9;
+    --er-light:     #eff6ff;
+    --er-faint:     #f8faff;
+    --er-border:    #dde5f4;
+    --er-text:      #1e293b;
+    --er-muted:     #64748b;
+    /* Por tipo de error — se sobreescriben con clase en el body */
+    --er-accent:    #1d4ed8;
+    --er-accent-bg: #eff6ff;
+    --er-code-bg:   #1e3a8a;
+}
+
+/* ── RESET MÍNIMO ── */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+/* ── BODY ── */
+body {
+    font-family: 'Inter', system-ui, sans-serif;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 2rem 1.25rem;
+    background: linear-gradient(135deg, #eef3ff 0%, #dbeafe 55%, #f0f5ff 100%);
+    position: relative;
+    overflow: hidden;
+    -webkit-font-smoothing: antialiased;
+    color: var(--er-text);
+}
+
+/* ── FONDO DECORATIVO ── */
+.er-bg { position: fixed; inset: 0; pointer-events: none; z-index: 0; overflow: hidden; }
+
+.er-blob {
+    position: absolute;
+    border-radius: 50%;
+    filter: blur(100px);
+    opacity: .9;
+}
+
+.er-blob-1 {
+    width: 560px; height: 560px;
+    background: radial-gradient(circle, rgba(29,78,216,.15), transparent 70%);
+    top: -180px; right: -120px;
+}
+.er-blob-2 {
+    width: 420px; height: 420px;
+    background: radial-gradient(circle, rgba(14,165,233,.12), transparent 70%);
+    bottom: -120px; left: -80px;
+}
+.er-blob-3 {
+    width: 260px; height: 260px;
+    background: radial-gradient(circle, var(--er-accent-bg), transparent 70%);
+    top: 45%; left: 50%; transform: translate(-50%, -50%);
+    opacity: .6;
+}
+
+/* ── BRAND FIJO ── */
+.er-brand {
+    position: fixed;
+    top: 1.25rem; left: 1.5rem;
+    display: inline-flex; align-items: center; gap: .625rem;
+    text-decoration: none; z-index: 50;
+    transition: opacity .2s ease;
+}
+.er-brand:hover { opacity: .82; }
+
+.er-brand-mark {
+    width: 36px; height: 36px;
+    background: linear-gradient(135deg, var(--er-navy), var(--er-blue));
+    border-radius: 9px;
+    display: flex; align-items: center; justify-content: center;
+    box-shadow: 0 3px 10px rgba(30,58,138,.30);
+    flex-shrink: 0;
+}
+
+.er-brand-p {
+    font-family: 'Syne', sans-serif;
+    font-weight: 800; font-size: 1.15rem;
+    color: white; line-height: 1; letter-spacing: -.02em;
+}
+
+.er-brand-name {
+    font-family: 'Syne', sans-serif;
+    font-weight: 800; font-size: 1.125rem;
+    color: var(--er-navy); letter-spacing: -.025em;
+}
+
+/* ── TARJETA ── */
+.er-card {
+    position: relative; z-index: 1;
+    width: 100%; max-width: 520px;
+    background: #fff;
+    border-radius: 1.375rem;
+    border: 1px solid var(--er-border);
+    box-shadow:
+            0 1px 3px rgba(30,58,138,.05),
+            0 8px 30px rgba(30,58,138,.10),
+            0 30px 60px rgba(30,58,138,.06);
+    padding: 2.75rem 2.5rem 2.5rem;
+    text-align: center;
+    animation: er-slide-up .35s ease-out both;
+}
+
+.er-slide-up { animation: er-slide-up .35s ease-out both; }
+
+@keyframes er-slide-up {
+    from { transform: translateY(28px); opacity: 0; }
+    to   { transform: translateY(0);    opacity: 1; }
+}
+
+/* ── CÓDIGO DE ERROR (número grande) ── */
+.er-code {
+    font-family: 'Syne', sans-serif;
+    font-weight: 800;
+    font-size: clamp(5rem, 20vw, 7.5rem);
+    line-height: 1;
+    letter-spacing: -.04em;
+    background: linear-gradient(135deg, var(--er-navy) 0%, var(--er-blue) 60%, var(--er-sky) 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    margin-bottom: .5rem;
+    display: block;
+}
+
+/* Variantes de color por tipo */
+body.er-warn  { --er-accent: #d97706; --er-accent-bg: #fffbeb; --er-code-bg: #92400e; }
+body.er-deny  { --er-accent: #7c3aed; --er-accent-bg: #f5f3ff; --er-code-bg: #4c1d95; }
+body.er-gone  { --er-accent: #0891b2; --er-accent-bg: #ecfeff; --er-code-bg: #164e63; }
+body.er-crash { --er-accent: #dc2626; --er-accent-bg: #fef2f2; --er-code-bg: #7f1d1d; }
+body.er-sleep { --er-accent: #059669; --er-accent-bg: #f0fdf4; --er-code-bg: #064e3b; }
+
+body.er-warn  .er-code { background: linear-gradient(135deg, #92400e, #d97706, #f59e0b); -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent; }
+body.er-deny  .er-code { background: linear-gradient(135deg, #4c1d95, #7c3aed, #a78bfa); -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent; }
+body.er-gone  .er-code { background: linear-gradient(135deg, #164e63, #0891b2, #22d3ee); -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent; }
+body.er-crash .er-code { background: linear-gradient(135deg, #7f1d1d, #dc2626, #f87171); -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent; }
+body.er-sleep .er-code { background: linear-gradient(135deg, #064e3b, #059669, #34d399); -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent; }
+
+/* ── ÍCONO SOBRE EL CÓDIGO ── */
+.er-icon-wrap {
+    width: 64px; height: 64px;
+    border-radius: 18px;
+    background: var(--er-accent-bg);
+    border: 1.5px solid color-mix(in srgb, var(--er-accent) 25%, transparent);
+    display: flex; align-items: center; justify-content: center;
+    margin: 0 auto 1.25rem;
+}
+
+/* SVG del ícono — tamaño fijo */
+.er-icon-wrap svg {
+    width: 32px !important; height: 32px !important;
+    color: var(--er-accent);
+    display: block; flex-shrink: 0;
+}
+
+/* ── TEXTOS ── */
+.er-title {
+    font-family: 'Syne', sans-serif;
+    font-weight: 800; font-size: 1.5rem;
+    color: var(--er-navy); letter-spacing: -.03em;
+    margin-bottom: .625rem; line-height: 1.2;
+}
+
+.er-desc {
+    font-size: .9375rem; color: var(--er-muted);
+    line-height: 1.65; margin-bottom: 2rem;
+    max-width: 360px; margin-left: auto; margin-right: auto;
+}
+
+.er-desc strong { color: var(--er-text); font-weight: 600; }
+
+/* ── DIVISOR ── */
+.er-divider {
+    width: 48px; height: 3px;
+    background: linear-gradient(90deg, var(--er-navy), var(--er-sky));
+    border-radius: 999px;
+    margin: 0 auto 1.5rem;
+}
+
+/* ── BOTONES ── */
+.er-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: .75rem;
+    justify-content: center;
+}
+
+.er-btn-primary {
+    display: inline-flex; align-items: center; gap: .5rem;
+    padding: .7rem 1.5rem;
+    background: linear-gradient(135deg, var(--er-navy), var(--er-blue));
+    color: white; border: none; border-radius: .75rem;
+    font-family: 'Inter', system-ui, sans-serif;
+    font-size: .9rem; font-weight: 600;
+    cursor: pointer; text-decoration: none;
+    box-shadow: 0 3px 12px rgba(30,58,138,.28);
+    transition: opacity .2s, transform .2s, box-shadow .2s;
+}
+.er-btn-primary:hover {
+    opacity: .91; transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(30,58,138,.36);
+}
+
+.er-btn-secondary {
+    display: inline-flex; align-items: center; gap: .5rem;
+    padding: .7rem 1.5rem;
+    background: var(--er-faint); color: var(--er-navy);
+    border: 1.5px solid var(--er-border); border-radius: .75rem;
+    font-family: 'Inter', system-ui, sans-serif;
+    font-size: .9rem; font-weight: 600;
+    cursor: pointer; text-decoration: none;
+    transition: background .2s, border-color .2s, transform .2s;
+}
+.er-btn-secondary:hover {
+    background: var(--er-light); border-color: var(--er-blue);
+    transform: translateY(-2px);
+}
+
+/* SVG en botones */
+.er-btn-primary svg,
+.er-btn-secondary svg {
+    width: 16px !important; height: 16px !important;
+    display: block; flex-shrink: 0;
+}
+
+/* ── DETALLE TÉCNICO (acordeón) ── */
+.er-detail {
+    margin-top: 1.75rem;
+    border-top: 1px solid var(--er-border);
+    padding-top: 1.25rem;
+    text-align: left;
+}
+
+.er-detail summary {
+    font-size: .8125rem; font-weight: 600;
+    color: var(--er-muted); cursor: pointer;
+    list-style: none; display: flex; align-items: center; gap: .375rem;
+    user-select: none;
+    transition: color .2s;
+}
+.er-detail summary:hover { color: var(--er-navy); }
+.er-detail summary::after { content: '▾'; font-size: .7rem; }
+.er-detail[open] summary::after { content: '▴'; }
+
+.er-detail-body {
+    margin-top: .75rem;
+    background: #f8faff;
+    border: 1px solid var(--er-border);
+    border-radius: .5rem;
+    padding: .875rem 1rem;
+    font-family: 'Courier New', monospace;
+    font-size: .8rem; color: #475569;
+    line-height: 1.6;
+    word-break: break-word;
+}
+
+/* ── CÓDIGO DE ESTADO INLINE ── */
+.er-status-tag {
+    display: inline-flex; align-items: center; gap: .375rem;
+    background: var(--er-accent-bg);
+    border: 1px solid color-mix(in srgb, var(--er-accent) 20%, transparent);
+    color: var(--er-accent);
+    font-size: .75rem; font-weight: 700;
+    padding: .25rem .7rem; border-radius: 999px;
+    letter-spacing: .04em; text-transform: uppercase;
+    margin-bottom: 1rem;
+    font-family: 'Inter', monospace;
+}
+
+/* ── RESPONSIVE ── */
+@media (max-width: 480px) {
+    .er-card { padding: 2rem 1.375rem 2rem; border-radius: 1.125rem; }
+    .er-code  { font-size: clamp(4.5rem, 22vw, 6rem); }
+    .er-title { font-size: 1.25rem; }
+    .er-actions { flex-direction: column; align-items: stretch; }
+    .er-btn-primary, .er-btn-secondary { justify-content: center; }
+}

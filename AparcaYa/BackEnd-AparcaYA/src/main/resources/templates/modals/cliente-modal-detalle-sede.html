@@ -2,58 +2,57 @@
 <html lang="es" xmlns:th="http://www.thymeleaf.org">
 <!--
     FRAGMENTO: cliente-modal-detalle-sede
-    Uso en dashboard: <div th:replace="modals/cliente-modal-detalle-sede :: modal"></div>
-    Tipo: DIV propio con .aparca-modal-overlay (aparca-components.css)
-    Abre con: mostrarDetallesSede(sedeId) → modal.classList.add('show')
-    Cierra con: cerrarModalSede()         → modal.classList.remove('show')
-
-    El JS inyecta dinámicamente en #modalSedeBody:
-      - info-grid con datos de la sede
-      - botones de acción (Reservar / Cerrar)
-    usando clases cliente-modal-sede-* definidas en
-    /css/modals/cliente-modal-detalle-sede.css
+    Uso: <div th:replace="~{modals/cliente-modal-detalle-sede :: modal}"></div>
+    Abre:  mostrarDetallesSede(sedeId)  → modal.style.display = 'flex'
+    Cierra: cerrarModalSede()           → modal.style.display = 'none'
 -->
 <body>
 <th:block th:fragment="modal">
 
     <div id="modalSede"
-         class="aparca-modal-overlay"
+         style="display:none;position:fixed;inset:0;z-index:1000;
+                background:rgba(0,0,0,0.5);
+                align-items:center;justify-content:center;padding:1rem;"
          role="dialog"
          aria-modal="true"
          aria-labelledby="modalSedeTitle"
          aria-hidden="true">
 
-        <div class="aparca-modal-content">
+        <div class="sede-modal-box" style="max-width:560px;width:100%;">
 
-            <div class="aparca-modal-header">
-                <h3 id="modalSedeTitle">Detalles de la Sede</h3>
-                <button class="aparca-modal-close"
-                        type="button"
-                        onclick="window.closeModalSede
-                                 ? window.closeModalSede()
-                                 : document.getElementById('modalSede')
-                                   .classList.remove('show')"
-                        aria-label="Cerrar modal">
-                    &times;
+            <div style="display:flex;align-items:center;
+                        justify-content:space-between;margin-bottom:1.25rem;">
+                <h3 id="modalSedeTitle"
+                    style="font-size:1.125rem;font-weight:700;color:#4c1d95;margin:0;">
+                    Detalles de Sede
+                </h3>
+                <button type="button"
+                        onclick="cerrarModalSede()"
+                        aria-label="Cerrar modal"
+                        style="background:none;border:none;cursor:pointer;
+                               color:#64748b;padding:0.25rem;">
+                    <svg xmlns="http://www.w3.org/2000/svg"
+                         style="width:1.25rem;height:1.25rem;"
+                         fill="none" viewBox="0 0 24 24"
+                         stroke="currentColor" stroke-width="2">
+                        <path stroke-linecap="round" stroke-linejoin="round"
+                              d="M6 18L18 6M6 6l12 12"/>
+                    </svg>
                 </button>
             </div>
 
-            <div class="aparca-modal-body">
-                <!--
-                    JS inyecta aquí via mostrarDetallesSede().
-                    Clases usadas en el innerHTML:
-                      cliente-modal-sede-grid
-                      cliente-modal-sede-item
-                      cliente-modal-sede-full
-                      cliente-modal-sede-label
-                      cliente-modal-sede-value
-                      cliente-modal-sede-tarifas
-                      cliente-modal-sede-actions
-                      cli-btn-confirm  (ya en cliente.css)
-                      cliente-modal-sede-btn-cerrar
-                -->
-                <div id="modalSedeBody"></div>
-            </div>
+            <!--
+                El JS inyecta aquí via mostrarDetallesSede().
+                Estructura esperada:
+                  .cliente-modal-sede-grid
+                    .cliente-modal-sede-item (.cliente-modal-sede-full)
+                      .cliente-modal-sede-label
+                      .cliente-modal-sede-value
+                  .cliente-modal-sede-actions
+                    button.cli-btn-confirm → abrirModalReserva()
+                    button                → cerrarModalSede()
+            -->
+            <div id="modalSedeBody"></div>
 
         </div>
     </div>

@@ -4,19 +4,24 @@ import com.exe.AparcaYA.Entity.Usuario;
 import com.exe.AparcaYA.Enum.Rolenum;
 import com.exe.AparcaYA.Service.UsuarioService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.boot.web.embedded.tomcat.TomcatServletWebServerFactory;
+import org.springframework.boot.web.server.WebServerFactoryCustomizer;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
+import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
+import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.AuthenticationSuccessHandler;
+import org.springframework.security.web.authentication.session.SessionAuthenticationException;
 
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -27,11 +32,12 @@ import java.util.Optional;
 
 @Configuration
 @EnableWebSecurity
+@EnableMethodSecurity(prePostEnabled = true)
 @RequiredArgsConstructor
 public class SecurityConfig {
 
-    private final UsuarioService             usuarioService;
-    private final CustomUserDetailsService   customUserDetailsService;
+    private final UsuarioService           usuarioService;
+    private final CustomUserDetailsService customUserDetailsService;
 
     // ==================== PASSWORD ENCODER ====================
 
@@ -42,20 +48,6 @@ public class SecurityConfig {
 
     // ==================== AUTHENTICATION PROVIDER ====================
 
-    /**
-     * ✅ CORRECCIÓN 2: Reemplaza el AuthenticationManager manual duplicado.
-     *
-     * Antes había dos @Bean AuthenticationManager:
-     *   - authManager(HttpSecurity)        → construido manualmente con el builder
-     *   - authenticationManager(AuthConfig) → delegado a Spring
-     *
-     * El problema: Spring podía inyectar el bean que NO usaba CustomUserDetailsService,
-     * causando que la autenticación automática post-registro fallara.
-     *
-     * Ahora: un único DaoAuthenticationProvider vincula explícitamente
-     * CustomUserDetailsService + BCryptPasswordEncoder. Spring lo detecta
-     * automáticamente y el AuthenticationManager delegado lo usa.
-     */
     @Bean
     public DaoAuthenticationProvider authenticationProvider() {
         DaoAuthenticationProvider provider = new DaoAuthenticationProvider();
@@ -66,12 +58,6 @@ public class SecurityConfig {
 
     // ==================== AUTHENTICATION MANAGER ====================
 
-    /**
-     * ✅ CORRECCIÓN 2 (cont.): Un único AuthenticationManager.
-     * Delega a AuthenticationConfiguration, que ya recoge el
-     * DaoAuthenticationProvider definido arriba.
-     * El controller lo inyecta con @RequiredArgsConstructor por nombre de campo.
-     */
     @Bean
     public AuthenticationManager authenticationManager(AuthenticationConfiguration config)
             throws Exception {
@@ -115,17 +101,8 @@ public class SecurityConfig {
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
 
         http
-                // CSRF desactivado (sin cambios)
                 .csrf(AbstractHttpConfigurer::disable)
 
-                // ✅ CORRECCIÓN 1: Agregar /check/** al permitAll()
-                // Antes: los 4 endpoints GET /check/correo, /check/cedula,
-                //        /check/telefono y /check/nit eran interceptados por
-                //        Spring Security → 302 redirect a /login.
-                //        El JS recibía HTML en lugar de JSON → checkDisponibilidad()
-                //        fallaba silenciosamente y retornaba true sin verificar nada.
-                // Ahora: accesibles sin autenticación (son GET de solo lectura,
-                //        solo indican si un valor ya existe en BD).
                 .authorizeHttpRequests(authz -> authz
                         .requestMatchers(
                                 "/",
@@ -135,16 +112,21 @@ public class SecurityConfig {
                                 "/test",
                                 "/public",
                                 "/api/auth/**",
-                                "/check/**",          // ✅ NUEVO: verificación de duplicados
+                                "/check/**",
                                 "/css/**",
                                 "/js/**",
                                 "/images/**"
                         )
                         .permitAll()
+
+                        .requestMatchers("/dashboard/administradorGeneral").hasRole("ADMIN")
+                        .requestMatchers("/dashboard/administradorSede").hasRole("ADMINISTRADOR_SEDE")
+                        .requestMatchers("/dashboard/trabajadorParqueadero").hasRole("OPERARIO")
+                        .requestMatchers("/dashboard/cliente").hasRole("CLIENTE")
+
                         .anyRequest().authenticated()
                 )
 
-                // Configuración de login (sin cambios)
                 .formLogin(form -> form
                         .loginPage("/login")
                         .loginProcessingUrl("/login")
@@ -153,17 +135,42 @@ public class SecurityConfig {
                         .permitAll()
                 )
 
-                // Configuración de logout (sin cambios)
                 .logout(logout -> logout
                         .logoutUrl("/logout")
                         .logoutSuccessUrl("/login?logout")
+                        .invalidateHttpSession(true)
+                        .deleteCookies("JSESSIONID")
                         .permitAll()
                 )
 
-                // ✅ CORRECCIÓN 2 (cont.): registrar el provider explícitamente
-                // para que la cadena de filtros lo use en el formLogin
+                // Sesiones ilimitadas simultáneas — el mismo usuario puede estar
+                // autenticado desde múltiples pestañas y dispositivos a la vez.
+                // sessionFixation().migrateSession() regenera el ID de sesión al
+                // autenticarse para prevenir session fixation attacks.
+                .sessionManagement(session -> session
+                        .sessionCreationPolicy(SessionCreationPolicy.IF_REQUIRED)
+                        .sessionFixation().migrateSession()
+                )
+
+                .exceptionHandling(ex -> ex
+                        .accessDeniedHandler((request, response, accessDeniedException) -> {
+                            response.sendRedirect("/login?accessDenied");
+                        })
+                )
+
                 .authenticationProvider(authenticationProvider());
 
         return http.build();
+    }
+
+    // ==================== SESSION TIMEOUT — 24 HORAS ====================
+
+    // Doble cobertura: application.properties define el timeout del servlet container,
+    // este bean lo fuerza también a nivel Tomcat context (1440 minutos = 24 horas).
+    @Bean
+    public WebServerFactoryCustomizer<TomcatServletWebServerFactory> sessionTimeoutCustomizer() {
+        return factory -> factory.addContextCustomizers(context -> {
+            context.setSessionTimeout(1440);
+        });
     }
 }

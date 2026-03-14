@@ -1,122 +1,543 @@
 /* ================================================
    REGISTRO.CSS — AparcaYA
-   Ruta: static/css/registro.css
-
-   PROPÓSITO: Estilos EXCLUSIVOS del formulario
-   de registro multi-paso.
-
-   Lo que ya NO está aquí (viene de archivos base):
-   - .animate-fade-in-up    → aparca-animations.css
-   - @keyframes aparca-fadeInUp → aparca-animations.css
-
-   Lo que SÍ está aquí (exclusivo del registro):
-   1. .card-hover
-   2. .btn-pulse / @keyframes registro-pulse
-   3. .role-btn (selector de rol)
-   4. .error-message / .success-message
-   5. .mensaje / .mensaje.success / .mensaje.error
-   6. .step / .active-step
+   Ruta: static/css/pages/registro.css
+   Prefijo: rg-
+   Font: Inter (familiar, limpio, como el original)
+   Paleta: navy #1e3a8a / blue #1d4ed8 / sky #0ea5e9
    ================================================ */
 
-
-/* ================================================
-   1. HOVER PARA LA TARJETA DEL FORMULARIO
-   ================================================ */
-.card-hover {
-    transition: transform 0.3s ease,
-    box-shadow 0.3s ease,
-    border-color 0.3s ease;
+:root {
+    --rg-navy:    #1e3a8a;
+    --rg-blue:    #1d4ed8;
+    --rg-sky:     #0ea5e9;
+    --rg-light:   #eff6ff;
+    --rg-faint:   #f8faff;
+    --rg-border:  #dde5f4;
+    --rg-text:    #1e293b;
+    --rg-muted:   #64748b;
+    --rg-red:     #dc2626;
+    --rg-green:   #059669;
+    --rg-sede:    #0f766e;
 }
 
-.card-hover:hover {
-    transform: translateY(-5px);
-    box-shadow: 0 10px 20px rgba(0, 191, 255, 0.2);
-    border-color: #00BFFF;
+/* ── BODY ── */
+.rg-body {
+    font-family: 'Inter', system-ui, sans-serif;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 2rem 1rem 3rem;
+    margin: 0;
+    background: linear-gradient(135deg, #eef3ff 0%, #dbeafe 60%, #f0f5ff 100%);
+    position: relative;
+    overflow-x: hidden;
+    -webkit-font-smoothing: antialiased;
 }
 
-
-/* ================================================
-   2. ANIMACIÓN PULSE PARA BOTONES
-   Nombre registro-pulse para no colisionar con
-   el @keyframes pulse interno de Tailwind
-   ================================================ */
-.btn-pulse {
-    animation: registro-pulse 2s infinite;
+/* ── FONDO ── */
+.rg-bg { position: fixed; inset: 0; pointer-events: none; z-index: 0; overflow: hidden; }
+.rg-blob { position: absolute; border-radius: 50%; filter: blur(90px); }
+.rg-blob-1 {
+    width: 500px; height: 500px;
+    background: radial-gradient(circle, rgba(29,78,216,.13), transparent 70%);
+    top: -160px; right: -120px;
+}
+.rg-blob-2 {
+    width: 380px; height: 380px;
+    background: radial-gradient(circle, rgba(14,165,233,.10), transparent 70%);
+    bottom: -100px; left: -80px;
 }
 
-@keyframes registro-pulse {
-    0%, 100% { transform: scale(1);    }
-    50%       { transform: scale(1.05); }
+/* ── HERO ── */
+.rg-hero {
+    position: relative;
+    z-index: 1;
+    text-align: center;
+    margin-bottom: 1.5rem;
+    width: 100%;
+    max-width: 620px;
 }
 
-
-/* ================================================
-   3. BOTONES DE SELECCIÓN DE ROL
-   ================================================ */
-.role-btn {
-    transition: background-color 0.3s ease,
-    color 0.3s ease;
+.rg-hero-icon {
+    width: 60px; height: 60px;
+    background: linear-gradient(135deg, var(--rg-navy), var(--rg-blue));
+    border-radius: 16px;
+    display: flex; align-items: center; justify-content: center;
+    margin: 0 auto 1rem;
+    box-shadow: 0 8px 24px rgba(30,58,138,.28);
 }
 
-.role-btn.active {
-    background-color: #00BFFF;
+/* SVG del hero — tamaño fijo, sin Tailwind */
+.rg-hero-icon svg {
+    width: 28px !important; height: 28px !important;
+    color: white; display: block;
+}
+
+.rg-hero-title {
+    font-size: 2rem;
+    font-weight: 800;
+    color: var(--rg-navy);
+    letter-spacing: -0.03em;
+    margin: 0 0 0.4rem;
+    line-height: 1.15;
+}
+
+/* Italic para el nombre de la app */
+.rg-hero-title em {
+    font-style: normal;
+    color: var(--rg-blue);
+}
+
+.rg-hero-sub {
+    font-size: 0.9375rem;
+    color: var(--rg-muted);
+    margin: 0;
+}
+
+/* ── TARJETA ── */
+.rg-card {
+    position: relative; z-index: 1;
+    width: 100%; max-width: 620px;
+    background: #fff;
+    border-radius: 1.25rem;
+    border: 1px solid var(--rg-border);
+    box-shadow:
+            0 1px 3px rgba(30,58,138,.05),
+            0 8px 28px rgba(30,58,138,.10),
+            0 28px 56px rgba(30,58,138,.06);
+    padding: 2rem;
+}
+
+.rg-card-head { text-align: center; margin-bottom: 1.5rem; }
+
+.rg-card-title {
+    font-size: 1.375rem;
+    font-weight: 700;
+    color: var(--rg-navy);
+    letter-spacing: -0.02em;
+    margin: 0 0 0.25rem;
+}
+
+.rg-card-sub {
+    font-size: 0.875rem;
+    color: var(--rg-muted);
+    margin: 0;
+}
+
+/* ── ALERTAS ── */
+.rg-alert {
+    display: flex; align-items: flex-start; gap: 0.5rem;
+    padding: 0.75rem 1rem;
+    border-radius: 0.625rem;
+    font-size: 0.875rem; line-height: 1.5;
+    margin-bottom: 1.25rem;
+}
+.rg-alert-error  { background: #fef2f2; border: 1px solid #fca5a5; color: #991b1b; }
+.rg-alert-ok     { background: #f0fdf4; border: 1px solid #86efac; color: #166534; }
+
+/* ── SELECTOR DE ROL ── */
+.rg-role-wrap {
+    display: flex; justify-content: center; gap: 1rem;
+    margin-bottom: 1.5rem;
+}
+
+.rg-role-btn {
+    display: inline-flex; align-items: center; gap: 0.5rem;
+    padding: 0.55rem 1.25rem;
+    border: 1.5px solid var(--rg-border);
+    border-radius: 0.625rem;
+    background: var(--rg-faint);
+    color: var(--rg-navy);
+    font-family: 'Inter', system-ui, sans-serif;
+    font-size: 0.875rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.rg-role-btn:hover:not(:disabled) {
+    border-color: var(--rg-blue);
+    background: var(--rg-light);
+}
+
+.rg-role-btn.active {
+    background: linear-gradient(135deg, var(--rg-navy), var(--rg-blue));
+    border-color: var(--rg-blue);
     color: white;
+    box-shadow: 0 4px 14px rgba(30,58,138,.28);
 }
 
-.role-btn:hover:not(:disabled) {
-    background-color: #87CEEB;
+.rg-role-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+
+/* SVG del rol — fijo, sin Tailwind */
+.rg-role-ico {
+    width: 18px !important; height: 18px !important;
+    display: block; flex-shrink: 0;
+    color: var(--rg-blue);
+}
+.rg-role-btn.active .rg-role-ico { color: white; }
+
+/* ── CABECERA DE SECCIÓN DE PASO ── */
+.rg-section-head {
+    display: flex; align-items: center; gap: 0.625rem;
+    margin-bottom: 1.125rem;
+    padding-bottom: 0.875rem;
+    border-bottom: 1.5px solid var(--rg-border);
 }
 
-/* Estado deshabilitado tras avanzar el primer paso */
-.role-btn:disabled {
-    opacity: 0.5;
-    cursor: not-allowed;
+.rg-sec-ico {
+    width: 20px !important; height: 20px !important;
+    color: var(--rg-blue); display: block; flex-shrink: 0;
 }
 
+.rg-section-sede .rg-sec-ico { color: var(--rg-sede); }
 
-/* ================================================
-   4. MENSAJES DE VALIDACIÓN
-   ================================================ */
-.error-message {
-    color: #DC2626;
-    font-size: 0.875rem;
+.rg-section-title {
+    font-size: 1rem;
+    font-weight: 700;
+    color: var(--rg-navy);
+    letter-spacing: -0.015em;
+    margin: 0;
 }
 
-.success-message {
-    color: #059669;
-    font-size: 0.875rem;
+/* ── FIELDSET / CAMPOS ── */
+.rg-fieldset { border: none; padding: 0; margin: 0 0 0.5rem; }
+
+.rg-field { margin-bottom: 1rem; }
+
+.rg-grid2 {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1rem;
 }
 
-
-/* ================================================
-   5. MENSAJE DE RESULTADO DEL FORMULARIO
-   ================================================ */
-.mensaje {
-    margin-top: 1rem;
-    padding: 0.5rem;
-    border-radius: 0.375rem;
-}
-
-.mensaje.success {
-    background-color: #D1FAE5;
-    color: #065F46;
-}
-
-.mensaje.error {
-    background-color: #FEE2E2;
-    color: #991B1B;
-}
-
-
-/* ================================================
-   6. CONTROL DE VISIBILIDAD DE PASOS
-   El JS alterna .active-step para mostrar
-   solo el paso actual del formulario multi-paso
-   ================================================ */
-.step {
-    display: none;
-}
-
-.active-step {
+.rg-label {
     display: block;
+    font-size: 0.8125rem;
+    font-weight: 600;
+    color: var(--rg-navy);
+    margin-bottom: 0.35rem;
+}
+
+/* INPUT — sobreescribe DaisyUI */
+.rg-input {
+    display: block; width: 100%;
+    padding: 0.65rem 0.875rem;
+    background: var(--rg-faint);
+    border: 1.5px solid var(--rg-border);
+    border-radius: 0.5rem;
+    font-family: 'Inter', system-ui, sans-serif;
+    font-size: 0.875rem;
+    color: var(--rg-text);
+    outline: none;
+    transition: border-color .2s ease, background .2s ease, box-shadow .2s ease;
+    box-sizing: border-box;
+    -webkit-appearance: none; appearance: none;
+    min-height: unset !important; height: auto !important; line-height: 1.5 !important;
+}
+
+.rg-input:focus {
+    background: #fff;
+    border-color: var(--rg-blue);
+    box-shadow: 0 0 0 3px rgba(29,78,216,.10);
+}
+
+.rg-input::placeholder { color: #b0bec5; }
+
+/* Validación visual */
+.rg-input.border-red-500   { border-color: #ef4444 !important; }
+.rg-input.border-green-500 { border-color: #22c55e !important; }
+
+/* Variantes */
+.rg-select {
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='%2364748b' stroke-width='2'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' d='M19 9l-7 7-7-7'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right .65rem center;
+    background-size: 15px;
+    padding-right: 2rem;
+    cursor: pointer;
+}
+
+.rg-mono { font-family: 'Courier New', monospace; letter-spacing: .1em; text-transform: uppercase; }
+.rg-pwd-input { padding-right: 2.5rem; }
+.rg-cash { padding-left: 1.5rem; }
+
+/* Toggle contraseña */
+.rg-pwd-wrap { position: relative; display: block; }
+
+.rg-eye {
+    position: absolute; top: 50%; right: 0.7rem;
+    transform: translateY(-50%);
+    background: none; border: none; padding: 0; margin: 0;
+    cursor: pointer; color: #94a3b8;
+    display: flex; align-items: center; justify-content: center;
+    width: 20px; height: 20px;
+    transition: color .2s ease;
+    outline: none;
+}
+.rg-eye:hover { color: var(--rg-navy); }
+.rg-eye:focus-visible { outline: 2px solid var(--rg-blue); border-radius: 3px; }
+
+/* SVG ojo — tamaño fijo */
+.eye-open, .eye-closed {
+    display: block !important;
+    width: 18px !important; height: 18px !important;
+    min-width: 18px !important; max-width: 18px !important;
+    min-height: 18px !important; max-height: 18px !important;
+    flex-shrink: 0;
+}
+.hidden { display: none !important; }
+
+/* Prefijo $ */
+.rg-money { position: relative; display: block; }
+.rg-money-s {
+    position: absolute; top: 50%; left: 0.7rem;
+    transform: translateY(-50%);
+    color: #94a3b8; font-size: 0.875rem; pointer-events: none;
+}
+
+/* ── MENSAJES VALIDACIÓN ── */
+.error-message   { display: block; font-size: .8rem; color: var(--rg-red);   margin-top: .25rem; line-height: 1.4; }
+.success-message { display: block; font-size: .8rem; color: var(--rg-green); margin-top: .25rem; line-height: 1.4; }
+
+/* ── BLOQUES DE TARIFA ── */
+.rg-tarifa {
+    border-radius: .75rem;
+    padding: 1rem 1.125rem;
+    margin-bottom: 1rem;
+    border: 1px solid;
+}
+.rg-tarifa-blue  { background: #eff6ff; border-color: #bfdbfe; }
+.rg-tarifa-green { background: #f0fdf4; border-color: #bbf7d0; }
+
+.rg-tarifa-head {
+    display: flex; align-items: center; gap: .5rem;
+    margin-bottom: .875rem;
+}
+
+.rg-tarifa-name {
+    font-size: .875rem; font-weight: 700;
+    color: var(--rg-navy); flex: 1;
+}
+
+.rg-chip {
+    font-size: .7rem; font-weight: 600;
+    padding: .15rem .5rem; border-radius: 999px;
+    background: rgba(29,78,216,.10); color: var(--rg-blue);
+    letter-spacing: .02em;
+}
+.rg-chip-green { background: rgba(15,118,110,.10); color: var(--rg-sede); }
+
+/* ── SELECTOR DE HORARIO ── */
+.rg-horario-picker {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    background: var(--rg-faint);
+    border: 1.5px solid var(--rg-border);
+    border-radius: .75rem;
+    padding: 1rem 1.125rem;
+    margin-top: .375rem;
+}
+
+.rg-horario-col {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: .5rem;
+}
+
+.rg-horario-col-label {
+    display: flex;
+    align-items: center;
+    gap: .375rem;
+    font-size: .75rem;
+    font-weight: 700;
+    color: var(--rg-navy);
+    letter-spacing: .02em;
+    text-transform: uppercase;
+}
+
+/* SVG del reloj en el label del horario — tamaño fijo */
+.rg-horario-col-label svg {
+    width: 14px !important; height: 14px !important;
+    display: block; flex-shrink: 0;
+    color: var(--rg-blue);
+}
+
+.rg-horario-sel {
+    /* Hereda rg-input + rg-select, solo ajuste específico */
+    font-weight: 600;
+    color: var(--rg-navy);
+    background-color: #fff;
+    border-color: var(--rg-border);
+    text-align: center;
+}
+
+.rg-horario-sel:focus {
+    border-color: var(--rg-blue);
+    box-shadow: 0 0 0 3px rgba(29,78,216,.10);
+}
+
+.rg-horario-sep {
+    font-size: 1.1rem;
+    font-weight: 700;
+    color: var(--rg-muted);
+    padding: 0 .25rem;
+    flex-shrink: 0;
+    margin-top: 1.5rem; /* alinear con el select */
+}
+
+/* Preview del horario */
+.rg-horario-preview {
+    margin-top: .625rem;
+    padding: .55rem .875rem;
+    background: var(--rg-light);
+    border: 1px solid rgba(29,78,216,.18);
+    border-radius: .5rem;
+    font-size: .875rem;
+    color: var(--rg-navy);
+}
+
+.rg-horario-preview strong {
+    color: var(--rg-blue);
+    font-weight: 700;
+}
+
+/* ── MAPA ── */
+.rg-map-wrap {
+    margin-top: .75rem;
+    border-radius: .75rem;
+    border: 1.5px solid var(--rg-border);
+    overflow: hidden;
+}
+.rg-map-head {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: .5rem .875rem;
+    background: var(--rg-faint);
+    border-bottom: 1px solid var(--rg-border);
+}
+.rg-map-label  { font-size: .8125rem; font-weight: 600; color: var(--rg-navy); }
+.rg-map-status { font-size: .75rem; color: var(--rg-sky); font-style: italic; }
+.rg-map        { height: 260px; width: 100%; z-index: 0; }
+.rg-map-hint {
+    font-size: .75rem; color: var(--rg-muted);
+    padding: .5rem .875rem;
+    background: var(--rg-faint);
+    border-top: 1px solid var(--rg-border);
+    margin: 0;
+}
+
+/* ── CONFIRMACIÓN FINAL ── */
+.rg-confirm {
+    text-align: center;
+    padding: 1.75rem 1rem;
+    background: #f0fdf4;
+    border: 1.5px solid #86efac;
+    border-radius: .875rem;
+    margin-bottom: 1.25rem;
+}
+
+.rg-confirm-ico {
+    width: 52px; height: 52px;
+    background: linear-gradient(135deg, #059669, #10b981);
+    border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    margin: 0 auto .875rem;
+    box-shadow: 0 4px 14px rgba(5,150,105,.28);
+}
+
+/* SVG del check — tamaño fijo */
+.rg-confirm-ico svg {
+    width: 24px !important; height: 24px !important;
+    color: white; display: block;
+}
+
+.rg-confirm-title {
+    font-size: 1.1875rem; font-weight: 700;
+    color: #166534; letter-spacing: -.02em;
+    margin: 0 0 .375rem;
+}
+
+.rg-confirm-sub { font-size: .9rem; color: #4d7c0f; margin: 0; line-height: 1.6; }
+
+/* ── BOTONES ── */
+.rg-foot { display: flex; gap: .75rem; margin-top: .5rem; }
+.rg-foot-end     { justify-content: flex-end; }
+.rg-foot-between { justify-content: space-between; }
+
+.rg-btn-primary {
+    display: inline-flex; align-items: center; gap: .375rem;
+    padding: .65rem 1.375rem;
+    background: linear-gradient(135deg, var(--rg-navy), var(--rg-blue));
+    color: white; border: none; border-radius: .625rem;
+    font-family: 'Inter', system-ui, sans-serif;
+    font-size: .875rem; font-weight: 600;
+    cursor: pointer; letter-spacing: .01em;
+    box-shadow: 0 3px 12px rgba(30,58,138,.28);
+    transition: opacity .2s, transform .2s, box-shadow .2s;
+}
+.rg-btn-primary:hover { opacity: .91; transform: translateY(-1px); box-shadow: 0 6px 20px rgba(30,58,138,.36); }
+.rg-btn-primary:active { transform: none; opacity: 1; }
+.rg-btn-primary:disabled { opacity: .6; cursor: not-allowed; transform: none; }
+
+.rg-btn-sede {
+    background: linear-gradient(135deg, #0f766e, #0d9488);
+    box-shadow: 0 3px 12px rgba(15,118,110,.28);
+}
+.rg-btn-sede:hover { box-shadow: 0 6px 20px rgba(15,118,110,.36); }
+
+.rg-btn-back {
+    display: inline-flex; align-items: center;
+    padding: .65rem 1.25rem;
+    background: var(--rg-faint); color: var(--rg-navy);
+    border: 1.5px solid var(--rg-border); border-radius: .625rem;
+    font-family: 'Inter', system-ui, sans-serif;
+    font-size: .875rem; font-weight: 600;
+    cursor: pointer;
+    transition: background .2s, border-color .2s, transform .2s;
+}
+.rg-btn-back:hover { background: var(--rg-light); border-color: var(--rg-blue); transform: translateY(-1px); }
+
+.rg-btn-submit {
+    display: inline-flex; align-items: center; gap: .375rem;
+    padding: .7rem 1.5rem;
+    background: linear-gradient(135deg, #059669, #10b981);
+    color: white; border: none; border-radius: .625rem;
+    font-family: 'Inter', system-ui, sans-serif;
+    font-size: .9375rem; font-weight: 700;
+    cursor: pointer;
+    box-shadow: 0 4px 14px rgba(5,150,105,.30);
+    transition: opacity .2s, transform .2s, box-shadow .2s;
+}
+.rg-btn-submit:hover { opacity: .91; transform: translateY(-1px); box-shadow: 0 8px 22px rgba(5,150,105,.38); }
+
+/* ── ANIMACIÓN PULSE (botones Siguiente/Registrar) ── */
+.btn-pulse { animation: registro-pulse 2s infinite; }
+@keyframes registro-pulse {
+    0%, 100% { transform: scale(1); }
+    50%       { transform: scale(1.04); }
+}
+.rg-btn-primary:hover.btn-pulse,
+.rg-btn-submit:hover.btn-pulse { animation: none; }
+
+/* ── CONTROL DE PASOS ── */
+.step        { display: none; }
+.active-step { display: block; }
+
+/* ── ENLACE LOGIN ── */
+.rg-to-login { text-align: center; font-size: .875rem; color: var(--rg-muted); margin: 1.125rem 0 .25rem; }
+.rg-to-login a { color: var(--rg-blue); font-weight: 600; text-decoration: none; }
+.rg-to-login a:hover { color: var(--rg-navy); text-decoration: underline; }
+
+/* ── RESPONSIVE ── */
+@media (max-width: 600px) {
+    .rg-body { padding: 1.5rem .75rem 2rem; }
+    .rg-card { border-radius: 1rem; padding: 1.375rem 1.125rem; }
+    .rg-hero-title { font-size: 1.6rem; }
+    .rg-grid2 { grid-template-columns: 1fr; }
+    .rg-horario-picker { flex-direction: column; gap: .625rem; }
+    .rg-horario-sep { margin-top: 0; }
+    .rg-foot-between { flex-direction: row; }
 }

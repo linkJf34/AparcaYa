@@ -1,38 +1,38 @@
 <!DOCTYPE html>
 <html lang="es" xmlns:th="http://www.thymeleaf.org">
 <!--
-    FRAGMENTO: sede-modal-salida
-    Ruta:      templates/modals/sede-modal-salida.html
-    Uso:       <div th:replace="modals/sede-modal-salida :: modal"></div>
+    FRAGMENTO: trabajador-modal-salida
+    Ruta:      templates/modals/trabajador-modal-salida.html
+    Uso:       <div th:replace="modals/trabajador-modal-salida :: modal"></div>
 
-    CSS:       /css/modals/sede-modal-dinamico.css  (v2 — paleta teal)
-    Abre:   abrirModalSalida(registroId)  → modal.style.display = 'flex'
-    Cierra: cerrarModalSalida()           → modal.style.display = 'none'
+    Tipo:      DIV overlay con clase .trab-modal-overlay
+    CSS:       /css/modals/trabajador-modal.css
 
-    CAMBIOS v2:
-      - Header: gradiente teal (igual a Trabajador y resto de Sede)
-      - Datos internos dentro de .sede-modal-dinamico-card (#f0fdfa)
-      - Separador interior con borde #ccfbf1
-      - Botón cerrar es <button> (accesibilidad)
-      - Sin estilos inline. Sin JS embebido.
+    Abre:   abrirModalSalida(registroId)  → añade clase .open al overlay
+    Cierra: cerrarModalSalida()           → quita clase .open
+
+    Diseño:    colores teal exactos del diseño original embebido
+               en DashboardTrabajador.html (verde #0f766e, fondo #f0fdfa)
+
+    Sin JS embebido. Sin estilos inline.
 -->
 <body>
 <th:block th:fragment="modal">
 
     <div id="salidaModal"
-         class="sede-modal-dinamico"
+         class="trab-modal-overlay"
          role="dialog"
          aria-modal="true"
          aria-labelledby="salidaModalTitulo"
          aria-hidden="true">
 
-        <div class="sede-modal-dinamico-content">
+        <div class="trab-modal-box trab-modal-box--salida">
 
-            <!-- HEADER -->
-            <div class="sede-modal-dinamico-header">
-                <h2 id="salidaModalTitulo">🚪 Registrar Salida</h2>
+            <!-- CABECERA -->
+            <div class="trab-modal-header">
+                <h3 id="salidaModalTitulo">Registrar Salida</h3>
                 <button type="button"
-                        class="sede-modal-dinamico-close"
+                        class="trab-modal-close"
                         onclick="cerrarModalSalida()"
                         aria-label="Cerrar modal">
                     <svg xmlns="http://www.w3.org/2000/svg"
@@ -44,46 +44,45 @@
                 </button>
             </div>
 
-            <!-- BODY -->
-            <div class="sede-modal-dinamico-body">
+            <!-- CUERPO -->
+            <div class="trab-modal-body">
 
                 <!-- Tarjeta de datos del vehículo -->
-                <div class="sede-modal-dinamico-card">
+                <div class="trab-modal-card">
 
-                    <div class="sede-modal-salida-row">
+                    <div class="trab-modal-row">
                         <strong>Placa:</strong>
-                        <span id="salidaPlaca"
-                              style="font-weight:700;color:#0f766e;">—</span>
+                        <span id="salidaPlaca" class="trab-modal-value--accent">—</span>
                     </div>
 
-                    <div class="sede-modal-salida-row">
+                    <div class="trab-modal-row">
                         <strong>Cliente:</strong>
                         <span id="salidaCliente">—</span>
                     </div>
 
-                    <div class="sede-modal-salida-row">
+                    <div class="trab-modal-row">
                         <strong>Hora Entrada:</strong>
                         <span id="salidaHoraEntrada">—</span>
                     </div>
 
-                    <div class="sede-modal-salida-row">
+                    <div class="trab-modal-row">
                         <strong>Tiempo:</strong>
-                        <span id="salidaTiempo"
-                              style="font-family:'Courier New',monospace;
-                                     font-weight:700;color:#0f766e;">—</span>
+                        <span id="salidaTiempo" class="trab-modal-value--mono">—</span>
                     </div>
 
                     <!--
-                        JS inyecta el cobro estimado aquí.
-                        SedeD.js usa innerHTML con clases .sede-modal-salida-row
+                        JS inyecta aquí el cobro estimado (plena + minuto).
+                        TrabajadorD.js usa innerHTML con clases:
+                          .trab-modal-row
+                          .trab-modal-cobro-estimado-row--minuto
+                        Ver función abrirModalSalida() en TrabajadorD.js
                     -->
-                    <div id="salidaCobroEstimado"
-                         class="sede-modal-cobro-estimado"></div>
+                    <div id="salidaCobroEstimado" class="trab-modal-cobro-estimado"></div>
 
                 </div>
 
                 <!-- Acciones -->
-                <div class="sede-modal-dinamico-actions">
+                <div class="trab-modal-actions">
                     <button type="button"
                             class="sede-btn-secondary"
                             onclick="cerrarModalSalida()">
@@ -104,9 +103,9 @@
                     </button>
                 </div>
 
-            </div><!-- /body -->
-        </div><!-- /content -->
-    </div><!-- /overlay -->
+            </div><!-- /trab-modal-body -->
+        </div><!-- /trab-modal-box -->
+    </div><!-- /trab-modal-overlay -->
 
 </th:block>
 </body>

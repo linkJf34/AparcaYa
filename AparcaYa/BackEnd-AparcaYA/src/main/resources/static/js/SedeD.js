@@ -1,7 +1,6 @@
 // ==================== CONFIGURACIÓN GLOBAL ====================
 // Autenticación por sesión de Spring Security — sin header Authorization.
-const API_BASE_URL       = '/api/sede';
-const API_TRABAJADOR_URL = '/api/trabajador';
+const API_BASE_URL = '/api/sede';
 
 let usuariosData = [];
 let sedesData    = [];
@@ -14,15 +13,15 @@ let timerIntervals  = {};
 
 const marcasPorTipo = {
     CARRO:     ['RENAULT','KIA','TOYOTA','CHEVROLET','MAZDA','NISSAN','VOLKSWAGEN','FORD','HYUNDAI',
-                'BMW','MERCEDES_BENZ','AUDI','PEUGEOT','CITROEN','FIAT','VOLVO','JEEP','LAND_ROVER',
-                'PORSCHE','FERRARI','LAMBORGHINI','TESLA','BYD','CHANGAN','GEELY','JAC','CHERY',
-                'GREAT_WALL','HAVAL','GWM','MITSUBISHI','SUBARU','ISUZU','SSANGYONG','MG','RAM',
-                'DFSK','FOTON','OTRO'],
+        'BMW','MERCEDES_BENZ','AUDI','PEUGEOT','CITROEN','FIAT','VOLVO','JEEP','LAND_ROVER',
+        'PORSCHE','FERRARI','LAMBORGHINI','TESLA','BYD','CHANGAN','GEELY','JAC','CHERY',
+        'GREAT_WALL','HAVAL','GWM','MITSUBISHI','SUBARU','ISUZU','SSANGYONG','MG','RAM',
+        'DFSK','FOTON','OTRO'],
     MOTO:      ['HONDA','YAMAHA','SUZUKI','KAWASAKI','BAJAJ','TVS','HERO','KTM','DUCATI',
-                'HARLEY_DAVIDSON','BMW_MOTORRAD','TRIUMPH','ROYAL_ENFIELD','AUTECO','AKT',
-                'VICTORY','APRILIA','BENELLI','HUSQVARNA','OTRO'],
+        'HARLEY_DAVIDSON','BMW_MOTORRAD','TRIUMPH','ROYAL_ENFIELD','AUTECO','AKT',
+        'VICTORY','APRILIA','BENELLI','HUSQVARNA','OTRO'],
     BICICLETA: ['TREK','SPECIALIZED','GIANT','SCOTT','CANNONDALE','ORBEA','GW','SHIMANO',
-                'BIANCHI','MERIDA','CUBE','BMC','FOCUS','OTRO'],
+        'BIANCHI','MERIDA','CUBE','BMC','FOCUS','OTRO'],
     OTRO:      ['OTRO']
 };
 
@@ -38,7 +37,7 @@ function showNotification(message, type) {
     toast.textContent = message;
     document.body.appendChild(toast);
     setTimeout(function() {
-        toast.style.opacity = '0';
+        toast.style.opacity    = '0';
         toast.style.transition = 'opacity 0.3s ease-in';
         setTimeout(function() { toast.remove(); }, 300);
     }, 5000);
@@ -59,12 +58,12 @@ function showConfirm(titulo, cuerpo, btnTexto, btnColor) {
         var btnColors = { danger: 'background:#dc2626;color:#fff', warning: 'background:#f59e0b;color:#fff' };
         overlay.innerHTML =
             '<div role="dialog" aria-modal="true" style="background:#fff;border-radius:0.75rem;padding:2rem;max-width:420px;width:100%;box-shadow:0 20px 60px rgba(0,0,0,.3);">' +
-                '<h3 style="font-size:1.125rem;font-weight:700;color:#0f172a;margin:0 0 0.75rem;">' + titulo + '</h3>' +
-                '<p style="font-size:0.875rem;color:#64748b;margin:0 0 1.5rem;line-height:1.6;">' + cuerpo + '</p>' +
-                '<div style="display:flex;justify-content:flex-end;gap:0.75rem;">' +
-                    '<button id="confirm-cancel" style="padding:0.5rem 1.25rem;border:1px solid #e2e8f0;border-radius:0.5rem;background:#fff;color:#374151;cursor:pointer;">Cancelar</button>' +
-                    '<button id="confirm-ok" style="padding:0.5rem 1.25rem;border:none;border-radius:0.5rem;' + (btnColors[btnColor] || btnColors.danger) + ';cursor:pointer;font-weight:600;">' + btnTexto + '</button>' +
-                '</div>' +
+            '<h3 style="font-size:1.125rem;font-weight:700;color:#0f172a;margin:0 0 0.75rem;">' + titulo + '</h3>' +
+            '<p style="font-size:0.875rem;color:#64748b;margin:0 0 1.5rem;line-height:1.6;">' + cuerpo + '</p>' +
+            '<div style="display:flex;justify-content:flex-end;gap:0.75rem;">' +
+            '<button id="confirm-cancel" style="padding:0.5rem 1.25rem;border:1px solid #e2e8f0;border-radius:0.5rem;background:#fff;color:#374151;cursor:pointer;">Cancelar</button>' +
+            '<button id="confirm-ok" style="padding:0.5rem 1.25rem;border:none;border-radius:0.5rem;' + (btnColors[btnColor] || btnColors.danger) + ';cursor:pointer;font-weight:600;">' + btnTexto + '</button>' +
+            '</div>' +
             '</div>';
         overlay.style.display = 'flex';
         document.getElementById('confirm-ok').onclick     = function() { overlay.style.display = 'none'; resolve(true);  };
@@ -100,12 +99,12 @@ function showEditModal(titulo, campos) {
         }).join('');
         overlay.innerHTML =
             '<div role="dialog" aria-modal="true" style="background:#fff;border-radius:0.75rem;padding:2rem;max-width:480px;width:100%;box-shadow:0 20px 60px rgba(0,0,0,.3);max-height:90vh;overflow-y:auto;">' +
-                '<h3 style="font-size:1.125rem;font-weight:700;color:#0f172a;margin:0 0 1.5rem;">' + titulo + '</h3>' +
-                inputsHtml +
-                '<div style="display:flex;justify-content:flex-end;gap:0.75rem;margin-top:1.5rem;">' +
-                    '<button id="edit-cancel" style="padding:0.5rem 1.25rem;border:1px solid #e2e8f0;border-radius:0.5rem;background:#fff;color:#374151;cursor:pointer;">Cancelar</button>' +
-                    '<button id="edit-ok" style="padding:0.5rem 1.25rem;border:none;border-radius:0.5rem;background:#0f766e;color:#fff;cursor:pointer;font-weight:600;">Guardar</button>' +
-                '</div>' +
+            '<h3 style="font-size:1.125rem;font-weight:700;color:#0f172a;margin:0 0 1.5rem;">' + titulo + '</h3>' +
+            inputsHtml +
+            '<div style="display:flex;justify-content:flex-end;gap:0.75rem;margin-top:1.5rem;">' +
+            '<button id="edit-cancel" style="padding:0.5rem 1.25rem;border:1px solid #e2e8f0;border-radius:0.5rem;background:#fff;color:#374151;cursor:pointer;">Cancelar</button>' +
+            '<button id="edit-ok" style="padding:0.5rem 1.25rem;border:none;border-radius:0.5rem;background:#0f766e;color:#fff;cursor:pointer;font-weight:600;">Guardar</button>' +
+            '</div>' +
             '</div>';
         overlay.style.display = 'flex';
         document.getElementById('edit-ok').onclick = function() {
@@ -195,25 +194,19 @@ function initializeTrabajadorFeatures() {
 async function cargarEstadisticas() {
     try {
         var response = await fetch(API_BASE_URL + '/estadisticas');
-        if (!response.ok) {
-            // API no disponible — mantener valores del HTML (0%)
-            return;
-        }
+        if (!response.ok) { return; }
         var data = await response.json();
-
         var pctActivos = data.totalUsuarios > 0
             ? Math.round((data.usuariosActivos / data.totalUsuarios) * 100) : 0;
         var pctSedes = data.capacidadTotal > 0
             ? Math.min(Math.round((data.sedesActivas / (data.totalSedes || 1)) * 100), 100) : 0;
-
-        // Usar .user-indicators para NO tocar el donut de la sección Gráficas
         var indicadores = document.querySelector('.user-indicators');
         if (indicadores) {
             var segs  = indicadores.querySelectorAll('.donut-segment');
             var texts = indicadores.querySelectorAll('.donut-text');
-            if (segs[0])  { segs[0].setAttribute('stroke-dasharray', pctActivos + ' 100'); }
+            if (segs[0])  { segs[0].setAttribute('stroke-dasharray',  pctActivos + ' 100'); }
             if (texts[0]) { texts[0].textContent = pctActivos + '%'; }
-            if (segs[1])  { segs[1].setAttribute('stroke-dasharray', pctSedes + ' 100'); }
+            if (segs[1])  { segs[1].setAttribute('stroke-dasharray',  pctSedes   + ' 100'); }
             if (texts[1]) { texts[1].textContent = pctSedes + '%'; }
         }
     } catch (e) {
@@ -235,13 +228,12 @@ function setupEventListeners() {
     var filtroEstado  = document.getElementById('filtroEstado');
 
     if (btnUsuarios)   { btnUsuarios.addEventListener('click',   function() { switchToTab('usuarios'); }); }
-    if (btnSedes)      { btnSedes.addEventListener('click',      function() { switchToTab('sedes'); }); }
-    if (tabMailUno)    { tabMailUno.addEventListener('click',    function() { switchMailTab('uno'); }); }
+    if (btnSedes)      { btnSedes.addEventListener('click',      function() { switchToTab('sedes');    }); }
+    if (tabMailUno)    { tabMailUno.addEventListener('click',    function() { switchMailTab('uno');    }); }
     if (tabMailMasivo) { tabMailMasivo.addEventListener('click', function() { switchMailTab('masivo'); }); }
     if (busquedaInput) { busquedaInput.addEventListener('input', filtrarDatos); }
     if (filtroEstado)  { filtroEstado.addEventListener('change', filtrarDatos); }
 
-    // Listener del modal de trabajador (movido aquí desde top-level)
     var modalTrabajador = document.getElementById('registrarTrabajadorModal');
     if (modalTrabajador) {
         modalTrabajador.addEventListener('click', function(e) {
@@ -265,7 +257,6 @@ function handleNavigation(e) {
     if (tab === 'gestion')       { loadVehiculosActivos(); loadPendientesCobro(); }
     if (tab === 'historial')     { loadHistorial(); }
     if (tab === 'reservaciones') { loadReservaciones(); }
-    // En mobile colapsa el sidebar para dar espacio
     if (window.innerWidth < 640) { document.body.classList.add('sidebar-collapsed'); }
 }
 
@@ -294,10 +285,10 @@ function switchMailTab(tipo) {
     document.querySelectorAll('#correo .sede-tabs button').forEach(function(btn) {
         btn.classList.remove('active');
     });
-    var tabUno     = document.getElementById('tab-mailuno');
-    var tabMasivo  = document.getElementById('tab-mailmasivo');
-    var correoUno  = document.getElementById('correoUno');
-    var correoMas  = document.getElementById('correoMasivo');
+    var tabUno    = document.getElementById('tab-mailuno');
+    var tabMasivo = document.getElementById('tab-mailmasivo');
+    var correoUno = document.getElementById('correoUno');
+    var correoMas = document.getElementById('correoMasivo');
     if (tipo === 'uno') {
         if (tabUno)    { tabUno.classList.add('active'); }
         if (correoUno) { correoUno.removeAttribute('hidden'); }
@@ -353,10 +344,10 @@ function mostrarUsuarios(usuarios) {
             '<td><span class="sede-badge sede-badge-info">' + (u.rol || 'N/A') + '</span></td>' +
             '<td><span class="sede-badge ' + (u.estado === 'ACTIVO' ? 'sede-badge-success' : 'sede-badge-danger') + '">' + (u.estado || 'N/A') + '</span></td>' +
             '<td>' +
-                '<button class="sede-btn-icon sede-btn-edit"   onclick="editarUsuario(' + u.id + ')"   title="Editar">✏️</button>' +
-                '<button class="sede-btn-icon sede-btn-delete" onclick="eliminarUsuario(' + u.id + ')" title="Eliminar">🗑️</button>' +
+            '<button class="sede-btn-icon sede-btn-edit"   onclick="editarUsuario('  + u.id + ')" title="Editar">✏️</button>'  +
+            '<button class="sede-btn-icon sede-btn-delete" onclick="eliminarUsuario(' + u.id + ')" title="Eliminar">🗑️</button>' +
             '</td>' +
-        '</tr>';
+            '</tr>';
     }).join('');
 }
 
@@ -369,12 +360,12 @@ function mostrarSedes(sedes) {
     }
     tbody.innerHTML = sedes.map(function(s) {
         return '<tr>' +
-            '<td>' + (s.nombre || 'N/A') + '</td>' +
+            '<td>' + (s.nombre    || 'N/A') + '</td>' +
             '<td>' + (s.direccion || 'N/A') + '</td>' +
-            '<td>' + (s.capacidad || 0) + '</td>' +
+            '<td>' + (s.capacidad || 0)     + '</td>' +
             '<td><span class="sede-badge ' + (s.estado === 'ACTIVO' ? 'sede-badge-success' : 'sede-badge-danger') + '">' + (s.estado || 'N/A') + '</span></td>' +
             '<td><button class="sede-btn-icon sede-btn-edit" onclick="editarSede(' + s.id + ')" title="Editar">✏️</button></td>' +
-        '</tr>';
+            '</tr>';
     }).join('');
 }
 
@@ -384,7 +375,6 @@ function filtrarDatos() {
     var estadoEl   = document.getElementById('filtroEstado');
     var busqueda   = busquedaEl ? busquedaEl.value.toLowerCase() : '';
     var estado     = estadoEl  ? estadoEl.value.toLowerCase()   : '';
-
     if (currentTab === 'usuarios') {
         mostrarUsuarios(usuariosData.filter(function(u) {
             var matchB = !busqueda || [u.nombre, u.correo, u.rol].some(function(v) {
@@ -437,41 +427,37 @@ function validateFieldEntrada(fieldId) {
     var isValid = true;
     var message = '';
     var value   = field.value.trim();
-
     switch (fieldId) {
         case 'nombre':
-            if (!value) { isValid = false; message = 'El nombre es obligatorio.'; }
+            if (!value)           { isValid = false; message = 'El nombre es obligatorio.'; }
             else if (value.length < 2) { isValid = false; message = 'Al menos 2 caracteres.'; }
             break;
         case 'correo1':
-            if (!value) { isValid = false; message = 'El correo es obligatorio.'; }
+            if (!value)           { isValid = false; message = 'El correo es obligatorio.'; }
             else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value)) { isValid = false; message = 'Formato inválido.'; }
             break;
         case 'telefono':
-            if (!value) { isValid = false; message = 'El teléfono es obligatorio.'; }
+            if (!value)           { isValid = false; message = 'El teléfono es obligatorio.'; }
             else if (!/^[0-9]{10}$/.test(value)) { isValid = false; message = 'Debe tener 10 dígitos.'; }
             break;
         case 'cedula':
-            if (!value) { isValid = false; message = 'La cédula es obligatoria.'; }
+            if (!value)           { isValid = false; message = 'La cédula es obligatoria.'; }
             else if (!/^[0-9]{10}$/.test(value)) { isValid = false; message = 'Debe tener 10 dígitos.'; }
             break;
         case 'placa':
-            if (!value) { isValid = false; message = 'La placa es obligatoria.'; }
+            if (!value)           { isValid = false; message = 'La placa es obligatoria.'; }
             else if (!/^[A-Z]{3}[0-9]{3}$/.test(value)) { isValid = false; message = 'Formato: ABC123'; }
             break;
         case 'tipoVehiculo':
-            if (!value) { isValid = false; message = 'Selecciona el tipo.'; }
+            if (!value)           { isValid = false; message = 'Selecciona el tipo.'; }
             break;
         case 'marca':
-            if (!value) { isValid = false; message = 'Selecciona la marca.'; }
-            break;
-        default:
+            if (!value)           { isValid = false; message = 'Selecciona la marca.'; }
             break;
     }
-
     if (errorSpan) { errorSpan.textContent = isValid ? '' : message; }
     field.classList.toggle('border-red-500',   !isValid);
-    field.classList.toggle('border-green-500', isValid && value !== '');
+    field.classList.toggle('border-green-500',  isValid && value !== '');
     return isValid;
 }
 
@@ -504,7 +490,6 @@ function initializeFormularioEntrada() {
             e.preventDefault();
             await registrarEntradaDirecto();
         });
-
         ['nombre', 'telefono', 'correo1', 'cedula', 'placa', 'tipoVehiculo', 'marca'].forEach(function(campoId) {
             var campo = document.getElementById(campoId);
             if (campo) {
@@ -518,7 +503,6 @@ function initializeFormularioEntrada() {
                 });
             }
         });
-
         var tel = document.getElementById('telefono');
         if (tel) {
             tel.addEventListener('input', function(e) {
@@ -538,7 +522,6 @@ function initializeFormularioEntrada() {
             });
         }
     }
-
     var buscar = document.getElementById('buscarPlaca');
     if (buscar) {
         buscar.addEventListener('input', function(e) {
@@ -568,7 +551,7 @@ async function registrarEntradaDirecto() {
             vehiculoColor:   getInputValue('color') || 'NO ESPECIFICADO',
             vehiculoAnio:    getInputValue('anio')  || '2020'
         };
-        var response = await fetch(API_TRABAJADOR_URL + '/registrar-entrada', {
+        var response = await fetch(API_BASE_URL + '/registrar-entrada', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(datos)
@@ -592,13 +575,13 @@ async function buscarPorPlacaIntegrado() {
         return;
     }
     try {
-        var response = await fetch(API_TRABAJADOR_URL + '/buscar-por-placa/' + placa, {
+        var response = await fetch(API_BASE_URL + '/buscar-por-placa/' + placa, {
             headers: { 'Content-Type': 'application/json' }
         });
         if (!response.ok) { throw new Error('Error'); }
         var data = await response.json();
         if (data.encontrado) {
-            setInputValue('nombre',  data.cliente.nombre);
+            setInputValue('nombre',   data.cliente.nombre);
             setInputValue('telefono', data.cliente.telefono);
             setInputValue('correo1',  data.cliente.email);
             setInputValue('cedula',   data.cliente.cedula || '');
@@ -628,7 +611,7 @@ async function buscarPorPlacaIntegrado() {
 // ==================== VEHÍCULOS ACTIVOS ====================
 async function loadVehiculosActivos() {
     try {
-        var response = await fetch(API_TRABAJADOR_URL + '/vehiculos-activos', {
+        var response = await fetch(API_BASE_URL + '/vehiculos-activos', {
             headers: { 'Content-Type': 'application/json' }
         });
         if (!response.ok) { throw new Error('Error'); }
@@ -636,7 +619,6 @@ async function loadVehiculosActivos() {
         var tbody = document.getElementById('vehiculosActivosBody');
         if (!tbody) { return; }
 
-        // Limpiar timers anteriores
         Object.values(timerIntervals).forEach(function(id) { clearInterval(id); });
         timerIntervals = {};
 
@@ -644,21 +626,20 @@ async function loadVehiculosActivos() {
             tbody.innerHTML = '<tr><td colspan="8" style="text-align:center;">No hay vehículos en el parqueadero</td></tr>';
             return;
         }
-
         tbody.innerHTML = vehiculos.map(function(v) {
             return '<tr>' +
                 '<td><strong>' + v.placa + '</strong></td>' +
-                '<td>' + v.tipoVehiculo + '</td>' +
+                '<td>' + v.tipoVehiculo  + '</td>' +
                 '<td>' + v.clienteNombre + '</td>' +
                 '<td>' + v.clienteTelefono + '</td>' +
                 '<td>' + formatDateTime(v.horaEntrada) + '</td>' +
                 '<td><span class="tiempo-activo" id="timer-' + v.registroId + '">' + v.tiempoTranscurrido + '</span></td>' +
                 '<td><div style="font-size:0.85rem;">' +
-                    '<div><strong>Plena:</strong> $' + formatNumber(v.cobroEstimadoPlena) + '</div>' +
-                    '<div style="color:#059669;"><strong>Minuto:</strong> $' + formatNumber(v.cobroEstimadoMinuto) + '</div>' +
+                '<div><strong>Plena:</strong> $' + formatNumber(v.cobroEstimadoPlena) + '</div>' +
+                '<div style="color:#059669;"><strong>Minuto:</strong> $' + formatNumber(v.cobroEstimadoMinuto) + '</div>' +
                 '</div></td>' +
                 '<td><button class="sede-btn-warning sede-btn-salida" data-id="' + v.registroId + '">Salida</button></td>' +
-            '</tr>';
+                '</tr>';
         }).join('');
 
         vehiculos.forEach(function(v) {
@@ -667,16 +648,12 @@ async function loadVehiculosActivos() {
             var secs = v.segundosTranscurridos;
             timerIntervals[v.registroId] = setInterval(function() {
                 secs++;
-                var h = Math.floor(secs / 3600);
+                var h   = Math.floor(secs / 3600);
                 var min = Math.floor((secs % 3600) / 60);
-                var s = secs % 60;
-                if (h > 0) {
-                    el.textContent = h + 'h ' + min + 'm ' + s + 's';
-                } else if (min > 0) {
-                    el.textContent = min + 'm ' + s + 's';
-                } else {
-                    el.textContent = s + 's';
-                }
+                var s   = secs % 60;
+                if (h > 0)        { el.textContent = h + 'h ' + min + 'm ' + s + 's'; }
+                else if (min > 0) { el.textContent = min + 'm ' + s + 's'; }
+                else              { el.textContent = s + 's'; }
             }, 1000);
         });
     } catch (e) {
@@ -685,12 +662,16 @@ async function loadVehiculosActivos() {
 }
 
 // ==================== MODAL SALIDA ====================
+// BUG #1 CORREGIDO: API_TRABAJADOR_URL → API_BASE_URL
+// BUG #2 CORREGIDO: display:'block' → classList.add('open')
 async function abrirModalSalida(registroId) {
     var modal = document.getElementById('salidaModal');
     if (!modal) { showNotification('Error: Modal no encontrado', 'error'); return; }
     try {
         currentSalidaRegistroId = registroId;
-        var response = await fetch(API_TRABAJADOR_URL + '/vehiculos-activos', {
+
+        // FIX #1: usa API_BASE_URL (no la variable comentada API_TRABAJADOR_URL)
+        var response = await fetch(API_BASE_URL + '/vehiculos-activos', {
             headers: { 'Content-Type': 'application/json' }
         });
         if (!response.ok) { throw new Error('Error al obtener datos'); }
@@ -711,21 +692,21 @@ async function abrirModalSalida(registroId) {
         if (elCobro) {
             elCobro.innerHTML =
                 '<div class="sede-modal-salida-row"><strong>Plena:</strong><span>$' + formatNumber(v.cobroEstimadoPlena) + '</span></div>' +
-                '<div class="sede-modal-salida-row" style="color:#059669;"><strong>Minuto:</strong><span>$' + formatNumber(v.cobroEstimadoMinuto) + '</span></div>';
+                '<div class="sede-modal-salida-row"><strong>Minuto:</strong><span style="color:#059669;">$' + formatNumber(v.cobroEstimadoMinuto) + '</span></div>';
         }
-        modal.style.display    = 'block';
-        modal.style.visibility = 'visible';
-        modal.style.opacity    = '1';
+
+        // FIX #2: abre con clase .open (el overlay usa display:flex via CSS)
+        modal.classList.add('open');
         modal.setAttribute('aria-hidden', 'false');
     } catch (e) {
-        showNotification('Error al abrir modal', 'error');
+        showNotification('Error al abrir modal de salida', 'error');
     }
 }
 
 function cerrarModalSalida() {
     var modal = document.getElementById('salidaModal');
     if (modal) {
-        modal.style.display = 'none';
+        modal.classList.remove('open');
         modal.setAttribute('aria-hidden', 'true');
     }
     currentSalidaRegistroId = null;
@@ -735,7 +716,7 @@ async function confirmarSalida() {
     if (!currentSalidaRegistroId) { return; }
     try {
         showNotification('Registrando salida...', 'info');
-        var response = await fetch(API_TRABAJADOR_URL + '/registrar-salida/' + currentSalidaRegistroId, {
+        var response = await fetch(API_BASE_URL + '/registrar-salida/' + currentSalidaRegistroId, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' }
         });
@@ -755,7 +736,7 @@ async function confirmarSalida() {
 // ==================== PENDIENTES COBRO ====================
 async function loadPendientesCobro() {
     try {
-        var response = await fetch(API_TRABAJADOR_URL + '/vehiculos-pendientes-cobro', {
+        var response = await fetch(API_BASE_URL + '/vehiculos-pendientes-cobro', {
             headers: { 'Content-Type': 'application/json' }
         });
         if (!response.ok) { throw new Error('Error'); }
@@ -771,11 +752,11 @@ async function loadPendientesCobro() {
                 '<td><strong>' + p.placa + '</strong></td>' +
                 '<td>' + p.clienteNombre + '</td>' +
                 '<td>' + formatDateTime(p.horaEntrada) + '</td>' +
-                '<td>' + formatDateTime(p.horaSalida) + '</td>' +
+                '<td>' + formatDateTime(p.horaSalida)  + '</td>' +
                 '<td>' + p.tiempoTotal + '</td>' +
                 '<td style="font-weight:700;color:#059669;">$' + formatNumber(p.precio) + '</td>' +
                 '<td><button class="sede-btn-success sede-btn-cobrar" data-id="' + p.registroId + '">Cobrar</button></td>' +
-            '</tr>';
+                '</tr>';
         }).join('');
     } catch (error) {
         console.error('Error pendientes cobro:', error);
@@ -783,16 +764,18 @@ async function loadPendientesCobro() {
 }
 
 // ==================== MODAL COBRO ====================
+// BUG #2 CORREGIDO: display:'block' → classList.add('open')
 async function abrirModalCobro(registroId) {
     currentCobroRegistroId = registroId;
     var modal = document.getElementById('cobroModal');
     if (!modal) { return; }
-    modal.style.display    = 'block';
-    modal.style.visibility = 'visible';
-    modal.style.opacity    = '1';
+
+    // FIX: abre con clase .open antes de la llamada async
+    modal.classList.add('open');
     modal.setAttribute('aria-hidden', 'false');
+
     try {
-        var response = await fetch(API_TRABAJADOR_URL + '/opciones-cobro/' + registroId, {
+        var response = await fetch(API_BASE_URL + '/opciones-cobro/' + registroId, {
             headers: { 'Content-Type': 'application/json' }
         });
         if (!response.ok) {
@@ -802,18 +785,20 @@ async function abrirModalCobro(registroId) {
         var data = await response.json();
         opcionesTarifa = data;
 
-        var elCliente  = document.getElementById('cobroCliente');
-        var elPlaca    = document.getElementById('cobroPlaca');
-        var elTiempo   = document.getElementById('cobroTiempo');
-        var container  = document.getElementById('tarifaSelectorContainer');
-        var elPrecio   = document.getElementById('cobroPrecio');
+        var elCliente = document.getElementById('cobroCliente');
+        var elPlaca   = document.getElementById('cobroPlaca');
+        var elTiempo  = document.getElementById('cobroTiempo');
+        var container = document.getElementById('tarifaSelectorContainer');
+        var elPrecio  = document.getElementById('cobroPrecio');
 
         if (elCliente) { elCliente.textContent = data.clienteNombre; }
         if (elPlaca)   { elPlaca.textContent   = data.placa; }
         if (elTiempo)  { elTiempo.textContent  = data.tiempoTotal; }
 
         if (container) {
-            container.innerHTML = '<div class="sede-modal-cobro-selector"><h3>Seleccione tarifa:</h3>' +
+            container.innerHTML =
+                '<div class="sede-modal-cobro-selector">' +
+                '<p>Seleccione tarifa:</p>' +
                 data.opciones.map(function(op, i) {
                     return '<label class="sede-modal-cobro-opcion">' +
                         '<input type="radio" name="tipoTarifa" value="' + op.tipo + '"' + (i === 0 ? ' checked' : '') +
@@ -827,6 +812,7 @@ async function abrirModalCobro(registroId) {
         if (elPrecio && data.opciones[0]) { elPrecio.textContent = formatNumber(data.opciones[0].precio); }
     } catch (error) {
         showNotification(error.message, 'error');
+        cerrarModalCobro();
     }
 }
 
@@ -838,9 +824,7 @@ function actualizarPrecioCobro(tipo, precio) {
 function cerrarModalCobro() {
     var modal = document.getElementById('cobroModal');
     if (modal) {
-        modal.style.display    = 'none';
-        modal.style.visibility = 'hidden';
-        modal.style.opacity    = '0';
+        modal.classList.remove('open');
         modal.setAttribute('aria-hidden', 'true');
     }
     currentCobroRegistroId = null;
@@ -857,7 +841,7 @@ async function procesarCobro() {
         var tipoTarifa   = document.querySelector('input[name="tipoTarifa"]:checked');
         if (!tipoTarifa) { showNotification('Seleccione una tarifa', 'warning'); return; }
         showNotification('Procesando cobro...', 'info');
-        var response = await fetch(API_TRABAJADOR_URL + '/confirmar-cobro/' + currentCobroRegistroId, {
+        var response = await fetch(API_BASE_URL + '/confirmar-cobro/' + currentCobroRegistroId, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ metodoPago: metodoPago, tipoTarifa: tipoTarifa.value })
@@ -882,7 +866,7 @@ async function loadHistorial() {
         var estadoEl = document.getElementById('filtroEstado1');
         var fecha    = fechaEl  ? fechaEl.value  : '';
         var estado   = estadoEl ? estadoEl.value : '';
-        var url = API_TRABAJADOR_URL + '/historial';
+        var url    = API_BASE_URL + '/historial';
         var params = new URLSearchParams();
         if (fecha)  { params.append('fecha',  fecha);  }
         if (estado) { params.append('estado', estado); }
@@ -899,10 +883,10 @@ async function loadHistorial() {
         }
         tbody.innerHTML = registros.map(function(r) {
             var badge;
-            if (r.estado === 'ACTIVO')      { badge = '<span class="sede-badge sede-badge-info">Activo</span>'; }
+            if      (r.estado === 'ACTIVO')     { badge = '<span class="sede-badge sede-badge-info">Activo</span>';       }
             else if (r.estado === 'FINALIZADO') { badge = '<span class="sede-badge sede-badge-warning">Pendiente</span>'; }
-            else if (r.estado === 'COBRADO') { badge = '<span class="sede-badge sede-badge-success">Cobrado</span>'; }
-            else                             { badge = '<span class="sede-badge sede-badge-danger">Cancelado</span>'; }
+            else if (r.estado === 'COBRADO')    { badge = '<span class="sede-badge sede-badge-success">Cobrado</span>';   }
+            else                                { badge = '<span class="sede-badge sede-badge-danger">Cancelado</span>';  }
             return '<tr>' +
                 '<td><strong>' + r.placa + '</strong></td>' +
                 '<td>' + r.tipoVehiculo + '</td>' +
@@ -913,7 +897,7 @@ async function loadHistorial() {
                 '<td>' + r.tiempoTotal + '</td>' +
                 '<td>' + (r.precio ? '$' + formatNumber(r.precio) : '-') + '</td>' +
                 '<td>' + badge + '</td>' +
-            '</tr>';
+                '</tr>';
         }).join('');
     } catch (error) {
         console.error('Error historial:', error);
@@ -923,7 +907,7 @@ async function loadHistorial() {
 // ==================== RESERVACIONES ====================
 async function loadReservaciones() {
     try {
-        var response = await fetch(API_TRABAJADOR_URL + '/reservaciones', {
+        var response = await fetch(API_BASE_URL + '/reservaciones', {
             headers: { 'Content-Type': 'application/json' }
         });
         if (!response.ok) { throw new Error('Error'); }
@@ -941,13 +925,13 @@ async function loadReservaciones() {
                 '<td><strong>' + r.placa + '</strong></td>' +
                 '<td>' + r.tipoVehiculo + '</td>' +
                 '<td>' + formatDateTime(r.horaInicio) + '</td>' +
-                '<td>' + formatDateTime(r.horaFin) + '</td>' +
+                '<td>' + formatDateTime(r.horaFin)    + '</td>' +
                 '<td><span class="sede-badge sede-badge-info">' + r.cupo + '</span></td>' +
                 '<td>' +
-                    '<button class="sede-btn-success sede-btn-aceptar"  data-id="' + r.id + '">Aceptar</button> ' +
-                    '<button class="sede-btn-danger  sede-btn-rechazar" data-id="' + r.id + '">Rechazar</button>' +
+                '<button class="sede-btn-success sede-btn-aceptar"  data-id="' + r.id + '">Aceptar</button> ' +
+                '<button class="sede-btn-danger  sede-btn-rechazar" data-id="' + r.id + '">Rechazar</button>' +
                 '</td>' +
-            '</tr>';
+                '</tr>';
         }).join('');
     } catch (error) {
         console.error('Error reservaciones:', error);
@@ -958,7 +942,7 @@ async function aceptarReservacion(id) {
     var ok = await showConfirm('Aceptar reservación', '¿Confirmas que deseas aceptar esta reservación?', 'Aceptar', 'warning');
     if (!ok) { return; }
     try {
-        await fetch(API_TRABAJADOR_URL + '/aceptar-reservacion/' + id, {
+        await fetch(API_BASE_URL + '/aceptar-reservacion/' + id, {
             method: 'POST', headers: { 'Content-Type': 'application/json' }
         });
         showNotification('Reservación aceptada', 'success');
@@ -973,7 +957,7 @@ async function rechazarReservacion(id) {
     var ok = await showConfirm('Rechazar reservación', '¿Confirmas que deseas rechazar esta reservación?', 'Rechazar', 'danger');
     if (!ok) { return; }
     try {
-        var response = await fetch(API_TRABAJADOR_URL + '/rechazar-reservacion/' + id, {
+        var response = await fetch(API_BASE_URL + '/rechazar-reservacion/' + id, {
             method: 'POST', headers: { 'Content-Type': 'application/json' }
         });
         if (!response.ok) { throw new Error('Error'); }
@@ -995,29 +979,23 @@ async function cargarExcel() {
     var pc = document.getElementById('progressContainer');
     var pb = document.getElementById('progressBar');
     var pt = document.getElementById('progressText');
-
     try {
         if (pc) { pc.style.display = 'block'; }
         if (pb) { pb.style.width = '30%'; pb.textContent = '30%'; }
         if (pt) { pt.textContent = 'Subiendo archivo...'; }
-
         var formData = new FormData();
         formData.append('file', file);
-        var response = await fetch(API_TRABAJADOR_URL + '/carga-masiva', { method: 'POST', body: formData });
-
+        var response = await fetch(API_BASE_URL + '/carga-masiva', { method: 'POST', body: formData });
         if (pb) { pb.style.width = '70%'; pb.textContent = '70%'; }
         if (pt) { pt.textContent = 'Procesando datos...'; }
-
         if (!response.ok) {
             var errData = {};
             try { errData = await response.json(); } catch (e2) {}
             throw new Error(errData.error || 'Error al procesar el archivo');
         }
         var data = await response.json();
-
         if (pb) { pb.style.width = '100%'; pb.textContent = '100%'; }
         if (pt) { pt.textContent = 'Completado'; }
-
         mostrarResultadosCarga(data);
         showNotification(
             data.tieneErrores
@@ -1025,7 +1003,6 @@ async function cargarExcel() {
                 : 'Carga exitosa: ' + (data.totalRegistros || 0) + ' registros',
             data.tieneErrores ? 'warning' : 'success'
         );
-
         fileInput.value = '';
         var archivoInfo = document.getElementById('archivoSeleccionado');
         if (archivoInfo) { archivoInfo.innerHTML = ''; }
@@ -1039,39 +1016,32 @@ async function cargarExcel() {
 function mostrarResultadosCarga(data) {
     var rd = document.getElementById('resultadosCarga');
     if (rd) { rd.style.display = 'block'; }
-
     var resumen = document.getElementById('resumenCarga');
     if (resumen) {
         resumen.innerHTML =
             '<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:1rem;">' +
-                '<div style="background:linear-gradient(135deg,#d1fae5,#a7f3d0);padding:1.5rem;border-radius:0.75rem;text-align:center;">' +
-                    '<div style="font-size:2rem;font-weight:700;color:#065f46;">' + (data.clientesRegistrados || 0) + '</div>' +
-                    '<div style="font-size:0.9rem;color:#047857;font-weight:600;">Clientes Registrados</div>' +
-                '</div>' +
-                '<div style="background:linear-gradient(135deg,#ccfbf1,#99f6e4);padding:1.5rem;border-radius:0.75rem;text-align:center;">' +
-                    '<div style="font-size:2rem;font-weight:700;color:#0f766e;">' + (data.vehiculosRegistrados || 0) + '</div>' +
-                    '<div style="font-size:0.9rem;color:#0d9488;font-weight:600;">Vehículos Registrados</div>' +
-                '</div>' +
-                '<div style="background:linear-gradient(135deg,#e0f2f1,#b2dfdb);padding:1.5rem;border-radius:0.75rem;text-align:center;">' +
-                    '<div style="font-size:2rem;font-weight:700;color:#00695c;">' + (data.totalRegistros || 0) + '</div>' +
-                    '<div style="font-size:0.9rem;color:#00796b;font-weight:600;">Total Registros</div>' +
-                '</div>' +
+            '<div style="background:linear-gradient(135deg,#d1fae5,#a7f3d0);padding:1.5rem;border-radius:0.75rem;text-align:center;">' +
+            '<div style="font-size:2rem;font-weight:700;color:#065f46;">'  + (data.clientesRegistrados  || 0) + '</div>' +
+            '<div style="font-size:0.9rem;color:#047857;font-weight:600;">Clientes Registrados</div>' +
+            '</div>' +
+            '<div style="background:linear-gradient(135deg,#ccfbf1,#99f6e4);padding:1.5rem;border-radius:0.75rem;text-align:center;">' +
+            '<div style="font-size:2rem;font-weight:700;color:#0f766e;">'  + (data.vehiculosRegistrados || 0) + '</div>' +
+            '<div style="font-size:0.9rem;color:#0d9488;font-weight:600;">Vehículos Registrados</div>' +
+            '</div>' +
+            '<div style="background:linear-gradient(135deg,#e0f2f1,#b2dfdb);padding:1.5rem;border-radius:0.75rem;text-align:center;">' +
+            '<div style="font-size:2rem;font-weight:700;color:#00695c;">'  + (data.totalRegistros       || 0) + '</div>' +
+            '<div style="font-size:0.9rem;color:#00796b;font-weight:600;">Total Registros</div>' +
+            '</div>' +
             '</div>';
     }
-
     var ec = document.getElementById('erroresContainer');
     var le = document.getElementById('listaErrores');
     if (data.errores && data.errores.length > 0) {
         if (ec) { ec.style.display = 'block'; }
-        if (le) {
-            le.innerHTML = data.errores.map(function(e) {
-                return '<li>' + e + '</li>';
-            }).join('');
-        }
+        if (le) { le.innerHTML = data.errores.map(function(e) { return '<li>' + e + '</li>'; }).join(''); }
     } else {
         if (ec) { ec.style.display = 'none'; }
     }
-
     var tbody = document.getElementById('resultadosCargaBody');
     if (tbody && data.registrosCargados) {
         tbody.innerHTML = data.registrosCargados.map(function(r) {
@@ -1080,19 +1050,19 @@ function mostrarResultadosCarga(data) {
                     '<td><span class="sede-badge sede-badge-info">🚗 ' + r.tipo + '</span></td>' +
                     '<td><strong>' + (r.placa || 'N/A') + '</strong></td>' +
                     '<td><strong>' + (r.marca || 'N/A') + '</strong> ' + (r.tipoVehiculo || '') +
-                        '<br><small style="color:#64748b;">Color: ' + (r.color || 'N/A') + ' - Año: ' + (r.anio || 'N/A') + '</small>' +
-                        '<br><small style="color:#64748b;">Propietario: ' + (r.propietario || 'N/A') + '</small></td>' +
+                    '<br><small style="color:#64748b;">Color: ' + (r.color || 'N/A') + ' - Año: ' + (r.anio || 'N/A') + '</small>' +
+                    '<br><small style="color:#64748b;">Propietario: ' + (r.propietario || 'N/A') + '</small></td>' +
                     '<td><span class="sede-badge sede-badge-success">✓ Registrado</span></td>' +
-                '</tr>';
+                    '</tr>';
             }
             if (r.tipo === 'Cliente') {
                 return '<tr>' +
                     '<td><span class="sede-badge sede-badge-success">👤 ' + r.tipo + '</span></td>' +
                     '<td><strong>' + (r.nombre || 'N/A') + '</strong></td>' +
                     '<td>' + (r.email || 'N/A') +
-                        '<br><small style="color:#64748b;">Tel: ' + (r.telefono || 'N/A') + ' - Cédula: ' + (r.cedula || 'N/A') + '</small></td>' +
+                    '<br><small style="color:#64748b;">Tel: ' + (r.telefono || 'N/A') + ' - Cédula: ' + (r.cedula || 'N/A') + '</small></td>' +
                     '<td><span class="sede-badge sede-badge-success">✓ Registrado</span></td>' +
-                '</tr>';
+                    '</tr>';
             }
             return '';
         }).join('');
@@ -1101,7 +1071,7 @@ function mostrarResultadosCarga(data) {
 
 function descargarPlantillaCompleta() {
     if (typeof XLSX === 'undefined') { showNotification('Error: Librería XLSX no está cargada', 'error'); return; }
-    var wb = XLSX.utils.book_new();
+    var wb  = XLSX.utils.book_new();
     var wsC = XLSX.utils.aoa_to_sheet([
         ['Tipo', 'Nombre', 'Teléfono', 'Email', 'Cédula'],
         ['Cliente', 'Juan Pérez', '0987654321', 'juan@gmail.com', '1234567899']
@@ -1120,7 +1090,7 @@ function descargarPlantillaCompleta() {
 
 function descargarPlantillaVehiculosSolo() {
     if (typeof XLSX === 'undefined') { showNotification('Error: Librería XLSX no está cargada', 'error'); return; }
-    var wb = XLSX.utils.book_new();
+    var wb  = XLSX.utils.book_new();
     var wsV = XLSX.utils.aoa_to_sheet([
         ['Tipo', 'Placa', 'Tipo Vehículo', 'Marca', 'Color', 'Año', 'Email Cliente'],
         ['Vehiculo', 'ABC123', 'CARRO', 'TOYOTA', 'Blanco', '2020', 'juan@gmail.com']
@@ -1173,7 +1143,7 @@ function closeRegistrarTrabajadorModal() {
         modal.setAttribute('aria-hidden', 'true');
         setTimeout(function() {
             ['trabajadorNombre', 'trabajadorCorreo', 'trabajadorTelefono',
-             'trabajadorCedula', 'trabajadorContrasena'].forEach(function(id) {
+                'trabajadorCedula', 'trabajadorContrasena'].forEach(function(id) {
                 var el = document.getElementById(id);
                 if (el) { el.value = ''; }
             });
@@ -1182,20 +1152,18 @@ function closeRegistrarTrabajadorModal() {
 }
 
 async function registrarTrabajador() {
-    var nombreEl    = document.getElementById('trabajadorNombre');
-    var correoEl    = document.getElementById('trabajadorCorreo');
-    var telefonoEl  = document.getElementById('trabajadorTelefono');
-    var cedulaEl    = document.getElementById('trabajadorCedula');
+    var nombreEl     = document.getElementById('trabajadorNombre');
+    var correoEl     = document.getElementById('trabajadorCorreo');
+    var telefonoEl   = document.getElementById('trabajadorTelefono');
+    var cedulaEl     = document.getElementById('trabajadorCedula');
     var contrasenaEl = document.getElementById('trabajadorContrasena');
-
     var datos = {
-        nombre:     nombreEl    ? nombreEl.value.trim()    : '',
-        correo:     correoEl    ? correoEl.value.trim()    : '',
-        telefono:   telefonoEl  ? telefonoEl.value.trim()  : '',
-        cedula:     cedulaEl    ? cedulaEl.value.trim()    : '',
-        contrasena: contrasenaEl ? contrasenaEl.value      : ''
+        nombre:     nombreEl     ? nombreEl.value.trim()     : '',
+        correo:     correoEl     ? correoEl.value.trim()     : '',
+        telefono:   telefonoEl   ? telefonoEl.value.trim()   : '',
+        cedula:     cedulaEl     ? cedulaEl.value.trim()     : '',
+        contrasena: contrasenaEl ? contrasenaEl.value        : ''
     };
-
     if (!datos.nombre || !datos.correo) {
         showNotification('Complete los campos obligatorios: Nombre y Correo', 'warning');
         return;
@@ -1236,12 +1204,9 @@ async function generarPDF() {
         var blob = await response.blob();
         var url  = window.URL.createObjectURL(blob);
         var a    = document.createElement('a');
-        a.href     = url;
-        a.download = 'reporte_clientes_' + Date.now() + '.pdf';
-        document.body.appendChild(a);
-        a.click();
-        window.URL.revokeObjectURL(url);
-        document.body.removeChild(a);
+        a.href = url; a.download = 'reporte_clientes_' + Date.now() + '.pdf';
+        document.body.appendChild(a); a.click();
+        window.URL.revokeObjectURL(url); document.body.removeChild(a);
         showNotification('PDF generado exitosamente', 'success');
     } catch (e) {
         showNotification('Error al generar el reporte PDF', 'error');
@@ -1255,12 +1220,9 @@ async function generarExcel() {
         var blob = await response.blob();
         var url  = window.URL.createObjectURL(blob);
         var a    = document.createElement('a');
-        a.href     = url;
-        a.download = 'reporte_clientes_' + Date.now() + '.xlsx';
-        document.body.appendChild(a);
-        a.click();
-        window.URL.revokeObjectURL(url);
-        document.body.removeChild(a);
+        a.href = url; a.download = 'reporte_clientes_' + Date.now() + '.xlsx';
+        document.body.appendChild(a); a.click();
+        window.URL.revokeObjectURL(url); document.body.removeChild(a);
         showNotification('Excel generado exitosamente', 'success');
     } catch (e) {
         showNotification('Error al generar el reporte Excel', 'error');
@@ -1283,10 +1245,8 @@ async function editarUsuario(id) {
             method: 'PUT',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
-                nombre:   resultado.nombre.trim(),
-                correo:   resultado.correo.trim(),
-                telefono: resultado.telefono.trim(),
-                estado:   resultado.estado
+                nombre: resultado.nombre.trim(), correo: resultado.correo.trim(),
+                telefono: resultado.telefono.trim(), estado: resultado.estado
             })
         });
         if (response.ok) {
@@ -1302,7 +1262,7 @@ async function editarUsuario(id) {
 }
 
 async function eliminarUsuario(id) {
-    var u = usuariosData.find(function(x) { return x.id === id; });
+    var u      = usuariosData.find(function(x) { return x.id === id; });
     var nombre = u ? u.nombre : 'ID ' + id;
     var ok = await showConfirm(
         'Eliminar usuario',
@@ -1341,10 +1301,8 @@ async function editarSede(id) {
             method: 'PUT',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
-                nombre:    resultado.nombre.trim(),
-                direccion: resultado.direccion.trim(),
-                capacidad: parseInt(resultado.capacidad),
-                estado:    resultado.estado
+                nombre: resultado.nombre.trim(), direccion: resultado.direccion.trim(),
+                capacidad: parseInt(resultado.capacidad), estado: resultado.estado
             })
         });
         if (response.ok) {
@@ -1372,39 +1330,30 @@ async function enviarCorreoUno() {
     var btn = document.querySelector('#correoUno button[type="submit"]');
     if (btn) { btn.disabled = true; btn.textContent = 'Enviando...'; }
     var formData = new URLSearchParams();
-    formData.append('correo', email);
-    formData.append('asunto', subject);
-    formData.append('mensaje', message);
+    formData.append('correo', email); formData.append('asunto', subject); formData.append('mensaje', message);
     try {
         var response = await fetch(API_BASE_URL + '/correo/unitario', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+            method: 'POST', headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
             body: formData.toString()
         });
         var data = await response.json();
         if (data.status === 'success') {
             showNotification(data.message, 'success');
             ['emailSingle', 'subjectSingle', 'messageSingle'].forEach(function(id) {
-                var el = document.getElementById(id);
-                if (el) { el.value = ''; }
+                var el = document.getElementById(id); if (el) { el.value = ''; }
             });
-        } else {
-            showNotification(data.message || 'Error al enviar correo', 'error');
-        }
-    } catch (e) {
-        showNotification('Error de conexión', 'error');
-    } finally {
-        if (btn) { btn.disabled = false; btn.textContent = 'Enviar Correo'; }
-    }
+        } else { showNotification(data.message || 'Error al enviar correo', 'error'); }
+    } catch (e) { showNotification('Error de conexión', 'error'); }
+    finally { if (btn) { btn.disabled = false; btn.textContent = 'Enviar Correo'; } }
 }
 
 async function enviarCorreoMasivo() {
     var emailsEl  = document.getElementById('emailsMassive');
     var subjectEl = document.getElementById('subjectMassive');
     var messageEl = document.getElementById('messageMassive');
-    var emailsRaw = emailsEl  ? emailsEl.value.trim()   : '';
-    var subject   = subjectEl ? subjectEl.value.trim()  : '';
-    var message   = messageEl ? messageEl.value.trim()  : '';
+    var emailsRaw = emailsEl  ? emailsEl.value.trim()  : '';
+    var subject   = subjectEl ? subjectEl.value.trim() : '';
+    var message   = messageEl ? messageEl.value.trim() : '';
     if (!emailsRaw || !subject || !message) { showNotification('Por favor complete todos los campos', 'warning'); return; }
     var emailList = emailsRaw.split(',').map(function(e) { return e.trim(); }).filter(function(e) { return e; });
     var invalid   = emailList.filter(function(e) { return !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(e); });
@@ -1414,50 +1363,36 @@ async function enviarCorreoMasivo() {
     if (btn) { btn.disabled = true; btn.textContent = 'Enviando...'; }
     var formData = new URLSearchParams();
     emailList.forEach(function(e) { formData.append('seleccionados', e); });
-    formData.append('asunto', subject);
-    formData.append('mensaje', message);
+    formData.append('asunto', subject); formData.append('mensaje', message);
     try {
         var response = await fetch(API_BASE_URL + '/correo/masivo', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+            method: 'POST', headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
             body: formData.toString()
         });
         var data = await response.json();
         if (data.status === 'success') {
             showNotification(data.message, 'success');
             ['emailsMassive', 'subjectMassive', 'messageMassive'].forEach(function(id) {
-                var el = document.getElementById(id);
-                if (el) { el.value = ''; }
+                var el = document.getElementById(id); if (el) { el.value = ''; }
             });
-        } else {
-            showNotification(data.message || 'Error al enviar correos', 'error');
-        }
-    } catch (e) {
-        showNotification('Error de conexión', 'error');
-    } finally {
-        if (btn) { btn.disabled = false; btn.textContent = 'Enviar Masivamente'; }
-    }
+        } else { showNotification(data.message || 'Error al enviar correos', 'error'); }
+    } catch (e) { showNotification('Error de conexión', 'error'); }
+    finally { if (btn) { btn.disabled = false; btn.textContent = 'Enviar Masivamente'; } }
 }
 
 // ==================== UI HELPERS ====================
-/**
- * setupSidebarToggle — NO-OP
- * El sidebar colapsable se maneja con toggleSidebar() definido en Sede.html.
- * Se mantiene por compatibilidad con initializeApp().
- */
 function setupSidebarToggle() {
-    // no-op: el toggle vive en Sede.html (inline script + onclick)
+    // no-op: el toggle vive en DashboardSede.html (inline script + onclick)
 }
 
 function setupProfileMenu() {
-    var profileBtn  = document.getElementById('profileBtn');
-    var dropdown    = document.getElementById('profileDropdown');
+    var profileBtn = document.getElementById('profileBtn');
+    var dropdown   = document.getElementById('profileDropdown');
     if (profileBtn && dropdown) {
         profileBtn.addEventListener('click', function(e) {
             e.stopPropagation();
             dropdown.classList.toggle('show');
-            profileBtn.setAttribute('aria-expanded',
-                dropdown.classList.contains('show') ? 'true' : 'false');
+            profileBtn.setAttribute('aria-expanded', dropdown.classList.contains('show') ? 'true' : 'false');
         });
         document.addEventListener('click', function() {
             dropdown.classList.remove('show');
@@ -1474,27 +1409,26 @@ function cerrarSesion() {
 function irConfiguracion() { showNotification('Sección de configuración próximamente', 'info'); }
 function irAyuda()         { showNotification('Sección de ayuda próximamente', 'info'); }
 
-// Cerrar modales con Escape
+// ==================== ESCAPE Y CLIC FUERA ====================
+// BUG #2 CORREGIDO: verifica classList.contains('open') en lugar de style.display
 document.addEventListener('keydown', function(e) {
-    if (e.key === 'Escape') {
-        var cobro  = document.getElementById('cobroModal');
-        var salida = document.getElementById('salidaModal');
-        if (cobro  && cobro.style.display  === 'block') { cerrarModalCobro();  }
-        if (salida && salida.style.display === 'block') { cerrarModalSalida(); }
-    }
+    if (e.key !== 'Escape') { return; }
+    var cobro  = document.getElementById('cobroModal');
+    var salida = document.getElementById('salidaModal');
+    if (cobro  && cobro.classList.contains('open'))  { cerrarModalCobro();  }
+    if (salida && salida.classList.contains('open')) { cerrarModalSalida(); }
 });
 
-// Cerrar modales al hacer clic fuera
 window.addEventListener('click', function(e) {
     var cobro  = document.getElementById('cobroModal');
     var salida = document.getElementById('salidaModal');
     var modal  = document.getElementById('registrarTrabajadorModal');
-    if (e.target === cobro)  { cerrarModalCobro();  }
-    if (e.target === salida) { cerrarModalSalida(); }
-    if (e.target === modal)  { closeRegistrarTrabajadorModal(); }
+    // Clic en el overlay (fuera de la caja) cierra el modal
+    if (cobro  && e.target === cobro)  { cerrarModalCobro();  }
+    if (salida && e.target === salida) { cerrarModalSalida(); }
+    if (modal  && e.target === modal)  { closeRegistrarTrabajadorModal(); }
 });
 
-// Limpiar timers al salir de la página
 window.addEventListener('beforeunload', function() {
     if (updateInterval) { clearInterval(updateInterval); }
     Object.values(timerIntervals).forEach(function(id) { clearInterval(id); });
@@ -1516,7 +1450,7 @@ function injectAdditionalStyles() {
     document.head.appendChild(style);
 }
 
-// Fallback global para toggleSidebar (por si se llama antes de que el HTML lo defina)
+// Fallback global para toggleSidebar
 if (typeof window.toggleSidebar === 'undefined') {
     window.toggleSidebar = function() {
         var collapsed = document.body.classList.toggle('sidebar-collapsed');
@@ -1526,4 +1460,4 @@ if (typeof window.toggleSidebar === 'undefined') {
     };
 }
 
-console.log('SedeD.js cargado correctamente');
+console.log('SedeD.js v2 — cargado correctamente');

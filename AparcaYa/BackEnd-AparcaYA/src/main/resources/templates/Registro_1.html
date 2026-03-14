@@ -3,668 +3,767 @@
       data-theme="light"
       xmlns:th="http://www.thymeleaf.org">
 <head>
-    <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>Registro - AparcaYA</title>
+    <meta charset="UTF-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1"/>
+    <title>Registro — AparcaYA</title>
     <meta name="description"
-          content="Regístrate en AparcaYA como cliente o administrador de sede para gestionar estacionamientos.">
+          content="Regístrate en AparcaYA como cliente o administrador de sede."/>
 
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://cdn.jsdelivr.net/npm/daisyui@4.12.10/dist/full.min.css"
-          rel="stylesheet" type="text/css" />
-    <link rel="stylesheet" href="/css/base/aparca-animations.css" />
-    <link rel="stylesheet" href="/css/components/aparca-components.css" />
-    <link rel="stylesheet" href="/css/pages/registro.css" />
-    <!-- Leaflet para el mini-mapa de registro de sede -->
-    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+          rel="stylesheet"/>
+    <link rel="preconnect" href="https://fonts.googleapis.com"/>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap"
+          rel="stylesheet"/>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <link rel="stylesheet" href="/css/base/aparca-animations.css"/>
+    <link rel="stylesheet" href="/css/components/aparca-components.css"/>
+    <link rel="stylesheet" href="/css/pages/registro.css"/>
 </head>
 
-<body class="bg-gradient-to-br from-blue-50 to-white min-h-screen flex items-center justify-center p-4">
+<body class="rg-body">
 
-<!-- ENCABEZADO -->
-<section class="w-full max-w-4xl text-center mb-8 animate-fade-in-up">
-    <div class="flex justify-center mb-4">
-        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
-             stroke-width="1.5" stroke="currentColor"
-             class="w-16 h-16 text-blue-500" aria-hidden="true">
+<!-- Fondo decorativo -->
+<div class="rg-bg" aria-hidden="true">
+    <div class="rg-blob rg-blob-1"></div>
+    <div class="rg-blob rg-blob-2"></div>
+</div>
+
+<!-- ══════════════════════════════════════════════
+     ENCABEZADO
+     ══════════════════════════════════════════════ -->
+<section class="rg-hero aparca-fade-in-up" aria-label="Encabezado de registro">
+    <div class="rg-hero-icon" aria-hidden="true">
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none"
+             viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
             <path stroke-linecap="round" stroke-linejoin="round"
-                  d="M8.25 18.75a1.5 1.5 0 01-3 0V15a6 6 0 0112 0v3.75a1.5 1.5 0
-                  01-3 0V15a3 3 0 00-6 0v3.75zM12 9a3 3 0 100-6 3 3 0 000 6z" />
+                  d="M15.75 6a3.75 3.75 0 11-7.5 0 3.75 3.75 0
+                  017.5 0zM4.501 20.118a7.5 7.5 0 0114.998
+                  0A17.933 17.933 0 0112 21.75c-2.676
+                  0-5.216-.584-7.499-1.632z"/>
         </svg>
     </div>
-    <h1 class="text-3xl sm:text-4xl font-bold text-blue-900 mb-2">Únete a Aparca Ya</h1>
-    <p class="text-blue-600">Crea tu cuenta paso a paso y reserva espacios en segundos.</p>
+    <h1 class="rg-hero-title">Únete a <em>AparcaYA</em></h1>
+    <p class="rg-hero-sub">Crea tu cuenta paso a paso y reserva espacios en segundos.</p>
 </section>
 
-<!-- TARJETA PRINCIPAL -->
-<main class="w-full max-w-2xl">
-    <section class="card bg-white shadow-lg rounded-lg card-hover animate-fade-in-up p-6"
-             role="main"
-             aria-labelledby="registro-titulo"
-             style="animation-delay: 0.2s;">
+<!-- ══════════════════════════════════════════════
+     TARJETA PRINCIPAL
+     ══════════════════════════════════════════════ -->
+<main class="rg-card aparca-fade-in-up aparca-fade-in-up--delay"
+      role="main" aria-labelledby="registro-titulo">
 
-        <header class="card-header text-center mb-6">
-            <h1 id="registro-titulo" class="text-2xl font-bold text-blue-900">Crear cuenta</h1>
-            <p class="text-blue-600">Selecciona tu rol y completa el formulario paso a paso</p>
-        </header>
+    <div class="rg-card-head">
+        <h2 id="registro-titulo" class="rg-card-title">Crear cuenta</h2>
+        <p class="rg-card-sub">Selecciona tu rol y completa el formulario paso a paso</p>
+    </div>
 
-        <div th:if="${error}"
-             class="flex items-start gap-3 mb-4 p-4 rounded-lg border
-                    bg-red-50 border-red-300 text-red-700 text-sm"
-             role="alert"
-             aria-live="assertive">
-            <span class="text-lg leading-none mt-0.5">❌</span>
-            <span th:text="${error}">Error del servidor</span>
-        </div>
+    <!-- Alertas Thymeleaf -->
+    <div th:if="${error}"
+         class="rg-alert rg-alert-error" role="alert" aria-live="assertive">
+        <span>✕</span><span th:text="${error}">Error del servidor</span>
+    </div>
+    <div th:if="${success}"
+         class="rg-alert rg-alert-ok" role="alert" aria-live="assertive">
+        <span>✓</span><span th:text="${success}">Operación exitosa</span>
+    </div>
 
-        <div th:if="${success}"
-             class="flex items-start gap-3 mb-4 p-4 rounded-lg border
-                    bg-green-50 border-green-300 text-green-700 text-sm"
-             role="alert"
-             aria-live="assertive">
-            <span class="text-lg leading-none mt-0.5">✅</span>
-            <span th:text="${success}">Operación exitosa</span>
-        </div>
+    <!-- ── SELECTOR DE ROL ── -->
+    <div class="rg-role-wrap" role="radiogroup" aria-labelledby="rol-label">
+        <span id="rol-label" class="sr-only">Selecciona tu rol</span>
 
-        <!-- SELECTOR DE ROL -->
-        <div class="role-selection flex justify-center gap-4 mb-6"
-             role="radiogroup"
-             aria-labelledby="rol-label"
-             aria-describedby="rol-desc">
-            <span id="rol-label" class="sr-only">Selecciona tu rol</span>
-            <p id="rol-desc" class="sr-only">
-                Elige si eres cliente o administrador de sede para mostrar los campos relevantes.
-            </p>
-            <button id="btnCliente"
-                    class="role-btn px-4 py-2 rounded-lg border border-blue-300 text-blue-700 active"
-                    data-role="CLIENTE"
-                    type="button"
-                    aria-pressed="true">
-                Soy Cliente
-            </button>
-            <button id="btnSede"
-                    class="role-btn px-4 py-2 rounded-lg border border-blue-300 text-blue-700"
-                    data-role="ADMINISTRADOR_SEDE"
-                    type="button"
-                    aria-pressed="false">
-                Soy Sede
-            </button>
-        </div>
+        <button id="btnCliente"
+                class="role-btn rg-role-btn active"
+                data-role="CLIENTE" type="button" aria-pressed="true">
+            <svg class="rg-role-ico" xmlns="http://www.w3.org/2000/svg"
+                 fill="none" viewBox="0 0 24 24"
+                 stroke="currentColor" stroke-width="1.8" aria-hidden="true">
+                <path stroke-linecap="round" stroke-linejoin="round"
+                      d="M15.75 6a3.75 3.75 0 11-7.5 0 3.75 3.75 0
+                      017.5 0zM4.501 20.118a7.5 7.5 0 0114.998
+                      0A17.933 17.933 0 0112 21.75c-2.676
+                      0-5.216-.584-7.499-1.632z"/>
+            </svg>
+            Soy Cliente
+        </button>
 
-        <!-- FORMULARIO MULTI-PASO -->
-        <form id="registroForm" class="form" novalidate
-              action="/registrar" method="post"
-              aria-labelledby="registro-titulo">
+        <button id="btnSede"
+                class="role-btn rg-role-btn"
+                data-role="ADMINISTRADOR_SEDE" type="button" aria-pressed="false">
+            <svg class="rg-role-ico" xmlns="http://www.w3.org/2000/svg"
+                 fill="none" viewBox="0 0 24 24"
+                 stroke="currentColor" stroke-width="1.8" aria-hidden="true">
+                <path stroke-linecap="round" stroke-linejoin="round"
+                      d="M3.75 21h16.5M4.5 3h15M5.25 3v18m13.5-18v18
+                      M9 6.75h1.5m-1.5 3h1.5m-1.5 3h1.5m3-6H15m-1.5
+                      3H15m-1.5 3H15M9 21v-3.375c0-.621.504-1.125
+                      1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125V21"/>
+            </svg>
+            Soy Sede
+        </button>
+    </div>
 
-            <input type="hidden" name="rol" id="rolHidden" value="CLIENTE">
+    <!-- ══════════════════════════════════════════
+         FORMULARIO MULTI-PASO
+         ══════════════════════════════════════════ -->
+    <form id="registroForm" novalidate action="/registrar" method="post">
 
-            <!-- PASO 1: INFORMACIÓN PERSONAL -->
-            <div class="step active-step" id="step1">
-                <fieldset class="mb-6">
-                    <legend class="sr-only">Información básica</legend>
+        <input type="hidden" name="rol" id="rolHidden" value="CLIENTE"/>
 
-                    <div class="flex items-center mb-4">
-                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
-                             stroke-width="1.5" stroke="currentColor"
-                             class="w-6 h-6 text-cyan-400 mr-2" aria-hidden="true">
-                            <path stroke-linecap="round" stroke-linejoin="round"
-                                  d="M15.75 6a3.75 3.75 0 11-7.5 0 3.75 3.75 0 017.5 0zM4.501
-                                  20.118a7.5 7.5 0 0114.998 0A17.933 17.933 0 0112
-                                  21.75c-2.676 0-5.216-.584-7.499-1.632z"/>
-                        </svg>
-                        <h3 class="text-lg font-semibold text-blue-700">Información Personal</h3>
+        <!-- ── PASO 1: Información personal ── -->
+        <div class="step active-step" id="step1">
+            <div class="rg-section-head">
+                <svg class="rg-sec-ico" xmlns="http://www.w3.org/2000/svg"
+                     fill="none" viewBox="0 0 24 24"
+                     stroke="currentColor" stroke-width="1.8" aria-hidden="true">
+                    <path stroke-linecap="round" stroke-linejoin="round"
+                          d="M15.75 6a3.75 3.75 0 11-7.5 0 3.75 3.75 0
+                          017.5 0zM4.501 20.118a7.5 7.5 0 0114.998
+                          0A17.933 17.933 0 0112 21.75c-2.676
+                          0-5.216-.584-7.499-1.632z"/>
+                </svg>
+                <h3 class="rg-section-title">Información Personal</h3>
+            </div>
+
+            <fieldset class="rg-fieldset">
+                <legend class="sr-only">Información básica</legend>
+
+                <div class="rg-field">
+                    <label for="nombre" class="rg-label">Nombre completo</label>
+                    <input id="nombre" name="nombre" type="text"
+                           placeholder="Tu nombre completo"
+                           required minlength="2" maxlength="100"
+                           autocomplete="name"
+                           aria-describedby="nombre-error"
+                           class="rg-input"/>
+                    <span id="nombre-error" class="error-message" aria-live="polite"></span>
+                </div>
+
+                <div class="rg-grid2">
+                    <div class="rg-field">
+                        <label for="correo" class="rg-label">Correo electrónico</label>
+                        <input id="correo" name="correo" type="email"
+                               placeholder="tu@ejemplo.com" required
+                               autocomplete="email"
+                               aria-describedby="correo-error correo-success"
+                               class="rg-input"/>
+                        <span id="correo-error"   class="error-message"   aria-live="polite"></span>
+                        <span id="correo-success" class="success-message" aria-live="polite"></span>
                     </div>
-
-                    <div class="form-row mb-4">
-                        <label for="nombre" class="block text-sm font-medium text-gray-700">
-                            Nombre completo
-                        </label>
-                        <input id="nombre" name="nombre" type="text"
-                               placeholder="Tu nombre"
-                               required minlength="2" maxlength="100"
-                               autocomplete="name"
-                               aria-describedby="nombre-error"
-                               class="input input-bordered w-full border-blue-300
-                                      focus:border-blue-500 focus:ring-blue-500 text-blue-700"/>
-                        <span id="nombre-error" class="error-message" aria-live="polite"></span>
+                    <div class="rg-field">
+                        <label for="telefono" class="rg-label">Teléfono</label>
+                        <input id="telefono" name="telefono" type="tel"
+                               placeholder="3001234567"
+                               required pattern="[0-9]{10}"
+                               autocomplete="tel"
+                               aria-describedby="telefono-error telefono-success"
+                               class="rg-input"/>
+                        <span id="telefono-error"   class="error-message"   aria-live="polite"></span>
+                        <span id="telefono-success" class="success-message" aria-live="polite"></span>
                     </div>
+                </div>
 
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
-                        <div>
-                            <label for="correo" class="block text-sm font-medium text-gray-700">
-                                Correo electrónico
-                            </label>
-                            <input id="correo" name="correo" type="email"
-                                   placeholder="tu@ejemplo.com"
-                                   required autocomplete="email"
-                                   aria-describedby="correo-error correo-success"
-                                   class="input input-bordered w-full border-blue-300
-                                          focus:border-blue-500 focus:ring-blue-500 text-blue-700"/>
-                            <span id="correo-error"   class="error-message"   aria-live="polite"></span>
-                            <span id="correo-success" class="success-message" aria-live="polite"></span>
-                        </div>
-                        <div>
-                            <label for="telefono" class="block text-sm font-medium text-gray-700">
-                                Teléfono
-                            </label>
-                            <input id="telefono" name="telefono" type="tel"
-                                   placeholder="3001234567"
-                                   required pattern="[0-9]{10}"
-                                   title="Ingresa un número de 10 dígitos"
-                                   autocomplete="tel"
-                                   aria-describedby="telefono-error telefono-success"
-                                   class="input input-bordered w-full border-blue-300
-                                          focus:border-blue-500 focus:ring-blue-500 text-blue-700"/>
-                            <span id="telefono-error"   class="error-message"   aria-live="polite"></span>
-                            <span id="telefono-success" class="success-message" aria-live="polite"></span>
-                        </div>
+                <div class="rg-grid2">
+                    <div class="rg-field">
+                        <label for="cedula" class="rg-label">Cédula</label>
+                        <input id="cedula" name="cedula" type="text"
+                               placeholder="1234567890"
+                               required pattern="[0-9]{10}"
+                               autocomplete="off"
+                               aria-describedby="cedula-error cedula-success"
+                               class="rg-input"/>
+                        <span id="cedula-error"   class="error-message"   aria-live="polite"></span>
+                        <span id="cedula-success" class="success-message" aria-live="polite"></span>
                     </div>
-
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
-                        <div>
-                            <label for="cedula" class="block text-sm font-medium text-gray-700">
-                                Cédula
-                            </label>
-                            <input id="cedula" name="cedula" type="text"
-                                   placeholder="1234567890"
-                                   required pattern="[0-9]{10}"
-                                   title="Ingresa una cédula de 10 dígitos"
-                                   autocomplete="off"
-                                   aria-describedby="cedula-error cedula-success"
-                                   class="input input-bordered w-full border-blue-300
-                                          focus:border-blue-500 focus:ring-blue-500 text-blue-700"/>
-                            <span id="cedula-error"   class="error-message"   aria-live="polite"></span>
-                            <span id="cedula-success" class="success-message" aria-live="polite"></span>
-                        </div>
-                        <div class="relative">
-                            <label for="contrasena" class="block text-sm font-medium text-gray-700">
-                                Contraseña
-                            </label>
+                    <div class="rg-field">
+                        <label for="contrasena" class="rg-label">Contraseña</label>
+                        <div class="rg-pwd-wrap">
                             <input id="contrasena" name="contrasena" type="password"
                                    placeholder="••••••••"
                                    required minlength="8"
                                    autocomplete="new-password"
                                    aria-describedby="contrasena-error"
-                                   class="input input-bordered w-full border-blue-300
-                                          focus:border-blue-500 focus:ring-blue-500
-                                          text-blue-700 pr-10"/>
-                            <button type="button" tabindex="-1"
+                                   class="rg-input rg-pwd-input"/>
+                            <button type="button"
+                                    class="toggle-password rg-eye"
                                     aria-label="Mostrar u ocultar contraseña"
-                                    class="toggle-password absolute right-2 top-9
-                                           text-gray-500 hover:text-gray-700"
                                     data-target="contrasena">
-                                <svg class="h-5 w-5 eye-open" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.477 0 8.268 2.943 9.542 7-1.274 4.057-5.065 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/>
+                                <svg class="eye-open" xmlns="http://www.w3.org/2000/svg"
+                                     fill="none" viewBox="0 0 24 24"
+                                     stroke="currentColor" stroke-width="2">
+                                    <path stroke-linecap="round" stroke-linejoin="round"
+                                          d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
+                                    <path stroke-linecap="round" stroke-linejoin="round"
+                                          d="M2.458 12C3.732 7.943 7.523 5 12 5c4.477
+                                          0 8.268 2.943 9.542 7-1.274 4.057-5.065
+                                          7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/>
                                 </svg>
-                                <svg class="h-5 w-5 eye-closed hidden" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.269-2.944-9.543-7a9.967 9.967 0 012.783-4.423m2.93-2.931A9.953 9.953 0 0112 5c4.478 0 8.269 2.944 9.543 7a9.965 9.965 0 01-3.494 4.705M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 3l18 18"/>
+                                <svg class="eye-closed hidden"
+                                     xmlns="http://www.w3.org/2000/svg"
+                                     fill="none" viewBox="0 0 24 24"
+                                     stroke="currentColor" stroke-width="2">
+                                    <path stroke-linecap="round" stroke-linejoin="round"
+                                          d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478
+                                          0-8.269-2.944-9.543-7a9.967 9.967 0
+                                          012.783-4.423m2.93-2.931A9.953 9.953 0 0112
+                                          5c4.478 0 8.269 2.944 9.543 7a9.965 9.965
+                                          0 01-3.494 4.705M15 12a3 3 0 11-6 0 3 3 0
+                                          016 0z"/>
+                                    <path stroke-linecap="round" stroke-linejoin="round"
+                                          d="M3 3l18 18"/>
                                 </svg>
                             </button>
-                            <span id="contrasena-error" class="error-message" aria-live="polite"></span>
                         </div>
+                        <span id="contrasena-error" class="error-message" aria-live="polite"></span>
                     </div>
+                </div>
 
-                    <div class="form-row mb-4 relative">
-                        <label for="confirmarContrasena" class="block text-sm font-medium text-gray-700">
-                            Confirmar contraseña
-                        </label>
+                <div class="rg-field">
+                    <label for="confirmarContrasena" class="rg-label">
+                        Confirmar contraseña
+                    </label>
+                    <div class="rg-pwd-wrap">
                         <input id="confirmarContrasena" name="confirmarContrasena"
                                type="password" placeholder="••••••••"
                                required minlength="8"
                                autocomplete="new-password"
                                aria-describedby="confirmar-error"
-                               class="input input-bordered w-full border-blue-300
-                                      focus:border-blue-500 focus:ring-blue-500
-                                      text-blue-700 pr-10"/>
-                        <button type="button" tabindex="-1"
+                               class="rg-input rg-pwd-input"/>
+                        <button type="button"
+                                class="toggle-password rg-eye"
                                 aria-label="Mostrar u ocultar contraseña"
-                                class="toggle-password absolute right-2 top-9
-                                       text-gray-500 hover:text-gray-700"
                                 data-target="confirmarContrasena">
-                            <svg class="h-5 w-5 eye-open" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.477 0 8.268 2.943 9.542 7-1.274 4.057-5.065 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/>
+                            <svg class="eye-open" xmlns="http://www.w3.org/2000/svg"
+                                 fill="none" viewBox="0 0 24 24"
+                                 stroke="currentColor" stroke-width="2">
+                                <path stroke-linecap="round" stroke-linejoin="round"
+                                      d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
+                                <path stroke-linecap="round" stroke-linejoin="round"
+                                      d="M2.458 12C3.732 7.943 7.523 5 12 5c4.477
+                                      0 8.268 2.943 9.542 7-1.274 4.057-5.065
+                                      7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/>
                             </svg>
-                            <svg class="h-5 w-5 eye-closed hidden" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.269-2.944-9.543-7a9.967 9.967 0 012.783-4.423m2.93-2.931A9.953 9.953 0 0112 5c4.478 0 8.269 2.944 9.543 7a9.965 9.965 0 01-3.494 4.705M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 3l18 18"/>
+                            <svg class="eye-closed hidden"
+                                 xmlns="http://www.w3.org/2000/svg"
+                                 fill="none" viewBox="0 0 24 24"
+                                 stroke="currentColor" stroke-width="2">
+                                <path stroke-linecap="round" stroke-linejoin="round"
+                                      d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478
+                                      0-8.269-2.944-9.543-7a9.967 9.967 0
+                                      012.783-4.423m2.93-2.931A9.953 9.953 0 0112
+                                      5c4.478 0 8.269 2.944 9.543 7a9.965 9.965
+                                      0 01-3.494 4.705M15 12a3 3 0 11-6 0 3 3 0
+                                      016 0z"/>
+                                <path stroke-linecap="round" stroke-linejoin="round"
+                                      d="M3 3l18 18"/>
                             </svg>
                         </button>
-                        <span id="confirmar-error" class="error-message" aria-live="polite"></span>
                     </div>
-                </fieldset>
-
-                <div class="flex justify-end">
-                    <button type="button" id="next1"
-                            class="btn btn-primary bg-blue-600 hover:bg-blue-800 text-white btn-pulse">
-                        Siguiente
-                    </button>
+                    <span id="confirmar-error" class="error-message" aria-live="polite"></span>
                 </div>
+            </fieldset>
+
+            <div class="rg-foot rg-foot-end">
+                <button type="button" id="next1"
+                        class="rg-btn-primary btn-pulse">
+                    Siguiente →
+                </button>
+            </div>
+        </div><!-- /step1 -->
+
+
+        <!-- ── PASO 2 CLIENTE: Vehículo ── -->
+        <div class="step" id="stepCliente">
+            <div class="rg-section-head">
+                <svg class="rg-sec-ico" xmlns="http://www.w3.org/2000/svg"
+                     fill="none" viewBox="0 0 24 24"
+                     stroke="currentColor" stroke-width="1.8" aria-hidden="true">
+                    <path stroke-linecap="round" stroke-linejoin="round"
+                          d="M8.25 18.75a1.5 1.5 0 01-3 0V15a6 6 0 0112
+                          0v3.75a1.5 1.5 0 01-3 0V15a3 3 0 00-6 0v3.75z"/>
+                </svg>
+                <h3 class="rg-section-title">Datos del Vehículo</h3>
             </div>
 
+            <fieldset class="rg-fieldset">
+                <legend class="sr-only">Vehículo</legend>
 
-            <!-- PASO 2 CLIENTE: Datos del vehículo -->
-            <div class="step" id="stepCliente">
-                <fieldset class="mb-6">
-                    <legend class="text-lg font-semibold text-blue-700 mb-4 flex items-center">
-                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
-                             stroke-width="1.5" stroke="currentColor"
-                             class="w-6 h-6 text-cyan-400 mr-2" aria-hidden="true">
-                            <path stroke-linecap="round" stroke-linejoin="round"
-                                  d="M8.25 18.75a1.5 1.5 0 01-3 0V15a6 6 0 0112 0v3.75a1.5 1.5 0
-                                  01-3 0V15a3 3 0 00-6 0v3.75z" />
-                        </svg>
-                        Datos del vehículo (Cliente)
-                    </legend>
-
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
-                        <div>
-                            <label for="placa" class="block text-sm font-medium text-gray-700">Placa</label>
-                            <input id="placa" name="placa" type="text"
-                                   placeholder="ABC123" required autocomplete="off"
-                                   pattern="[A-Z]{3}[0-9]{3}"
-                                   title="Formato: 3 letras mayúsculas seguidas de 3 números (ej. ABC123)"
-                                   aria-describedby="placa-error"
-                                   class="input input-bordered w-full border-blue-300
-                                          focus:border-blue-500 focus:ring-blue-500 text-blue-700"
-                                   oninput="this.value = this.value.toUpperCase().replace(/[^A-Z0-9]/g, '').substring(0,6);"/>
-                            <span id="placa-error" class="error-message" aria-live="polite"></span>
-                        </div>
-                        <div>
-                            <label for="tipoVehiculo" class="block text-sm font-medium text-gray-700">Tipo de vehículo</label>
-                            <select id="tipoVehiculo" name="tipoVehiculo" required
-                                    class="select select-bordered w-full border-blue-300
-                                           focus:border-blue-500 focus:ring-blue-500 text-blue-700">
-                                <option value="">Selecciona un tipo</option>
-                                <option value="CARRO">Carro</option>
-                                <option value="MOTO">Moto</option>
-                                <option value="BICICLETA">Bicicleta</option>
-                                <option value="OTRO">Otro</option>
-                            </select>
-                            <span id="tipoVehiculo-error" class="error-message" aria-live="polite"></span>
-                        </div>
+                <div class="rg-grid2">
+                    <div class="rg-field">
+                        <label for="placa" class="rg-label">Placa</label>
+                        <input id="placa" name="placa" type="text"
+                               placeholder="ABC123" required autocomplete="off"
+                               pattern="[A-Z]{3}[0-9]{3}"
+                               title="3 letras + 3 números (ej. ABC123)"
+                               aria-describedby="placa-error"
+                               class="rg-input rg-mono"
+                               oninput="this.value=this.value.toUpperCase().replace(/[^A-Z0-9]/g,'').substring(0,6);"/>
+                        <span id="placa-error" class="error-message" aria-live="polite"></span>
                     </div>
-
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
-                        <div>
-                            <label for="marca" class="block text-sm font-medium text-gray-700">Marca</label>
-                            <select id="marca" name="marca" required
-                                    class="select select-bordered w-full border-blue-300
-                                           focus:border-blue-500 focus:ring-blue-500 text-blue-700">
-                                <option value="">Selecciona una marca</option>
-                            </select>
-                            <span id="marca-error" class="error-message" aria-live="polite"></span>
-                        </div>
-                        <div>
-                            <label for="color" class="block text-sm font-medium text-gray-700">Color</label>
-                            <input id="color" name="color" type="text"
-                                   placeholder="Rojo" autocomplete="off"
-                                   class="input input-bordered w-full border-blue-300
-                                          focus:border-blue-500 focus:ring-blue-500 text-blue-700"/>
-                        </div>
+                    <div class="rg-field">
+                        <label for="tipoVehiculo" class="rg-label">Tipo de vehículo</label>
+                        <select id="tipoVehiculo" name="tipoVehiculo" required
+                                class="rg-input rg-select">
+                            <option value="">Selecciona un tipo</option>
+                            <option value="CARRO">Carro</option>
+                            <option value="MOTO">Moto</option>
+                            <option value="BICICLETA">Bicicleta</option>
+                            <option value="OTRO">Otro</option>
+                        </select>
+                        <span id="tipoVehiculo-error" class="error-message" aria-live="polite"></span>
                     </div>
-
-                    <div class="form-row mb-4">
-                        <label for="anio" class="block text-sm font-medium text-gray-700">Año</label>
-                        <input id="anio" name="anio" type="number"
-                               min="1900" max="2025" placeholder="2020" autocomplete="off"
-                               class="input input-bordered w-full border-blue-300
-                                      focus:border-blue-500 focus:ring-blue-500 text-blue-700"/>
-                    </div>
-                </fieldset>
-
-                <div class="flex justify-between">
-                    <button type="button" id="backCliente"
-                            class="btn btn-outline btn-secondary text-blue-700 border-blue-300 hover:bg-blue-50">
-                        Atrás
-                    </button>
-                    <button type="button" id="nextCliente"
-                            class="btn btn-primary bg-blue-600 hover:bg-blue-800 text-white btn-pulse">
-                        Siguiente
-                    </button>
                 </div>
+
+                <div class="rg-grid2">
+                    <div class="rg-field">
+                        <label for="marca" class="rg-label">Marca</label>
+                        <select id="marca" name="marca" required class="rg-input rg-select">
+                            <option value="">Selecciona una marca</option>
+                        </select>
+                        <span id="marca-error" class="error-message" aria-live="polite"></span>
+                    </div>
+                    <div class="rg-field">
+                        <label for="color" class="rg-label">Color</label>
+                        <input id="color" name="color" type="text"
+                               placeholder="Rojo" autocomplete="off"
+                               class="rg-input"/>
+                    </div>
+                </div>
+
+                <div class="rg-field">
+                    <label for="anio" class="rg-label">Año</label>
+                    <input id="anio" name="anio" type="number"
+                           min="1900" max="2025" placeholder="2020"
+                           autocomplete="off" class="rg-input"/>
+                </div>
+            </fieldset>
+
+            <div class="rg-foot rg-foot-between">
+                <button type="button" id="backCliente" class="rg-btn-back">← Atrás</button>
+                <button type="button" id="nextCliente" class="rg-btn-primary btn-pulse">Siguiente →</button>
+            </div>
+        </div><!-- /stepCliente -->
+
+
+        <!-- ── PASO 2 SEDE: Nombre y NIT ── -->
+        <div class="step" id="stepSede2">
+            <div class="rg-section-head rg-section-sede">
+                <svg class="rg-sec-ico" xmlns="http://www.w3.org/2000/svg"
+                     fill="none" viewBox="0 0 24 24"
+                     stroke="currentColor" stroke-width="1.8" aria-hidden="true">
+                    <path stroke-linecap="round" stroke-linejoin="round"
+                          d="M3.75 21h16.5M4.5 3h15M5.25 3v18m13.5-18v18
+                          M9 6.75h1.5m-1.5 3h1.5m-1.5 3h1.5m3-6H15m-1.5
+                          3H15m-1.5 3H15M9 21v-3.375c0-.621.504-1.125
+                          1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125V21"/>
+                </svg>
+                <h3 class="rg-section-title">Información Básica de la Sede</h3>
             </div>
 
+            <fieldset class="rg-fieldset">
+                <legend class="sr-only">Sede básico</legend>
 
-            <!-- PASO 2 SEDE: Nombre y NIT -->
-            <div class="step" id="stepSede2">
-                <fieldset class="mb-6">
-                    <legend class="text-lg font-semibold text-blue-700 mb-4 flex items-center">
-                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
-                             stroke-width="1.5" stroke="currentColor"
-                             class="w-6 h-6 text-cyan-400 mr-2" aria-hidden="true">
-                            <path stroke-linecap="round" stroke-linejoin="round"
-                                  d="M3.75 21h16.5M4.5 3h15M5.25 3v18m13.5-18v18M9 6.75h1.5m-1.5
-                                  3h1.5m-1.5 3h1.5m3-6H15m-1.5 3H15m-1.5 3H15M9 21v-3.375c0-.621.504
-                                  -1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125V21" />
-                        </svg>
-                        Información Básica de la Sede
-                    </legend>
-
-                    <div class="form-row mb-4">
-                        <label for="nombreSede" class="block text-sm font-medium text-gray-700">Nombre de la sede</label>
-                        <input id="nombreSede" name="nombreSede" type="text"
-                               placeholder="Sede Centro"
-                               required minlength="3" maxlength="100"
-                               autocomplete="organization"
-                               aria-describedby="nombreSede-error"
-                               class="input input-bordered w-full border-blue-300
-                                      focus:border-blue-500 focus:ring-blue-500 text-blue-700" />
-                        <span id="nombreSede-error" class="error-message" aria-live="polite"></span>
-                    </div>
-
-                    <div class="form-row mb-4">
-                        <label for="nit" class="block text-sm font-medium text-gray-700">NIT</label>
-                        <input id="nit" name="nit" type="text"
-                               placeholder="123456789-0"
-                               required pattern="[0-9]{9}-[0-9]"
-                               title="Formato: 123456789-0"
-                               autocomplete="off"
-                               aria-describedby="nit-error nit-success"
-                               class="input input-bordered w-full border-blue-300
-                                      focus:border-blue-500 focus:ring-blue-500 text-blue-700" />
-                        <span id="nit-error"   class="error-message"   aria-live="polite"></span>
-                        <span id="nit-success" class="success-message" aria-live="polite"></span>
-                    </div>
-                </fieldset>
-
-                <div class="flex justify-between">
-                    <button type="button" id="backSede2"
-                            class="btn btn-outline btn-secondary text-blue-700 border-blue-300 hover:bg-blue-50">
-                        Atrás
-                    </button>
-                    <button type="button" id="nextSede2"
-                            class="btn btn-primary bg-blue-600 hover:bg-blue-800 text-white btn-pulse">
-                        Siguiente
-                    </button>
+                <div class="rg-field">
+                    <label for="nombreSede" class="rg-label">Nombre de la sede</label>
+                    <input id="nombreSede" name="nombreSede" type="text"
+                           placeholder="Parqueadero Centro"
+                           required minlength="3" maxlength="100"
+                           autocomplete="organization"
+                           aria-describedby="nombreSede-error"
+                           class="rg-input"/>
+                    <span id="nombreSede-error" class="error-message" aria-live="polite"></span>
                 </div>
+
+                <div class="rg-field">
+                    <label for="nit" class="rg-label">NIT</label>
+                    <input id="nit" name="nit" type="text"
+                           placeholder="123456789-0"
+                           required pattern="[0-9]{9}-[0-9]"
+                           title="Formato: 123456789-0"
+                           autocomplete="off"
+                           aria-describedby="nit-error nit-success"
+                           class="rg-input rg-mono"/>
+                    <span id="nit-error"   class="error-message"   aria-live="polite"></span>
+                    <span id="nit-success" class="success-message" aria-live="polite"></span>
+                </div>
+            </fieldset>
+
+            <div class="rg-foot rg-foot-between">
+                <button type="button" id="backSede2" class="rg-btn-back">← Atrás</button>
+                <button type="button" id="nextSede2" class="rg-btn-primary rg-btn-sede btn-pulse">Siguiente →</button>
+            </div>
+        </div><!-- /stepSede2 -->
+
+
+        <!-- ── PASO 3 SEDE: Dirección + Mapa ── -->
+        <div class="step" id="stepSede3">
+            <div class="rg-section-head rg-section-sede">
+                <svg class="rg-sec-ico" xmlns="http://www.w3.org/2000/svg"
+                     fill="none" viewBox="0 0 24 24"
+                     stroke="currentColor" stroke-width="1.8" aria-hidden="true">
+                    <path stroke-linecap="round" stroke-linejoin="round"
+                          d="M15 10.5a3 3 0 11-6 0 3 3 0 016 0z"/>
+                    <path stroke-linecap="round" stroke-linejoin="round"
+                          d="M19.5 10.5c0 7.142-7.5 11.25-7.5 11.25S4.5
+                          17.642 4.5 10.5a7.5 7.5 0 1115 0z"/>
+                </svg>
+                <h3 class="rg-section-title">Ubicación de la Sede</h3>
             </div>
 
+            <fieldset class="rg-fieldset">
+                <legend class="sr-only">Ubicación</legend>
 
-            <!-- PASO 3 SEDE: Dirección + Mini-mapa -->
-            <div class="step" id="stepSede3">
-                <fieldset class="mb-6">
-                    <legend class="text-lg font-semibold text-blue-700 mb-4 flex items-center">
-                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
-                             stroke-width="1.5" stroke="currentColor"
-                             class="w-6 h-6 text-cyan-400 mr-2" aria-hidden="true">
-                            <path stroke-linecap="round" stroke-linejoin="round"
-                                  d="M15 10.5a3 3 0 11-6 0 3 3 0 016 0z" />
-                            <path stroke-linecap="round" stroke-linejoin="round"
-                                  d="M19.5 10.5c0 7.142-7.5 11.25-7.5 11.25s-7.5-4.108-7.5-11.25a7.5
-                                  7.5 0 1115 0z" />
-                        </svg>
-                        Ubicación de la Sede
-                    </legend>
-
-                    <div class="form-row mb-4">
-                        <label for="direccion" class="block text-sm font-medium text-gray-700">
-                            Dirección
-                        </label>
-                        <input id="direccion" name="direccion" type="text"
-                               placeholder="Calle 123 #45-67"
-                               required minlength="10" maxlength="200"
-                               autocomplete="address-line1"
-                               aria-describedby="direccion-error"
-                               class="input input-bordered w-full border-blue-300
-                                      focus:border-blue-500 focus:ring-blue-500 text-blue-700" />
-                        <span id="direccion-error" class="error-message" aria-live="polite"></span>
-                    </div>
-
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
-                        <div>
-                            <label for="localidad" class="block text-sm font-medium text-gray-700">
-                                Localidad
-                            </label>
-                            <select id="localidad" name="localidad" required
-                                    class="select select-bordered w-full border-blue-300
-                                           focus:border-blue-500 focus:ring-blue-500 text-blue-700">
-                                <option value="">Selecciona una localidad</option>
-                                <option value="USAQUEN">Usaquén</option>
-                                <option value="CHAPINERO">Chapinero</option>
-                                <option value="SANTA_FE">Santa Fe</option>
-                                <option value="SAN_CRISTOBAL">San Cristóbal</option>
-                                <option value="USME">Usme</option>
-                                <option value="TUNJUELITO">Tunjuelito</option>
-                                <option value="BOSA">Bosa</option>
-                                <option value="KENNEDY">Kennedy</option>
-                                <option value="FONTIBON">Fontibón</option>
-                                <option value="ENGATIVA">Engativá</option>
-                                <option value="SUBA">Suba</option>
-                                <option value="BARRIOS_UNIDOS">Barrios Unidos</option>
-                                <option value="TEUSAQUILLO">Teusaquillo</option>
-                                <option value="MARTIRES">Los Mártires</option>
-                                <option value="ANTONIO_NARINO">Antonio Nariño</option>
-                                <option value="PUENTE_ARANDA">Puente Aranda</option>
-                                <option value="CANDELARIA">La Candelaria</option>
-                                <option value="RAFAEL_URIBE_URIBE">Rafael Uribe Uribe</option>
-                                <option value="CIUDAD_BOLIVAR">Ciudad Bolívar</option>
-                                <option value="SUMAPAZ">Sumapaz</option>
-                            </select>
-                            <span id="localidad-error" class="error-message" aria-live="polite"></span>
-                        </div>
-                        <div>
-                            <label for="barrio" class="block text-sm font-medium text-gray-700">
-                                Barrio
-                            </label>
-                            <select id="barrio" name="barrio" required
-                                    class="select select-bordered w-full border-blue-300
-                                           focus:border-blue-500 focus:ring-blue-500 text-blue-700">
-                                <option value="">Primero selecciona localidad</option>
-                            </select>
-                            <span id="barrio-error" class="error-message" aria-live="polite"></span>
-                        </div>
-                    </div>
-
-                    <!-- MINI-MAPA DE CONFIRMACIÓN -->
-                    <div id="mapaRegistroWrapper" class="mt-2" style="display:none;">
-                        <div class="flex items-center justify-between mb-2">
-                            <label class="block text-sm font-medium text-gray-700">
-                                📍 Confirma la ubicación exacta
-                            </label>
-                            <span id="mapaRegistroEstado" class="text-xs text-blue-500 italic">
-                                Arrastrá el marcador si es necesario
-                            </span>
-                        </div>
-                        <div id="mapaRegistro"
-                             style="height:260px; border-radius:0.5rem; border:1px solid #93c5fd; z-index:0;">
-                        </div>
-                        <p class="text-xs text-gray-500 mt-1">
-                            Si el pin no está en la posición correcta, hacé click en el mapa o arrastralo al lugar exacto.
-                        </p>
-                    </div>
-
-                </fieldset>
-
-                <div class="flex justify-between">
-                    <button type="button" id="backSede3"
-                            class="btn btn-outline btn-secondary text-blue-700 border-blue-300 hover:bg-blue-50">
-                        Atrás
-                    </button>
-                    <button type="button" id="nextSede3"
-                            class="btn btn-primary bg-blue-600 hover:bg-blue-800 text-white btn-pulse">
-                        Siguiente
-                    </button>
+                <div class="rg-field">
+                    <label for="direccion" class="rg-label">Dirección</label>
+                    <input id="direccion" name="direccion" type="text"
+                           placeholder="Calle 123 #45-67"
+                           required minlength="10" maxlength="200"
+                           autocomplete="address-line1"
+                           aria-describedby="direccion-error"
+                           class="rg-input"/>
+                    <span id="direccion-error" class="error-message" aria-live="polite"></span>
                 </div>
+
+                <div class="rg-grid2">
+                    <div class="rg-field">
+                        <label for="localidad" class="rg-label">Localidad</label>
+                        <select id="localidad" name="localidad" required
+                                class="rg-input rg-select">
+                            <option value="">Selecciona una localidad</option>
+                            <option value="USAQUEN">Usaquén</option>
+                            <option value="CHAPINERO">Chapinero</option>
+                            <option value="SANTA_FE">Santa Fe</option>
+                            <option value="SAN_CRISTOBAL">San Cristóbal</option>
+                            <option value="USME">Usme</option>
+                            <option value="TUNJUELITO">Tunjuelito</option>
+                            <option value="BOSA">Bosa</option>
+                            <option value="KENNEDY">Kennedy</option>
+                            <option value="FONTIBON">Fontibón</option>
+                            <option value="ENGATIVA">Engativá</option>
+                            <option value="SUBA">Suba</option>
+                            <option value="BARRIOS_UNIDOS">Barrios Unidos</option>
+                            <option value="TEUSAQUILLO">Teusaquillo</option>
+                            <option value="MARTIRES">Los Mártires</option>
+                            <option value="ANTONIO_NARINO">Antonio Nariño</option>
+                            <option value="PUENTE_ARANDA">Puente Aranda</option>
+                            <option value="CANDELARIA">La Candelaria</option>
+                            <option value="RAFAEL_URIBE_URIBE">Rafael Uribe Uribe</option>
+                            <option value="CIUDAD_BOLIVAR">Ciudad Bolívar</option>
+                            <option value="SUMAPAZ">Sumapaz</option>
+                        </select>
+                        <span id="localidad-error" class="error-message" aria-live="polite"></span>
+                    </div>
+                    <div class="rg-field">
+                        <label for="barrio" class="rg-label">Barrio</label>
+                        <select id="barrio" name="barrio" required class="rg-input rg-select">
+                            <option value="">Primero selecciona localidad</option>
+                        </select>
+                        <span id="barrio-error" class="error-message" aria-live="polite"></span>
+                    </div>
+                </div>
+
+                <!-- Mini-mapa -->
+                <div id="mapaRegistroWrapper" style="display:none;" class="rg-map-wrap">
+                    <div class="rg-map-head">
+                        <span class="rg-map-label">📍 Confirma la ubicación exacta</span>
+                        <span id="mapaRegistroEstado" class="rg-map-status">
+                            Arrastrá el marcador si es necesario
+                        </span>
+                    </div>
+                    <div id="mapaRegistro" class="rg-map"></div>
+                    <p class="rg-map-hint">
+                        Si el pin no está en la posición correcta, hacé click
+                        en el mapa o arrastralo al lugar exacto.
+                    </p>
+                </div>
+            </fieldset>
+
+            <div class="rg-foot rg-foot-between">
+                <button type="button" id="backSede3" class="rg-btn-back">← Atrás</button>
+                <button type="button" id="nextSede3" class="rg-btn-primary rg-btn-sede btn-pulse">Siguiente →</button>
+            </div>
+        </div><!-- /stepSede3 -->
+
+
+        <!-- ── PASO 4 SEDE: Cupos, Tarifas, Horario ── -->
+        <div class="step" id="stepSede4">
+            <div class="rg-section-head rg-section-sede">
+                <svg class="rg-sec-ico" xmlns="http://www.w3.org/2000/svg"
+                     fill="none" viewBox="0 0 24 24"
+                     stroke="currentColor" stroke-width="1.8" aria-hidden="true">
+                    <path stroke-linecap="round" stroke-linejoin="round"
+                          d="M12 6v6h4.5m4.5 0a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                </svg>
+                <h3 class="rg-section-title">Detalles Operativos</h3>
             </div>
 
+            <fieldset class="rg-fieldset">
+                <legend class="sr-only">Detalles operativos</legend>
 
-            <!-- PASO 4 SEDE: Cupos, Tarifas y Horario -->
-            <div class="step" id="stepSede4">
-                <fieldset class="mb-6">
-                    <legend class="text-lg font-semibold text-blue-700 mb-4 flex items-center">
-                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
-                             stroke-width="1.5" stroke="currentColor"
-                             class="w-6 h-6 text-cyan-400 mr-2" aria-hidden="true">
-                            <path stroke-linecap="round" stroke-linejoin="round"
-                                  d="M12 6v6h4.5m4.5 0a9 9 0 11-18 0 9 9 0 0118 0z" />
-                        </svg>
-                        Detalles Operativos de la Sede
-                    </legend>
+                <div class="rg-field">
+                    <label for="cuposTotales" class="rg-label">Cupos totales</label>
+                    <input id="cuposTotales" name="cuposTotales" type="number"
+                           min="1" placeholder="50" required
+                           aria-describedby="cupos-error"
+                           class="rg-input"/>
+                    <span id="cupos-error" class="error-message" aria-live="polite"></span>
+                </div>
 
-                    <div class="form-row mb-4">
-                        <label for="cuposTotales" class="block text-sm font-medium text-gray-700">Cupos totales</label>
-                        <input id="cuposTotales" name="cuposTotales" type="number"
-                               min="1" placeholder="50" required
-                               aria-describedby="cupos-error"
-                               class="input input-bordered w-full border-blue-300
-                                      focus:border-blue-500 focus:ring-blue-500 text-blue-700" />
-                        <span id="cupos-error" class="error-message" aria-live="polite"></span>
+                <!-- Tarifas plenas -->
+                <div class="rg-tarifa rg-tarifa-blue">
+                    <div class="rg-tarifa-head">
+                        <span class="rg-tarifa-name">Tarifas Plenas</span>
+                        <span class="rg-chip">Todo el día</span>
                     </div>
-
-                    <div class="mb-6">
-                        <h3 class="text-md font-semibold text-blue-700 mb-3 flex items-center">
-                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
-                                 stroke-width="1.5" stroke="currentColor"
-                                 class="w-5 h-5 text-green-500 mr-2" aria-hidden="true">
-                                <path stroke-linecap="round" stroke-linejoin="round"
-                                      d="M12 6v12m-3-2.818l.879.659c1.171.879 3.07.879 4.242 0
-                                      1.172-.879 1.172-2.303 0-3.182C13.536 12.219 12.768 12 12
-                                      12c-.725 0-1.45-.22-2.003-.659-1.106-.879-1.106-2.303
-                                      0-3.182s2.9-.879 4.006 0l.415.33M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                            </svg>
-                            Tarifas
-                        </h3>
-
-                        <div class="bg-blue-50 p-4 rounded-lg mb-4">
-                            <h4 class="text-sm font-semibold text-blue-800 mb-3">Tarifas Plenas (Todo el día)</h4>
-                            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                <div>
-                                    <label for="tarifaPlenaC" class="block text-sm font-medium text-gray-700 mb-1">🚗 Tarifa Plena Carro</label>
-                                    <div class="relative">
-                                        <span class="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-500">$</span>
-                                        <input id="tarifaPlenaC" name="tarifaPlenaC"
-                                               type="number" step="0.01" min="0.01"
-                                               placeholder="15000" required
-                                               aria-describedby="tarifaPlenaC-error"
-                                               class="input input-bordered w-full pl-7 border-blue-300 focus:border-blue-500 focus:ring-blue-500 text-blue-700" />
-                                    </div>
-                                    <span id="tarifaPlenaC-error" class="error-message" aria-live="polite"></span>
-                                </div>
-                                <div>
-                                    <label for="tarifaPlenaM" class="block text-sm font-medium text-gray-700 mb-1">🏍️ Tarifa Plena Moto</label>
-                                    <div class="relative">
-                                        <span class="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-500">$</span>
-                                        <input id="tarifaPlenaM" name="tarifaPlenaM"
-                                               type="number" step="0.01" min="0.01"
-                                               placeholder="8000" required
-                                               aria-describedby="tarifaPlenaM-error"
-                                               class="input input-bordered w-full pl-7 border-blue-300 focus:border-blue-500 focus:ring-blue-500 text-blue-700" />
-                                    </div>
-                                    <span id="tarifaPlenaM-error" class="error-message" aria-live="polite"></span>
-                                </div>
+                    <div class="rg-grid2">
+                        <div class="rg-field">
+                            <label for="tarifaPlenaC" class="rg-label">🚗 Carro</label>
+                            <div class="rg-money">
+                                <span class="rg-money-s">$</span>
+                                <input id="tarifaPlenaC" name="tarifaPlenaC"
+                                       type="number" step="0.01" min="0.01"
+                                       placeholder="15000" required
+                                       aria-describedby="tarifaPlenaC-error"
+                                       class="rg-input rg-cash"/>
                             </div>
+                            <span id="tarifaPlenaC-error" class="error-message" aria-live="polite"></span>
                         </div>
-
-                        <div class="bg-green-50 p-4 rounded-lg">
-                            <h4 class="text-sm font-semibold text-green-800 mb-3">Tarifas por Minuto</h4>
-                            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                <div>
-                                    <label for="tarifaMinutoC" class="block text-sm font-medium text-gray-700 mb-1">🚗 Tarifa por Minuto Carro</label>
-                                    <div class="relative">
-                                        <span class="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-500">$</span>
-                                        <input id="tarifaMinutoC" name="tarifaMinutoC"
-                                               type="number" step="0.01" min="0.01"
-                                               placeholder="50" required
-                                               aria-describedby="tarifaMinutoC-error"
-                                               class="input input-bordered w-full pl-7 border-green-300 focus:border-green-500 focus:ring-green-500 text-green-700" />
-                                    </div>
-                                    <span id="tarifaMinutoC-error" class="error-message" aria-live="polite"></span>
-                                </div>
-                                <div>
-                                    <label for="tarifaMinutoM" class="block text-sm font-medium text-gray-700 mb-1">🏍️ Tarifa por Minuto Moto</label>
-                                    <div class="relative">
-                                        <span class="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-500">$</span>
-                                        <input id="tarifaMinutoM" name="tarifaMinutoM"
-                                               type="number" step="0.01" min="0.01"
-                                               placeholder="30" required
-                                               aria-describedby="tarifaMinutoM-error"
-                                               class="input input-bordered w-full pl-7 border-green-300 focus:border-green-500 focus:ring-green-500 text-green-700" />
-                                    </div>
-                                    <span id="tarifaMinutoM-error" class="error-message" aria-live="polite"></span>
-                                </div>
+                        <div class="rg-field">
+                            <label for="tarifaPlenaM" class="rg-label">🏍️ Moto</label>
+                            <div class="rg-money">
+                                <span class="rg-money-s">$</span>
+                                <input id="tarifaPlenaM" name="tarifaPlenaM"
+                                       type="number" step="0.01" min="0.01"
+                                       placeholder="8000" required
+                                       aria-describedby="tarifaPlenaM-error"
+                                       class="rg-input rg-cash"/>
                             </div>
+                            <span id="tarifaPlenaM-error" class="error-message" aria-live="polite"></span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Tarifas por minuto -->
+                <div class="rg-tarifa rg-tarifa-green">
+                    <div class="rg-tarifa-head">
+                        <span class="rg-tarifa-name">Tarifas por Minuto</span>
+                        <span class="rg-chip rg-chip-green">Por tiempo</span>
+                    </div>
+                    <div class="rg-grid2">
+                        <div class="rg-field">
+                            <label for="tarifaMinutoC" class="rg-label">🚗 Carro</label>
+                            <div class="rg-money">
+                                <span class="rg-money-s">$</span>
+                                <input id="tarifaMinutoC" name="tarifaMinutoC"
+                                       type="number" step="0.01" min="0.01"
+                                       placeholder="50" required
+                                       aria-describedby="tarifaMinutoC-error"
+                                       class="rg-input rg-cash"/>
+                            </div>
+                            <span id="tarifaMinutoC-error" class="error-message" aria-live="polite"></span>
+                        </div>
+                        <div class="rg-field">
+                            <label for="tarifaMinutoM" class="rg-label">🏍️ Moto</label>
+                            <div class="rg-money">
+                                <span class="rg-money-s">$</span>
+                                <input id="tarifaMinutoM" name="tarifaMinutoM"
+                                       type="number" step="0.01" min="0.01"
+                                       placeholder="30" required
+                                       aria-describedby="tarifaMinutoM-error"
+                                       class="rg-input rg-cash"/>
+                            </div>
+                            <span id="tarifaMinutoM-error" class="error-message" aria-live="polite"></span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- ── SELECTOR DE HORARIO ── -->
+                <div class="rg-field">
+                    <label class="rg-label">Horario de atención</label>
+
+                    <div class="rg-horario-picker">
+                        <!-- Apertura -->
+                        <div class="rg-horario-col">
+                            <div class="rg-horario-col-label">
+                                <svg xmlns="http://www.w3.org/2000/svg" fill="none"
+                                     viewBox="0 0 24 24" stroke="currentColor"
+                                     stroke-width="2" aria-hidden="true">
+                                    <circle cx="12" cy="12" r="10"/>
+                                    <path stroke-linecap="round" stroke-linejoin="round"
+                                          d="M12 6v6l4 2"/>
+                                </svg>
+                                Apertura
+                            </div>
+                            <select id="horaApertura" class="rg-input rg-select rg-horario-sel"
+                                    aria-label="Hora de apertura">
+                                <option value="0:00">12:00 AM</option>
+                                <option value="1:00">1:00 AM</option>
+                                <option value="2:00">2:00 AM</option>
+                                <option value="3:00">3:00 AM</option>
+                                <option value="4:00">4:00 AM</option>
+                                <option value="5:00">5:00 AM</option>
+                                <option value="6:00">6:00 AM</option>
+                                <option value="7:00" selected>7:00 AM</option>
+                                <option value="8:00">8:00 AM</option>
+                                <option value="9:00">9:00 AM</option>
+                                <option value="10:00">10:00 AM</option>
+                                <option value="11:00">11:00 AM</option>
+                                <option value="12:00">12:00 PM</option>
+                                <option value="13:00">1:00 PM</option>
+                                <option value="14:00">2:00 PM</option>
+                                <option value="15:00">3:00 PM</option>
+                                <option value="16:00">4:00 PM</option>
+                                <option value="17:00">5:00 PM</option>
+                                <option value="18:00">6:00 PM</option>
+                                <option value="19:00">7:00 PM</option>
+                                <option value="20:00">8:00 PM</option>
+                                <option value="21:00">9:00 PM</option>
+                                <option value="22:00">10:00 PM</option>
+                                <option value="23:00">11:00 PM</option>
+                            </select>
+                        </div>
+
+                        <div class="rg-horario-sep" aria-hidden="true">→</div>
+
+                        <!-- Cierre -->
+                        <div class="rg-horario-col">
+                            <div class="rg-horario-col-label">
+                                <svg xmlns="http://www.w3.org/2000/svg" fill="none"
+                                     viewBox="0 0 24 24" stroke="currentColor"
+                                     stroke-width="2" aria-hidden="true">
+                                    <circle cx="12" cy="12" r="10"/>
+                                    <path stroke-linecap="round" stroke-linejoin="round"
+                                          d="M12 6v6l-3 3"/>
+                                </svg>
+                                Cierre
+                            </div>
+                            <select id="horaCierre" class="rg-input rg-select rg-horario-sel"
+                                    aria-label="Hora de cierre">
+                                <option value="0:00">12:00 AM</option>
+                                <option value="1:00">1:00 AM</option>
+                                <option value="2:00">2:00 AM</option>
+                                <option value="3:00">3:00 AM</option>
+                                <option value="4:00">4:00 AM</option>
+                                <option value="5:00">5:00 AM</option>
+                                <option value="6:00">6:00 AM</option>
+                                <option value="7:00">7:00 AM</option>
+                                <option value="8:00">8:00 AM</option>
+                                <option value="9:00">9:00 AM</option>
+                                <option value="10:00">10:00 AM</option>
+                                <option value="11:00">11:00 AM</option>
+                                <option value="12:00">12:00 PM</option>
+                                <option value="13:00">1:00 PM</option>
+                                <option value="14:00">2:00 PM</option>
+                                <option value="15:00">3:00 PM</option>
+                                <option value="16:00">4:00 PM</option>
+                                <option value="17:00">5:00 PM</option>
+                                <option value="18:00">6:00 PM</option>
+                                <option value="19:00">7:00 PM</option>
+                                <option value="20:00">8:00 PM</option>
+                                <option value="21:00">9:00 PM</option>
+                                <option value="22:00" selected>10:00 PM</option>
+                                <option value="23:00">11:00 PM</option>
+                                <option value="23:59">11:59 PM</option>
+                            </select>
                         </div>
                     </div>
 
-                    <div class="form-row mb-4">
-                        <label for="horarioSede" class="block text-sm font-medium text-gray-700">Horario</label>
-                        <input id="horarioSede" name="horarioSede" type="text"
-                               placeholder="7:00 - 22:00"
-                               required minlength="5" maxlength="50"
-                               autocomplete="off"
-                               aria-describedby="horario-error"
-                               class="input input-bordered w-full border-blue-300
-                                      focus:border-blue-500 focus:ring-blue-500 text-blue-700" />
-                        <span id="horario-error" class="error-message" aria-live="polite"></span>
+                    <!-- Preview dinámico -->
+                    <div class="rg-horario-preview">
+                        🕐 Horario seleccionado:
+                        <strong id="horarioTexto">7:00 AM — 10:00 PM</strong>
                     </div>
-                </fieldset>
 
-                <div class="flex justify-between">
-                    <button type="button" id="backSede4"
-                            class="btn btn-outline btn-secondary text-blue-700 border-blue-300 hover:bg-blue-50">
-                        Atrás
-                    </button>
-                    <button type="button" id="nextSede4"
-                            class="btn btn-primary bg-blue-600 hover:bg-blue-800 text-white btn-pulse">
-                        Siguiente
-                    </button>
+                    <!-- Hidden que Registro.js valida y envía -->
+                    <input type="hidden" id="horarioSede" name="horarioSede" value="7:00 - 22:00"/>
+                    <span id="horario-error" class="error-message" aria-live="polite"></span>
                 </div>
+
+            </fieldset>
+
+            <div class="rg-foot rg-foot-between">
+                <button type="button" id="backSede4" class="rg-btn-back">← Atrás</button>
+                <button type="button" id="nextSede4" class="rg-btn-primary rg-btn-sede btn-pulse">Siguiente →</button>
             </div>
+        </div><!-- /stepSede4 -->
 
 
-            <!-- PASO FINAL: Confirmación -->
-            <div class="step" id="stepFinal">
-                <h3 class="text-xl font-semibold mb-4 text-blue-700">Confirmar registro</h3>
-                <p class="mb-6 text-gray-700">Todo listo. Haz clic para registrarte.</p>
-
-                <div class="flex justify-between">
-                    <button type="button" id="backFinal"
-                            class="btn btn-outline btn-secondary text-blue-700 border-blue-300 hover:bg-blue-50">
-                        Atrás
-                    </button>
-                    <button type="submit"
-                            class="btn btn-primary bg-green-600 hover:bg-green-800 text-white btn-pulse">
-                        Registrar
-                    </button>
+        <!-- ── PASO FINAL: Confirmación ── -->
+        <div class="step" id="stepFinal">
+            <div class="rg-confirm">
+                <div class="rg-confirm-ico" aria-hidden="true">
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none"
+                         viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8">
+                        <path stroke-linecap="round" stroke-linejoin="round"
+                              d="M9 12.75L11.25 15 15 9.75M21 12a9 9
+                              0 11-18 0 9 9 0 0118 0z"/>
+                    </svg>
                 </div>
-            </div>
-
-            <!-- Enlace a login -->
-            <div class="text-center mt-4">
-                <p class="text-sm text-gray-600">
-                    ¿Ya tienes una cuenta?
-                    <a href="/login" class="text-blue-600 hover:text-blue-800 font-semibold">
-                        Inicia sesión aquí
-                    </a>
+                <h3 class="rg-confirm-title">¡Todo listo!</h3>
+                <p class="rg-confirm-sub">
+                    Todo en orden. Haz clic en <strong>Registrar</strong> para crear tu cuenta.
                 </p>
             </div>
 
-            <div id="mensajeJS" class="mt-4" role="alert" aria-live="assertive"></div>
+            <div class="rg-foot rg-foot-between">
+                <button type="button" id="backFinal" class="rg-btn-back">← Atrás</button>
+                <button type="submit" class="rg-btn-submit btn-pulse">✓ Registrar cuenta</button>
+            </div>
+        </div><!-- /stepFinal -->
 
-            <!-- Campos ocultos para sede -->
-            <input type="hidden" name="hiddenNombreSede"   id="hiddenNombreSede">
-            <input type="hidden" name="hiddenNit"           id="hiddenNit">
-            <input type="hidden" name="hiddenDireccion"     id="hiddenDireccion">
-            <input type="hidden" name="hiddenLocalidad"     id="hiddenLocalidad">
-            <input type="hidden" name="hiddenBarrio"        id="hiddenBarrio">
-            <input type="hidden" name="hiddenCuposTotales"  id="hiddenCuposTotales">
-            <input type="hidden" name="hiddenTarifaPlenaC"  id="hiddenTarifaPlenaC">
-            <input type="hidden" name="hiddenTarifaPlenaM"  id="hiddenTarifaPlenaM">
-            <input type="hidden" name="hiddenTarifaMinutoC" id="hiddenTarifaMinutoC">
-            <input type="hidden" name="hiddenTarifaMinutoM" id="hiddenTarifaMinutoM">
-            <input type="hidden" name="hiddenHorarioSede"   id="hiddenHorarioSede">
-            <!-- Coordenadas del mini-mapa -->
-            <input type="hidden" name="hiddenLatitud"  id="hiddenLatitud">
-            <input type="hidden" name="hiddenLongitud" id="hiddenLongitud">
-        </form>
-    </section>
+        <p class="rg-to-login">
+            ¿Ya tienes cuenta? <a href="/login">Inicia sesión aquí</a>
+        </p>
+
+        <div id="mensajeJS" role="alert" aria-live="assertive"></div>
+
+        <!-- Campos ocultos sede -->
+        <input type="hidden" name="hiddenNombreSede"   id="hiddenNombreSede"/>
+        <input type="hidden" name="hiddenNit"           id="hiddenNit"/>
+        <input type="hidden" name="hiddenDireccion"     id="hiddenDireccion"/>
+        <input type="hidden" name="hiddenLocalidad"     id="hiddenLocalidad"/>
+        <input type="hidden" name="hiddenBarrio"        id="hiddenBarrio"/>
+        <input type="hidden" name="hiddenCuposTotales"  id="hiddenCuposTotales"/>
+        <input type="hidden" name="hiddenTarifaPlenaC"  id="hiddenTarifaPlenaC"/>
+        <input type="hidden" name="hiddenTarifaPlenaM"  id="hiddenTarifaPlenaM"/>
+        <input type="hidden" name="hiddenTarifaMinutoC" id="hiddenTarifaMinutoC"/>
+        <input type="hidden" name="hiddenTarifaMinutoM" id="hiddenTarifaMinutoM"/>
+        <input type="hidden" name="hiddenHorarioSede"   id="hiddenHorarioSede"/>
+        <input type="hidden" name="hiddenLatitud"       id="hiddenLatitud"/>
+        <input type="hidden" name="hiddenLongitud"      id="hiddenLongitud"/>
+    </form>
 </main>
 
 <script src="/js/Registro.js"></script>
+
+<!-- Sincroniza los selects de horario → input hidden que Registro.js usa -->
+<script>
+    (function () {
+        var ap  = document.getElementById('horaApertura');
+        var ci  = document.getElementById('horaCierre');
+        var hid = document.getElementById('horarioSede');
+        var txt = document.getElementById('horarioTexto');
+
+        function fmt(v) {
+            var h = parseInt(v, 10);
+            if (v === '23:59') return '11:59 PM';
+            if (h === 0)  return '12:00 AM';
+            if (h < 12)   return h  + ':00 AM';
+            if (h === 12) return '12:00 PM';
+            return (h - 12) + ':00 PM';
+        }
+
+        function sync() {
+            if (hid) hid.value = ap.value + ' - ' + ci.value;
+            if (txt) txt.textContent = fmt(ap.value) + ' — ' + fmt(ci.value);
+        }
+
+        ap.addEventListener('change', sync);
+        ci.addEventListener('change', sync);
+        sync();
+    })();
+</script>
 
 </body>
 </html>

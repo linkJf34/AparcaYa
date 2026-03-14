@@ -34,7 +34,7 @@ import java.util.Optional;
 @Slf4j
 @Controller
 @RequiredArgsConstructor
-@CrossOrigin(origins = "*")
+@CrossOrigin(origins = "${app.cors.allowed-origins:http://localhost:8080}")
 public class UsuarioController {
 
     private final UsuarioService         usuarioService;

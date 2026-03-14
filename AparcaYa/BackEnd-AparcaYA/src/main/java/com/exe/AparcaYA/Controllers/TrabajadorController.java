@@ -145,7 +145,10 @@ public class TrabajadorController {
     public ResponseEntity<?> getVehiculosActivos() {
         try {
             Sede sede = getSedeDelUsuarioAutenticado();
-            List<RegistroEntradaSalida> registros = registroService.findBySedeAndEstado(sede, EstadoRegistro.ACTIVO);
+            if (sede == null) return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                    .body(Map.of("error", "No se encontró una sede asignada al usuario autenticado"));
+            List<RegistroEntradaSalida> registros =
+                    registroService.findBySedeAndEstado(sede, EstadoRegistro.ACTIVO);
 
             List<Map<String, Object>> vehiculos = registros.stream().map(registro -> {
                 Map<String, Object> v = new HashMap<>();
@@ -222,7 +225,10 @@ public class TrabajadorController {
             @RequestParam(required = false) String estado) {
         try {
             Sede sede = getSedeDelUsuarioAutenticado();
-            List<RegistroEntradaSalida> registros = registroService.findHistorialBySede(sede);
+            if (sede == null) return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                    .body(Map.of("error", "No se encontró una sede asignada al usuario autenticado"));
+            List<RegistroEntradaSalida> registros =
+                    registroService.findHistorialBySede(sede);
 
             if (fecha  != null && !fecha.isEmpty())  registros = registros.stream().filter(r -> r.getFechaHoraEntrada().toLocalDate().equals(LocalDate.parse(fecha))).collect(Collectors.toList());
             if (estado != null && !estado.isEmpty()) registros = registros.stream().filter(r -> r.getEstado() == EstadoRegistro.valueOf(estado.toUpperCase())).collect(Collectors.toList());
@@ -291,7 +297,14 @@ public class TrabajadorController {
             String tipoVehiculo = datos.getOrDefault("vehiculoTipo",  "CARRO");
             String marca        = datos.getOrDefault("vehiculoMarca", "OTRO");
             String color        = datos.getOrDefault("vehiculoColor", "NO ESPECIFICADO");
-            int    anio         = Integer.parseInt(datos.getOrDefault("vehiculoAnio", "2020"));
+            String anioStr = datos.getOrDefault("vehiculoAnio", "2020");
+            int anioResuelto;
+            try {
+                anioResuelto = Integer.parseInt(anioStr.isEmpty() ? "2020" : anioStr);
+            } catch (NumberFormatException e) {
+                anioResuelto = 2020;
+            }
+            final int anio = anioResuelto;
 
             Optional<Vehiculo> vehiculoExistente = vehiculoService.findByPlaca(placa);
             if (vehiculoExistente.isPresent()) {
@@ -488,7 +501,9 @@ public class TrabajadorController {
             Sede sede = getSedeDelUsuarioAutenticado();
 
             List<Map<String, Object>> reservas = reservacionService.findAll().stream()
-                    .filter(r -> r.getCupo().getSede().getIdSede().equals(sede.getIdSede()))
+                    .filter(r -> r.getCupo() != null
+                            && r.getCupo().getSede() != null
+                            && r.getCupo().getSede().getIdSede().equals(sede.getIdSede()))
                     .filter(r -> r.getEstado() == EstadoReservacion.PENDIENTE)
                     .map(reserva -> {
                         Map<String, Object> r = new HashMap<>();

@@ -1,5 +1,6 @@
 package com.exe.AparcaYA.Controllers;
 
+import com.exe.AparcaYA.Dto.UsuarioDTO;
 import com.exe.AparcaYA.Entity.Sede;
 import com.exe.AparcaYA.Entity.Usuario;
 import com.exe.AparcaYA.Service.*;
@@ -10,6 +11,7 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
@@ -30,6 +32,7 @@ import java.util.stream.Collectors;
 // Ahora: solo el origen propio puede hacer requests cross-origin.
 //        Cambiar "https://aparcaya.com" por el dominio real de producción.
 @CrossOrigin(origins = "https://aparcaya.com")
+@PreAuthorize("hasRole('ADMIN')")
 public class AdminController {
 
     @Autowired
@@ -70,9 +73,12 @@ public class AdminController {
 
     @GetMapping("/api/usuarios")
     @ResponseBody
-    public ResponseEntity<List<Usuario>> getUsuarios() {
+    public ResponseEntity<List<UsuarioDTO>> getUsuarios() {
         try {
-            List<Usuario> usuarios = usuarioService.findAll();
+            List<UsuarioDTO> usuarios = usuarioService.findAll()
+                    .stream()
+                    .map(UsuarioDTO::fromEntity)
+                    .collect(Collectors.toList());
             return ResponseEntity.ok(usuarios);
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
@@ -198,7 +204,7 @@ public class AdminController {
             boolean direccionCambio = false;
 
             if (campos.containsKey("nombre"))    sede.setNombre((String) campos.get("nombre"));
-            if (campos.containsKey("capacidad")) sede.setCapacidad((Integer) campos.get("capacidad"));
+            if (campos.containsKey("capacidad")) sede.setCapacidad(((Number) campos.get("capacidad")).intValue());
             if (campos.containsKey("estado"))    sede.setEstado(com.exe.AparcaYA.Enum.EstadoGeneral.valueOf((String) campos.get("estado")));
 
             if (campos.containsKey("direccion")) {
@@ -258,6 +264,7 @@ public class AdminController {
     // =====================================================================
 
     @PostMapping("/api/sedes/geocodificar-todas")
+    @PreAuthorize("hasRole('ADMIN')")
     @ResponseBody
     public ResponseEntity<Map<String, Object>> geocodificarTodasLasSedes() {
         List<Sede> sedes = sedeService.findAll();

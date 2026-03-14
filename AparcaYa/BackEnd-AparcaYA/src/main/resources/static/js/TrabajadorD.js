@@ -555,7 +555,11 @@ async function abrirModalSalida(registroId) {
         if (!response.ok) { throw new Error('Error al obtener datos'); }
         var vehiculos = await response.json();
         var v = vehiculos.find(function(x) { return x.registroId === registroId; });
-        if (!v) { showNotification('Vehículo no encontrado', 'error'); return; }
+        if (!v) {
+            showNotification('Este vehículo ya no está activo. Actualizando lista...', 'warning');
+            await loadVehiculosActivos();
+            return;
+        }
 
         var elPlaca   = document.getElementById('salidaPlaca');
         var elCliente = document.getElementById('salidaCliente');
@@ -841,16 +845,20 @@ async function aceptarReservacion(id) {
     );
     if (!ok) { return; }
     try {
-        await fetch(API_BASE_URL + '/aceptar-reservacion/' + id, {
+        var response = await fetch(API_BASE_URL + '/aceptar-reservacion/' + id, {
             method:  'POST',
             headers: { 'Content-Type': 'application/json' }
         });
+        if (!response.ok) {
+            var err = await response.json();
+            throw new Error(err.error || 'Error al aceptar la reservación');
+        }
         showNotification('Reservación aceptada', 'success');
         await loadReservaciones();
         await loadVehiculosActivos();
         await loadIndicadores();
     } catch (error) {
-        showNotification('Error', 'error');
+        showNotification(error.message, 'error');
     }
 }
 
@@ -1096,8 +1104,8 @@ document.addEventListener('keydown', function(e) {
     if (e.key === 'Escape') {
         var cobro  = document.getElementById('cobroModal');
         var salida = document.getElementById('salidaModal');
-        if (cobro  && cobro.style.display  === 'block') { cerrarModalCobro();  }
-        if (salida && salida.style.display === 'block') { cerrarModalSalida(); }
+        if (cobro  && cobro.style.display  === 'flex') { cerrarModalCobro();  }
+        if (salida && salida.style.display === 'flex') { cerrarModalSalida(); }
     }
 });
 

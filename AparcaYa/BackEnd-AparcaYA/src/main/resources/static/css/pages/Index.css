@@ -1,68 +1,594 @@
 /* ================================================
    INDEX.CSS — AparcaYA
-   Ruta: static/css/index.css
+   Ruta: static/css/Index.css
 
-   PROPÓSITO: Estilos EXCLUSIVOS de la Landing Page.
+   Paleta: azul navy del admin
+   --ay-sky:    #0ea5e9
+   --ay-blue:   #1d4ed8
+   --ay-navy:   #1e3a8a
+   --ay-light:  #eff6ff
+   --ay-faint:  #f8faff
+   --ay-border: #e0e9f7
 
-   Lo que ya NO está aquí (viene de archivos base):
-   - @keyframes aparca-fadeInUp → aparca-animations.css
-   - .animate-fade-in-up       → aparca-animations.css
-
-   Lo que SÍ está aquí (exclusivo de la landing):
-   1. .hero-bg       — parallax del hero
-   2. .card-hover    — levitación de tarjetas
-   3. .navbar-hover  — hover del navbar
-   4. .btn-pulse     — animación de botones CTA
+   Tipografía: Syne (display) + DM Sans (body)
    ================================================ */
 
+@import url('https://fonts.googleapis.com/css2?family=Syne:wght@700;800&family=DM+Sans:ital,wght@0,300;0,400;0,500;0,600;1,400&display=swap');
 
 /* ================================================
-   1. FONDO DEL HERO — Efecto Parallax
+   0. RESET Y BASE
+   ================================================ */
+*, *::before, *::after { box-sizing: border-box; }
+
+body {
+    font-family: 'DM Sans', system-ui, sans-serif;
+    background: #f0f5ff;
+    color: #0f172a;
+    margin: 0;
+    padding: 0;
+    -webkit-font-smoothing: antialiased;
+}
+
+/* ================================================
+   1. VARIABLES
+   ================================================ */
+:root {
+    --ay-sky:       #0ea5e9;
+    --ay-blue:      #1d4ed8;
+    --ay-navy:      #1e3a8a;
+    --ay-navy-deep: #162d6e;
+    --ay-light:     #eff6ff;
+    --ay-faint:     #f8faff;
+    --ay-border:    #e0e9f7;
+    --ay-text:      #0f172a;
+    --ay-muted:     #64748b;
+    --nav-h:        68px;
+}
+
+/* ================================================
+   2. NAVBAR
+   ================================================ */
+.navbar {
+    height: var(--nav-h);
+    padding: 0 2rem;
+    background: rgba(255,255,255,0.95) !important;
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border-bottom: 1px solid var(--ay-border) !important;
+    box-shadow: 0 1px 16px rgba(30,58,138,0.07) !important;
+    transition: background 0.3s ease, box-shadow 0.3s ease;
+}
+
+.navbar.scrolled {
+    box-shadow: 0 4px 24px rgba(30,58,138,0.12) !important;
+}
+
+/* Logo */
+.navbar .btn-ghost.text-2xl {
+    font-family: 'Syne', sans-serif !important;
+    font-weight: 800 !important;
+    font-size: 1.4rem !important;
+    color: var(--ay-navy) !important;
+    letter-spacing: -0.02em;
+    gap: 0.5rem;
+}
+
+.navbar .btn-ghost.text-2xl:hover {
+    background: transparent !important;
+    opacity: 0.85;
+}
+
+.navbar .w-16 {
+    width: 28px !important;
+    height: 28px !important;
+    color: var(--ay-blue) !important;
+}
+
+/* Botones navbar */
+.navbar-end a.btn {
+    border-radius: 0.625rem !important;
+    font-family: 'DM Sans', sans-serif !important;
+    font-weight: 600 !important;
+    font-size: 0.875rem !important;
+    padding: 0 1.25rem !important;
+    height: 40px !important;
+    min-height: 40px !important;
+    transition: all 0.2s ease !important;
+}
+
+.navbar-end a.btn-outline {
+    border: 1.5px solid var(--ay-blue) !important;
+    color: var(--ay-navy) !important;
+    background: transparent !important;
+}
+
+.navbar-end a.btn-outline:hover {
+    background: var(--ay-light) !important;
+    border-color: var(--ay-navy) !important;
+    color: var(--ay-navy) !important;
+    transform: translateY(-1px);
+}
+
+.navbar-end a.bg-blue-600 {
+    background: var(--ay-navy) !important;
+    color: white !important;
+    border: none !important;
+    box-shadow: 0 2px 12px rgba(30,58,138,0.3) !important;
+}
+
+.navbar-end a.bg-blue-600:hover {
+    background: var(--ay-navy-deep) !important;
+    transform: translateY(-1px);
+    box-shadow: 0 6px 20px rgba(30,58,138,0.38) !important;
+}
+
+/* ================================================
+   3. HERO
+   ================================================ */
+.hero {
+    min-height: calc(100vh - var(--nav-h)) !important;
+    padding-top: calc(var(--nav-h) + 2.5rem) !important;
+    padding-bottom: 4rem !important;
+    background: linear-gradient(135deg,
+    #eef3ff 0%,
+    #dbeafe 40%,
+    #e0e9f7 100%) !important;
+    position: relative;
+    overflow: hidden;
+}
+
+/* Blob decorativo hero */
+.hero::before {
+    content: '';
+    position: absolute;
+    top: -120px; right: -120px;
+    width: 520px; height: 520px;
+    background: radial-gradient(circle,
+    rgba(30,58,138,0.10) 0%,
+    transparent 70%);
+    border-radius: 50%;
+    pointer-events: none;
+}
+
+.hero::after {
+    content: '';
+    position: absolute;
+    bottom: -80px; left: -60px;
+    width: 360px; height: 360px;
+    background: radial-gradient(circle,
+    rgba(14,165,233,0.10) 0%,
+    transparent 70%);
+    border-radius: 50%;
+    pointer-events: none;
+}
+
+.hero-content {
+    position: relative;
+    z-index: 1;
+    gap: 3rem !important;
+}
+
+/* Título hero */
+.hero h1 {
+    font-family: 'Syne', sans-serif !important;
+    font-weight: 800 !important;
+    font-size: clamp(2.4rem, 5vw, 3.75rem) !important;
+    line-height: 1.08 !important;
+    letter-spacing: -0.03em !important;
+    color: var(--ay-navy) !important;
+    margin-bottom: 1rem !important;
+}
+
+/* Highlight del título */
+.hero h1 em,
+.hero h1 .accent {
+    font-style: normal;
+    color: var(--ay-blue);
+    position: relative;
+    display: inline-block;
+}
+
+.hero h1 em::after,
+.hero h1 .accent::after {
+    content: '';
+    position: absolute;
+    bottom: 2px; left: 0; right: 0;
+    height: 4px;
+    background: linear-gradient(90deg, var(--ay-sky), var(--ay-blue));
+    border-radius: 2px;
+    opacity: 0.6;
+}
+
+.hero p {
+    font-size: 1.075rem !important;
+    line-height: 1.7 !important;
+    color: #334155 !important;
+    margin-bottom: 1.75rem !important;
+}
+
+/* Botón CTA hero */
+.hero .btn-primary.bg-blue-600,
+.hero a.bg-blue-600 {
+    background: var(--ay-navy) !important;
+    border: none !important;
+    color: white !important;
+    font-family: 'DM Sans', sans-serif !important;
+    font-weight: 600 !important;
+    font-size: 1rem !important;
+    padding: 0.9rem 2.25rem !important;
+    height: auto !important;
+    min-height: auto !important;
+    border-radius: 0.75rem !important;
+    box-shadow: 0 4px 18px rgba(30,58,138,0.32) !important;
+    letter-spacing: 0.01em;
+}
+
+.hero .btn-primary.bg-blue-600:hover,
+.hero a.bg-blue-600:hover {
+    background: var(--ay-navy-deep) !important;
+    transform: translateY(-2px);
+    box-shadow: 0 8px 28px rgba(30,58,138,0.42) !important;
+}
+
+/* ================================================
+   4. ACORDEÓN DE PARQUEADEROS
+   ================================================ */
+#parking-accordion {
+    background: white !important;
+    border: 1.5px solid var(--ay-border) !important;
+    border-radius: 1rem !important;
+    box-shadow: 0 4px 32px rgba(30,58,138,0.10) !important;
+    overflow: hidden;
+}
+
+/* Cabecera del acordeón */
+.collapse-title {
+    font-family: 'DM Sans', sans-serif !important;
+    font-weight: 600 !important;
+    font-size: 1rem !important;
+    color: var(--ay-navy) !important;
+    background: var(--ay-faint) !important;
+    padding: 1rem 1.25rem !important;
+    gap: 0.875rem !important;
+    align-items: center !important;
+    border-bottom: 1px solid var(--ay-border) !important;
+}
+
+/* Imagen en el acordeón */
+.collapse-title img,
+.collapse-title .w-16 {
+    width: 44px !important;
+    height: 44px !important;
+    border-radius: 0.625rem !important;
+    object-fit: cover;
+    border: 2px solid var(--ay-border);
+    flex-shrink: 0;
+}
+
+/* Placeholder imagen */
+.collapse-title > div.bg-gray-300 {
+    width: 44px !important;
+    height: 44px !important;
+    border-radius: 0.625rem !important;
+    background: var(--ay-light) !important;
+    border: 2px solid var(--ay-border) !important;
+    font-size: 1.25rem;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    flex-shrink: 0;
+}
+
+/* Contenido expandido */
+.collapse-content {
+    background: white !important;
+    padding: 1rem 1.25rem 1.125rem !important;
+    font-size: 0.875rem !important;
+    color: #334155 !important;
+    line-height: 1.6;
+}
+
+.collapse-content p {
+    margin: 0.35rem 0 !important;
+}
+
+.collapse-content strong {
+    color: var(--ay-navy) !important;
+    font-weight: 600;
+}
+
+/* Error state */
+#parking-accordion .text-red-500 {
+    color: #dc2626 !important;
+    padding: 1.5rem !important;
+    font-size: 0.875rem;
+}
+
+/* ================================================
+   5. NAVEGACIÓN PUNTOS Y FLECHAS
+   ================================================ */
+#prev-arrow,
+#next-arrow {
+    border-radius: 50% !important;
+    width: 32px !important; height: 32px !important;
+    min-width: 32px !important; min-height: 32px !important;
+    padding: 0 !important;
+    border: 1.5px solid var(--ay-border) !important;
+    background: white !important;
+    color: var(--ay-navy) !important;
+    cursor: pointer;
+    display: flex; align-items: center; justify-content: center;
+    transition: all 0.2s ease;
+    font-size: 1.2rem !important;
+    line-height: 1;
+    box-shadow: 0 1px 6px rgba(30,58,138,0.10);
+}
+
+#prev-arrow:hover,
+#next-arrow:hover {
+    background: var(--ay-navy) !important;
+    color: white !important;
+    border-color: var(--ay-navy) !important;
+    transform: scale(1.08);
+}
+
+/* Dots */
+#dots-bar .btn {
+    width: 8px !important; height: 8px !important;
+    min-width: 8px !important; min-height: 8px !important;
+    padding: 0 !important;
+    border-radius: 50% !important;
+    border: none !important;
+    transition: all 0.25s ease !important;
+}
+
+#dots-bar .btn-primary {
+    background: var(--ay-navy) !important;
+    transform: scale(1.35) !important;
+}
+
+#dots-bar .btn-outline {
+    background: var(--ay-border) !important;
+    opacity: 0.7;
+}
+
+/* ================================================
+   6. SECCIÓN: ¿POR QUÉ ELEGIR?
+   ================================================ */
+.py-8.sm\:py-12.bg-white,
+section.bg-white {
+    background: white !important;
+}
+
+/* Títulos de sección */
+section h2 {
+    font-family: 'Syne', sans-serif !important;
+    font-weight: 700 !important;
+    letter-spacing: -0.025em !important;
+}
+
+/* Tarjetas de features */
+.card.bg-gradient-to-br {
+    background: white !important;
+    border: 1.5px solid var(--ay-border) !important;
+    border-radius: 1rem !important;
+    box-shadow: 0 2px 12px rgba(30,58,138,0.05) !important;
+    transition: transform 0.3s ease, box-shadow 0.3s ease, border-color 0.3s ease;
+}
+
+.card.bg-gradient-to-br:hover {
+    transform: translateY(-5px) !important;
+    box-shadow: 0 12px 32px rgba(30,58,138,0.14) !important;
+    border-color: var(--ay-blue) !important;
+}
+
+.card-title {
+    font-family: 'DM Sans', sans-serif !important;
+    font-weight: 700 !important;
+    color: var(--ay-navy) !important;
+    font-size: 1.05rem !important;
+}
+
+.card p {
+    color: #475569 !important;
+    line-height: 1.65 !important;
+    font-size: 0.9rem !important;
+}
+
+/* ================================================
+   7. SECCIÓN: BENEFICIOS (fondo oscuro)
+   ================================================ */
+.bg-gradient-to-r.from-blue-700 {
+    background: linear-gradient(135deg,
+    var(--ay-navy) 0%,
+    var(--ay-blue) 60%,
+    var(--ay-sky) 100%) !important;
+}
+
+/* Alerts de beneficios */
+.alert.bg-blue-500,
+.alert.bg-blue-600 {
+    background: rgba(255,255,255,0.10) !important;
+    border: 1.5px solid rgba(255,255,255,0.20) !important;
+    backdrop-filter: blur(8px) !important;
+    border-radius: 0.875rem !important;
+    color: white !important;
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.alert.bg-blue-500:hover,
+.alert.bg-blue-600:hover {
+    transform: translateY(-4px) !important;
+    box-shadow: 0 12px 28px rgba(0,0,0,0.2) !important;
+    background: rgba(255,255,255,0.16) !important;
+}
+
+.alert span {
+    font-size: 1rem !important;
+    font-weight: 500 !important;
+    letter-spacing: 0.01em;
+}
+
+/* ================================================
+   8. TESTIMONIOS
+   ================================================ */
+.bg-gradient-to-br.from-blue-50 {
+    background: var(--ay-faint) !important;
+}
+
+/* Tarjetas testimonio */
+.card.bg-white {
+    border: 1.5px solid var(--ay-border) !important;
+    border-radius: 1rem !important;
+    box-shadow: 0 2px 12px rgba(30,58,138,0.06) !important;
+    transition: transform 0.3s ease, box-shadow 0.3s ease, border-color 0.3s ease;
+}
+
+.card.bg-white:hover {
+    transform: translateY(-5px) !important;
+    box-shadow: 0 12px 32px rgba(30,58,138,0.13) !important;
+    border-color: var(--ay-blue) !important;
+}
+
+/* Estrellas */
+.rating {
+    gap: 2px;
+}
+
+.mask-star-2.bg-yellow-400 {
+    background-color: #f59e0b !important;
+}
+
+/* Texto testimonio */
+.card.bg-white p {
+    font-size: 0.925rem !important;
+    color: #334155 !important;
+    line-height: 1.7 !important;
+    font-style: italic;
+}
+
+/* Autor */
+.card-actions cite {
+    font-style: normal;
+    color: var(--ay-muted) !important;
+    font-weight: 500 !important;
+    font-size: 0.8rem !important;
+}
+
+/* ================================================
+   9. FOOTER
+   ================================================ */
+footer.footer {
+    background: linear-gradient(135deg,
+    var(--ay-navy-deep) 0%,
+    var(--ay-navy) 60%,
+    #1a3070 100%) !important;
+    padding: 3rem 2rem 2rem !important;
+    border-top: 3px solid var(--ay-blue);
+}
+
+footer .font-bold.text-lg {
+    font-family: 'Syne', sans-serif !important;
+    font-weight: 800 !important;
+    font-size: 1.35rem !important;
+    letter-spacing: -0.02em;
+    color: white !important;
+}
+
+footer p,
+footer span:not(.footer-title) {
+    color: rgba(255,255,255,0.72) !important;
+    font-size: 0.875rem !important;
+    line-height: 1.6;
+}
+
+footer .footer-title {
+    color: rgba(255,255,255,0.4) !important;
+    font-size: 0.72rem !important;
+    font-weight: 700 !important;
+    letter-spacing: 0.1em !important;
+    text-transform: uppercase !important;
+    margin-bottom: 0.75rem !important;
+}
+
+footer a.link {
+    color: rgba(255,255,255,0.72) !important;
+    text-decoration: none !important;
+    font-size: 0.875rem !important;
+    transition: color 0.2s ease !important;
+}
+
+footer a.link:hover {
+    color: #93c5fd !important;
+}
+
+/* ================================================
+   10. ANIMATE-FADE-IN-UP
+   (clase usada en el HTML de la landing)
+   ================================================ */
+.animate-fade-in-up {
+    opacity: 0;
+    transform: translateY(22px);
+    animation: aparca-fadeInUp 0.75s ease-out forwards;
+}
+
+@keyframes aparca-fadeInUp {
+    to { opacity: 1; transform: translateY(0); }
+}
+
+/* ================================================
+   11. HERO-BG — parallax
    ================================================ */
 .hero-bg {
     background-attachment: fixed;
     background-size: cover;
 }
 
-
 /* ================================================
-   2. HOVER PARA TARJETAS — Levitación
+   11. CARD-HOVER (clase legacy)
    ================================================ */
 .card-hover {
-    transition: transform 0.3s ease,
-    box-shadow 0.3s ease,
-    border-color 0.3s ease;
+    transition: transform 0.3s ease, box-shadow 0.3s ease, border-color 0.3s ease;
 }
 
 .card-hover:hover {
     transform: translateY(-5px);
-    box-shadow: 0 10px 20px rgba(0, 191, 255, 0.3);
-    border-color: #00BFFF;
+    box-shadow: 0 12px 32px rgba(30,58,138,0.14);
+    border-color: var(--ay-blue);
 }
 
-
 /* ================================================
-   3. HOVER PARA EL NAVBAR
+   12. NAVBAR-HOVER (clase legacy)
    ================================================ */
 .navbar-hover {
     transition: background-color 0.3s ease;
 }
 
-.navbar-hover:hover {
-    background-color: rgba(224, 242, 254, 0.9);
-}
-
-
 /* ================================================
-   4. ANIMACIÓN PULSE PARA BOTONES CTA
-   Nombre aparca-pulse para no colisionar con el
-   @keyframes pulse interno de Tailwind
+   13. BTN-PULSE — CTA
    ================================================ */
 .btn-pulse {
-    animation: aparca-pulse 2s infinite;
+    animation: aparca-pulse 2.8s ease-in-out infinite;
 }
 
 @keyframes aparca-pulse {
-    0%, 100% { transform: scale(1);    }
-    50%       { transform: scale(1.05); }
+    0%, 100% { transform: scale(1); box-shadow: 0 4px 18px rgba(30,58,138,0.28); }
+    50%       { transform: scale(1.035); box-shadow: 0 8px 28px rgba(30,58,138,0.44); }
+}
+
+/* ================================================
+   14. RESPONSIVE
+   ================================================ */
+@media (max-width: 1024px) {
+    .hero-content { flex-direction: column; align-items: flex-start; }
+}
+
+@media (max-width: 768px) {
+    .navbar { padding: 0 1rem; }
+    .hero   { padding-top: calc(var(--nav-h) + 1.5rem) !important; }
+    .hero h1 { font-size: 2.2rem !important; }
+}
+
+@media (max-width: 480px) {
+    .navbar-end a.btn { padding: 0 0.875rem !important; font-size: 0.8rem !important; }
 }

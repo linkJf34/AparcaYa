@@ -3,14 +3,13 @@
 <!--
     FRAGMENTO: login-modal-recuperar
     Uso: <div th:replace="modals/login-modal-recuperar :: modal"></div>
-    Tipo: DIV .login-modal (login.css sección 4, animación login-slideUp)
     Abre:   loginD.js → modal.classList.add('login-modal-open')
     Cierra: loginD.js → modal.classList.remove('login-modal-open')
-            + clic en overlay (e.target === modal)
-            + botón #close-modal
-
-    Sin JS embebido. Sin estilos inline.
-    Estilos en: /css/pages/login.css (sección 4)
+    IDs requeridos por loginD.js:
+      forgot-password-modal, close-modal, step-1, step-2,
+      send-token-btn, reset-email, reset-email-error,
+      reset-password-btn, reset-token, new-password,
+      confirm-password, reset-error
 -->
 <body>
 <th:block th:fragment="modal">
@@ -23,94 +22,132 @@
 
         <div class="login-modal-box">
 
-            <h3 class="font-bold text-lg text-blue-900 mb-2"
-                id="modal-titulo">
-                Recuperar Contraseña
-            </h3>
-
-            <!-- PASO 1: Ingresar email -->
-            <div id="step-1" class="py-4">
-
-                <p class="mb-4 text-gray-600">
-                    Ingresa tu correo electrónico para recibir un token de recuperación.
-                </p>
-
-                <input type="email"
-                       id="reset-email"
-                       placeholder="tu@ejemplo.com"
-                       class="input input-bordered w-full mb-2"
-                       autocomplete="email"
-                       aria-label="Correo para recuperación de contraseña" />
-
-                <div id="reset-email-error"
-                     class="error-message hidden"
-                     role="alert"
-                     aria-live="polite">
-                    Correo inválido.
+            <!-- Header del modal -->
+            <div class="lm-header">
+                <div class="lm-header-icon" aria-hidden="true">
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none"
+                         viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8">
+                        <path stroke-linecap="round" stroke-linejoin="round"
+                              d="M16.5 10.5V6.75a4.5 4.5 0 10-9 0v3.75
+                          m-.75 11.25h10.5a2.25 2.25 0 002.25-2.25v-6.75
+                          a2.25 2.25 0 00-2.25-2.25H6.75a2.25 2.25 0
+                          00-2.25 2.25v6.75a2.25 2.25 0 002.25 2.25z"/>
+                    </svg>
                 </div>
-
-                <button id="send-token-btn"
-                        class="btn btn-primary w-full mt-2"
-                        type="button">
-                    Enviar Token
-                </button>
-            </div>
-
-            <!-- PASO 2: Token + nueva contraseña (oculto por defecto) -->
-            <div id="step-2" class="py-4 hidden">
-
-                <p class="mb-4 text-gray-600">
-                    Ingresa el token recibido y tu nueva contraseña.
-                </p>
-
-                <input type="text"
-                       id="reset-token"
-                       placeholder="Token de 8 caracteres"
-                       maxlength="8"
-                       class="input input-bordered w-full mb-2"
-                       autocomplete="off"
-                       aria-label="Token de recuperación" />
-
-                <input type="password"
-                       id="new-password"
-                       placeholder="Nueva contraseña"
-                       class="input input-bordered w-full mb-2"
-                       autocomplete="new-password"
-                       aria-label="Nueva contraseña" />
-
-                <input type="password"
-                       id="confirm-password"
-                       placeholder="Confirmar contraseña"
-                       class="input input-bordered w-full mb-2"
-                       autocomplete="new-password"
-                       aria-label="Confirmar nueva contraseña" />
-
-                <div id="reset-error"
-                     class="error-message hidden"
-                     role="alert"
-                     aria-live="polite">
-                    Error en la recuperación.
+                <div>
+                    <h3 class="lm-title" id="modal-titulo">Recuperar Contraseña</h3>
+                    <p class="lm-subtitle">Te enviaremos un código a tu correo</p>
                 </div>
-
-                <button id="reset-password-btn"
-                        class="btn btn-primary w-full mt-2"
-                        type="button">
-                    Actualizar Contraseña
-                </button>
-            </div>
-
-            <!-- Botón cerrar -->
-            <div class="login-modal-action">
                 <button id="close-modal"
-                        class="btn"
+                        class="lm-close-btn"
                         type="button"
-                        aria-label="Cerrar modal de recuperación">
-                    Cerrar
+                        aria-label="Cerrar">
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none"
+                         viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
+                        <path stroke-linecap="round" stroke-linejoin="round"
+                              d="M6 18L18 6M6 6l12 12"/>
+                    </svg>
                 </button>
             </div>
 
-        </div>
-    </div>
+            <!-- Cuerpo del modal -->
+            <div class="lm-body">
+
+                <!-- ── PASO 1: Email ── -->
+                <div id="step-1">
+
+                    <p class="lm-desc">
+                        Ingresa tu correo electrónico y te enviaremos
+                        un código de recuperación.
+                    </p>
+
+                    <div class="lm-field">
+                        <label for="reset-email" class="lm-label">
+                            Correo electrónico
+                        </label>
+                        <input type="email"
+                               id="reset-email"
+                               placeholder="tu@ejemplo.com"
+                               class="lm-input"
+                               autocomplete="email"
+                               aria-describedby="reset-email-error"/>
+                        <div id="reset-email-error"
+                             class="lm-error-msg hidden"
+                             role="alert" aria-live="polite">
+                            Por favor ingresa un correo válido.
+                        </div>
+                    </div>
+
+                    <button id="send-token-btn"
+                            class="lm-btn-primary"
+                            type="button">
+                        Enviar código
+                    </button>
+
+                </div>
+
+                <!-- ── PASO 2: Token + nueva contraseña ── -->
+                <div id="step-2" class="hidden">
+
+                    <p class="lm-desc">
+                        Ingresa el código que recibiste y tu nueva contraseña.
+                    </p>
+
+                    <div class="lm-field">
+                        <label for="reset-token" class="lm-label">
+                            Código de verificación
+                        </label>
+                        <input type="text"
+                               id="reset-token"
+                               placeholder="Código de 8 caracteres"
+                               maxlength="8"
+                               class="lm-input lm-input-mono"
+                               autocomplete="off"
+                               aria-label="Token de recuperación"/>
+                    </div>
+
+                    <div class="lm-field">
+                        <label for="new-password" class="lm-label">
+                            Nueva contraseña
+                        </label>
+                        <input type="password"
+                               id="new-password"
+                               placeholder="Mínimo 8 caracteres"
+                               class="lm-input"
+                               autocomplete="new-password"
+                               aria-label="Nueva contraseña"/>
+                    </div>
+
+                    <div class="lm-field">
+                        <label for="confirm-password" class="lm-label">
+                            Confirmar contraseña
+                        </label>
+                        <input type="password"
+                               id="confirm-password"
+                               placeholder="Repite tu nueva contraseña"
+                               class="lm-input"
+                               autocomplete="new-password"
+                               aria-label="Confirmar nueva contraseña"/>
+                    </div>
+
+                    <div id="reset-error"
+                         class="lm-error-msg hidden"
+                         role="alert" aria-live="polite">
+                        Error en la recuperación.
+                    </div>
+
+                    <button id="reset-password-btn"
+                            class="lm-btn-primary"
+                            type="button">
+                        Actualizar contraseña
+                    </button>
+
+                </div>
+
+            </div><!-- /lm-body -->
+
+        </div><!-- /login-modal-box -->
+    </div><!-- /forgot-password-modal -->
 
 </th:block>
 </body>

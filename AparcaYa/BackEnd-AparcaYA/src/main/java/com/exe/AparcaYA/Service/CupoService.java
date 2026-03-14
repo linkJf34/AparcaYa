@@ -4,6 +4,7 @@ import com.exe.AparcaYA.Entity.Cupo;
 import com.exe.AparcaYA.Entity.Sede;
 import com.exe.AparcaYA.Enum.EstadoCupo;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 
@@ -21,4 +22,7 @@ public interface CupoService {
     // Antes: bucle for inline en UsuarioController.registrarUsuario()
     // Ahora: lógica centralizada — reutilizable desde cualquier Controller
     void crearCuposParaSede(Sede sede);
+    List<Cupo> findCuposDisponiblesEnRango(Long sedeId,
+                                           LocalDateTime fechaInicio,
+                                           LocalDateTime fechaFin);
 }

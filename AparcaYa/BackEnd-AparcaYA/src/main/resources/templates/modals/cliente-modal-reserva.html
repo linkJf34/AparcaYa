@@ -2,92 +2,96 @@
 <html lang="es" xmlns:th="http://www.thymeleaf.org">
 <!--
     FRAGMENTO: cliente-modal-reserva
-    Uso en dashboard: <div th:replace="modals/cliente-modal-reserva :: modal"></div>
-    Tipo: DIV propio con .aparca-modal-overlay (aparca-components.css)
-    Abre con: abrirModalReserva() → modal.classList.add('show')
-    Cierra con: cerrarReservaModal() → modal.classList.remove('show')
+    Uso: <div th:replace="~{modals/cliente-modal-reserva :: modal}"></div>
+    Abre:  abrirModalReserva()    → modal.style.display = 'flex'
+    Cierra: cerrarReservaModal()  → modal.style.display = 'none'
 
-    Sin JS embebido. Sin estilos inline.
-    Estilos propios en /css/modals/cliente-modal-reserva.css
+    IDs que lee ClienteD.js:
+      #reservaSedeNombre  → nombre de la sede seleccionada
+      #vehiculoSelect     → select con vehículos del cliente
+      #fechaInicio        → datetime-local inicio
+      #fechaFin           → datetime-local fin
+      #reservarBtn        → botón confirmar — JS asigna onclick = crearReserva
 -->
 <body>
 <th:block th:fragment="modal">
 
     <div id="reservaModal"
-         class="aparca-modal-overlay"
+         style="display:none;position:fixed;inset:0;z-index:1000;
+                background:rgba(0,0,0,0.5);
+                align-items:center;justify-content:center;padding:1rem;"
          role="dialog"
          aria-modal="true"
-         aria-labelledby="reservaModalTitulo"
+         aria-labelledby="reservaModalTitle"
          aria-hidden="true">
 
-        <div class="aparca-modal-content">
+        <div class="sede-modal-box" style="max-width:480px;width:100%;">
 
-            <div class="aparca-modal-header">
-                <h3 id="reservaModalTitulo">Hacer Reserva</h3>
-                <button class="aparca-modal-close"
-                        type="button"
-                        onclick="window.closeReservaModal()"
-                        aria-label="Cerrar modal">
-                    &times;
+            <!-- Cabecera -->
+            <div style="display:flex;align-items:center;
+                        justify-content:space-between;margin-bottom:1.25rem;">
+                <h3 id="reservaModalTitle"
+                    style="font-size:1.125rem;font-weight:700;color:#4c1d95;margin:0;">
+                    📅 Nueva Reserva
+                </h3>
+                <button type="button"
+                        onclick="cerrarReservaModal()"
+                        aria-label="Cerrar modal"
+                        style="background:none;border:none;cursor:pointer;
+                               color:#64748b;padding:0.25rem;">
+                    <svg xmlns="http://www.w3.org/2000/svg"
+                         style="width:1.25rem;height:1.25rem;"
+                         fill="none" viewBox="0 0 24 24"
+                         stroke="currentColor" stroke-width="2">
+                        <path stroke-linecap="round" stroke-linejoin="round"
+                              d="M6 18L18 6M6 6l12 12"/>
+                    </svg>
                 </button>
             </div>
 
-            <div class="aparca-modal-body">
-
-                <!-- Nombre de la sede seleccionada — rellena JS -->
-                <p class="cliente-modal-reserva-sede-nombre">
-                    <strong>Sede seleccionada:</strong>
-                    <span id="reservaSedeNombre"></span>
+            <!-- Nombre de la sede — rellena JS en abrirModalReserva() -->
+            <div style="background:#f5f3ff;border-radius:0.75rem;
+                        padding:1rem;margin-bottom:1.25rem;">
+                <p style="font-size:0.85rem;color:#6d28d9;font-weight:600;margin:0;">
+                    🅿️ <span id="reservaSedeNombre">—</span>
                 </p>
-
-                <div class="aparca-form-control">
-                    <label for="fechaInicio">Fecha y Hora de Inicio:</label>
-                    <input type="datetime-local"
-                           id="fechaInicio"
-                           required
-                           aria-label="Fecha y hora de inicio de la reserva">
-                </div>
-
-                <div class="aparca-form-control">
-                    <label for="fechaFin">Fecha y Hora de Fin:</label>
-                    <input type="datetime-local"
-                           id="fechaFin"
-                           required
-                           aria-label="Fecha y hora de fin de la reserva">
-                </div>
-
-                <div class="aparca-form-control">
-                    <label for="placa">Placa del Vehículo:</label>
-                    <!--
-                        CAMBIO: style="text-transform: uppercase" eliminado
-                        → gestionado por .cliente-modal-reserva-placa en CSS
-                    -->
-                    <input type="text"
-                           id="placa"
-                           placeholder="ABC-123"
-                           required
-                           class="cliente-modal-reserva-placa"
-                           aria-label="Placa del vehículo">
-                </div>
-
-                <!--
-                    CAMBIO: style="display:flex;gap:1rem;justify-content:flex-end;margin-top:1rem"
-                    eliminado → gestionado por .cliente-modal-reserva-actions en CSS
-                -->
-                <div class="cliente-modal-reserva-actions">
-                    <button id="reservarBtn"
-                            type="button"
-                            class="cli-btn-confirm">
-                        Confirmar Reserva
-                    </button>
-                    <button type="button"
-                            onclick="window.closeReservaModal()"
-                            class="aparca-btn-outline">
-                        Cancelar
-                    </button>
-                </div>
-
             </div>
+
+            <!-- Vehículo — poblado por cargarVehiculosSelect() en JS -->
+            <div class="sede-form-group">
+                <label for="vehiculoSelect">Vehículo *</label>
+                <select id="vehiculoSelect" required>
+                    <option value="">Selecciona un vehículo</option>
+                </select>
+            </div>
+
+            <!-- Fechas -->
+            <div class="sede-form-group">
+                <label for="fechaInicio">Fecha y hora de inicio *</label>
+                <input type="datetime-local" id="fechaInicio" required
+                       aria-label="Fecha y hora de inicio de la reserva"/>
+            </div>
+
+            <div class="sede-form-group">
+                <label for="fechaFin">Fecha y hora de fin *</label>
+                <input type="datetime-local" id="fechaFin" required
+                       aria-label="Fecha y hora de fin de la reserva"/>
+            </div>
+
+            <!-- Acciones -->
+            <div class="sede-modal-action">
+                <button type="button"
+                        class="sede-btn-secondary"
+                        onclick="cerrarReservaModal()">
+                    Cancelar
+                </button>
+                <button type="button"
+                        id="reservarBtn"
+                        class="cli-btn-confirm">
+                    Confirmar Reserva
+                </button>
+            </div>
+
         </div>
     </div>
 

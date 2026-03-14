@@ -1,72 +1,53 @@
 <!DOCTYPE html>
 <html lang="es" data-theme="light">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Aparca Ya - Reserva tu Estacionamiento Fácil</title>
+    <meta charset="UTF-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <title>AparcaYA — Reserva tu Estacionamiento Fácil</title>
 
-    <!-- 1. Tailwind CSS — clases utilitarias base -->
     <script src="https://cdn.tailwindcss.com"></script>
-
-    <!-- 2. DaisyUI — componentes sobre Tailwind
-         Provee: .navbar, .btn, .card, .hero, .alert,
-         .footer, .rating, .mask, .join, .link -->
     <link href="https://cdn.jsdelivr.net/npm/daisyui@4.12.10/dist/full.min.css"
-          rel="stylesheet" type="text/css" />
+          rel="stylesheet" type="text/css"/>
 
-    <!-- 3. CSS propio — orden crítico
-         FASE 1: se añaden aparca-animations.css y aparca-components.css
-         antes de index.css para que los estilos base estén disponibles -->
-    <link rel="stylesheet" href="/css/base/aparca-animations.css" />
-    <link rel="stylesheet" href="/css/components/aparca-components.css" />
-    <link rel="stylesheet" href="/css/Index.css" />
+    <link rel="stylesheet" href="/css/base/aparca-animations.css"/>
+    <link rel="stylesheet" href="/css/components/aparca-components.css"/>
+    <link rel="stylesheet" href="/css/Index.css"/>
 </head>
 
-<!-- bg-gradient-to-br from-gray-100 to-blue-50 → Tailwind:
-     gradiente diagonal gris muy claro a azul muy claro -->
-<body class="bg-gradient-to-br from-gray-100 to-blue-50">
+<body class="bg-gradient-to-br from-blue-50 to-slate-100">
 
 
 <!-- =====================================================
-     NAVBAR — Barra de navegación superior fija
-     .navbar .navbar-start .navbar-end → DaisyUI
-     .btn-ghost .btn-outline .btn-primary → DaisyUI
-     .navbar-hover → index.css: fondo azul suave al hover
+     NAVBAR
      ===================================================== -->
-<nav class="navbar bg-white shadow-xl fixed top-0 w-full z-10 navbar-hover">
+<nav class="navbar bg-white shadow-xl fixed top-0 w-full z-10 navbar-hover"
+     id="mainNav">
     <div class="navbar-start">
-        <!-- btn btn-ghost → DaisyUI: botón sin fondo
-             normal-case → Tailwind: evita mayúsculas automáticas de DaisyUI
-             text-2xl font-bold text-blue-900 → Tailwind -->
         <a href="/" class="btn btn-ghost normal-case text-2xl font-bold
                            text-blue-900 flex items-center gap-2"
            aria-label="Ir al inicio">
-            <!-- Ícono SVG del logo
-                 w-16 h-16 text-blue-500 → Tailwind: 64×64px, color azul -->
             <svg xmlns="http://www.w3.org/2000/svg" fill="none"
                  viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"
                  class="w-16 h-16 text-blue-500" aria-hidden="true">
                 <path stroke-linecap="round" stroke-linejoin="round"
                       d="M8.25 18.75a1.5 1.5 0 01-3 0V15a6 6 0 0112
                       0v3.75a1.5 1.5 0 01-3 0V15a3 3 0 00-6 0v3.75z
-                      M12 9a3 3 0 100-6 3 3 0 000 6z" />
+                      M12 9a3 3 0 100-6 3 3 0 000 6z"/>
             </svg>
-            Aparca Ya
+            AparcaYA
         </a>
     </div>
 
-    <!-- gap-2 sm:gap-4 → Tailwind responsive: espacio entre botones -->
     <div class="navbar-end gap-2 sm:gap-4">
-        <!-- btn btn-outline btn-primary → DaisyUI: borde del color primario
-             hover:bg-blue-500 hover:text-white → Tailwind: relleno al hover -->
-        <a href="/login" class="btn btn-outline btn-primary text-blue-900
-                                border-blue-500 hover:bg-blue-500
-                                hover:text-white text-sm sm:text-base">
+        <a href="/login"
+           class="btn btn-outline btn-primary text-blue-900
+                  border-blue-500 hover:bg-blue-500
+                  hover:text-white text-sm sm:text-base">
             Inicio de Sesión
         </a>
-        <!-- btn-pulse → index.css: animación aparca-pulse (escala suave) -->
-        <a href="/registro" class="btn bg-blue-600 hover:bg-blue-700
-                                   text-white text-sm sm:text-base btn-pulse">
+        <a href="/registro"
+           class="btn bg-blue-600 hover:bg-blue-700
+                  text-white text-sm sm:text-base btn-pulse">
             Registrarse
         </a>
     </div>
@@ -74,102 +55,137 @@
 
 
 <!-- =====================================================
-     HERO SECTION — Sección principal
-     .hero .hero-content → DaisyUI
-     .hero-bg → index.css: background-attachment:fixed (parallax)
-     .animate-fade-in-up → aparca-animations.css (FASE 1: movido del CSS inline)
+     HERO — mismos IDs que el JS original
      ===================================================== -->
-<!-- pt-20 → Tailwind: compensa el navbar fijo (64px + extra)
-     bg-gradient-to-r from-white to-blue-300 → Tailwind: gradiente horizontal -->
 <section class="hero min-h-80 sm:min-h-96 bg-gradient-to-r from-white
                 to-blue-300 text-black hero-bg pt-20 pb-8 px-4">
 
-    <!-- hero-content → DaisyUI: flex interno del hero
-         flex-col lg:flex-row → Tailwind responsive: columna/fila según pantalla -->
     <div class="hero-content flex-col lg:flex-row items-center
                 justify-between max-w-6xl w-full">
 
-        <!-- Columna izquierda: título + descripción + CTA -->
+        <!-- Columna izquierda -->
         <div class="max-w-md text-center lg:text-left animate-fade-in-up mb-6 lg:mb-0">
-            <!-- text-3xl sm:text-4xl lg:text-5xl → Tailwind responsive: escala el título -->
+
+            <div class="inline-flex items-center gap-2 mb-5 px-3 py-1.5
+                        border border-blue-200 rounded-full
+                        text-blue-900 text-xs font-semibold tracking-wide uppercase"
+                 style="background:rgba(30,58,138,0.07);">
+                <span style="display:inline-block;width:7px;height:7px;
+                             background:#0ea5e9;border-radius:50%;
+                             box-shadow:0 0 0 3px rgba(14,165,233,0.25);"
+                      aria-hidden="true"></span>
+                Disponible en Bogotá
+            </div>
+
             <h1 class="text-3xl sm:text-4xl lg:text-5xl font-bold mb-3 text-black">
-                Estaciona Sin Preocupaciones
+                Estaciona<br/>
+                <em style="font-style:normal;color:#1d4ed8;">sin estrés</em>
             </h1>
-            <p class="mb-3 text-sm sm:text-base lg:text-lg text-gray-700">
+
+            <p class="mb-5 text-sm sm:text-base lg:text-lg text-gray-700">
                 Reserva tu lugar de parqueo en segundos.
                 Seguro, rápido y conveniente para carros, motos y bicicletas.
             </p>
-            <!-- btn btn-primary → DaisyUI
-                 btn-md lg:btn-lg → DaisyUI responsive: tamaño mediano/grande
-                 bg-blue-600 → Tailwind: override del color primario de DaisyUI
-                 btn-pulse → index.css: animación de latido -->
-            <a href="/registro" class="btn btn-primary btn-md lg:btn-lg
-                                       bg-blue-600 hover:bg-blue-800
-                                       text-white btn-pulse">
-                ¡Empieza Ahora!
-            </a>
+
+            <div class="flex flex-col sm:flex-row gap-3 justify-center lg:justify-start">
+                <a href="/registro"
+                   class="btn btn-primary btn-md lg:btn-lg
+                          bg-blue-600 hover:bg-blue-800 text-white btn-pulse">
+                    ¡Empieza Ahora!
+                </a>
+                <a href="/login"
+                   class="btn btn-outline border-blue-300 text-blue-900
+                          hover:bg-blue-50 btn-md lg:btn-lg">
+                    Ya tengo cuenta
+                </a>
+            </div>
+
+            <!-- Mini stats -->
+            <div class="flex gap-6 mt-7 justify-center lg:justify-start">
+                <div class="text-center lg:text-left">
+                    <div class="font-bold text-blue-900 text-xl"
+                         style="font-family:'Syne',sans-serif;">+500</div>
+                    <div class="text-xs text-gray-500 mt-0.5">Cupos</div>
+                </div>
+                <div style="width:1px;background:#e0e9f7;" aria-hidden="true"></div>
+                <div class="text-center lg:text-left">
+                    <div class="font-bold text-blue-900 text-xl"
+                         style="font-family:'Syne',sans-serif;">24/7</div>
+                    <div class="text-xs text-gray-500 mt-0.5">Soporte</div>
+                </div>
+                <div style="width:1px;background:#e0e9f7;" aria-hidden="true"></div>
+                <div class="text-center lg:text-left">
+                    <div class="font-bold text-blue-900 text-xl"
+                         style="font-family:'Syne',sans-serif;">100%</div>
+                    <div class="text-xs text-gray-500 mt-0.5">Seguro</div>
+                </div>
+            </div>
+
         </div>
 
-        <!-- Columna derecha: acordeón de parqueaderos con navegación
-             FASE 2: se añaden botones #prev-arrow y #next-arrow -->
+        <!-- Columna derecha: acordeón — mismos IDs que el JS -->
         <div class="w-full lg:w-auto lg:max-w-md mt-6 lg:mt-0 lg:ml-8">
-            <h3 class="text-lg sm:text-xl font-semibold mb-4 text-black">
-                Nuestros Parqueaderos
-            </h3>
-            <!-- join join-vertical → DaisyUI: lista vertical agrupada
-                 JS rellena este div con .join-item por cada parqueadero -->
+
+            <div class="flex items-center gap-3 mb-4 px-1">
+                <div style="width:38px;height:38px;background:#1e3a8a;
+                            border-radius:10px;display:flex;align-items:center;
+                            justify-content:center;color:white;font-weight:800;
+                            font-size:1.1rem;flex-shrink:0;"
+                     aria-hidden="true">P</div>
+                <div>
+                    <div class="text-base font-bold text-blue-900 leading-tight"
+                         style="font-family:'Syne',sans-serif;">
+                        Nuestros Parqueaderos
+                    </div>
+                    <div class="text-xs text-gray-500">Encuentra el más cercano</div>
+                </div>
+            </div>
+
             <div class="join join-vertical w-full bg-white border-2
                         border-blue-300 rounded-lg shadow-lg"
                  id="parking-accordion"
                  aria-label="Lista de parqueaderos disponibles">
             </div>
 
-            <!-- Navegación: flechas + puntos de paginación
-                 FASE 2: se añaden #prev-arrow y #next-arrow que faltaban en el HTML original
-                 y eran referenciados por el JS causando errores silenciosos -->
             <div class="flex justify-center items-center gap-3 mt-4">
-
-                <!-- Botón anterior -->
                 <button id="prev-arrow"
                         class="btn btn-circle btn-sm btn-outline border-blue-400
                                text-blue-700 hover:bg-blue-500 hover:text-white"
                         aria-label="Parqueadero anterior">
                     &#8249;
                 </button>
-
-                <!-- Puntos de paginación generados por JavaScript -->
                 <div class="flex gap-1" id="dots-bar"
                      aria-label="Navegación del acordeón">
                 </div>
-
-                <!-- Botón siguiente -->
                 <button id="next-arrow"
                         class="btn btn-circle btn-sm btn-outline border-blue-400
                                text-blue-700 hover:bg-blue-500 hover:text-white"
                         aria-label="Parqueadero siguiente">
                     &#8250;
                 </button>
-
             </div>
+
         </div>
     </div>
 </section>
 
 
 <!-- =====================================================
-     SECCIÓN: ¿POR QUÉ ELEGIR APARCA YA?
-     .card .card-body .card-title .card-actions → DaisyUI
-     .card-hover → index.css: levitación al hover
+     ¿POR QUÉ ELEGIR APARCAYA?
      ===================================================== -->
 <section class="py-8 sm:py-12 px-4 animate-fade-in-up bg-white">
     <div class="container mx-auto text-center max-w-6xl">
-        <h2 class="text-2xl sm:text-3xl font-bold mb-6 sm:mb-8 text-black">
-            ¿Por Qué Elegir Aparca Ya?
-        </h2>
-        <!-- grid responsive: 1 col móvil / 2 tablet / 3 desktop -->
+
+        <div class="mb-8">
+            <span class="inline-block mb-3 text-xs font-bold tracking-widest
+                         uppercase text-blue-500">Ventajas</span>
+            <h2 class="text-2xl sm:text-3xl font-bold text-black">
+                ¿Por Qué Elegir AparcaYA?
+            </h2>
+        </div>
+
         <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
 
-            <!-- Tarjeta 1 -->
             <div class="card bg-gradient-to-br from-white to-blue-50
                         shadow-lg card-hover animate-fade-in-up
                         p-4 sm:p-6 border border-blue-200">
@@ -178,67 +194,72 @@
                         🚗 Reserva Rápida
                     </div>
                     <p class="text-sm sm:text-base text-gray-700">
-                        Encuentra y reserva espacios en tiempo real desde tu dispositivo.
+                        Encuentra y reserva espacios en tiempo real desde tu
+                        dispositivo, sin filas ni llamadas.
                     </p>
                 </div>
             </div>
 
-            <!-- Tarjeta 2: animation-delay crea efecto cascada entre tarjetas -->
             <div class="card bg-gradient-to-br from-white to-blue-50
                         shadow-lg card-hover animate-fade-in-up
                         p-4 sm:p-6 border border-blue-200"
-                 style="animation-delay: 0.2s;">
+                 style="animation-delay:0.2s;">
                 <div class="card-body">
                     <div class="card-title text-blue-700 text-lg sm:text-xl">
                         🔒 Pagos Seguros
                     </div>
                     <p class="text-sm sm:text-base text-gray-700">
-                        Métodos de pago confiables con encriptación de datos.
+                        Transacciones cifradas con los métodos de pago más
+                        confiables del mercado.
                     </p>
                 </div>
             </div>
 
-            <!-- Tarjeta 3 -->
             <div class="card bg-gradient-to-br from-white to-blue-50
                         shadow-lg card-hover animate-fade-in-up
                         p-4 sm:p-6 border border-blue-200"
-                 style="animation-delay: 0.4s;">
+                 style="animation-delay:0.4s;">
                 <div class="card-body">
                     <div class="card-title text-blue-700 text-lg sm:text-xl">
                         📍 Ubicaciones Premium
                     </div>
                     <p class="text-sm sm:text-base text-gray-700">
-                        Parqueaderos en centros comerciales, aeropuertos y eventos.
+                        Sedes en centros comerciales, zonas empresariales y
+                        los mejores puntos de Bogotá.
                     </p>
                 </div>
             </div>
+
         </div>
     </div>
 </section>
 
 
 <!-- =====================================================
-     SECCIÓN: BENEFICIOS PARA TI
-     .alert → DaisyUI: componente alerta con flex
-     .card-hover → index.css: levitación al hover
+     BENEFICIOS
      ===================================================== -->
-<!-- bg-gradient-to-r from-blue-700 to-blue-900 → Tailwind: fondo azul oscuro -->
 <section class="py-8 sm:py-12 bg-gradient-to-r from-blue-700 to-blue-900
                 text-white px-4 animate-fade-in-up">
     <div class="container mx-auto text-center max-w-6xl">
-        <h2 class="text-2xl sm:text-3xl font-bold mb-6 sm:mb-8">
-            Beneficios para Ti
-        </h2>
+
+        <div class="mb-8">
+            <span class="inline-block mb-3 text-xs font-bold tracking-widest
+                         uppercase opacity-50">Beneficios</span>
+            <h2 class="text-2xl sm:text-3xl font-bold">
+                Beneficios para Ti
+            </h2>
+        </div>
+
         <div class="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6">
 
-            <!-- alert → DaisyUI: flex con ícono + texto -->
             <div class="alert bg-blue-500 border-blue-400 text-white
                         animate-fade-in-up card-hover p-4 sm:p-6 rounded-lg">
                 <svg xmlns="http://www.w3.org/2000/svg" fill="none"
                      viewBox="0 0 24 24"
                      class="stroke-current shrink-0 w-6 sm:w-8 h-6 sm:h-8 text-cyan-300"
                      aria-hidden="true">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                    <path stroke-linecap="round" stroke-linejoin="round"
+                          stroke-width="2"
                           d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
                 </svg>
                 <span class="text-sm sm:text-lg">
@@ -248,37 +269,42 @@
 
             <div class="alert bg-blue-600 border-blue-500 text-white
                         animate-fade-in-up card-hover p-4 sm:p-6 rounded-lg"
-                 style="animation-delay: 0.2s;">
+                 style="animation-delay:0.2s;">
                 <svg xmlns="http://www.w3.org/2000/svg" fill="none"
                      viewBox="0 0 24 24"
                      class="stroke-current shrink-0 w-6 sm:w-8 h-6 sm:h-8 text-cyan-300"
                      aria-hidden="true">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                    <path stroke-linecap="round" stroke-linejoin="round"
+                          stroke-width="2"
                           d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
                 </svg>
                 <span class="text-sm sm:text-lg">
                     Cancelaciones Gratuitas Hasta 1 Hora Antes y Reembolsos Rápidos
                 </span>
             </div>
+
         </div>
     </div>
 </section>
 
 
 <!-- =====================================================
-     SECCIÓN: TESTIMONIOS
-     .card .card-body .card-actions .card-title → DaisyUI
-     .rating .mask .mask-star-2 → DaisyUI: estrellas
+     TESTIMONIOS
      ===================================================== -->
 <section class="py-8 sm:py-12 px-4 animate-fade-in-up
                 bg-gradient-to-br from-blue-50 to-white">
     <div class="container mx-auto text-center max-w-6xl">
-        <h2 class="text-2xl sm:text-3xl font-bold mb-6 sm:mb-8 text-black">
-            Lo Que Dicen Nuestros Usuarios
-        </h2>
+
+        <div class="mb-8">
+            <span class="inline-block mb-3 text-xs font-bold tracking-widest
+                         uppercase text-blue-500">Opiniones</span>
+            <h2 class="text-2xl sm:text-3xl font-bold text-black">
+                Lo Que Dicen Nuestros Usuarios
+            </h2>
+        </div>
+
         <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
 
-            <!-- Testimonio 1 -->
             <div class="card bg-white text-black shadow-lg card-hover
                         animate-fade-in-up p-4 sm:p-6 rounded-lg border border-blue-200">
                 <div class="rating mb-3 justify-center" aria-label="5 de 5 estrellas">
@@ -289,17 +315,30 @@
                     <input type="radio" name="rating-1" class="mask mask-star-2 bg-yellow-400" checked aria-label="Estrella 5"/>
                 </div>
                 <p class="text-sm sm:text-base mb-4">
-                    "¡Increíble! Reservé en minutos y pagué sin problemas."
+                    "¡Increíble! Reservé en minutos y pagué sin problemas.
+                    Nunca más buscaré parqueadero dando vueltas."
                 </p>
-                <div class="card-actions justify-end">
-                    <cite class="text-xs sm:text-sm text-gray-600">- Ana López, Cliente</cite>
+                <div class="card-actions justify-center">
+                    <div style="display:flex;align-items:center;gap:0.75rem;">
+                        <div style="width:36px;height:36px;background:#1e3a8a;
+                                    border-radius:50%;display:flex;align-items:center;
+                                    justify-content:center;color:white;font-weight:700;
+                                    font-size:0.8rem;flex-shrink:0;"
+                             aria-hidden="true">AL</div>
+                        <div style="text-align:left;">
+                            <cite class="text-xs sm:text-sm text-gray-700
+                                         not-italic font-semibold block">
+                                Ana López
+                            </cite>
+                            <span class="text-xs text-gray-400">Cliente frecuente</span>
+                        </div>
+                    </div>
                 </div>
             </div>
 
-            <!-- Testimonio 2 -->
             <div class="card bg-white text-black shadow-lg card-hover
                         animate-fade-in-up p-4 sm:p-6 rounded-lg border border-blue-200"
-                 style="animation-delay: 0.2s;">
+                 style="animation-delay:0.2s;">
                 <div class="rating mb-3 justify-center" aria-label="5 de 5 estrellas">
                     <input type="radio" name="rating-2" class="mask mask-star-2 bg-yellow-400" checked aria-label="Estrella 1"/>
                     <input type="radio" name="rating-2" class="mask mask-star-2 bg-yellow-400" checked aria-label="Estrella 2"/>
@@ -308,17 +347,30 @@
                     <input type="radio" name="rating-2" class="mask mask-star-2 bg-yellow-400" checked aria-label="Estrella 5"/>
                 </div>
                 <p class="text-sm sm:text-base mb-4">
-                    "El soporte 24/7 me salvó. Recomendado 100%."
+                    "El soporte 24/7 me salvó cuando tuve un problema.
+                    Lo resolvieron en minutos. Recomendado 100%."
                 </p>
-                <div class="card-actions justify-end">
-                    <cite class="text-xs sm:text-sm text-gray-600">- Carlos García, Usuario</cite>
+                <div class="card-actions justify-center">
+                    <div style="display:flex;align-items:center;gap:0.75rem;">
+                        <div style="width:36px;height:36px;background:#1d4ed8;
+                                    border-radius:50%;display:flex;align-items:center;
+                                    justify-content:center;color:white;font-weight:700;
+                                    font-size:0.8rem;flex-shrink:0;"
+                             aria-hidden="true">CG</div>
+                        <div style="text-align:left;">
+                            <cite class="text-xs sm:text-sm text-gray-700
+                                         not-italic font-semibold block">
+                                Carlos García
+                            </cite>
+                            <span class="text-xs text-gray-400">Usuario verificado</span>
+                        </div>
+                    </div>
                 </div>
             </div>
 
-            <!-- Testimonio 3 -->
             <div class="card bg-white text-black shadow-lg card-hover
                         animate-fade-in-up p-4 sm:p-6 rounded-lg border border-blue-200"
-                 style="animation-delay: 0.4s;">
+                 style="animation-delay:0.4s;">
                 <div class="rating mb-3 justify-center" aria-label="5 de 5 estrellas">
                     <input type="radio" name="rating-3" class="mask mask-star-2 bg-yellow-400" checked aria-label="Estrella 1"/>
                     <input type="radio" name="rating-3" class="mask mask-star-2 bg-yellow-400" checked aria-label="Estrella 2"/>
@@ -327,12 +379,57 @@
                     <input type="radio" name="rating-3" class="mask mask-star-2 bg-yellow-400" checked aria-label="Estrella 5"/>
                 </div>
                 <p class="text-sm sm:text-base mb-4">
-                    "Ubicaciones perfectas y precios justos."
+                    "Ubicaciones perfectas y precios muy justos. Ahora
+                    es parte de mi rutina diaria."
                 </p>
-                <div class="card-actions justify-end">
-                    <cite class="text-xs sm:text-sm text-gray-600">- María Rodríguez, Cliente</cite>
+                <div class="card-actions justify-center">
+                    <div style="display:flex;align-items:center;gap:0.75rem;">
+                        <div style="width:36px;height:36px;background:#0ea5e9;
+                                    border-radius:50%;display:flex;align-items:center;
+                                    justify-content:center;color:white;font-weight:700;
+                                    font-size:0.8rem;flex-shrink:0;"
+                             aria-hidden="true">MR</div>
+                        <div style="text-align:left;">
+                            <cite class="text-xs sm:text-sm text-gray-700
+                                         not-italic font-semibold block">
+                                María Rodríguez
+                            </cite>
+                            <span class="text-xs text-gray-400">Cliente frecuente</span>
+                        </div>
+                    </div>
                 </div>
             </div>
+
+        </div>
+    </div>
+</section>
+
+
+<!-- =====================================================
+     CTA FINAL
+     ===================================================== -->
+<section class="py-12 sm:py-16 px-4 animate-fade-in-up"
+         style="background:linear-gradient(135deg,#1e3a8a 0%,#1d4ed8 60%,#0ea5e9 100%);">
+    <div class="container mx-auto max-w-4xl text-center">
+        <h2 class="text-2xl sm:text-3xl font-bold text-white mb-3"
+            style="font-family:'Syne',sans-serif;letter-spacing:-0.02em;">
+            ¿Listo para estacionar sin estrés?
+        </h2>
+        <p class="text-white mb-8 opacity-80">
+            Únete a cientos de usuarios que ya reservan con AparcaYA.
+        </p>
+        <div class="flex flex-col sm:flex-row gap-4 justify-center">
+            <a href="/registro"
+               class="btn bg-white text-blue-900 hover:bg-blue-50
+                      btn-lg font-bold btn-pulse"
+               style="border:none;box-shadow:0 4px 20px rgba(0,0,0,0.2);">
+                Crear cuenta gratis
+            </a>
+            <a href="/login"
+               class="btn btn-outline text-white border-white
+                      hover:bg-white hover:text-blue-900 btn-lg">
+                Ya tengo cuenta
+            </a>
         </div>
     </div>
 </section>
@@ -340,35 +437,56 @@
 
 <!-- =====================================================
      FOOTER
-     .footer .footer-title .link .link-hover → DaisyUI
      ===================================================== -->
 <footer class="footer p-6 sm:p-10 bg-gradient-to-r from-gray-800 to-black text-white">
 
-    <!-- Columna 1: nombre y descripción -->
     <div class="w-full sm:w-auto">
-        <p class="font-bold text-lg">Aparca Ya</p>
-        <p class="text-sm sm:text-base">Tu solución de estacionamiento confiable y moderna.</p>
+        <p class="font-bold text-lg">AparcaYA</p>
+        <p class="text-sm sm:text-base">
+            Tu solución de estacionamiento confiable y moderna.
+        </p>
     </div>
 
-    <!-- Columna 2: links -->
     <div class="w-full sm:w-auto">
-        <span class="footer-title">Enlaces</span>
-        <a href="/registro" class="link link-hover text-blue-400 hover:text-blue-300 text-sm sm:text-base">Registrarse</a>
-        <a href="/" class="link link-hover text-blue-400 hover:text-blue-300 text-sm sm:text-base">Inicio</a>
+        <span class="footer-title">Acceso</span>
+        <a href="/registro"
+           class="link link-hover text-blue-400 hover:text-blue-300
+                  text-sm sm:text-base">
+            Registrarse
+        </a>
+        <a href="/login"
+           class="link link-hover text-blue-400 hover:text-blue-300
+                  text-sm sm:text-base">
+            Iniciar Sesión
+        </a>
+        <a href="/"
+           class="link link-hover text-blue-400 hover:text-blue-300
+                  text-sm sm:text-base">
+            Inicio
+        </a>
     </div>
 
-    <!-- Columna 3: contacto -->
     <div class="w-full sm:w-auto">
         <span class="footer-title">Contacto</span>
-        <p class="text-sm sm:text-base">Email: info@aparcaya.com</p>
-        <p class="text-sm sm:text-base">Teléfono: +57 300 123 4567</p>
+        <p class="text-sm sm:text-base">info@aparcaya.com</p>
+        <p class="text-sm sm:text-base">+57 300 123 4567</p>
+        <p class="text-sm sm:text-base">Lun–Vie, 8am–6pm</p>
     </div>
+
 </footer>
 
-<!-- FASE 2: script de la landing page
-     CORRECCIÓN: URL fetch cambiada de http://localhost:8080/api/sedes
-     a /api/sedes (relativa) para funcionar en producción -->
 <script src="/js/Index.js"></script>
+
+<!-- Efecto scroll navbar sin modificar Index.js -->
+<script>
+    (function() {
+        var nav = document.getElementById('mainNav');
+        if (!nav) { return; }
+        window.addEventListener('scroll', function() {
+            nav.classList.toggle('scrolled', window.scrollY > 20);
+        }, { passive: true });
+    })();
+</script>
 
 </body>
 </html>

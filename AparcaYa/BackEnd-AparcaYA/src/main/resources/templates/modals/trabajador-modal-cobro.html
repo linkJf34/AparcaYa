@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<!--
+    FRAGMENTO: trabajador-modal-cobro
+    Ruta:      templates/modals/trabajador-modal-cobro.html
+    Uso:       <div th:replace="modals/trabajador-modal-cobro :: modal"></div>
+
+    Tipo:      DIV overlay con clase .trab-modal-overlay
+    CSS:       /css/modals/trabajador-modal.css
+
+    Abre:   abrirModalCobro(registroId)  → añade clase .open al overlay
+    Cierra: cerrarModalCobro()           → quita clase .open
+
+    Diseño:    colores teal exactos del diseño original embebido
+               en DashboardTrabajador.html (verde #0f766e, fondo #f0fdfa)
+
+    Sin JS embebido. Sin estilos inline.
+-->
+<body>
+<th:block th:fragment="modal">
+
+    <div id="cobroModal"
+         class="trab-modal-overlay"
+         role="dialog"
+         aria-modal="true"
+         aria-labelledby="cobroModalTitulo"
+         aria-hidden="true">
+
+        <div class="trab-modal-box trab-modal-box--cobro">
+
+            <!-- CABECERA -->
+            <div class="trab-modal-header">
+                <h3 id="cobroModalTitulo">💰 Procesar Cobro</h3>
+                <button type="button"
+                        class="trab-modal-close"
+                        onclick="cerrarModalCobro()"
+                        aria-label="Cerrar modal">
+                    <svg xmlns="http://www.w3.org/2000/svg"
+                         style="width:1.25rem;height:1.25rem;"
+                         fill="none" viewBox="0 0 24 24"
+                         stroke="currentColor" stroke-width="2">
+                        <path stroke-linecap="round" stroke-linejoin="round"
+                              d="M6 18L18 6M6 6l12 12"/>
+                    </svg>
+                </button>
+            </div>
+
+            <!-- CUERPO -->
+            <div class="trab-modal-body">
+
+                <!-- Tarjeta de datos del cobro -->
+                <div class="trab-modal-card">
+
+                    <div class="trab-modal-row">
+                        <strong>Cliente:</strong>
+                        <span id="cobroCliente">—</span>
+                    </div>
+
+                    <div class="trab-modal-row">
+                        <strong>Placa:</strong>
+                        <span id="cobroPlaca" class="trab-modal-value--accent">—</span>
+                    </div>
+
+                    <div class="trab-modal-row">
+                        <strong>Tiempo total:</strong>
+                        <span id="cobroTiempo" class="trab-modal-value--mono">—</span>
+                    </div>
+
+                    <!-- Total a cobrar — actualizado por actualizarPrecioCobro() -->
+                    <div class="trab-modal-total-row">
+                        <strong>Total a cobrar:</strong>
+                        <span class="trab-modal-total-valor">
+                            $<span id="cobroPrecio">0</span>
+                        </span>
+                    </div>
+
+                </div>
+
+                <!--
+                    JS inyecta aquí las opciones de tarifa.
+                    TrabajadorD.js usa innerHTML con clases:
+                      .trab-modal-tarifa-selector
+                      .trab-modal-tarifa-opcion (label)
+                      .trab-modal-tarifa-opcion-info
+                      .trab-modal-tarifa-opcion-precio
+                    Ver función abrirModalCobro() en TrabajadorD.js
+                -->
+                <div id="tarifaSelectorContainer"></div>
+
+                <!-- Método de pago -->
+                <div class="trab-modal-metodo-pago">
+                    <label for="metodoPago">Método de Pago</label>
+                    <select id="metodoPago">
+                        <option value="EFECTIVO">💵 Efectivo</option>
+                        <option value="TARJETA">💳 Tarjeta</option>
+                        <option value="TRANSFERENCIA">📱 Transferencia</option>
+                    </select>
+                </div>
+
+                <!-- Acciones -->
+                <div class="trab-modal-actions">
+                    <button type="button"
+                            class="sede-btn-secondary"
+                            onclick="cerrarModalCobro()">
+                        Cancelar
+                    </button>
+                    <button type="button"
+                            class="sede-btn-primary"
+                            onclick="procesarCobro()">
+                        Confirmar Cobro
+                    </button>
+                </div>
+
+            </div><!-- /trab-modal-body -->
+        </div><!-- /trab-modal-box -->
+    </div><!-- /trab-modal-overlay -->
+
+</th:block>
+</body>
+</html>
