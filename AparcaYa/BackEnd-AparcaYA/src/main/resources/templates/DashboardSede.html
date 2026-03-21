@@ -1,7 +1,5 @@
 <!DOCTYPE html>
-<html lang="es"
-      data-theme="light"
-      xmlns:th="http://www.thymeleaf.org">
+<html lang="es" data-theme="light" xmlns:th="http://www.thymeleaf.org">
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -10,6 +8,11 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://cdn.jsdelivr.net/npm/daisyui@4.12.10/dist/full.min.css" rel="stylesheet"/>
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 
     <link rel="stylesheet" href="/css/base/aparca-animations.css"/>
     <link rel="stylesheet" href="/css/components/aparca-components.css"/>
@@ -18,18 +21,13 @@
 </head>
 <body>
 
-<!-- ==================================================
-     SIDEBAR — Mismo patrón colapsable que Admin.
-     Logo-row arriba, toggle-row debajo, nav, footer usuario.
-     ================================================== -->
+<!-- ======================================================
+     SIDEBAR
+     ====================================================== -->
 <aside class="aparca-sidebar animate-fade-in-up"
-       id="mainSidebar"
-       aria-label="Menú principal de sede">
+       id="mainSidebar" aria-label="Menú principal de sede">
 
-    <!-- Header: logo + título + toggle -->
     <div class="aparca-sidebar-header" role="banner">
-
-        <!-- Fila 1: ícono + título -->
         <div class="aparca-sidebar-logo-row">
             <svg xmlns="http://www.w3.org/2000/svg" fill="none"
                  viewBox="0 0 24 24" stroke-width="1.5"
@@ -41,15 +39,10 @@
             </svg>
             <h1>AparcaYA-Sede</h1>
         </div>
-
-        <!-- Fila 2: botón de colapso -->
-        <button class="aparca-sidebar-toggle"
-                id="sidebarToggleBtn"
-                type="button"
-                aria-label="Colapsar menú lateral"
+        <button class="aparca-sidebar-toggle" id="sidebarToggleBtn"
+                type="button" aria-label="Colapsar menú lateral"
                 onclick="toggleSidebar()">
-            <svg class="toggle-arrow"
-                 xmlns="http://www.w3.org/2000/svg"
+            <svg class="toggle-arrow" xmlns="http://www.w3.org/2000/svg"
                  fill="none" viewBox="0 0 24 24"
                  stroke-width="2" stroke="currentColor">
                 <path stroke-linecap="round" stroke-linejoin="round"
@@ -57,18 +50,13 @@
             </svg>
             <span class="toggle-label">Colapsar menú</span>
         </button>
-
     </div>
 
-    <!-- Navegación -->
-    <nav class="aparca-sidebar-nav"
-         role="navigation"
+    <nav class="aparca-sidebar-nav" role="navigation"
          aria-label="Secciones del dashboard de sede">
 
-        <a href="#" class="active"
-           data-tab="usuarios"
-           data-label="Usuarios"
-           aria-current="page">
+        <a href="#" class="active" data-tab="usuarios"
+           data-label="Usuarios" aria-current="page">
             <svg xmlns="http://www.w3.org/2000/svg" fill="none"
                  viewBox="0 0 24 24" stroke-width="1.5"
                  stroke="currentColor" aria-hidden="true">
@@ -85,9 +73,7 @@
             <span class="nav-label">Usuarios</span>
         </a>
 
-        <a href="#"
-           data-tab="correo"
-           data-label="Correos">
+        <a href="#" data-tab="correo" data-label="Correos">
             <svg xmlns="http://www.w3.org/2000/svg" fill="none"
                  viewBox="0 0 24 24" stroke-width="1.5"
                  stroke="currentColor" aria-hidden="true">
@@ -102,9 +88,7 @@
             <span class="nav-label">Enviar correo</span>
         </a>
 
-        <a href="#"
-           data-tab="graficas"
-           data-label="Gráficas">
+        <a href="#" data-tab="graficas" data-label="Gráficas">
             <svg xmlns="http://www.w3.org/2000/svg" fill="none"
                  viewBox="0 0 24 24" stroke-width="1.5"
                  stroke="currentColor" aria-hidden="true">
@@ -123,9 +107,7 @@
             <span class="nav-label">Gráficas</span>
         </a>
 
-        <a href="#"
-           data-tab="gestion"
-           data-label="Vehículos">
+        <a href="#" data-tab="gestion" data-label="Vehículos">
             <svg xmlns="http://www.w3.org/2000/svg" fill="none"
                  viewBox="0 0 24 24" stroke-width="1.5"
                  stroke="currentColor" aria-hidden="true">
@@ -136,17 +118,15 @@
                       0m3 0a1.5 1.5 0 00-3 0m3 0h1.125c.621 0
                       1.129-.504 1.09-1.124a17.902 17.902 0
                       00-3.213-9.193 2.056 2.056 0 00-1.58-.86H14.25
-                      M16.5 18.75h-2.25m0-11.177v-.958c0-.568-.422-1.048-.987-1.106
-                      a48.554 48.554 0 00-10.026 0 1.106 1.106 0
-                      00-.987 1.106v7.635m12-6.677v6.677m0 4.5v-4.5
+                      M16.5 18.75h-2.25m0-11.177v-.958c0-.568-.422-1.048
+                      -.987-1.106a48.554 48.554 0 00-10.026 0 1.106 1.106
+                      0 00-.987 1.106v7.635m12-6.677v6.677m0 4.5v-4.5
                       m0 0h-12"/>
             </svg>
             <span class="nav-label">Gestión Vehículos</span>
         </a>
 
-        <a href="#"
-           data-tab="historial"
-           data-label="Historial">
+        <a href="#" data-tab="historial" data-label="Historial">
             <svg xmlns="http://www.w3.org/2000/svg" fill="none"
                  viewBox="0 0 24 24" stroke-width="1.5"
                  stroke="currentColor" aria-hidden="true">
@@ -160,9 +140,7 @@
             <span class="nav-label">Historial</span>
         </a>
 
-        <a href="#"
-           data-tab="reservaciones"
-           data-label="Reservaciones">
+        <a href="#" data-tab="reservaciones" data-label="Reservaciones">
             <svg xmlns="http://www.w3.org/2000/svg" fill="none"
                  viewBox="0 0 24 24" stroke-width="1.5"
                  stroke="currentColor" aria-hidden="true">
@@ -178,9 +156,7 @@
 
         <hr class="aparca-nav-divider" aria-hidden="true"/>
 
-        <a href="#"
-           data-tab="cargamasiva"
-           data-label="Carga Masiva">
+        <a href="#" data-tab="cargamasiva" data-label="Carga Masiva">
             <svg xmlns="http://www.w3.org/2000/svg" fill="none"
                  viewBox="0 0 24 24" stroke-width="1.5"
                  stroke="currentColor" aria-hidden="true">
@@ -193,15 +169,12 @@
         </a>
     </nav>
 
-    <!-- Footer: usuario logueado -->
     <div class="aparca-sidebar-footer">
         <div class="aparca-sidebar-user" aria-label="Usuario actual">
             <div class="aparca-sidebar-avatar"
-                 id="sidebarAvatarInitial"
-                 aria-hidden="true">A</div>
+                 id="sidebarAvatarInitial" aria-hidden="true">A</div>
             <div class="aparca-sidebar-user-info">
-                <div class="aparca-sidebar-username"
-                     id="sidebarUsername"
+                <div class="aparca-sidebar-username" id="sidebarUsername"
                      th:text="${#authentication?.name ?: 'Admin Sede'}">
                     Admin Sede
                 </div>
@@ -209,23 +182,17 @@
             </div>
         </div>
     </div>
-
 </aside>
 
 
-<!-- ==================================================
-     HEADER — Solo el menú de perfil (sin título duplicado)
-     ================================================== -->
+<!-- ======================================================
+     HEADER
+     ====================================================== -->
 <header class="aparca-page-header animate-fade-in-up" id="pageHeader">
-
     <div class="aparca-profile-menu">
-        <button id="profileBtn"
-                class="aparca-profile-btn"
-                type="button"
-                aria-label="Menú de perfil"
-                aria-expanded="false"
-                aria-haspopup="true"
-                aria-controls="profileDropdown">
+        <button id="profileBtn" class="aparca-profile-btn" type="button"
+                aria-label="Menú de perfil" aria-expanded="false"
+                aria-haspopup="true" aria-controls="profileDropdown">
             <svg xmlns="http://www.w3.org/2000/svg" fill="none"
                  viewBox="0 0 24 24" stroke-width="1.5"
                  stroke="currentColor" aria-hidden="true">
@@ -236,33 +203,32 @@
                       0-5.216-.584-7.499-1.632z"/>
             </svg>
         </button>
-
-        <menu id="profileDropdown"
-              class="aparca-dropdown"
-              role="menu"
-              aria-label="Opciones de perfil">
-            <button type="button" role="menuitem" onclick="irConfiguracion()">
+        <menu id="profileDropdown" class="aparca-dropdown"
+              role="menu" aria-label="Opciones de perfil">
+            <button type="button" role="menuitem"
+                    onclick="abrirModalConfiguracion()">
                 <svg xmlns="http://www.w3.org/2000/svg" fill="none"
                      viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
                     <path stroke-linecap="round" stroke-linejoin="round"
                           d="M9.594 3.94c.09-.542.56-.94 1.11-.94h2.593c.55
                           0 1.02.398 1.11.94l.213 1.281c.063.374.313.686.645.87
-                          .074.04.147.083.22.127.324.196.72.257 1.075.124l1.217-.456
-                          a1.125 1.125 0 011.37.49l1.296 2.247a1.125 1.125 0
-                          01-.26 1.431l-1.003.827c-.293.24-.438.613-.431.992a6.759
-                          6.759 0 010 .255c-.007.378.138.75.43.99l1.005.828c.424.35
-                          .534.954.26 1.43l-1.298 2.247a1.125 1.125 0
-                          01-1.369.491l-1.217-.456c-.355-.133-.75-.072-1.076.124a6.57
-                          6.57 0 01-.22.128c-.331.183-.581.495-.644.869l-.213
-                          1.28c-.09.543-.56.941-1.11.941h-2.594c-.55
-                          0-1.02-.398-1.11-.94l-.213-1.281c-.062-.374-.312-.686-.644-.87
-                          a6.52 6.52 0 01-.22-.127c-.325-.196-.72-.257-1.076-.124l-1.217.456
-                          a1.125 1.125 0 01-1.369-.49l-1.297-2.247a1.125 1.125 0
-                          01.26-1.431l1.004-.827c.292-.24.437-.613.43-.992a6.932 6.932
-                          0 010-.255c.007-.378-.138-.75-.43-.99l-1.004-.828a1.125 1.125
-                          0 01-.26-1.43l1.297-2.247a1.125 1.125 0 011.37-.491l1.216.456
-                          c.356.133.751.072 1.076-.124.072-.044.146-.087.22-.128.332-.183
-                          .582-.495.644-.869l.214-1.281z"/>
+                          .074.04.147.083.22.127.324.196.72.257 1.075.124l1.217
+                          -.456a1.125 1.125 0 011.37.49l1.296 2.247a1.125 1.125
+                          0 01-.26 1.431l-1.003.827c-.293.24-.438.613-.431.992
+                          a6.759 6.759 0 010 .255c-.007.378.138.75.43.99l1.005
+                          .828c.424.35.534.954.26 1.43l-1.298 2.247a1.125 1.125
+                          0 01-1.369.491l-1.217-.456c-.355-.133-.75-.072-1.076
+                          .124a6.57 6.57 0 01-.22.128c-.331.183-.581.495-.644
+                          .869l-.213 1.28c-.09.543-.56.941-1.11.941h-2.594c-.55
+                          0-1.02-.398-1.11-.94l-.213-1.281c-.062-.374-.312-.686
+                          -.644-.87a6.52 6.52 0 01-.22-.127c-.325-.196-.72-.257
+                          -1.076-.124l-1.217.456a1.125 1.125 0 01-1.369-.49l
+                          -1.297-2.247a1.125 1.125 0 01.26-1.431l1.004-.827
+                          c.292-.24.437-.613.43-.992a6.932 6.932 0 010-.255
+                          c.007-.378-.138-.75-.43-.99l-1.004-.828a1.125 1.125
+                          0 01-.26-1.43l1.297-2.247a1.125 1.125 0 011.37-.491
+                          l1.216.456c.356.133.751.072 1.076-.124.072-.044.146
+                          -.087.22-.128.332-.183.582-.495.644-.869l.214-1.281z"/>
                     <path stroke-linecap="round" stroke-linejoin="round"
                           d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
                 </svg>
@@ -273,9 +239,10 @@
                      viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
                     <path stroke-linecap="round" stroke-linejoin="round"
                           d="M9.879 7.519c1.171-1.025 3.071-1.025 4.242
-                          0 1.172 1.025 1.172 2.687 0 3.712-.203.179-.43.326-.67.442
-                          -.745.361-1.45.999-1.45 1.827v.75M21 12a9 9 0 11-18 0 9
-                          9 0 0118 0zm-9 5.25h.008v.008H12v-.008z"/>
+                          0 1.172 1.025 1.172 2.687 0 3.712-.203.179-.43
+                          .326-.67.442-.745.361-1.45.999-1.45 1.827v.75
+                          M21 12a9 9 0 11-18 0 9 9 0 0118 0zm-9
+                          5.25h.008v.008H12v-.008z"/>
                 </svg>
                 Ayuda
             </button>
@@ -292,53 +259,177 @@
             </button>
         </menu>
     </div>
-
 </header>
 
 
-<!-- ==================================================
-     ÁREA PRINCIPAL
-     ================================================== -->
-<main class="aparca-dashboard-main animate-fade-in-up"
-      id="mainContent">
+<!-- ======================================================
+     MAIN
+     ====================================================== -->
+<main class="aparca-dashboard-main animate-fade-in-up" id="mainContent">
 
-
-    <!-- ── SECCIÓN USUARIOS ── -->
-    <section id="usuarios" class="aparca-content-section" aria-labelledby="h2-usuarios">
+    <!-- ════════════════════════════════════════════════
+         USUARIOS — solo lectura, sin editar/eliminar
+         ════════════════════════════════════════════════ -->
+    <section id="usuarios" class="aparca-content-section"
+             aria-labelledby="h2-usuarios">
         <h2 id="h2-usuarios">Gestión de Usuarios</h2>
 
-        <div class="user-indicators" aria-label="Indicadores de la sede">
-            <article class="stats-card" aria-label="Usuarios conectados">
-                <div class="stats-label">Usuarios Conectados</div>
-                <div class="donut-container">
-                    <svg class="donut-svg" width="110" height="110"
-                         viewBox="0 0 42 42" aria-hidden="true">
-                        <circle class="donut-ring" cx="21" cy="21" r="15.9155"/>
-                        <circle class="donut-segment usuario-segment"
-                                cx="21" cy="21" r="15.9155"
-                                stroke-dasharray="0 100"/>
-                    </svg>
-                    <div class="donut-text">0%</div>
-                </div>
-            </article>
-
-            <article class="stats-card" aria-label="Cuota de sedes">
-                <div class="stats-label">Cuota de Sedes</div>
-                <div class="donut-container">
-                    <svg class="donut-svg" width="110" height="110"
-                         viewBox="0 0 42 42" aria-hidden="true">
-                        <circle class="donut-ring" cx="21" cy="21" r="15.9155"/>
-                        <circle class="donut-segment cuota-segment"
-                                cx="21" cy="21" r="15.9155"
-                                stroke-dasharray="0 100"/>
-                    </svg>
-                    <div class="donut-text">0%</div>
-                </div>
-            </article>
+        <!-- Banner sede con imagen -->
+        <div class="sede-header-banner" id="sedeHeaderBanner">
+            <div class="sede-header-placeholder" id="sedeHeaderPlaceholder">
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none"
+                     viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round"
+                          d="M2.25 21h19.5m-18-18v18m10.5-18v18m6-13.5V21
+                          M6.75 6.75h.75m-.75 3h.75m-.75 3h.75m3-6h.75m-.75
+                          3h.75m-.75 3h.75M6.75 21v-3.375c0-.621.504-1.125
+                          1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125V21
+                          M3 3h12m-.75 4.5H21m-3.75 3.75h.008v.008h-.008v-.008z"/>
+                </svg>
+            </div>
+            <img id="sedeHeaderImg" src="" alt="Imagen de la sede"
+                 class="sede-header-img" style="display:none;"/>
+            <div class="sede-header-info">
+                <div class="sede-header-nombre" id="sedeHeaderNombre">—</div>
+                <div class="sede-header-sub"    id="sedeHeaderDireccion">—</div>
+                <span class="sede-header-estado" id="sedeHeaderEstado">—</span>
+            </div>
+            <button class="sede-btn-outline"
+                    style="border-color:rgba(255,255,255,.4);color:white;
+                           background:rgba(255,255,255,.1);white-space:nowrap;"
+                    onclick="abrirModalConfiguracion()" type="button">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4"
+                     fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round"
+                          stroke-width="2"
+                          d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0
+                          002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828
+                          15H9v-2.828l8.586-8.586z"/>
+                </svg>
+                Editar sede
+            </button>
         </div>
 
-        <div class="flex justify-end mb-4">
-            <button class="sede-btn-primary"
+        <!-- Indicadores en tiempo real -->
+        <div class="indicadores-grid" id="indicadoresGrid">
+
+            <article class="ind-card">
+                <div class="ind-icon ind-teal">
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none"
+                         viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round"
+                              d="M8.25 18.75a1.5 1.5 0 01-3 0m3 0a1.5 1.5 0
+                              00-3 0m3 0h6m-9 0H3.375a1.125 1.125 0
+                              01-1.125-1.125V14.25m17.25 4.5a1.5 1.5 0 01-3
+                              0m3 0a1.5 1.5 0 00-3 0m3 0h1.125c.621 0
+                              1.129-.504 1.09-1.124a17.902 17.902 0
+                              00-3.213-9.193 2.056 2.056 0 00-1.58-.86H14.25
+                              M16.5 18.75h-2.25m0-11.177v-.958c0-.568-.422
+                              -1.048-.987-1.106a48.554 48.554 0 00-10.026 0
+                              1.106 1.106 0 00-.987 1.106v7.635m12-6.677v6.677
+                              m0 4.5v-4.5m0 0h-12"/>
+                    </svg>
+                </div>
+                <div class="ind-body">
+                    <div class="ind-label">Ocupación actual</div>
+                    <div class="ind-value" id="ind-ocupacion">—</div>
+                    <div class="ind-sub"   id="ind-ocupacion-sub">Cargando...</div>
+                </div>
+            </article>
+
+            <article class="ind-card">
+                <div class="ind-icon ind-green">
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none"
+                         viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round"
+                              d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0
+                              11-18 0 9 9 0 0118 0z"/>
+                    </svg>
+                </div>
+                <div class="ind-body">
+                    <div class="ind-label">Cupos libres</div>
+                    <div class="ind-value" id="ind-cupos">—</div>
+                    <div class="ind-sub"   id="ind-cupos-sub">de — totales</div>
+                </div>
+            </article>
+
+            <article class="ind-card">
+                <div class="ind-icon ind-yellow">
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none"
+                         viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round"
+                              d="M12 6v12m-3-2.818l.879.659c1.171.879 3.07.879
+                              4.242 0 1.172-.879 1.172-2.303 0-3.182C13.536
+                              12.219 12.768 12 12 12c-.725 0-1.45-.22-2.003
+                              -.659-1.106-.879-1.106-2.303 0-3.182s2.9-.879
+                              4.006 0l.415.33M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                    </svg>
+                </div>
+                <div class="ind-body">
+                    <div class="ind-label">Ingresos hoy</div>
+                    <div class="ind-value" id="ind-ingresos">—</div>
+                    <div class="ind-sub">Registros cobrados</div>
+                </div>
+            </article>
+
+            <article class="ind-card">
+                <div class="ind-icon ind-blue">
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none"
+                         viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round"
+                              d="M6.75 3v2.25M17.25 3v2.25M3 18.75V7.5a2.25
+                              2.25 0 012.25-2.25h13.5A2.25 2.25 0 0121 7.5
+                              v11.25m-18 0A2.25 2.25 0 005.25 21h13.5A2.25
+                              2.25 0 0021 18.75m-18 0v-7.5A2.25 2.25 0
+                              015.25 9h13.5A2.25 2.25 0 0121 11.25v7.5"/>
+                    </svg>
+                </div>
+                <div class="ind-body">
+                    <div class="ind-label">Vehículos hoy</div>
+                    <div class="ind-value" id="ind-vehiculos-hoy">—</div>
+                    <div class="ind-sub">Entradas del día</div>
+                </div>
+            </article>
+
+            <article class="ind-card">
+                <div class="ind-icon ind-orange">
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none"
+                         viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round"
+                              d="M12 6v6h4.5m4.5 0a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                    </svg>
+                </div>
+                <div class="ind-body">
+                    <div class="ind-label">Pendientes cobro</div>
+                    <div class="ind-value" id="ind-pendientes">—</div>
+                    <div class="ind-sub">Esperando pago</div>
+                </div>
+            </article>
+
+            <article class="ind-card">
+                <div class="ind-icon ind-purple" id="ind-pct-icon">
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none"
+                         viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round"
+                              d="M7.5 14.25v2.25m3-4.5v4.5m3-6.75v6.75m3-9v9
+                              M6 20.25h12A2.25 2.25 0 0020.25 18V6A2.25 2.25
+                              0 0018 3.75H6A2.25 2.25 0 003.75 6v12A2.25 2.25
+                              0 006 20.25z"/>
+                    </svg>
+                </div>
+                <div class="ind-body">
+                    <div class="ind-label">% Ocupación</div>
+                    <div class="ind-value" id="ind-porcentaje">—</div>
+                    <div class="ind-sub"   id="ind-sede-nombre">—</div>
+                </div>
+            </article>
+
+        </div>
+
+        <div class="flex justify-between items-center mb-4 flex-wrap gap-2">
+
+            <button id="btnAbrirRegistrarTrabajador"
+                    class="sede-btn-primary"
                     onclick="openRegistrarTrabajadorModal()"
                     type="button">
                 <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5"
@@ -348,25 +439,42 @@
                 </svg>
                 Registrar Trabajador
             </button>
+
+            <button id="btnAbrirRegistrarSede"
+                    class="sede-btn-primary"
+                    onclick="abrirModalRegistrarSede()"
+                    type="button"
+                    style="display:none;">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5"
+                     fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round"
+                          stroke-width="2"
+                          d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14
+                  0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1
+                  m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5
+                  m-4 0h4"/>
+                </svg>
+                Registrar Sede
+            </button>
+
         </div>
 
+
         <div class="sede-tabs" role="tablist">
-            <button id="btnUsuarios" class="active"
-                    role="tab" aria-selected="true"
-                    aria-controls="tablaUsuarios" type="button">
+            <button id="btnUsuarios" class="active" role="tab"
+                    aria-selected="true" aria-controls="tablaUsuarios" type="button">
                 <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4"
                      fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path stroke-linecap="round" stroke-linejoin="round"
                           stroke-width="2"
-                          d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6
-                          0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4
-                          4 0 11-8 0 4 4 0 018 0z"/>
+                          d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0
+                          0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4
+                          0 11-8 0 4 4 0 018 0z"/>
                 </svg>
                 Usuarios
             </button>
-            <button id="btnSedes"
-                    role="tab" aria-selected="false"
-                    aria-controls="tablaSedes" type="button">
+            <button id="btnSedes" role="tab"
+                    aria-selected="false" aria-controls="tablaSedes" type="button">
                 <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4"
                      fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path stroke-linecap="round" stroke-linejoin="round"
@@ -379,38 +487,15 @@
             </button>
         </div>
 
-        <div class="flex justify-end mb-4 gap-2 flex-wrap">
-            <button class="sede-btn-outline" onclick="generarPDF()" type="button">
-                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4"
-                     fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path stroke-linecap="round" stroke-linejoin="round"
-                          stroke-width="2"
-                          d="M7 21h10a2 2 0 002-2V9.414a1 1 0
-                          00-.293-.707l-5.414-5.414A1 1 0 0012.586
-                          3H7a2 2 0 00-2 2v14a2 2 0 002 2z"/>
-                </svg>
-                Generar PDF
-            </button>
-            <button class="sede-btn-outline" onclick="generarExcel()" type="button">
-                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4"
-                     fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path stroke-linecap="round" stroke-linejoin="round"
-                          stroke-width="2"
-                          d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5
-                          a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414
-                          a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
-                </svg>
-                Generar Excel
-            </button>
-        </div>
-
         <div class="flex flex-col md:flex-row gap-3 mb-5">
-            <div class="flex items-center flex-1 bg-white border border-gray-200
-                        rounded-lg px-3 py-2 shadow-sm">
-                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-gray-400 flex-shrink-0"
+            <div class="flex items-center flex-1 bg-white border
+                        border-gray-200 rounded-lg px-3 py-2 shadow-sm">
+                <svg xmlns="http://www.w3.org/2000/svg"
+                     class="h-4 w-4 text-gray-400 flex-shrink-0"
                      fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path stroke-linecap="round" stroke-linejoin="round"
-                          stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
+                          stroke-width="2"
+                          d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
                 </svg>
                 <input id="busquedaInput" type="search"
                        placeholder="Buscar por nombre, correo o rol..."
@@ -418,7 +503,8 @@
                        aria-label="Buscar usuarios"/>
             </div>
             <select id="filtroEstado"
-                    class="border border-gray-200 rounded-lg px-3 py-2 text-sm bg-white shadow-sm"
+                    class="border border-gray-200 rounded-lg px-3 py-2
+                           text-sm bg-white shadow-sm"
                     aria-label="Filtrar por estado">
                 <option value="">Todos los estados</option>
                 <option value="activo">Activo</option>
@@ -431,7 +517,7 @@
                 <thead>
                 <tr>
                     <th>Nombre</th><th>Correo</th>
-                    <th>Rol</th><th>Estado</th><th>Acciones</th>
+                    <th>Teléfono</th><th>Rol</th><th>Estado</th>
                 </tr>
                 </thead>
                 <tbody id="usuariosTableBody">
@@ -444,8 +530,8 @@
             <table class="aparca-table">
                 <thead>
                 <tr>
-                    <th>Nombre</th><th>Dirección</th>
-                    <th>Capacidad</th><th>Estado</th><th>Acciones</th>
+                    <th>Nombre / Dirección</th><th>Capacidad</th>
+                    <th>Ocupación</th><th>Estado</th><th>Acciones</th>
                 </tr>
                 </thead>
                 <tbody id="sedesTableBody">
@@ -456,8 +542,11 @@
     </section>
 
 
-    <!-- ── SECCIÓN CORREO ── -->
-    <section id="correo" class="aparca-content-section hidden" aria-labelledby="h2-correo">
+    <!-- ════════════════════════════════════════════════
+         CORREO
+         ════════════════════════════════════════════════ -->
+    <section id="correo" class="aparca-content-section hidden"
+             aria-labelledby="h2-correo">
         <h2 id="h2-correo">Enviar Correo</h2>
 
         <div class="sede-tabs" role="tablist">
@@ -467,8 +556,9 @@
                      fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path stroke-linecap="round" stroke-linejoin="round"
                           stroke-width="2"
-                          d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0
-                      002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/>
+                          d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14
+                          a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10
+                          a2 2 0 002 2z"/>
                 </svg>
                 Correo Uno a Uno
             </button>
@@ -479,19 +569,18 @@
                     <path stroke-linecap="round" stroke-linejoin="round"
                           stroke-width="2"
                           d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10
-                      0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3
-                      0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857
-                      m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3
-                      3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2
-                      2 0 11-4 0 2 2 0 014 0z"/>
+                          0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3
+                          0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857
+                          m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3
+                          3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2
+                          2 0 11-4 0 2 2 0 014 0z"/>
                 </svg>
                 Correo Masivo
             </button>
         </div>
 
-        <!-- UNO A UNO — idéntico al original, sin ningún cambio -->
         <div id="correoUno">
-            <form onsubmit="event.preventDefault(); enviarCorreoUno();">
+            <form onsubmit="event.preventDefault();enviarCorreoUno();">
                 <div class="sede-form-control">
                     <label for="emailSingle">Correo del destinatario</label>
                     <input type="email" id="emailSingle"
@@ -520,105 +609,79 @@
             </form>
         </div>
 
-        <!-- MASIVO — con el nuevo filtro -->
         <div id="correoMasivo" hidden>
-            <form onsubmit="event.preventDefault(); enviarCorreoMasivo();">
-
-                <!-- ── NUEVO: panel de filtro por BD ── -->
+            <form onsubmit="event.preventDefault();enviarCorreoMasivo();">
                 <div class="sede-form-control">
                     <label>Agregar destinatarios desde base de datos</label>
-
-                    <div style="display:flex; gap:0.75rem; flex-wrap:wrap;
-                            align-items:center; margin-bottom:0.75rem;">
+                    <div style="display:flex;gap:.75rem;flex-wrap:wrap;
+                                align-items:center;margin-bottom:.75rem;">
                         <select id="sedeFiltroRol"
-                                style="flex:1; min-width:160px; padding:0.5rem 0.75rem;
-                                   border:1px solid #e2e8f0; border-radius:0.5rem;
-                                   font-size:0.875rem; background:#fff;">
+                                style="flex:1;min-width:160px;padding:.5rem .75rem;
+                                       border:1px solid #e2e8f0;border-radius:.5rem;
+                                       font-size:.875rem;background:#fff;">
                             <option value="">— Seleccionar grupo —</option>
                             <option value="clientes">Clientes</option>
                             <option value="trabajadores">Trabajadores de mi sede</option>
                         </select>
-                        <button type="button"
-                                class="sede-btn-primary"
-                                id="btnSedeCargar"
-                                style="white-space:nowrap;"
+                        <button type="button" class="sede-btn-primary"
+                                id="btnSedeCargar" style="white-space:nowrap;"
                                 onclick="sedeCargarDestinatarios()">
                             Consultar
                         </button>
                     </div>
-
-                    <!-- Lista con checkboxes — oculta hasta consultar -->
                     <div id="sedeListaDestinatarios" style="display:none;">
-                        <div style="display:flex; justify-content:space-between;
-                                align-items:center; margin-bottom:0.5rem;">
-                        <span id="sedeContadorLista"
-                              style="font-size:0.8rem; color:#64748b;"></span>
-                            <div style="display:flex; gap:0.5rem;">
+                        <div style="display:flex;justify-content:space-between;
+                                    align-items:center;margin-bottom:.5rem;">
+                            <span id="sedeContadorLista"
+                                  style="font-size:.8rem;color:#64748b;"></span>
+                            <div style="display:flex;gap:.5rem;">
                                 <button type="button" class="sede-btn-outline"
-                                        style="font-size:0.75rem; padding:0.25rem 0.75rem;"
-                                        onclick="sedeSeleccionarTodos(true)">
-                                    Todos
-                                </button>
+                                        style="font-size:.75rem;padding:.25rem .75rem;"
+                                        onclick="sedeSeleccionarTodos(true)">Todos</button>
                                 <button type="button" class="sede-btn-outline"
-                                        style="font-size:0.75rem; padding:0.25rem 0.75rem;"
-                                        onclick="sedeSeleccionarTodos(false)">
-                                    Ninguno
-                                </button>
+                                        style="font-size:.75rem;padding:.25rem .75rem;"
+                                        onclick="sedeSeleccionarTodos(false)">Ninguno</button>
                             </div>
                         </div>
                         <div id="sedeTablaDestinatarios"
-                             style="max-height:200px; overflow-y:auto;
-                                border:1px solid #e2e8f0; border-radius:0.5rem;
-                                background:#fff;">
-                            <!-- Filas generadas por JS -->
-                        </div>
-                        <button type="button"
-                                class="sede-btn-success"
-                                style="margin-top:0.75rem; width:100%;"
+                             style="max-height:200px;overflow-y:auto;
+                                    border:1px solid #e2e8f0;border-radius:.5rem;
+                                    background:#fff;"></div>
+                        <button type="button" class="sede-btn-success"
+                                style="margin-top:.75rem;width:100%;"
                                 onclick="sedeAgregarSeleccionados()">
                             ➕ Agregar al envío
                         </button>
                     </div>
-
-                    <!-- Mensaje de estado / feedback -->
                     <div id="sedeEstadoFiltro"
-                         style="font-size:0.85rem; color:#94a3b8; padding:0.5rem 0;">
+                         style="font-size:.85rem;color:#94a3b8;padding:.5rem 0;">
                         Selecciona un grupo y presiona Consultar.
                     </div>
                 </div>
-                <!-- ── FIN panel de filtro ── -->
-
                 <div class="sede-form-control">
                     <label for="emailsMassive">
                         Lista de correos
                         <span id="sedeBadgeConteo"
-                              style="margin-left:0.5rem; background:#0d9488;
-                                 color:white; border-radius:9999px;
-                                 padding:0.1rem 0.6rem; font-size:0.75rem;
-                                 display:none;">0</span>
+                              style="margin-left:.5rem;background:#0d9488;
+                                     color:white;border-radius:9999px;
+                                     padding:.1rem .6rem;font-size:.75rem;
+                                     display:none;">0</span>
                     </label>
                     <textarea id="emailsMassive" rows="4"
-                              placeholder="correo1@ejemplo.com, correo2@ejemplo.com  ← manual o desde el filtro"
+                              placeholder="correo1@ejemplo.com, correo2@ejemplo.com"
                               required></textarea>
-                    <p style="font-size:0.75rem; color:#94a3b8; margin-top:0.25rem;">
-                        💡 Puedes combinar: filtra usuarios de la BD y agrega
-                        correos externos manualmente.
-                    </p>
                 </div>
-
                 <div class="sede-form-control">
                     <label for="subjectMassive">Asunto</label>
                     <input type="text" id="subjectMassive"
                            placeholder="Asunto del correo" required/>
                 </div>
-
                 <div class="sede-form-control">
                     <label for="messageMassive">Mensaje</label>
                     <textarea id="messageMassive" rows="6"
                               placeholder="Escribe el contenido del correo..."
                               required></textarea>
                 </div>
-
                 <button type="submit" class="sede-btn-primary">
                     <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4"
                          fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -630,42 +693,164 @@
                 </button>
             </form>
         </div>
-
     </section>
 
 
-    <!-- ── SECCIÓN GRÁFICAS ── -->
-    <section id="graficas" class="aparca-content-section hidden" aria-labelledby="h2-graficas">
+    <!-- ════════════════════════════════════════════════
+         GRÁFICAS
+         ════════════════════════════════════════════════ -->
+    <section id="graficas" class="aparca-content-section hidden"
+             aria-labelledby="h2-graficas">
         <h2 id="h2-graficas">Gráficas y Estadísticas</h2>
-        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            <article class="p-6 bg-white rounded-lg shadow border border-teal-100">
-                <h3 class="font-semibold text-lg text-center mb-4 text-gray-700">
-                    Ocupación de Sedes
-                </h3>
-                <div class="flex justify-center">
-                    <svg width="150" height="150" viewBox="0 0 42 42"
-                         aria-label="Gráfica de ocupación">
-                        <circle cx="21" cy="21" r="15.9155"
-                                stroke="#ccfbf1" stroke-width="10" fill="none"/>
-                        <circle cx="21" cy="21" r="15.9155"
-                                stroke="#14b8a6" stroke-width="10" fill="none"
-                                stroke-linecap="round"
-                                stroke-dasharray="0 100"
-                                transform="rotate(-90 21 21)"
-                                class="donut-segment cuota-segment"/>
-                        <text x="50%" y="50%" dominant-baseline="middle"
-                              text-anchor="middle" fill="#0f766e"
-                              font-size="8" font-weight="bold"
-                              class="donut-text">0%</text>
+
+        <div class="periodo-filter" role="group"
+             aria-label="Filtrar gráficas por período">
+            <span class="periodo-filter-label">Período:</span>
+            <button class="periodo-btn active" id="btn-periodo-hoy"
+                    onclick="setPeriodo('hoy')" type="button">Hoy</button>
+            <button class="periodo-btn" id="btn-periodo-semana"
+                    onclick="setPeriodo('semana')" type="button">Esta semana</button>
+            <button class="periodo-btn" id="btn-periodo-mes"
+                    onclick="setPeriodo('mes')" type="button">Este mes</button>
+            <button class="periodo-btn" id="btn-periodo-anio"
+                    onclick="setPeriodo('anio')" type="button">Este año</button>
+            <div class="periodo-separator" aria-hidden="true"></div>
+            <div class="periodo-custom">
+                <span class="periodo-custom-label">Personalizado:</span>
+                <input type="date" id="periodoDesde"
+                       class="periodo-date-input" aria-label="Desde"
+                       onchange="onPeriodoCustomChange()"/>
+                <span class="periodo-custom-label">→</span>
+                <input type="date" id="periodoHasta"
+                       class="periodo-date-input" aria-label="Hasta"
+                       onchange="onPeriodoCustomChange()"/>
+            </div>
+        </div>
+
+        <div style="display:grid;
+                    grid-template-columns:repeat(auto-fit,minmax(200px,1fr));
+                    gap:1.25rem;margin-bottom:2rem;">
+
+            <article class="graficas-card">
+                <div class="graficas-card-icon" style="background:#d1fae5;color:#065f46;">
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
+                         stroke-width="1.5" stroke="currentColor" style="width:28px;height:28px;">
+                        <path stroke-linecap="round" stroke-linejoin="round"
+                              d="M12 6v12m-3-2.818l.879.659c1.171.879 3.07.879 4.242 0
+                              1.172-.879 1.172-2.303 0-3.182C13.536 12.219 12.768 12 12
+                              12c-.725 0-1.45-.22-2.003-.659-1.106-.879-1.106-2.303
+                              0-3.182s2.9-.879 4.006 0l.415.33M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
                     </svg>
                 </div>
+                <div>
+                    <div class="graficas-card-label">Ingresos Hoy</div>
+                    <div class="graficas-card-value" id="ingresosHoy">$0</div>
+                </div>
             </article>
+
+            <article class="graficas-card">
+                <div class="graficas-card-icon" style="background:#ccfbf1;color:#0f766e;">
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
+                         stroke-width="1.5" stroke="currentColor" style="width:28px;height:28px;">
+                        <path stroke-linecap="round" stroke-linejoin="round"
+                              d="M6.75 3v2.25M17.25 3v2.25M3 18.75V7.5a2.25 2.25 0
+                              012.25-2.25h13.5A2.25 2.25 0 0121 7.5v11.25m-18 0A2.25
+                              2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75m-18
+                              0v-7.5A2.25 2.25 0 015.25 9h13.5A2.25 2.25 0 0121 11.25v7.5"/>
+                    </svg>
+                </div>
+                <div>
+                    <div class="graficas-card-label">Ingresos Este Mes</div>
+                    <div class="graficas-card-value" id="ingresosMes">$0</div>
+                </div>
+            </article>
+
+            <article class="graficas-card">
+                <div class="graficas-card-icon" style="background:#e0f2fe;color:#0369a1;">
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
+                         stroke-width="1.5" stroke="currentColor" style="width:28px;height:28px;">
+                        <path stroke-linecap="round" stroke-linejoin="round"
+                              d="M2.25 18L9 11.25l4.306 4.307a11.95 11.95 0
+                              015.814-5.519l2.74-1.22m0 0l-5.94-2.28m5.94 2.28l-2.28 5.941"/>
+                    </svg>
+                </div>
+                <div>
+                    <div class="graficas-card-label">Ingresos Este Año</div>
+                    <div class="graficas-card-value" id="ingresosAnio">$0</div>
+                </div>
+            </article>
+
+            <article class="graficas-card" style="border-left:4px solid #0d9488;">
+                <div class="graficas-card-icon" style="background:#f0fdfa;color:#0d9488;">
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
+                         stroke-width="1.5" stroke="currentColor" style="width:28px;height:28px;">
+                        <path stroke-linecap="round" stroke-linejoin="round"
+                              d="M3 4.5h14.25M3 9h9.75M3 13.5h9.75m4.5-4.5v12m0
+                              0l-3.75-3.75M17.25 21L21 17.25"/>
+                    </svg>
+                </div>
+                <div>
+                    <div class="graficas-card-label" id="labelPeriodo">Período seleccionado</div>
+                    <div class="graficas-card-value" id="ingresosPeriodo">$0</div>
+                </div>
+            </article>
+        </div>
+
+        <div style="display:grid;
+                    grid-template-columns:repeat(auto-fit,minmax(300px,1fr));
+                    gap:1.5rem;">
+            <div class="sub-section">
+                <h3 class="sub-section-title">
+                    Ingresos del Período
+                    <span id="graficaTituloPeriodo"
+                          style="font-size:.75rem;font-weight:400;color:#64748b;margin-left:.5rem;"></span>
+                </h3>
+                <canvas id="chartIngresos" height="220"
+                        aria-label="Gráfica de ingresos por período"></canvas>
+            </div>
+            <div class="sub-section">
+                <h3 class="sub-section-title">Ocupación por Tipo de Vehículo</h3>
+                <canvas id="chartOcupacion" height="220"
+                        aria-label="Gráfica de ocupación por tipo"></canvas>
+            </div>
+        </div>
+
+        <div class="graficas-reporte-bar">
+            <span class="graficas-reporte-label">
+                Exportar reporte: <strong id="reportePeriodoLabel">Hoy</strong>
+            </span>
+            <div style="display:flex;gap:.75rem;flex-wrap:wrap;">
+                <button class="sede-btn-primary" onclick="exportarReportePDF()" type="button">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                              d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z"/>
+                    </svg>
+                    Exportar PDF
+                </button>
+                <button class="sede-btn-outline" onclick="exportarReporteExcel()" type="button">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                              d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+                    </svg>
+                    Exportar Excel
+                </button>
+                <button class="sede-btn-outline" onclick="cargarGraficas()" type="button">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                              d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/>
+                    </svg>
+                    Actualizar
+                </button>
+            </div>
         </div>
     </section>
 
 
-    <!-- ── SECCIÓN GESTIÓN VEHÍCULOS ── -->
-    <section id="gestion" class="aparca-content-section hidden" aria-labelledby="h2-gestion">
+    <!-- ════════════════════════════════════════════════
+         GESTIÓN VEHÍCULOS
+         ════════════════════════════════════════════════ -->
+    <section id="gestion" class="aparca-content-section hidden"
+             aria-labelledby="h2-gestion">
         <h2 id="h2-gestion">Gestión de Vehículos</h2>
 
         <div class="sub-section">
@@ -673,7 +858,7 @@
 
             <div class="flex gap-2 mb-4">
                 <input type="text" id="buscarPlaca"
-                       placeholder="Buscar por placa..."
+                       placeholder="Buscar cliente por placa existente..."
                        class="flex-1 px-3 py-2 border border-gray-200
                               rounded-lg text-sm focus:outline-none
                               focus:border-teal-400 focus:ring-2 focus:ring-teal-100"
@@ -690,99 +875,112 @@
                 </button>
             </div>
 
+            <div class="modo-rapido-toggle">
+                <label style="display:flex;align-items:center;gap:.5rem;cursor:pointer;">
+                    <div style="position:relative;display:inline-block;width:44px;height:24px;">
+                        <input type="checkbox" id="modoRapidoToggle"
+                               style="opacity:0;width:0;height:0;position:absolute;"
+                               onchange="toggleModoRegistro()"/>
+                        <span id="toggleSlider"
+                              style="position:absolute;inset:0;background:#cbd5e1;
+                                     border-radius:9999px;cursor:pointer;transition:background .2s;">
+                            <span id="toggleKnob"
+                                  style="position:absolute;top:3px;left:3px;width:18px;height:18px;
+                                         background:white;border-radius:50%;transition:transform .2s;
+                                         box-shadow:0 1px 3px rgba(0,0,0,.2);"></span>
+                        </span>
+                    </div>
+                    <div>
+                        <div style="font-weight:700;font-size:.875rem;color:#0f766e;">⚡ Modo Rápido</div>
+                        <div style="font-size:.75rem;color:#64748b;">Solo placa y tipo — ideal para hora pico</div>
+                    </div>
+                </label>
+                <span id="badgeModo" class="modo-rapido-badge">COMPLETO</span>
+            </div>
+
             <form id="registroEntradaForm" novalidate>
                 <input type="hidden" name="rol" value="CLIENTE"/>
-
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div class="sede-form-group">
-                        <label for="nombre">Nombre Cliente *</label>
-                        <input type="text" id="nombre" name="nombre"
-                               required minlength="2" maxlength="100"
-                               autocomplete="name" placeholder="Ej: Juan Pérez"/>
-                        <span id="nombre-error" class="error-message" aria-live="polite"></span>
-                    </div>
-                    <div class="sede-form-group">
-                        <label for="telefono">Teléfono *</label>
-                        <input type="tel" id="telefono" name="telefono"
-                               required pattern="[0-9]{10}"
-                               autocomplete="tel" placeholder="Ej: 3001234567"/>
-                        <span id="telefono-error" class="error-message" aria-live="polite"></span>
-                        <span id="telefono-success" class="success-message" aria-live="polite"></span>
-                    </div>
-                    <div class="sede-form-group">
-                        <label for="correo1">Email *</label>
-                        <input type="email" id="correo1" name="correo"
-                               required autocomplete="email"
-                               placeholder="ejemplo@correo.com"/>
-                        <span id="correo-error" class="error-message" aria-live="polite"></span>
-                        <span id="correo-success" class="success-message" aria-live="polite"></span>
-                    </div>
-                    <div class="sede-form-group">
-                        <label for="cedula">Cédula *</label>
-                        <input type="text" id="cedula" name="cedula"
-                               required pattern="[0-9]{10}"
-                               autocomplete="off" placeholder="Ej: 1234567890"/>
-                        <span id="cedula-error" class="error-message" aria-live="polite"></span>
-                        <span id="cedula-success" class="success-message" aria-live="polite"></span>
-                    </div>
-                    <input type="hidden" id="contrasena" name="contrasena" value=""/>
-                    <input type="hidden" id="confirmarContrasena" name="confirmarContrasena" value=""/>
-                    <div class="sede-form-group">
-                        <label for="placa">Placa *</label>
+                        <label for="placa">Placa *
+                            <span style="font-size:.7rem;font-weight:400;color:#64748b;margin-left:.25rem;">(requerida siempre)</span>
+                        </label>
                         <input type="text" id="placa" name="placa"
-                               required maxlength="6" pattern="[A-Z]{3}[0-9]{3}"
-                               placeholder="ABC123"
-                               style="text-transform:uppercase"
+                               required maxlength="6" placeholder="ABC123"
+                               style="text-transform:uppercase;font-size:1.05rem;font-weight:700;letter-spacing:.08em;"
                                oninput="this.value=this.value.toUpperCase().replace(/[^A-Z0-9]/g,'').substring(0,6)"/>
                         <span id="placa-error" class="error-message" aria-live="polite"></span>
                     </div>
                     <div class="sede-form-group">
-                        <label for="tipoVehiculo">Tipo Vehículo *</label>
+                        <label for="tipoVehiculo">Tipo Vehículo *
+                            <span style="font-size:.7rem;font-weight:400;color:#64748b;margin-left:.25rem;">(requerido siempre)</span>
+                        </label>
                         <select id="tipoVehiculo" name="tipoVehiculo" required>
                             <option value="">Selecciona un tipo</option>
-                            <option value="CARRO">Carro</option>
-                            <option value="MOTO">Moto</option>
-                            <option value="BICICLETA">Bicicleta</option>
+                            <option value="CARRO">🚗 Carro</option>
+                            <option value="MOTO">🏍️ Moto</option>
+                            <option value="BICICLETA">🚲 Bicicleta</option>
                             <option value="OTRO">Otro</option>
                         </select>
                         <span id="tipoVehiculo-error" class="error-message" aria-live="polite"></span>
                     </div>
-                    <div class="sede-form-group">
-                        <label for="marca">Marca *</label>
-                        <select id="marca" name="marca" required>
-                            <option value="">Selecciona una marca</option>
-                        </select>
-                        <span id="marca-error" class="error-message" aria-live="polite"></span>
-                    </div>
-                    <div class="sede-form-group">
-                        <label for="color">Color</label>
-                        <input type="text" id="color" name="color" placeholder="Ej: Rojo"/>
-                    </div>
-                    <div class="sede-form-group">
-                        <label for="anio">Año</label>
-                        <input type="number" id="anio" name="anio"
-                               min="2000" max="2025" placeholder="Ej: 2020"/>
+                </div>
+
+                <div id="camposCompletos"
+                     style="overflow:hidden;transition:max-height .35s ease,opacity .3s ease;max-height:800px;opacity:1;">
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4" style="padding-top:.5rem;">
+                        <div class="sede-form-group">
+                            <label for="nombre">Nombre Cliente</label>
+                            <input type="text" id="nombre" name="nombre" minlength="2" maxlength="100" autocomplete="name" placeholder="Ej: Juan Pérez"/>
+                            <span id="nombre-error" class="error-message" aria-live="polite"></span>
+                        </div>
+                        <div class="sede-form-group">
+                            <label for="telefono">Teléfono</label>
+                            <input type="tel" id="telefono" name="telefono" autocomplete="tel" placeholder="Ej: 3001234567"/>
+                            <span id="telefono-error" class="error-message" aria-live="polite"></span>
+                        </div>
+                        <div class="sede-form-group">
+                            <label for="correo1">Email</label>
+                            <input type="email" id="correo1" name="correo" autocomplete="email" placeholder="ejemplo@correo.com"/>
+                            <span id="correo-error" class="error-message" aria-live="polite"></span>
+                        </div>
+                        <div class="sede-form-group">
+                            <label for="cedula">Cédula</label>
+                            <input type="text" id="cedula" name="cedula" autocomplete="off" placeholder="Ej: 1234567890"/>
+                            <span id="cedula-error" class="error-message" aria-live="polite"></span>
+                        </div>
+                        <div class="sede-form-group">
+                            <label for="marca">Marca</label>
+                            <select id="marca" name="marca">
+                                <option value="">Selecciona una marca</option>
+                            </select>
+                            <span id="marca-error" class="error-message" aria-live="polite"></span>
+                        </div>
+                        <div class="sede-form-group">
+                            <label for="color">Color</label>
+                            <input type="text" id="color" name="color" placeholder="Ej: Rojo"/>
+                        </div>
+                        <div class="sede-form-group">
+                            <label for="anio">Año</label>
+                            <input type="number" id="anio" name="anio" min="2000" max="2025" placeholder="Ej: 2020"/>
+                        </div>
                     </div>
                 </div>
 
+                <input type="hidden" id="contrasena" name="contrasena" value=""/>
+                <input type="hidden" id="confirmarContrasena" name="confirmarContrasena" value=""/>
+
                 <div class="flex gap-2 mt-4">
-                    <button type="submit" class="sede-btn-success">
-                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4"
-                             fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path stroke-linecap="round" stroke-linejoin="round"
-                                  stroke-width="2" d="M5 13l4 4L19 7"/>
+                    <button type="submit" class="sede-btn-success" style="flex:1;">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
                         </svg>
-                        Registrar Entrada
+                        <span id="btnRegistrarTexto">Registrar Entrada</span>
                     </button>
-                    <button type="button" class="sede-btn-secondary"
-                            onclick="limpiarFormularioEntrada()">
-                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4"
-                             fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path stroke-linecap="round" stroke-linejoin="round"
-                                  stroke-width="2"
-                                  d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0
-                                  0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357
-                                  2H15"/>
+                    <button type="button" class="sede-btn-secondary" onclick="limpiarFormularioEntrada()">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                  d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/>
                         </svg>
                         Limpiar
                     </button>
@@ -828,36 +1026,51 @@
     </section>
 
 
-    <!-- ── SECCIÓN HISTORIAL ── -->
-    <section id="historial" class="aparca-content-section hidden" aria-labelledby="h2-historial">
+    <!-- ════════════════════════════════════════════════
+         HISTORIAL
+         ════════════════════════════════════════════════ -->
+    <section id="historial" class="aparca-content-section hidden"
+             aria-labelledby="h2-historial">
         <h2 id="h2-historial">Historial de Registros</h2>
 
-        <div class="filter-bar">
-            <input type="date" id="filtroFecha" aria-label="Filtrar por fecha"/>
-            <select id="filtroEstado1" aria-label="Filtrar por estado">
-                <option value="">Todos los estados</option>
-                <option value="ACTIVO">Activo</option>
-                <option value="FINALIZADO">Pendiente Cobro</option>
-                <option value="COBRADO">Cobrado</option>
-            </select>
-            <button class="sede-btn-primary" onclick="loadHistorial()" type="button">
-                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4"
-                     fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path stroke-linecap="round" stroke-linejoin="round"
-                          stroke-width="2"
-                          d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
-                </svg>
-                Filtrar
-            </button>
+        <div class="historial-filter-bar">
+            <div class="historial-date-wrap">
+                <label for="filtroFecha">Fecha</label>
+                <input type="date" id="filtroFecha"
+                       class="historial-date-input" aria-label="Filtrar por fecha"/>
+            </div>
+            <div class="historial-date-wrap">
+                <label for="filtroEstado1">Estado</label>
+                <select id="filtroEstado1" class="historial-select" aria-label="Filtrar por estado">
+                    <option value="">Todos</option>
+                    <option value="ACTIVO">Activo</option>
+                    <option value="FINALIZADO">Pendiente Cobro</option>
+                    <option value="COBRADO">Cobrado</option>
+                </select>
+            </div>
+            <div style="display:flex;align-items:flex-end;gap:.5rem;">
+                <button class="sede-btn-primary" onclick="loadHistorial()" type="button">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                              d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
+                    </svg>
+                    Filtrar
+                </button>
+                <button class="sede-btn-outline" onclick="limpiarFiltroHistorial()" type="button" title="Limpiar filtros">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+                    </svg>
+                </button>
+            </div>
         </div>
 
         <div class="overflow-x-auto">
             <table class="aparca-table">
                 <thead>
                 <tr>
-                    <th>Placa</th><th>Tipo</th><th>Cliente</th><th>Teléfono</th>
-                    <th>Entrada</th><th>Salida</th><th>Tiempo</th>
-                    <th>Precio</th><th>Estado</th>
+                    <th>Placa</th><th>Tipo</th><th>Cliente</th>
+                    <th>Teléfono</th><th>Entrada</th><th>Salida</th>
+                    <th>Tiempo</th><th>Precio</th><th>Estado</th>
                 </tr>
                 </thead>
                 <tbody id="historialBody">
@@ -868,16 +1081,19 @@
     </section>
 
 
-    <!-- ── SECCIÓN RESERVACIONES ── -->
-    <section id="reservaciones" class="aparca-content-section hidden" aria-labelledby="h2-reservaciones">
+    <!-- ════════════════════════════════════════════════
+         RESERVACIONES
+         ════════════════════════════════════════════════ -->
+    <section id="reservaciones" class="aparca-content-section hidden"
+             aria-labelledby="h2-reservaciones">
         <h2 id="h2-reservaciones">Reservaciones Pendientes</h2>
-
         <div class="overflow-x-auto">
             <table class="aparca-table">
                 <thead>
                 <tr>
-                    <th>Cliente</th><th>Teléfono</th><th>Placa</th><th>Tipo</th>
-                    <th>Fecha Inicio</th><th>Fecha Fin</th><th>Cupo</th><th>Acciones</th>
+                    <th>Cliente</th><th>Teléfono</th><th>Placa</th>
+                    <th>Tipo</th><th>Fecha Inicio</th><th>Fecha Fin</th>
+                    <th>Cupo</th><th>Acciones</th>
                 </tr>
                 </thead>
                 <tbody id="reservacionesBody">
@@ -888,36 +1104,28 @@
     </section>
 
 
-    <!-- ── SECCIÓN CARGA MASIVA ── -->
-    <section id="cargamasiva" class="aparca-content-section hidden" aria-labelledby="h2-carga">
+    <!-- ════════════════════════════════════════════════
+         CARGA MASIVA
+         ════════════════════════════════════════════════ -->
+    <section id="cargamasiva" class="aparca-content-section hidden"
+             aria-labelledby="h2-carga">
         <h2 id="h2-carga">Carga Masiva desde Excel</h2>
 
         <div class="sub-section">
             <h3 class="sub-section-title">Paso 1 — Descargar Plantilla</h3>
-            <p class="text-sm text-gray-500 mb-4">
-                Descarga la plantilla de Excel y completa los datos
-                según el tipo de registro que necesites.
-            </p>
+            <p class="text-sm text-gray-500 mb-4">Descarga la plantilla y completa los datos según el tipo de registro.</p>
             <div class="flex gap-3 flex-wrap mb-4">
-                <button class="sede-btn-primary"
-                        onclick="descargarPlantillaCompleta()" type="button">
-                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4"
-                         fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round"
-                              stroke-width="2"
-                              d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4
-                              4m0 0l-4-4m4 4V4"/>
+                <button class="sede-btn-primary" onclick="descargarPlantillaCompleta()" type="button">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                              d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/>
                     </svg>
                     Plantilla Completa
                 </button>
-                <button class="sede-btn-outline"
-                        onclick="descargarPlantillaVehiculosSolo()" type="button">
-                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4"
-                         fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round"
-                              stroke-width="2"
-                              d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4
-                              4m0 0l-4-4m4 4V4"/>
+                <button class="sede-btn-outline" onclick="descargarPlantillaVehiculosSolo()" type="button">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                              d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/>
                     </svg>
                     Solo Vehículos
                 </button>
@@ -926,9 +1134,6 @@
 
         <div class="sub-section">
             <h3 class="sub-section-title">Paso 2 — Subir Archivo Excel</h3>
-            <p class="text-sm text-gray-500 mb-4">
-                Selecciona el archivo Excel con los datos completados.
-            </p>
             <div class="flex gap-3 items-center flex-wrap">
                 <div class="flex-1 min-w-60">
                     <input type="file" id="excelFile" accept=".xlsx,.xls"
@@ -936,34 +1141,26 @@
                            onchange="mostrarArchivoSeleccionado()"
                            class="w-full px-3 py-2 border-2 border-dashed
                                   border-gray-200 rounded-lg cursor-pointer
-                                  text-sm text-gray-500 hover:border-teal-300
-                                  transition-colors"/>
+                                  text-sm text-gray-500 hover:border-teal-300 transition-colors"/>
                 </div>
-                <button class="sede-btn-success"
-                        onclick="cargarExcel()"
-                        style="white-space:nowrap" type="button">
-                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4"
-                         fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round"
-                              stroke-width="2"
-                              d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25
-                              2.25 0 0021 18.75V16.5m-13.5-9L12 3m0 0l4.5
-                              4.5M12 3v13.5"/>
+                <button class="sede-btn-success" onclick="cargarExcel()" style="white-space:nowrap" type="button">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                              d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5m-13.5-9L12 3m0 0l4.5 4.5M12 3v13.5"/>
                     </svg>
                     Cargar Excel
                 </button>
             </div>
-            <div id="archivoSeleccionado"
-                 class="mt-2 text-sm text-gray-500"></div>
+            <div id="archivoSeleccionado" class="mt-2 text-sm text-gray-500"></div>
         </div>
 
         <div id="progressContainer" class="sub-section" style="display:none">
             <div class="bg-gray-100 rounded-lg p-1 mb-2">
                 <div id="progressBar"
                      style="height:1.5rem;background:linear-gradient(90deg,#14b8a6,#0f766e);
-                            border-radius:0.25rem;width:0%;transition:width 0.3s ease;
+                            border-radius:.25rem;width:0%;transition:width .3s ease;
                             display:flex;align-items:center;justify-content:center;
-                            color:white;font-size:0.85rem;font-weight:600;"></div>
+                            color:white;font-size:.85rem;font-weight:600;"></div>
             </div>
             <p id="progressText" class="text-center text-gray-500 text-sm"></p>
         </div>
@@ -974,8 +1171,7 @@
             <div id="erroresContainer" style="display:none" class="mb-4">
                 <div class="bg-red-50 border-l-4 border-red-400 p-4 rounded-lg">
                     <h4 class="text-red-600 font-semibold mb-2">Errores encontrados:</h4>
-                    <ul id="listaErrores"
-                        class="text-red-800 text-sm list-disc ml-5"></ul>
+                    <ul id="listaErrores" class="text-red-800 text-sm list-disc ml-5"></ul>
                 </div>
             </div>
             <div class="overflow-x-auto">
@@ -999,46 +1195,43 @@
 <div th:replace="modals/sede-modal-registrar-trabajador :: modal"></div>
 <div th:replace="modals/sede-modal-salida :: modal"></div>
 <div th:replace="modals/sede-modal-cobro :: modal"></div>
+<div th:replace="modals/sede-modal-configuracion :: modal"></div>
+<div th:replace="modals/sede-modal-registrar-sede :: modal"></div>
+
 
 <script src="/js/sessionHandler.js"></script>
-<script src="/js/sessionKeepalive.js"></script>
 <script src="/js/SedeD.js"></script>
 
 <script>
-    /* ============================================================
-       SIDEBAR TOGGLE — idéntico al Admin
-       ============================================================ */
+    /* ── Sidebar toggle ── */
     function toggleSidebar() {
-        const collapsed = document.body.classList.toggle('sidebar-collapsed');
-        const btn = document.getElementById('sidebarToggleBtn');
-        if (btn) btn.setAttribute('aria-label',
-            collapsed ? 'Expandir menú lateral' : 'Colapsar menú lateral');
-        try { localStorage.setItem('sede-sidebar-collapsed', collapsed ? '1' : '0'); } catch(e) {}
+        var col = document.body.classList.toggle('sidebar-collapsed');
+        var btn = document.getElementById('sidebarToggleBtn');
+        if (btn) btn.setAttribute('aria-label', col ? 'Expandir menú lateral' : 'Colapsar menú lateral');
+        try { localStorage.setItem('sede-sidebar-collapsed', col ? '1' : '0'); } catch(e) {}
     }
-
-    /* Restaura el estado al cargar */
     (function() {
         try {
             if (localStorage.getItem('sede-sidebar-collapsed') === '1') {
                 document.body.classList.add('sidebar-collapsed');
-                const btn = document.getElementById('sidebarToggleBtn');
+                var btn = document.getElementById('sidebarToggleBtn');
                 if (btn) btn.setAttribute('aria-label', 'Expandir menú lateral');
             }
         } catch(e) {}
     })();
 
-    /* Inicial del avatar */
-    document.addEventListener('DOMContentLoaded', () => {
-        const usernameEl = document.getElementById('sidebarUsername');
-        const avatarEl   = document.getElementById('sidebarAvatarInitial');
-        if (usernameEl && avatarEl) {
-            const nombre = usernameEl.textContent.trim();
-            if (nombre) avatarEl.textContent = nombre.charAt(0).toUpperCase();
-        }
+    document.addEventListener('DOMContentLoaded', function() {
+        var u = document.getElementById('sidebarUsername');
+        var a = document.getElementById('sidebarAvatarInitial');
+        if (u && a) { var n = u.textContent.trim(); if (n) a.textContent = n.charAt(0).toUpperCase(); }
+        var hoy = new Date().toISOString().split('T')[0];
+        var d = document.getElementById('periodoDesde');
+        var h = document.getElementById('periodoHasta');
+        if (d) d.value = hoy;
+        if (h) h.value = hoy;
     });
 
     window.toggleSidebar = toggleSidebar;
 </script>
-
 </body>
 </html>

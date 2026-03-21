@@ -1,12 +1,19 @@
 package com.exe.AparcaYA.Controllers;
 
+import com.exe.AparcaYA.Config.JwtUtil;
 import com.exe.AparcaYA.Entity.PasswordResetToken;
 import com.exe.AparcaYA.Entity.Usuario;
+import com.exe.AparcaYA.Service.LogAccesoService;
 import com.exe.AparcaYA.Service.PasswordResetService;
 import com.exe.AparcaYA.Service.UsuarioService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.BadCredentialsException;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
@@ -19,11 +26,14 @@ import java.util.Optional;
 @RequiredArgsConstructor
 public class AuthController {
 
-    // ✅ NUEVO: inyección de servicios necesarios para recuperación de contraseña
-    // Antes estaban comentados → los endpoints devolvían 404
+
     private final PasswordResetService passwordResetService;
     private final UsuarioService        usuarioService;
     private final PasswordEncoder       passwordEncoder;
+    private final AuthenticationManager authenticationManager;
+    private final JwtUtil jwtUtil;
+    private final UserDetailsService userDetailsService;
+    private final LogAccesoService logAccesoService;
 
     // =====================================================================
     // VISTAS
@@ -194,5 +204,65 @@ public class AuthController {
                     "message", "Error interno. Intenta de nuevo."
             ));
         }
+    }
+
+    @PostMapping("/api/auth/login")
+    @ResponseBody
+    public ResponseEntity<Map<String, Object>> login(
+            @RequestBody Map<String, String> body) {
+
+        String correo     = body.get("correo");
+        String contrasena = body.get("contrasena");
+
+        if (correo == null || contrasena == null) {
+            return ResponseEntity.badRequest().body(Map.of(
+                    "success", false,
+                    "message", "Correo y contraseña son obligatorios"
+            ));
+        }
+
+        try {
+            authenticationManager.authenticate(
+                    new UsernamePasswordAuthenticationToken(correo, contrasena)
+            );
+        } catch (BadCredentialsException e) {
+            return ResponseEntity.status(401).body(Map.of(
+                    "success", false,
+                    "message", "Correo o contraseña incorrectos"
+            ));
+        }
+
+        UserDetails userDetails = userDetailsService.loadUserByUsername(correo);
+        Optional<Usuario> usuarioOpt = usuarioService.findByCorreo(correo);
+
+        if (usuarioOpt.isEmpty()) {
+            return ResponseEntity.status(401).body(Map.of(
+                    "success", false,
+                    "message", "Usuario no encontrado"
+            ));
+        }
+
+        Usuario usuario = usuarioOpt.get();
+        String rol = usuario.getRol().name();
+        String token = jwtUtil.generateToken(userDetails, rol);
+
+        // Registrar acceso
+        logAccesoService.registrarAcceso(usuario);
+
+        String redirectUrl = switch (usuario.getRol()) {
+            case ADMIN              -> "/dashboard/administradorGeneral";
+            case ADMINISTRADOR_SEDE -> "/dashboard/administradorSede";
+            case OPERARIO           -> "/dashboard/trabajadorParqueadero";
+            case CLIENTE            -> "/dashboard/cliente";
+            default                 -> "/login";
+        };
+
+        return ResponseEntity.ok(Map.of(
+                "success",     true,
+                "token",       token,
+                "rol",         rol,
+                "redirectUrl", redirectUrl,
+                "nombre",      usuario.getNombre()
+        ));
     }
 }

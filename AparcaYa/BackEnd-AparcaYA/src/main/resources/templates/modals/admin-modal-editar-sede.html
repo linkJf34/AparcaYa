@@ -2,157 +2,176 @@
 <html lang="es" xmlns:th="http://www.thymeleaf.org">
 <!--
     FRAGMENTO: admin-modal-editar-sede
-    Uso en dashboard: <div th:replace="modals/admin-modal-editar-sede :: modal"></div>
-    Tipo: DaisyUI <dialog> — API nativa showModal() / close()
-    Abre con: document.getElementById('modal_editar_sede').showModal()
-    Cierra con: cerrarModalEdicionSede()
+    Uso: <div th:replace="modals/admin-modal-editar-sede :: modal"></div>
+    Abre:   document.getElementById('modal_editar_sede').showModal()  [o función JS]
+    Cierra: cerrarModalEdicionSede()
+    CSS:    admin-modal-dinamico.css
+    Lógica: adminD.js — SIN CAMBIOS (IDs idénticos al original)
 -->
 <body>
 <th:block th:fragment="modal">
 
-    <dialog id="modal_editar_sede"
-            class="modal"
-            aria-labelledby="modal-sede-title">
+    <div id="modal_editar_sede"
+         class="adm-modal-overlay"
+         role="dialog"
+         aria-labelledby="modal-sede-title"
+         aria-modal="true"
+         aria-hidden="true">
 
-        <div class="modal-box w-11/12 max-w-3xl">
+        <div class="adm-modal-box">
 
-            <!-- Encabezado -->
-            <div class="flex items-center justify-between mb-6 pb-4 border-b border-gray-200">
-                <div class="flex items-center gap-3">
-                    <div class="bg-primary/10 p-3 rounded-lg">
-                        <svg xmlns="http://www.w3.org/2000/svg"
-                             class="h-6 w-6 text-primary"
-                             fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                  d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2
-                                  0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5
-                                  10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/>
+            <!-- Cabecera -->
+            <div class="adm-modal-header">
+                <div class="adm-modal-header-left">
+                    <div class="adm-modal-icon">
+                        <!-- Lucide: building-2 -->
+                        <svg xmlns="http://www.w3.org/2000/svg" fill="none"
+                             viewBox="0 0 24 24" stroke="white"
+                             stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M6 22V4a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v18Z"/>
+                            <path d="M6 12H4a2 2 0 0 0-2 2v6a2 2 0 0 0 2 2h2"/>
+                            <path d="M18 9h2a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2h-2"/>
+                            <path d="M10 6h4"/><path d="M10 10h4"/>
+                            <path d="M10 14h4"/><path d="M10 18h4"/>
                         </svg>
                     </div>
                     <div>
-                        <h3 id="modal-sede-title"
-                            class="font-bold text-2xl text-gray-800">
-                            Editar Sede
-                        </h3>
-                        <p class="text-sm text-gray-500">
-                            Actualiza la información de la sede
-                        </p>
+                        <h3 id="modal-sede-title" class="adm-modal-title">Editar Sede</h3>
+                        <p class="adm-modal-subtitle">Actualiza la información de la sede</p>
                     </div>
                 </div>
-
                 <button onclick="cerrarModalEdicionSede()"
-                        class="btn btn-sm btn-circle btn-ghost"
+                        class="adm-modal-close"
                         aria-label="Cerrar modal"
                         type="button">
-                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5"
-                         fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                              d="M6 18L18 6M6 6l12 12"/>
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none"
+                         viewBox="0 0 24 24" stroke="currentColor"
+                         stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M18 6 6 18M6 6l12 12"/>
                     </svg>
                 </button>
             </div>
 
-            <!-- Formulario -->
-            <form onsubmit="event.preventDefault(); guardarEdicionSede();">
-                <input type="hidden" id="edit_sede_id">
+            <!-- Cuerpo -->
+            <div class="adm-modal-body">
+                <form onsubmit="event.preventDefault(); guardarEdicionSede();">
+                    <input type="hidden" id="edit_sede_id"/>
 
-                <div class="space-y-4">
-
-                    <!-- Nombre de la sede -->
-                    <div class="form-control">
-                        <label class="label">
-                            <span class="label-text font-semibold text-gray-700">
-                                <span class="text-error">*</span> Nombre de la Sede
-                            </span>
-                        </label>
-                        <input type="text"
-                               id="edit_sede_nombre"
-                               placeholder="Ej: Sede Norte"
-                               class="input input-bordered w-full"
-                               required>
-                    </div>
+                    <!-- Nombre -->
+                    <label for="edit_sede_nombre" class="adm-label">
+                        <!-- Lucide: store -->
+                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
+                             stroke="currentColor" stroke-width="2"
+                             stroke-linecap="round" stroke-linejoin="round">
+                            <path d="m2 7 4.41-4.41A2 2 0 0 1 7.83 2h8.34a2 2 0 0 1 1.42.59L22 7"/>
+                            <path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8"/>
+                            <path d="M15 22v-4a2 2 0 0 0-2-2h-2a2 2 0 0 0-2 2v4"/>
+                            <path d="M2 7h20"/>
+                        </svg>
+                        Nombre de la Sede <span class="adm-required">*</span>
+                    </label>
+                    <input type="text" id="edit_sede_nombre"
+                           class="adm-input"
+                           placeholder="Ej: Sede Norte" required/>
+                    <span class="adm-err" id="err-edit-sede-nombre"></span>
 
                     <!-- Dirección -->
-                    <div class="form-control">
-                        <label class="label">
-                            <span class="label-text font-semibold text-gray-700">
-                                <span class="text-error">*</span> Dirección
-                            </span>
-                        </label>
-                        <input type="text"
-                               id="edit_sede_direccion"
-                               placeholder="Ej: Calle 123 #45-67"
-                               class="input input-bordered w-full"
-                               required>
-                    </div>
+                    <label for="edit_sede_direccion" class="adm-label">
+                        <!-- Lucide: map-pin -->
+                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
+                             stroke="currentColor" stroke-width="2"
+                             stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M20 10c0 4.993-5.539 10.193-7.399 11.799a1 1 0 0 1-1.202 0C9.539 20.193 4 14.993 4 10a8 8 0 0 1 16 0"/>
+                            <circle cx="12" cy="10" r="3"/>
+                        </svg>
+                        Dirección <span class="adm-required">*</span>
+                    </label>
+                    <input type="text" id="edit_sede_direccion"
+                           class="adm-input"
+                           placeholder="Ej: Calle 123 #45-67" required/>
+                    <span class="adm-err" id="err-edit-sede-direccion"></span>
 
-                    <!-- Capacidad y Estado -->
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        <div class="form-control">
-                            <label class="label">
-                                <span class="label-text font-semibold text-gray-700">
-                                    <span class="text-error">*</span> Capacidad
-                                </span>
+                    <!-- Capacidad + Estado en grilla -->
+                    <div class="adm-grid2">
+                        <div>
+                            <label for="edit_sede_capacidad" class="adm-label">
+                                <!-- Lucide: square-parking -->
+                                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
+                                     stroke="currentColor" stroke-width="2"
+                                     stroke-linecap="round" stroke-linejoin="round">
+                                    <rect width="18" height="18" x="3" y="3" rx="2"/>
+                                    <path d="M9 17V7h4a3 3 0 0 1 0 6H9"/>
+                                </svg>
+                                Capacidad <span class="adm-required">*</span>
                             </label>
-                            <input type="number"
-                                   id="edit_sede_capacidad"
-                                   placeholder="Ej: 100"
-                                   min="1"
-                                   class="input input-bordered w-full"
-                                   required>
-                            <label class="label">
-                                <span class="label-text-alt text-gray-500">
-                                    Número total de espacios
-                                </span>
-                            </label>
+                            <input type="number" id="edit_sede_capacidad"
+                                   class="adm-input"
+                                   placeholder="Ej: 100" min="1" required/>
+                            <p class="adm-hint">Número total de espacios</p>
+                            <span class="adm-err" id="err-edit-sede-capacidad"></span>
                         </div>
-                        <div class="form-control">
-                            <label class="label">
-                                <span class="label-text font-semibold text-gray-700">
-                                    <span class="text-error">*</span> Estado
-                                </span>
+                        <div>
+                            <label for="edit_sede_estado" class="adm-label">
+                                <!-- Lucide: toggle-right -->
+                                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
+                                     stroke="currentColor" stroke-width="2"
+                                     stroke-linecap="round" stroke-linejoin="round">
+                                    <rect width="20" height="12" x="2" y="6" rx="6"/>
+                                    <circle cx="16" cy="12" r="2"/>
+                                </svg>
+                                Estado <span class="adm-required">*</span>
                             </label>
-                            <select id="edit_sede_estado"
-                                    class="select select-bordered w-full"
-                                    required>
+                            <select id="edit_sede_estado" class="adm-select" required>
                                 <option value="ACTIVO">Activo</option>
                                 <option value="INACTIVO">Inactivo</option>
                             </select>
                         </div>
                     </div>
-                </div>
 
-                <!-- Nota informativa -->
-                <div class="alert alert-info mt-6 shadow-sm">
-                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
-                         class="stroke-current shrink-0 w-6 h-6">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                              d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
-                    </svg>
-                    <span>
-                        Los campos con <span class="text-error font-bold">*</span> son obligatorios
-                    </span>
-                </div>
+                    <!-- Badge informativo -->
+                    <div class="adm-info-badge">
+                        <!-- Lucide: info -->
+                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
+                             stroke="currentColor" stroke-width="2"
+                             stroke-linecap="round" stroke-linejoin="round">
+                            <circle cx="12" cy="12" r="10"/>
+                            <path d="M12 16v-4"/><path d="M12 8h.01"/>
+                        </svg>
+                        Los campos marcados con <strong>*</strong> son obligatorios.
+                    </div>
 
-                <!-- Acciones -->
-                <div class="modal-action mt-6 pt-4 border-t border-gray-200">
-                    <button type="button"
-                            onclick="cerrarModalEdicionSede()"
-                            class="btn btn-ghost">
-                        Cancelar
-                    </button>
-                    <button type="submit" class="btn btn-primary">
-                        Guardar Cambios
-                    </button>
-                </div>
-            </form>
+                    <!-- Acciones — onclick idéntico al original -->
+                    <div class="adm-modal-actions">
+                        <button type="button"
+                                onclick="cerrarModalEdicionSede()"
+                                class="adm-btn-outline">
+                            <!-- Lucide: x -->
+                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
+                                 stroke="currentColor" stroke-width="2.5"
+                                 stroke-linecap="round" stroke-linejoin="round"
+                                 style="width:14px;height:14px;">
+                                <path d="M18 6 6 18M6 6l12 12"/>
+                            </svg>
+                            Cancelar
+                        </button>
+                        <button type="submit" class="adm-btn-primary">
+                            <!-- Lucide: save -->
+                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
+                                 stroke="currentColor" stroke-width="2"
+                                 stroke-linecap="round" stroke-linejoin="round"
+                                 style="width:15px;height:15px;">
+                                <path d="M15.2 3a2 2 0 0 1 1.4.6l3.8 3.8a2 2 0 0 1 .6 1.4V19a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2z"/>
+                                <path d="M17 21v-7a1 1 0 0 0-1-1H8a1 1 0 0 0-1 1v7"/>
+                                <path d="M7 3v4a1 1 0 0 0 1 1h7"/>
+                            </svg>
+                            Guardar Cambios
+                        </button>
+                    </div>
+                </form>
+            </div>
+
         </div>
-
-        <!-- Backdrop DaisyUI — clic fuera cierra -->
-        <form method="dialog" class="modal-backdrop">
-            <button>close</button>
-        </form>
-    </dialog>
+    </div>
 
 </th:block>
 </body>

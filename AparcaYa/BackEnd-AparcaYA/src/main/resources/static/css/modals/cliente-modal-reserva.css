@@ -1,98 +1,458 @@
 /* ============================================================
    CLIENTE-MODAL-RESERVA.CSS
    Ruta: static/css/modals/cliente-modal-reserva.css
-
-   MODAL: #reservaModal
-   TIPO: DIV propio con .aparca-modal-overlay
-
-   ORIGEN DE LOS ESTILOS:
-   Extraídos de los style="" inline del HTML original.
-
-   PREFIJO OBLIGATORIO: cliente-modal-reserva-
    ============================================================ */
 
 
 /* ------------------------------------------------------------
-   1. HEADER DEL MODAL — color de acento cliente
+   ANIMACIÓN
    ------------------------------------------------------------ */
-#reservaModal .aparca-modal-header {
-    background: linear-gradient(135deg, #0284c7, #00BFFF);
-    color: white;
+@keyframes resvIn {
+    from { opacity: 0; transform: translateY(14px) scale(.98); }
+    to   { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+
+/* ------------------------------------------------------------
+   CONTENEDOR DEL MODAL
+   ------------------------------------------------------------ */
+.resv-box {
+    background: #fff;
+    border-radius: 1rem;
+    width: 100%;
+    max-width: 480px;
+    box-shadow: 0 24px 48px rgba(0, 0, 0, 0.22);
+    animation: resvIn .2s ease;
+    position: relative;
+}
+
+
+/* ------------------------------------------------------------
+   CABECERA
+   ------------------------------------------------------------ */
+.resv-header {
+    background: linear-gradient(135deg, #7c3aed, #4c1d95);
+    padding: 1.125rem 1.5rem;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
     border-radius: 1rem 1rem 0 0;
 }
 
-#reservaModal .aparca-modal-header h3 {
-    color: white;
-}
-
-#reservaModal .aparca-modal-close {
-    color: rgba(255, 255, 255, 0.85);
-}
-
-#reservaModal .aparca-modal-close:hover {
-    color: white;
-    background-color: rgba(255, 255, 255, 0.15);
-}
-
-
-/* ------------------------------------------------------------
-   2. NOMBRE DE LA SEDE SELECCIONADA
-   Reemplaza el <p> con style inline del HTML original.
-   ------------------------------------------------------------ */
-.cliente-modal-reserva-sede-nombre {
-    margin-bottom: 1rem;
+.resv-title {
+    color: #fff;
     font-size: 1rem;
-    color: #334155;
-}
-
-.cliente-modal-reserva-sede-nombre strong {
-    color: #0f172a;
-}
-
-
-/* ------------------------------------------------------------
-   3. INPUT PLACA
-   Reemplaza style="text-transform: uppercase" inline.
-   ------------------------------------------------------------ */
-.cliente-modal-reserva-placa {
-    text-transform: uppercase;
-}
-
-
-/* ------------------------------------------------------------
-   4. FOCUS DE INPUTS — azul cliente
-   ------------------------------------------------------------ */
-#reservaModal .aparca-form-control input:focus {
-    border-color: #00BFFF;
-    box-shadow: 0 0 0 3px rgba(0, 191, 255, 0.15);
-}
-
-
-/* ------------------------------------------------------------
-   5. ÁREA DE ACCIONES
-   Reemplaza style="display:flex;gap:1rem;justify-content:
-   flex-end;margin-top:1rem" inline del HTML original.
-   ------------------------------------------------------------ */
-.cliente-modal-reserva-actions {
+    font-weight: 700;
+    margin: 0;
     display: flex;
-    gap: 1rem;
-    justify-content: flex-end;
-    margin-top: 1.5rem;
-    flex-wrap: wrap;
+    align-items: center;
+    gap: 8px;
+}
+
+.resv-close {
+    background: rgba(255, 255, 255, 0.15);
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    padding: 5px;
+    display: flex;
+    align-items: center;
+    color: #fff;
+    transition: background .15s;
+}
+
+.resv-close:hover {
+    background: rgba(255, 255, 255, 0.25);
 }
 
 
 /* ------------------------------------------------------------
-   6. RESPONSIVE
+   BODY
+   ------------------------------------------------------------ */
+.resv-body {
+    padding: 1.25rem 1.5rem;
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+}
+
+
+/* ------------------------------------------------------------
+   SEDE PILL
+   ------------------------------------------------------------ */
+.resv-sede-pill {
+    background: #f5f3ff;
+    border: 1px solid #ddd6fe;
+    border-radius: 10px;
+    padding: 10px 14px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: .875rem;
+    font-weight: 600;
+    color: #4c1d95;
+}
+
+.resv-sede-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: #7c3aed;
+    flex-shrink: 0;
+}
+
+
+/* ------------------------------------------------------------
+   CAMPO (label + input/select/trigger)
+   ------------------------------------------------------------ */
+.resv-field {
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+}
+
+.resv-label {
+    font-size: .72rem;
+    font-weight: 700;
+    color: #6b7280;
+    text-transform: uppercase;
+    letter-spacing: .05em;
+}
+
+.resv-select {
+    width: 100%;
+    padding: .55rem .75rem;
+    border: 1.5px solid #d1d5db;
+    border-radius: 8px;
+    font-size: .875rem;
+    font-family: inherit;
+    color: #111827;
+    background: #fff;
+    cursor: pointer;
+    transition: border-color .15s, box-shadow .15s;
+}
+
+.resv-select:focus {
+    outline: none;
+    border-color: #7c3aed;
+    box-shadow: 0 0 0 3px rgba(124, 58, 237, .12);
+}
+
+
+/* ------------------------------------------------------------
+   FILA DE FECHAS
+   ------------------------------------------------------------ */
+.resv-dates-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: .875rem;
+}
+
+
+/* ------------------------------------------------------------
+   TRIGGER DE FECHA-HORA (botón con fecha + hora)
+   ------------------------------------------------------------ */
+.resv-dt-trigger {
+    width: 100%;
+    border: 1.5px solid #d1d5db;
+    border-radius: 8px;
+    background: #fff;
+    cursor: pointer;
+    text-align: left;
+    overflow: hidden;
+    font-family: inherit;
+    padding: 0;
+    transition: border-color .15s, box-shadow .15s;
+}
+
+.resv-dt-trigger:hover {
+    border-color: #7c3aed;
+}
+
+.resv-dt-trigger.resv-open {
+    border-color: #7c3aed;
+    box-shadow: 0 0 0 3px rgba(124, 58, 237, .12);
+}
+
+.resv-dt-top {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 8px 10px;
+}
+
+.resv-dt-icon {
+    width: 13px;
+    height: 13px;
+    color: #9ca3af;
+    flex-shrink: 0;
+}
+
+.resv-dt-val {
+    font-size: .8rem;
+    color: #111827;
+    flex: 1;
+}
+
+.resv-dt-ph {
+    color: #9ca3af;
+}
+
+.resv-dt-bottom {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    padding: 4px 10px;
+    background: #f9fafb;
+    border-top: 1px solid #f3f4f6;
+}
+
+.resv-dt-icon-sm {
+    width: 11px;
+    height: 11px;
+    color: #9ca3af;
+}
+
+.resv-dt-hora {
+    font-size: .72rem;
+    color: #6b7280;
+}
+
+
+/* ------------------------------------------------------------
+   POPUP DEL CALENDARIO
+   ------------------------------------------------------------ */
+.resv-popup {
+    width: 240px;
+    background: #fff;
+    border: 1.5px solid #e5e7eb;
+    border-radius: 10px;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, .14);
+    overflow: hidden;
+}
+
+.resv-popup-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 9px 11px;
+    border-bottom: 1px solid #f3f4f6;
+}
+
+.resv-popup-mes {
+    font-size: .8rem;
+    font-weight: 700;
+    color: #111827;
+}
+
+.resv-popup-nav {
+    background: none;
+    border: none;
+    cursor: pointer;
+    padding: 3px 5px;
+    border-radius: 5px;
+    color: #6b7280;
+    display: flex;
+    align-items: center;
+    transition: background .12s, color .12s;
+}
+
+.resv-popup-nav:hover {
+    background: #ede9fe;
+    color: #4c1d95;
+}
+
+.resv-popup-dow {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    padding: 4px 8px 2px;
+}
+
+.resv-popup-dow span {
+    text-align: center;
+    font-size: .62rem;
+    font-weight: 700;
+    color: #9ca3af;
+}
+
+.resv-popup-grid {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    padding: 2px 8px 8px;
+    gap: 1px;
+}
+
+
+/* ------------------------------------------------------------
+   DÍAS DEL CALENDARIO
+   ------------------------------------------------------------ */
+.resv-day {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 26px;
+    border: none;
+    background: none;
+    cursor: pointer;
+    font-size: .72rem;
+    color: #374151;
+    border-radius: 4px;
+    transition: background .1s, color .1s;
+    font-family: inherit;
+    position: relative;
+    user-select: none;
+    padding: 0;
+    width: 100%;
+}
+
+.resv-day:hover:not([disabled]):not(.resv-day-sel) {
+    background: #f3f4f6;
+}
+
+.resv-day[disabled] {
+    color: #d1d5db;
+    cursor: not-allowed;
+    pointer-events: none;
+}
+
+.resv-day-today {
+    color: #7c3aed;
+    font-weight: 700;
+}
+
+.resv-day-today::after {
+    content: '';
+    position: absolute;
+    bottom: 2px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 3px;
+    height: 3px;
+    border-radius: 50%;
+    background: #7c3aed;
+}
+
+.resv-day-sel {
+    background: #7c3aed !important;
+    color: #fff !important;
+    font-weight: 700;
+}
+
+
+/* ------------------------------------------------------------
+   SELECTOR DE HORA
+   ------------------------------------------------------------ */
+.resv-popup-time {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 5px;
+    padding: 7px 10px;
+    border-top: 1px solid #f3f4f6;
+    background: #f9fafb;
+}
+
+.resv-time-label {
+    font-size: .65rem;
+    font-weight: 700;
+    color: #6b7280;
+    text-transform: uppercase;
+    letter-spacing: .04em;
+    min-width: 24px;
+}
+
+.resv-time-sel {
+    border: 1px solid #e5e7eb;
+    border-radius: 4px;
+    padding: 2px 4px;
+    font-size: .72rem;
+    font-family: inherit;
+    color: #111827;
+    background: #fff;
+    cursor: pointer;
+    width: 46px;
+    text-align: center;
+}
+
+.resv-time-sep {
+    font-size: .875rem;
+    font-weight: 700;
+    color: #9ca3af;
+}
+
+.resv-time-ok {
+    padding: 3px 10px;
+    background: #7c3aed;
+    color: #fff;
+    border: none;
+    border-radius: 4px;
+    font-size: .7rem;
+    font-weight: 700;
+    cursor: pointer;
+    font-family: inherit;
+    margin-left: 2px;
+    transition: background .12s;
+}
+
+.resv-time-ok:hover {
+    background: #6d28d9;
+}
+
+
+/* ------------------------------------------------------------
+   FOOTER
+   ------------------------------------------------------------ */
+.resv-footer {
+    display: flex;
+    justify-content: flex-end;
+    gap: .75rem;
+    padding: 1rem 1.5rem;
+    border-top: 1px solid #f3f4f6;
+}
+
+.resv-btn-cancel {
+    padding: .55rem 1.125rem;
+    border: 1.5px solid #e5e7eb;
+    border-radius: 8px;
+    background: #fff;
+    font-size: .875rem;
+    font-weight: 500;
+    color: #6b7280;
+    cursor: pointer;
+    font-family: inherit;
+    transition: background .15s;
+}
+
+.resv-btn-cancel:hover {
+    background: #f9fafb;
+}
+
+.resv-btn-confirm {
+    padding: .55rem 1.375rem;
+    border: none;
+    border-radius: 8px;
+    background: #7c3aed;
+    color: #fff;
+    font-size: .875rem;
+    font-weight: 600;
+    cursor: pointer;
+    font-family: inherit;
+    box-shadow: 0 2px 8px rgba(124, 58, 237, .28);
+    transition: background .15s, transform .12s, box-shadow .15s;
+}
+
+.resv-btn-confirm:hover {
+    background: #6d28d9;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 14px rgba(109, 40, 217, .36);
+}
+
+
+/* ------------------------------------------------------------
+   RESPONSIVE
    ------------------------------------------------------------ */
 @media (max-width: 480px) {
-    .cliente-modal-reserva-actions {
-        flex-direction: column;
-    }
-
-    .cliente-modal-reserva-actions .cli-btn-confirm,
-    .cliente-modal-reserva-actions .aparca-btn-outline {
-        width: 100%;
-        justify-content: center;
+    .resv-dates-row {
+        grid-template-columns: 1fr;
     }
 }

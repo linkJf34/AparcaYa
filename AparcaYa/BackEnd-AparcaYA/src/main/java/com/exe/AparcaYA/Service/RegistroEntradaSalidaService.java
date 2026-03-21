@@ -40,4 +40,19 @@ public interface RegistroEntradaSalidaService {
     // en la interfaz, lo que obligaba a hacer un cast en TrabajadorController
     // Ahora: cualquier llamante puede usarlo programando contra la interfaz
     RegistroEntradaSalida confirmarCobroConTarifa(Long registroId, String metodoPago, String tipoTarifa);
+
+    java.math.BigDecimal sumIngresosEntreFechas(Sede sede,
+                                                java.time.LocalDateTime inicio,
+                                                java.time.LocalDateTime fin);
+
+    /**
+     * Mapa de vehículos activos agrupados por TipoVehiculo.
+     */
+    java.util.Map<String, Long> countActivosPorTipo(Sede sede);
+
+    List<RegistroEntradaSalida> findBySedeAndFechaBetween(
+            Sede sede,
+            LocalDateTime inicio,
+            LocalDateTime fin);
+
 }

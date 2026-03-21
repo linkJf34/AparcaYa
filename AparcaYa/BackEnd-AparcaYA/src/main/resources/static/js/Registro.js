@@ -2,17 +2,16 @@
    REGISTRO.JS — AparcaYA
    Ruta: /js/Registro.js
 
-   CAMBIOS APLICADOS:
-   ✅ Sistema unificado de notificaciones (showToast + showAlert)
-   ✅ Verificación de duplicados contra backend con fetch
-   ✅ customValidator para placa y NIT
-   ✅ FIX: handler backSede4
-   ✅ Mensajes de alerta en navegación entre pasos
-   ✅ Blur con check backend solo en campos con endpoints /check/*
-   ✅ Verificación correo+cédula+teléfono en paralelo al hacer clic en "Siguiente"
-   ✅ Persistencia de datos con sessionStorage
-   ✅ NUEVO: Mini-mapa Leaflet en paso 3 de sede con geocodificación OpenCage
-             y marcador arrastrable para confirmar ubicación exacta
+   MEJORAS APLICADAS:
+   ✅ Iconos Lucide SVG en todos los toasts y alertas
+   ✅ Sistema de mapa completamente rediseñado
+   ✅ Autocompletado inteligente con Nominatim (sin API key)
+   ✅ Marcador draggable con reverse geocoding
+   ✅ Botón GPS con geolocalización del navegador
+   ✅ Validación de coordenadas antes de avanzar
+   ✅ Badge de confirmación de ubicación
+   ✅ Mapa visible desde el inicio del paso 3
+   ✅ Sin API key expuesta en frontend
    ================================================ */
 document.addEventListener('DOMContentLoaded', function () {
 
@@ -23,6 +22,53 @@ document.addEventListener('DOMContentLoaded', function () {
     const barrioSelect       = document.getElementById('barrio');
     const tipoVehiculoSelect = document.getElementById('tipoVehiculo');
     const marcaSelect        = document.getElementById('marca');
+
+    // =========================================================
+    // ICONOS LUCIDE SVG INLINE (para toasts y UI dinámica)
+    // =========================================================
+    const ICONS = {
+        success: `<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
+                      stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                      stroke-linejoin="round" style="width:16px;height:16px;flex-shrink:0;">
+                      <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/>
+                      <polyline points="22 4 12 14.01 9 11.01"/>
+                  </svg>`,
+        error:   `<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
+                      stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                      stroke-linejoin="round" style="width:16px;height:16px;flex-shrink:0;">
+                      <circle cx="12" cy="12" r="10"/>
+                      <path d="m15 9-6 6M9 9l6 6"/>
+                  </svg>`,
+        warning: `<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
+                      stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                      stroke-linejoin="round" style="width:16px;height:16px;flex-shrink:0;">
+                      <path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"/>
+                      <path d="M12 9v4"/><path d="M12 17h.01"/>
+                  </svg>`,
+        info:    `<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
+                      stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                      stroke-linejoin="round" style="width:16px;height:16px;flex-shrink:0;">
+                      <circle cx="12" cy="12" r="10"/>
+                      <path d="M12 16v-4"/><path d="M12 8h.01"/>
+                  </svg>`,
+        pin:     `<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
+                      stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                      stroke-linejoin="round" style="width:16px;height:16px;flex-shrink:0;">
+                      <path d="M20 10c0 4.993-5.539 10.193-7.399 11.799a1 1 0 0 1-1.202 0C9.539 20.193 4 14.993 4 10a8 8 0 0 1 16 0"/>
+                      <circle cx="12" cy="10" r="3"/>
+                  </svg>`,
+        nav:     `<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
+                      stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                      stroke-linejoin="round" style="width:16px;height:16px;flex-shrink:0;">
+                      <polygon points="3 11 22 2 13 21 11 13 3 11"/>
+                  </svg>`,
+        spinner: `<svg style="width:14px;height:14px;animation:spin 1s linear infinite;flex-shrink:0;"
+                      xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                      <circle style="opacity:.25" cx="12" cy="12" r="10"
+                              stroke="currentColor" stroke-width="4"></circle>
+                      <path style="opacity:.75" fill="currentColor" d="M4 12a8 8 0 018-8v8z"></path>
+                  </svg>`
+    };
 
     // =========================================================
     // SISTEMA UNIFICADO DE NOTIFICACIONES
@@ -46,19 +92,20 @@ document.addEventListener('DOMContentLoaded', function () {
             warning: 'background:#fffbeb;border:1px solid #fcd34d;color:#92400e',
             info:    'background:#eff6ff;border:1px solid #93c5fd;color:#1e40af'
         };
-        const iconos = { success: '✅', error: '❌', warning: '⚠️', info: 'ℹ️' };
 
         const toast = document.createElement('div');
         toast.setAttribute('role', 'alert');
         toast.setAttribute('aria-live', 'polite');
         toast.style.cssText = [
             palette[tipo] || palette.info,
-            'padding:0.75rem 1rem', 'border-radius:0.5rem',
-            'box-shadow:0 4px 12px rgba(0,0,0,.1)', 'font-size:0.875rem',
+            'padding:0.75rem 1rem', 'border-radius:0.625rem',
+            'box-shadow:0 4px 16px rgba(0,0,0,.1)', 'font-size:0.875rem',
             'display:flex', 'align-items:center', 'gap:0.5rem',
-            'max-width:320px', 'transition:opacity 0.3s'
+            'max-width:340px', 'transition:opacity 0.3s',
+            'font-family:"Plus Jakarta Sans",system-ui,sans-serif',
+            'font-weight:500'
         ].join(';');
-        toast.innerHTML = `<span>${iconos[tipo] || ''}</span><span>${mensaje}</span>`;
+        toast.innerHTML = `${ICONS[tipo] || ICONS.info}<span>${mensaje}</span>`;
         contenedor.appendChild(toast);
 
         setTimeout(() => {
@@ -76,15 +123,15 @@ document.addEventListener('DOMContentLoaded', function () {
             success: 'background:#f0fdf4;border:1px solid #86efac;color:#166534',
             warning: 'background:#fffbeb;border:1px solid #fcd34d;color:#92400e'
         };
-        const iconos = { error: '❌', success: '✅', warning: '⚠️' };
 
         div.style.cssText = [
             palette[tipo] || palette.error,
-            'padding:0.75rem 1rem', 'border-radius:0.5rem',
+            'padding:0.75rem 1rem', 'border-radius:0.625rem',
             'font-size:0.875rem', 'display:flex',
-            'align-items:flex-start', 'gap:0.5rem', 'margin-top:1rem'
+            'align-items:flex-start', 'gap:0.5rem', 'margin-top:1rem',
+            'font-family:"Plus Jakarta Sans",system-ui,sans-serif'
         ].join(';');
-        div.innerHTML = `<span>${iconos[tipo] || ''}</span><span>${mensaje}</span>`;
+        div.innerHTML = `${ICONS[tipo] || ICONS.error}<span>${mensaje}</span>`;
         div.scrollIntoView({ behavior: 'smooth', block: 'center' });
 
         setTimeout(() => {
@@ -97,18 +144,17 @@ document.addEventListener('DOMContentLoaded', function () {
         if (state) {
             btn.disabled  = true;
             btn.innerHTML = `<span style="display:inline-flex;align-items:center;gap:0.4rem;">
-                <svg style="width:1rem;height:1rem;animation:spin 1s linear infinite"
-                     xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                    <circle style="opacity:.25" cx="12" cy="12" r="10"
-                            stroke="currentColor" stroke-width="4"></circle>
-                    <path style="opacity:.75" fill="currentColor"
-                          d="M4 12a8 8 0 018-8v8z"></path>
-                </svg>
+                ${ICONS.spinner}
                 Verificando...
             </span>`;
         } else {
             btn.disabled  = false;
-            btn.innerHTML = texto;
+            btn.innerHTML = `${texto}
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
+                     stroke="currentColor" stroke-width="2.5" stroke-linecap="round"
+                     stroke-linejoin="round" style="width:16px;height:16px;">
+                    <path d="M5 12h14"/><path d="m12 5 7 7-7 7"/>
+                </svg>`;
         }
     }
 
@@ -140,9 +186,7 @@ document.addEventListener('DOMContentLoaded', function () {
             const el = document.getElementById(id);
             if (el) datos[id] = el.value;
         });
-        try {
-            sessionStorage.setItem(STORAGE_KEY, JSON.stringify(datos));
-        } catch (e) {}
+        try { sessionStorage.setItem(STORAGE_KEY, JSON.stringify(datos)); } catch (e) {}
     }
 
     function restaurarFormulario() {
@@ -153,9 +197,7 @@ document.addEventListener('DOMContentLoaded', function () {
             datos = JSON.parse(raw);
         } catch (e) { return; }
 
-        if (datos.__rol && datos.__rol !== rol) {
-            setRol(datos.__rol);
-        }
+        if (datos.__rol && datos.__rol !== rol) setRol(datos.__rol);
 
         CAMPOS_PERSISTIR.forEach(id => {
             if (id === 'localidad' || id === 'tipoVehiculo' ||
@@ -229,7 +271,7 @@ document.addEventListener('DOMContentLoaded', function () {
     function formatMarcaName(marca) {
         const formatMap = {
             'MERCEDES_BENZ': 'Mercedes-Benz', 'LAND_ROVER': 'Land Rover',
-            'GREAT_WALL': 'Great Wall',       'BMW_MOTORRAD': 'BMW Motorrad',
+            'GREAT_WALL': 'Great Wall',        'BMW_MOTORRAD': 'BMW Motorrad',
             'HARLEY_DAVIDSON': 'Harley-Davidson', 'ROYAL_ENFIELD': 'Royal Enfield'
         };
         if (formatMap[marca]) return formatMap[marca];
@@ -414,19 +456,13 @@ document.addEventListener('DOMContentLoaded', function () {
             if (!data.disponible) {
                 if (errorSpan)   errorSpan.textContent   = data.mensaje;
                 if (successSpan) successSpan.textContent = "";
-                if (field) {
-                    field.classList.add("border-red-500");
-                    field.classList.remove("border-green-500");
-                }
+                if (field) { field.classList.add("border-red-500"); field.classList.remove("border-green-500"); }
                 showToast(data.mensaje, 'error');
                 return false;
             } else {
                 if (errorSpan)   errorSpan.textContent   = "";
                 if (successSpan) successSpan.textContent = data.mensaje + " ✓";
-                if (field) {
-                    field.classList.remove("border-red-500");
-                    field.classList.add("border-green-500");
-                }
+                if (field) { field.classList.remove("border-red-500"); field.classList.add("border-green-500"); }
                 return true;
             }
         } catch (err) {
@@ -456,77 +492,60 @@ document.addEventListener('DOMContentLoaded', function () {
         const [resCorreo, resCedula, resTelefono] = resultados;
         let todosDisponibles = true;
 
-        if (!resCorreo.disponible) {
-            const span = document.getElementById("correo-error");
-            const suc  = document.getElementById("correo-success");
-            const inp  = document.getElementById("correo");
-            if (span) span.textContent = resCorreo.mensaje;
-            if (suc)  suc.textContent  = "";
-            if (inp)  { inp.classList.add("border-red-500"); inp.classList.remove("border-green-500"); }
-            showToast(resCorreo.mensaje, 'error');
-            todosDisponibles = false;
-        }
+        const aplicar = (res, id) => {
+            if (!res.disponible) {
+                const span = document.getElementById(id + "-error");
+                const suc  = document.getElementById(id + "-success");
+                const inp  = document.getElementById(id);
+                if (span) span.textContent = res.mensaje;
+                if (suc)  suc.textContent  = "";
+                if (inp)  { inp.classList.add("border-red-500"); inp.classList.remove("border-green-500"); }
+                showToast(res.mensaje, 'error');
+                todosDisponibles = false;
+            }
+        };
 
-        if (!resCedula.disponible) {
-            const span = document.getElementById("cedula-error");
-            const suc  = document.getElementById("cedula-success");
-            const inp  = document.getElementById("cedula");
-            if (span) span.textContent = resCedula.mensaje;
-            if (suc)  suc.textContent  = "";
-            if (inp)  { inp.classList.add("border-red-500"); inp.classList.remove("border-green-500"); }
-            showToast(resCedula.mensaje, 'error');
-            todosDisponibles = false;
-        }
+        aplicar(resCorreo,   'correo');
+        aplicar(resCedula,   'cedula');
+        aplicar(resTelefono, 'telefono');
 
-        if (!resTelefono.disponible) {
-            const span = document.getElementById("telefono-error");
-            const suc  = document.getElementById("telefono-success");
-            const inp  = document.getElementById("telefono");
-            if (span) span.textContent = resTelefono.mensaje;
-            if (suc)  suc.textContent  = "";
-            if (inp)  { inp.classList.add("border-red-500"); inp.classList.remove("border-green-500"); }
-            showToast(resTelefono.mensaje, 'error');
-            todosDisponibles = false;
-        }
-
-        if (!todosDisponibles) {
+        if (!todosDisponibles)
             showAlert("Algunos datos ya están registrados. Corrígelos antes de continuar.", 'error');
-        }
 
         return todosDisponibles;
     }
 
     document.getElementById("correo").addEventListener('blur', async function () {
-        const formatOk = validateField("correo", v => {
+        const ok = validateField("correo", v => {
             if (!v.includes("@")) return { isValid: false, message: "El correo debe contener '@'." };
             if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v)) return { isValid: false, message: "Formato de correo inválido." };
             return { isValid: true };
         });
-        if (formatOk && this.value.trim()) await checkDisponibilidad('/check/correo', this.value, 'correo');
+        if (ok && this.value.trim()) await checkDisponibilidad('/check/correo', this.value, 'correo');
     });
 
     document.getElementById("cedula").addEventListener('blur', async function () {
-        const formatOk = validateField("cedula", v => {
+        const ok = validateField("cedula", v => {
             if (!/^[0-9]{10}$/.test(v)) return { isValid: false, message: "Debe tener exactamente 10 dígitos numéricos." };
             return { isValid: true };
         });
-        if (formatOk && this.value.trim()) await checkDisponibilidad('/check/cedula', this.value, 'cedula');
+        if (ok && this.value.trim()) await checkDisponibilidad('/check/cedula', this.value, 'cedula');
     });
 
     document.getElementById("telefono").addEventListener('blur', async function () {
-        const formatOk = validateField("telefono", v => {
+        const ok = validateField("telefono", v => {
             if (!/^[0-9]{10}$/.test(v)) return { isValid: false, message: "Debe tener exactamente 10 dígitos numéricos." };
             return { isValid: true };
         });
-        if (formatOk && this.value.trim()) await checkDisponibilidad('/check/telefono', this.value, 'telefono');
+        if (ok && this.value.trim()) await checkDisponibilidad('/check/telefono', this.value, 'telefono');
     });
 
     document.getElementById("nit").addEventListener('blur', async function () {
-        const formatOk = validateField("nit", v => {
+        const ok = validateField("nit", v => {
             if (!/^[0-9]{9}-[0-9]$/.test(v)) return { isValid: false, message: "Formato de NIT inválido (ej. 123456789-0)." };
             return { isValid: true };
         });
-        if (formatOk && this.value.trim()) await checkDisponibilidad('/check/nit', this.value, 'nit');
+        if (ok && this.value.trim()) await checkDisponibilidad('/check/nit', this.value, 'nit');
     });
 
     // =========================================================
@@ -567,216 +586,668 @@ document.addEventListener('DOMContentLoaded', function () {
         }
     });
 
+
     // =========================================================
-    // ✅ NUEVO: MINI-MAPA LEAFLET — PASO 3 SEDE
+    // ═══════════════════════════════════════════════════════
+    //  SISTEMA DE GEOLOCALIZACIÓN PROFESIONAL — APARCAYA
+    //  Nominatim (OSM) · Sin API key · Reverse geocoding
+    //  Autocompletado · GPS · Marcador draggable
+    // ═══════════════════════════════════════════════════════
     // =========================================================
 
-    let mapaRegistro     = null;
-    let marcadorRegistro = null;
+    let mapaRegistro        = null;
+    let marcadorRegistro    = null;
+    let ubicacionConfirmada = false;
+    let autocompDebounce    = null;
+    let lastNominatimReq    = 0;  // throttle: 1 req/s a Nominatim
+    let sistemaMapaIniciado = false;
 
-    const OPENCAGE_KEY = '972b38cb8f6f43fc9203ecda67200ebd';
-
-    // Centroides por barrio — para elegir el resultado más cercano de OpenCage
+    // ── Centroides de referencia ────────────────────────────────────────────
     const CENTROIDES_BARRIOS = {
-        'Barrancas': [4.7348, -74.0258],       'Cedritos': [4.7190, -74.0355],
-        'Santa Bárbara': [4.7020, -74.0391],   'Usaquén': [4.7050, -74.0350],
-        'La Calleja': [4.7150, -74.0310],       'Molinos Norte': [4.7080, -74.0280],
-        'Chicó': [4.6737, -74.0517],            'El Lago': [4.6620, -74.0560],
-        'Rosales': [4.6597, -74.0482],          'Chapinero Alto': [4.6400, -74.0620],
-        'Antiguo Country': [4.6716, -74.0573],  'Niza': [4.7298, -74.0632],
-        'Tibabuyes': [4.7451, -74.0785],        'Suba Centro': [4.7415, -74.0816],
-        'La Campiña': [4.7350, -74.0700],       'Ferias': [4.7024, -74.1113],
-        'Boyacá Real': [4.7100, -74.1000],      'Minuto de Dios': [4.7063, -74.1142],
-        'La Soledad': [4.6448, -74.0732],       'Quesada': [4.6380, -74.0850],
-        'Campín': [4.6460, -74.0920],           '7 de Agosto': [4.6772, -74.0895],
-        'Doce de Octubre': [4.6900, -74.0950],  'San Felipe': [4.6720, -74.0830],
-        'Tintal': [4.6538, -74.1548],           'Timiza': [4.6251, -74.1489],
-        'Carvajal': [4.6145, -74.1392],         'Patio Bonito': [4.6279, -74.1456],
-        'Mandalay': [4.6350, -74.1500],         'Capellanía': [4.6900, -74.1400],
-        'Fontibón Centro': [4.6800, -74.1450],  'Modelia': [4.6750, -74.1200],
-        'Restrepo': [4.6110, -74.1026],         'Meissen': [4.5700, -74.1800],
-        'Jerusalén': [4.5600, -74.1900],        'Paraíso': [4.5550, -74.1700],
-        'La Catedral': [4.5970, -74.0730],      'Egipto': [4.5960, -74.0680],
-        'Las Aguas': [4.6010, -74.0710],        'Bravo Páez': [4.5700, -74.1100],
-        'Marruecos': [4.5650, -74.1200],        'Quiroga': [4.5800, -74.1150],
-        'Ciudad Montes': [4.6287, -74.1189],    'Parque El Tunal': [4.5800, -74.1300],
-        'San Vicente': [4.5750, -74.1350],      'Venecia': [4.5850, -74.1400],
-        'Bosa Central': [4.6242, -74.1975],     'Bosa Laureles': [4.6200, -74.2000],
+        'Barrancas': [4.7348, -74.0258],        'Cedritos': [4.7190, -74.0355],
+        'Santa Bárbara': [4.7020, -74.0391],    'Usaquén': [4.7050, -74.0350],
+        'La Calleja': [4.7150, -74.0310],        'Molinos Norte': [4.7080, -74.0280],
+        'Chicó': [4.6737, -74.0517],             'El Lago': [4.6620, -74.0560],
+        'Rosales': [4.6597, -74.0482],           'Chapinero Alto': [4.6400, -74.0620],
+        'Antiguo Country': [4.6716, -74.0573],   'Niza': [4.7298, -74.0632],
+        'Tibabuyes': [4.7451, -74.0785],         'Suba Centro': [4.7415, -74.0816],
+        'La Campiña': [4.7350, -74.0700],        'Ferias': [4.7024, -74.1113],
+        'Boyacá Real': [4.7100, -74.1000],       'Minuto de Dios': [4.7063, -74.1142],
+        'La Soledad': [4.6448, -74.0732],        'Quesada': [4.6380, -74.0850],
+        'Campín': [4.6460, -74.0920],            '7 de Agosto': [4.6772, -74.0895],
+        'Doce de Octubre': [4.6900, -74.0950],   'San Felipe': [4.6720, -74.0830],
+        'Tintal': [4.6538, -74.1548],            'Timiza': [4.6251, -74.1489],
+        'Carvajal': [4.6145, -74.1392],          'Patio Bonito': [4.6279, -74.1456],
+        'Mandalay': [4.6350, -74.1500],          'Capellanía': [4.6900, -74.1400],
+        'Fontibón Centro': [4.6800, -74.1450],   'Modelia': [4.6750, -74.1200],
+        'Restrepo': [4.6110, -74.1026],          'Meissen': [4.5700, -74.1800],
+        'Jerusalén': [4.5600, -74.1900],         'Paraíso': [4.5550, -74.1700],
+        'La Catedral': [4.5970, -74.0730],       'Egipto': [4.5960, -74.0680],
+        'Las Aguas': [4.6010, -74.0710],         'Bravo Páez': [4.5700, -74.1100],
+        'Marruecos': [4.5650, -74.1200],         'Quiroga': [4.5800, -74.1150],
+        'Ciudad Montes': [4.6287, -74.1189],     'Parque El Tunal': [4.5800, -74.1300],
+        'San Vicente': [4.5750, -74.1350],       'Venecia': [4.5850, -74.1400],
+        'Bosa Central': [4.6242, -74.1975],      'Bosa Laureles': [4.6200, -74.2000],
         'El Porvenir': [4.6100, -74.2100],
     };
 
     const CENTROIDES_LOCALIDADES = {
-        'USAQUEN': [4.7110, -74.0300],          'CHAPINERO': [4.6400, -74.0620],
-        'SANTA_FE': [4.6097, -74.0730],         'SAN_CRISTOBAL': [4.5700, -74.0800],
-        'USME': [4.5100, -74.1300],             'TUNJUELITO': [4.5800, -74.1400],
-        'BOSA': [4.6200, -74.1900],             'KENNEDY': [4.6280, -74.1550],
-        'FONTIBON': [4.6800, -74.1400],         'ENGATIVA': [4.7000, -74.1100],
-        'SUBA': [4.7500, -74.0800],             'BARRIOS_UNIDOS': [4.6700, -74.0850],
-        'TEUSAQUILLO': [4.6400, -74.0900],      'MARTIRES': [4.6000, -74.0950],
-        'ANTONIO_NARINO': [4.5900, -74.1100],   'PUENTE_ARANDA': [4.6200, -74.1200],
-        'CANDELARIA': [4.5970, -74.0730],       'RAFAEL_URIBE_URIBE': [4.5600, -74.1200],
-        'CIUDAD_BOLIVAR': [4.5700, -74.1800],   'SUMAPAZ': [4.2600, -74.2900],
+        'USAQUEN': [4.7110, -74.0300],           'CHAPINERO': [4.6400, -74.0620],
+        'SANTA_FE': [4.6097, -74.0730],          'SAN_CRISTOBAL': [4.5700, -74.0800],
+        'USME': [4.5100, -74.1300],              'TUNJUELITO': [4.5800, -74.1400],
+        'BOSA': [4.6200, -74.1900],              'KENNEDY': [4.6280, -74.1550],
+        'FONTIBON': [4.6800, -74.1400],          'ENGATIVA': [4.7000, -74.1100],
+        'SUBA': [4.7500, -74.0800],              'BARRIOS_UNIDOS': [4.6700, -74.0850],
+        'TEUSAQUILLO': [4.6400, -74.0900],       'MARTIRES': [4.6000, -74.0950],
+        'ANTONIO_NARINO': [4.5900, -74.1100],    'PUENTE_ARANDA': [4.6200, -74.1200],
+        'CANDELARIA': [4.5970, -74.0730],        'RAFAEL_URIBE_URIBE': [4.5600, -74.1200],
+        'CIUDAD_BOLIVAR': [4.5700, -74.1800],    'SUMAPAZ': [4.2600, -74.2900],
     };
 
+    // ── Icono del marcador (estilo pin de apps modernas) ────────────────────
+    const iconoSede = L.divIcon({
+        className: '',
+        html: `<div style="
+            width:34px;height:34px;
+            background:linear-gradient(135deg,#1e3a8a,#1d4ed8);
+            border-radius:50% 50% 50% 0;
+            transform:rotate(-45deg);
+            border:3px solid #fff;
+            box-shadow:0 4px 16px rgba(30,58,138,.5);
+            position:relative;
+        ">
+            <div style="
+                width:9px;height:9px;
+                background:#fff;border-radius:50%;
+                position:absolute;top:50%;left:50%;
+                transform:translate(-50%,-50%) rotate(45deg);
+            "></div>
+        </div>`,
+        iconSize:   [34, 34],
+        iconAnchor: [17, 34],
+        popupAnchor:[0, -38]
+    });
+
+    // ── Icono de arrastre (feedback al usuario) ──────────────────────────────
+    const iconoSedeDrag = L.divIcon({
+        className: '',
+        html: `<div style="
+            width:34px;height:34px;
+            background:linear-gradient(135deg,#0f766e,#0d9488);
+            border-radius:50% 50% 50% 0;
+            transform:rotate(-45deg);
+            border:3px solid #fff;
+            box-shadow:0 4px 20px rgba(15,118,110,.6);
+            position:relative;
+            transition:all .2s;
+        ">
+            <div style="
+                width:9px;height:9px;
+                background:#fff;border-radius:50%;
+                position:absolute;top:50%;left:50%;
+                transform:translate(-50%,-50%) rotate(45deg);
+            "></div>
+        </div>`,
+        iconSize:   [34, 34],
+        iconAnchor: [17, 34],
+        popupAnchor:[0, -38]
+    });
+
+    // =========================================================
+    // INICIALIZACIÓN DEL MAPA
+    // =========================================================
     function initMapaRegistro() {
-        if (mapaRegistro) return; // ya inicializado
-        mapaRegistro = L.map('mapaRegistro', { zoomControl: true })
-            .setView([4.6533, -74.0836], 12);
+        if (mapaRegistro) return;
+
+        mapaRegistro = L.map('mapaRegistro', {
+            zoomControl:        true,
+            attributionControl: true,
+            scrollWheelZoom:    true
+        }).setView([4.6533, -74.0836], 12);
 
         L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-            attribution: '© OpenStreetMap contributors',
+            attribution: '© <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>',
             maxZoom: 19
         }).addTo(mapaRegistro);
 
-        // Click en el mapa → mover marcador
-        mapaRegistro.on('click', function(e) {
-            moverMarcadorRegistro(e.latlng.lat, e.latlng.lng);
+        // Click en el mapa → mover marcador + reverse geocoding
+        mapaRegistro.on('click', function (e) {
+            colocarMarcador(e.latlng.lat, e.latlng.lng, true);
         });
     }
 
-    function moverMarcadorRegistro(lat, lon) {
+    // =========================================================
+    // COLOCAR / MOVER MARCADOR
+    // =========================================================
+    function colocarMarcador(lat, lon, hacerReverseGeo) {
         if (!mapaRegistro) return;
         const latlng = L.latLng(lat, lon);
 
         if (marcadorRegistro) {
             marcadorRegistro.setLatLng(latlng);
         } else {
-            marcadorRegistro = L.marker(latlng, { draggable: true })
-                .addTo(mapaRegistro)
-                .bindPopup('📍 Ubicación de la sede<br><small>Arrastrá para ajustar</small>')
-                .openPopup();
+            marcadorRegistro = L.marker(latlng, {
+                draggable: true,
+                icon:      iconoSede,
+                title:     'Arrastrá para ajustar la posición exacta'
+            }).addTo(mapaRegistro);
 
-            marcadorRegistro.on('dragend', function(e) {
+            // Popup con instrucción
+            marcadorRegistro.bindPopup(`
+                <div style="font-family:'Plus Jakarta Sans',system-ui,sans-serif;font-size:.8rem;text-align:center;padding:.25rem .125rem;">
+                    <strong style="color:#1e3a8a;display:block;margin-bottom:.2rem;">📍 Sede</strong>
+                    <span style="color:#64748b;">Arrastrá para ajustar</span>
+                </div>
+            `).openPopup();
+
+            // Drag → cambiar icono a verde + mostrar coordenadas
+            marcadorRegistro.on('drag', function (e) {
+                marcadorRegistro.setIcon(iconoSedeDrag);
+                const pos = e.target.getLatLng();
+                setMapStatus(
+                    `${ICONS.pin} ${pos.lat.toFixed(5)}, ${pos.lng.toFixed(5)}`,
+                    'dragging'
+                );
+            });
+
+            // Dragend → restaurar icono + guardar + reverse geo
+            marcadorRegistro.on('dragend', function (e) {
+                marcadorRegistro.setIcon(iconoSede);
                 const pos = e.target.getLatLng();
                 guardarCoordenadas(pos.lat, pos.lng);
+                reverseGeocodificar(pos.lat, pos.lng);
             });
         }
 
-        mapaRegistro.setView(latlng, 17);
+        mapaRegistro.setView(latlng, 17, { animate: true });
         guardarCoordenadas(lat, lon);
+        marcarUbicacionConfirmada();
+
+        if (hacerReverseGeo) reverseGeocodificar(lat, lon);
     }
 
+    // =========================================================
+    // GUARDAR COORDENADAS EN HIDDEN INPUTS
+    // =========================================================
     function guardarCoordenadas(lat, lon) {
-        const latInput = document.getElementById('hiddenLatitud');
-        const lonInput = document.getElementById('hiddenLongitud');
-        if (latInput) latInput.value = lat;
-        if (lonInput) lonInput.value = lon;
+        const elLat = document.getElementById('hiddenLatitud');
+        const elLon = document.getElementById('hiddenLongitud');
+        if (elLat) elLat.value = parseFloat(lat).toFixed(7);
+        if (elLon) elLon.value = parseFloat(lon).toFixed(7);
     }
 
+    // =========================================================
+    // BADGE DE CONFIRMACIÓN
+    // =========================================================
+    function marcarUbicacionConfirmada() {
+        ubicacionConfirmada = true;
+        setMapStatus('Ubicación confirmada — arrastrá el pin para ajustar', 'ok');
+
+        const badge = document.getElementById('ubicacionBadge');
+        if (badge) {
+            badge.style.display    = 'flex';
+            badge.style.background = '#f0fdf4';
+            badge.style.border     = '1.5px solid #86efac';
+            badge.style.color      = '#166534';
+            badge.innerHTML        = `${ICONS.success} Ubicación confirmada — podés continuar`;
+        }
+    }
+
+    function desconfirmarUbicacion() {
+        ubicacionConfirmada = false;
+        setMapStatus('Buscá tu dirección o hacé click en el mapa', 'pending');
+
+        const badge = document.getElementById('ubicacionBadge');
+        if (badge && badge.style.display !== 'none') {
+            badge.style.background = '#fffbeb';
+            badge.style.border     = '1.5px solid #fcd34d';
+            badge.style.color      = '#92400e';
+            badge.innerHTML        = `${ICONS.warning} Dirección modificada — volvé a buscar o ajustá el pin`;
+        }
+    }
+
+    // =========================================================
+    // ESTADO DEL MAPA
+    // =========================================================
+    function setMapStatus(html, tipo) {
+        const el = document.getElementById('mapaRegistroEstado');
+        if (!el) return;
+        const colores = {
+            ok:       '#059669',
+            pending:  '#d97706',
+            error:    '#dc2626',
+            loading:  '#1d4ed8',
+            dragging: '#1d4ed8'
+        };
+        el.innerHTML   = html;
+        el.style.color = colores[tipo] || '#64748b';
+    }
+
+    // =========================================================
+    // NORMALIZACIÓN DE DIRECCIONES
+    // =========================================================
     function normalizarDireccion(dir) {
         return dir
             .replace('#', '')
-            .replace(/\bKra?\.?\b/gi, 'Carrera')
-            .replace(/\bCra\.?\b/gi, 'Carrera')
-            .replace(/\bCr\.?\b/gi, 'Carrera')
-            .replace(/\bCll\.?\b/gi, 'Calle')
-            .replace(/\bCl\.?\b/gi, 'Calle')
-            .replace(/\bDg\.?\b/gi, 'Diagonal')
-            .replace(/\bTrv?\.?\b/gi, 'Transversal')
-            .replace(/\bAv\.?\b/gi, 'Avenida')
+            .replace(/\bKra?\.?\b/gi,  'Carrera')
+            .replace(/\bCra\.?\b/gi,   'Carrera')
+            .replace(/\bCr\.?\b/gi,    'Carrera')
+            .replace(/\bCll\.?\b/gi,   'Calle')
+            .replace(/\bCl\.?\b/gi,    'Calle')
+            .replace(/\bDg\.?\b/gi,    'Diagonal')
+            .replace(/\bTrv?\.?\b/gi,  'Transversal')
+            .replace(/\bAv\.?\b/gi,    'Avenida')
             .replace(/\s{2,}/g, ' ').trim();
     }
 
-    async function geocodificarYMostrarMapa() {
-        const direccion = document.getElementById('direccion').value.trim();
-        const localidad = document.getElementById('localidad').value;
-        const barrio    = document.getElementById('barrio').value;
+    // =========================================================
+    // GEOCODIFICACIÓN DIRECTA — Nominatim (sin API key)
+    // =========================================================
+    async function geocodificarDireccion(direccion, localidad, barrio) {
+        // Respetar rate limit de 1 req/s
+        const ahora = Date.now();
+        const espera = 1050 - (ahora - lastNominatimReq);
+        if (espera > 0) await new Promise(r => setTimeout(r, espera));
+        lastNominatimReq = Date.now();
 
-        if (!direccion) return;
+        const dirNorm      = normalizarDireccion(direccion);
+        const localidadFmt = localidad
+            ? localidad.split('_').map(w => w.charAt(0) + w.slice(1).toLowerCase()).join(' ')
+            : '';
 
-        const estado  = document.getElementById('mapaRegistroEstado');
-        const wrapper = document.getElementById('mapaRegistroWrapper');
+        const query = [dirNorm, barrio, localidadFmt, 'Bogotá', 'Colombia']
+            .filter(Boolean).join(', ');
 
-        // Mostrar el mapa
-        wrapper.style.display = 'block';
-        if (estado) estado.textContent = 'Buscando ubicación...';
+        const params = new URLSearchParams({
+            q:                 query,
+            format:            'json',
+            limit:             '5',
+            countrycode:       'co',
+            viewbox:           '-74.25,4.45,-73.95,4.85',
+            bounded:           '1',
+            'accept-language': 'es'
+        });
 
-        // Inicializar mapa si no existe, luego invalidar tamaño
-        initMapaRegistro();
-        setTimeout(() => { if (mapaRegistro) mapaRegistro.invalidateSize(); }, 150);
+        const resp = await fetch(
+            `https://nominatim.openstreetmap.org/search?${params}`,
+            { headers: { 'User-Agent': 'AparcaYA/1.0 (registro sede Bogota)' } }
+        );
+
+        if (!resp.ok) throw new Error(`Nominatim HTTP ${resp.status}`);
+        return await resp.json();
+    }
+
+    // =========================================================
+    // REVERSE GEOCODIFICACIÓN — coordenadas → dirección
+    // =========================================================
+    async function reverseGeocodificar(lat, lon) {
+        setMapStatus(`${ICONS.spinner} Obteniendo dirección...`, 'loading');
+
+        const ahora = Date.now();
+        const espera = 1050 - (ahora - lastNominatimReq);
+        if (espera > 0) await new Promise(r => setTimeout(r, espera));
+        lastNominatimReq = Date.now();
 
         try {
-            const dirNorm      = normalizarDireccion(direccion);
-            const localidadFmt = localidad
-                ? localidad.split('_').map(w => w.charAt(0) + w.slice(1).toLowerCase()).join(' ')
-                : '';
+            const params = new URLSearchParams({
+                lat:               lat.toString(),
+                lon:               lon.toString(),
+                format:            'json',
+                zoom:              '18',
+                'accept-language': 'es'
+            });
 
-            const query = [dirNorm, barrio, localidadFmt, 'Bogotá', 'Colombia']
-                .filter(Boolean).join(', ');
-
-            const url = `https://api.opencagedata.com/geocode/v1/json` +
-                `?q=${encodeURIComponent(query)}` +
-                `&key=${OPENCAGE_KEY}` +
-                `&limit=5&countrycode=co&no_annotations=1` +
-                `&bounds=-74.25,4.45,-73.95,4.85`;
-
-            const resp = await fetch(url);
+            const resp = await fetch(
+                `https://nominatim.openstreetmap.org/reverse?${params}`,
+                { headers: { 'User-Agent': 'AparcaYA/1.0 (registro sede Bogota)' } }
+            );
             const data = await resp.json();
 
-            if (data.results && data.results.length > 0) {
-                // Elegir el resultado más cercano al centroide del barrio
-                const centroide = CENTROIDES_BARRIOS[barrio]
-                    || CENTROIDES_LOCALIDADES[localidad]
-                    || [4.6533, -74.0836];
+            if (data && data.display_name) {
+                const addr   = data.address || {};
+                const partes = [
+                    addr.road,
+                    addr.house_number,
+                    addr.suburb || addr.neighbourhood || addr.quarter
+                ].filter(Boolean);
 
-                let mejorLat = null, mejorLon = null, menorDist = Infinity;
+                const dirLegible = partes.length > 0
+                    ? partes.join(' ')
+                    : data.display_name.split(',').slice(0, 3).join(',').trim();
 
-                for (const r of data.results) {
-                    const lat  = r.geometry.lat;
-                    const lon  = r.geometry.lng;
-                    const dist = Math.sqrt(
-                        Math.pow(lat - centroide[0], 2) + Math.pow(lon - centroide[1], 2)
-                    );
-                    // Solo considerar resultados dentro de Bogotá
-                    if (lat >= 4.45 && lat <= 4.85 && lon >= -74.25 && lon <= -73.95) {
-                        if (dist < menorDist) {
-                            menorDist = dist;
-                            mejorLat  = lat;
-                            mejorLon  = lon;
-                        }
-                    }
+                const campoDireccion = document.getElementById('direccion');
+                if (campoDireccion && dirLegible) {
+                    campoDireccion.value = dirLegible;
+                    const hDir = document.getElementById('hiddenDireccion');
+                    if (hDir) hDir.value = dirLegible;
                 }
-
-                if (mejorLat !== null) {
-                    moverMarcadorRegistro(mejorLat, mejorLon);
-                    if (estado) estado.textContent = 'Arrastrá el marcador si necesitás ajustar la posición';
-                } else {
-                    // Sin resultados en Bogotá → centrar en localidad
-                    const c = CENTROIDES_LOCALIDADES[localidad] || [4.6533, -74.0836];
-                    mapaRegistro.setView(c, 13);
-                    if (estado) estado.textContent = 'No se encontró la dirección — hacé click en el mapa para marcarla';
-                    showToast('No se encontró la dirección exacta. Marcá la ubicación en el mapa.', 'warning');
-                }
-            } else {
-                const c = CENTROIDES_LOCALIDADES[localidad] || [4.6533, -74.0836];
-                mapaRegistro.setView(c, 13);
-                if (estado) estado.textContent = 'No se encontró la dirección — hacé click en el mapa para marcarla';
-                showToast('No se encontró la dirección exacta. Marcá la ubicación en el mapa.', 'warning');
             }
 
+            setMapStatus('Ubicación confirmada — arrastrá el pin para ajustar', 'ok');
+            marcarUbicacionConfirmada();
+
         } catch (err) {
-            console.warn('Error geocodificando:', err);
-            const c = CENTROIDES_LOCALIDADES[document.getElementById('localidad').value] || [4.6533, -74.0836];
-            if (mapaRegistro) mapaRegistro.setView(c, 13);
-            if (estado) estado.textContent = 'Hacé click en el mapa para marcar la ubicación';
+            console.warn('Reverse geocoding falló:', err);
+            setMapStatus('Pin colocado — podés continuar', 'ok');
+            marcarUbicacionConfirmada();
         }
     }
+
+    // =========================================================
+    // AUTOCOMPLETADO INTELIGENTE (debounce 600ms)
+    // =========================================================
+    function iniciarAutocompletado() {
+        const inputDir = document.getElementById('direccion');
+        const dropdown = document.getElementById('autocompletadoDropdown');
+        if (!inputDir || !dropdown) return;
+
+        inputDir.addEventListener('input', function () {
+            clearTimeout(autocompDebounce);
+            const val = this.value.trim();
+
+            ocultarDropdown();
+            desconfirmarUbicacion();
+
+            if (val.length < 5) return;
+
+            setDropdownCargando(dropdown);
+
+            autocompDebounce = setTimeout(async () => {
+                const localidad = document.getElementById('localidad').value;
+                const barrio    = document.getElementById('barrio').value;
+                try {
+                    const resultados = await geocodificarDireccion(val, localidad, barrio);
+                    mostrarSugerencias(resultados, dropdown, localidad, barrio);
+                } catch (err) {
+                    console.warn('Autocompletado falló:', err);
+                    ocultarDropdown();
+                }
+            }, 600);
+        });
+
+        // Cerrar al hacer click fuera
+        document.addEventListener('click', function (e) {
+            if (!inputDir.contains(e.target) && !dropdown.contains(e.target))
+                ocultarDropdown();
+        });
+
+        // Navegación con teclado
+        inputDir.addEventListener('keydown', function (e) {
+            const items  = dropdown.querySelectorAll('.autocomp-item');
+            const activo = dropdown.querySelector('.autocomp-item.activo');
+            if (e.key === 'ArrowDown') {
+                e.preventDefault();
+                if (activo) {
+                    activo.classList.remove('activo');
+                    (activo.nextElementSibling || items[0]).classList.add('activo');
+                } else if (items[0]) {
+                    items[0].classList.add('activo');
+                }
+            } else if (e.key === 'ArrowUp') {
+                e.preventDefault();
+                if (activo) {
+                    activo.classList.remove('activo');
+                    if (activo.previousElementSibling)
+                        activo.previousElementSibling.classList.add('activo');
+                }
+            } else if (e.key === 'Enter' && activo) {
+                e.preventDefault();
+                activo.click();
+            } else if (e.key === 'Escape') {
+                ocultarDropdown();
+            }
+        });
+    }
+
+    function setDropdownCargando(dropdown) {
+        dropdown.style.display = 'block';
+        dropdown.innerHTML = `
+            <div style="padding:.75rem 1rem;color:#64748b;font-size:.8125rem;
+                        display:flex;align-items:center;gap:.5rem;
+                        font-family:'Plus Jakarta Sans',system-ui,sans-serif;">
+                ${ICONS.spinner}
+                Buscando direcciones en Bogotá...
+            </div>`;
+    }
+
+    function mostrarSugerencias(resultados, dropdown, localidad, barrio) {
+        const centroide = (barrio    && CENTROIDES_BARRIOS[barrio])
+            || (localidad && CENTROIDES_LOCALIDADES[localidad])
+            || [4.6533, -74.0836];
+
+        // Filtrar resultados dentro de Bogotá
+        const dentroRango = resultados.filter(r => {
+            const lat = parseFloat(r.lat);
+            const lon = parseFloat(r.lon);
+            return lat >= 4.45 && lat <= 4.85 && lon >= -74.25 && lon <= -73.95;
+        });
+
+        // Ordenar por proximidad al centroide del barrio/localidad
+        dentroRango.sort((a, b) => {
+            const dA = Math.hypot(parseFloat(a.lat) - centroide[0], parseFloat(a.lon) - centroide[1]);
+            const dB = Math.hypot(parseFloat(b.lat) - centroide[0], parseFloat(b.lon) - centroide[1]);
+            return dA - dB;
+        });
+
+        if (dentroRango.length === 0) {
+            dropdown.innerHTML = `
+                <div style="padding:.875rem 1rem;font-family:'Plus Jakarta Sans',system-ui,sans-serif;">
+                    <div style="display:flex;align-items:center;gap:.5rem;color:#d97706;font-size:.8125rem;font-weight:600;margin-bottom:.375rem;">
+                        ${ICONS.warning} Sin resultados en Bogotá
+                    </div>
+                    <div style="color:#64748b;font-size:.8rem;line-height:1.5;">
+                        Intentá con otra variante o hacé click directamente en el mapa.
+                    </div>
+                </div>`;
+            dropdown.style.display = 'block';
+            return;
+        }
+
+        dropdown.innerHTML = '';
+
+        // Encabezado del dropdown
+        const header = document.createElement('div');
+        header.style.cssText = 'padding:.5rem 1rem;font-size:.7rem;font-weight:700;color:#94a3b8;text-transform:uppercase;letter-spacing:.06em;border-bottom:1px solid #f1f5f9;font-family:"Plus Jakarta Sans",system-ui,sans-serif;';
+        header.innerHTML = `${ICONS.pin} Sugerencias para Bogotá`;
+        dropdown.appendChild(header);
+
+        dentroRango.slice(0, 5).forEach((r) => {
+            const item = document.createElement('div');
+            item.className = 'autocomp-item';
+            item.setAttribute('role', 'option');
+            item.setAttribute('tabindex', '0');
+
+            const addr   = r.address || {};
+            const titulo = [addr.road, addr.house_number].filter(Boolean).join(' ')
+                || r.display_name.split(',')[0];
+            const sub    = [
+                addr.suburb || addr.neighbourhood || addr.quarter,
+                addr.city_district || addr.county,
+                'Bogotá'
+            ].filter(Boolean).slice(0, 2).join(', ');
+
+            const inner = document.createElement('div');
+            inner.style.cssText = 'display:flex;align-items:flex-start;gap:.625rem;padding:.75rem 1rem;cursor:pointer;border-bottom:1px solid #f8faff;transition:background .15s ease;font-family:"Plus Jakarta Sans",system-ui,sans-serif;';
+            inner.innerHTML = `
+                <div style="width:30px;height:30px;background:#eff6ff;border-radius:50%;display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:.05rem;">
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
+                         stroke="#1d4ed8" stroke-width="2" stroke-linecap="round"
+                         stroke-linejoin="round" style="width:14px;height:14px;">
+                        <path d="M20 10c0 4.993-5.539 10.193-7.399 11.799a1 1 0 0 1-1.202 0C9.539 20.193 4 14.993 4 10a8 8 0 0 1 16 0"/>
+                        <circle cx="12" cy="10" r="3"/>
+                    </svg>
+                </div>
+                <div style="flex:1;min-width:0;">
+                    <div style="font-size:.875rem;font-weight:600;color:#1e3a8a;line-height:1.3;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${titulo}</div>
+                    <div style="font-size:.75rem;color:#64748b;margin-top:.15rem;">${sub}</div>
+                </div>
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
+                     stroke="#cbd5e1" stroke-width="2" stroke-linecap="round"
+                     stroke-linejoin="round" style="width:14px;height:14px;flex-shrink:0;margin-top:.25rem;">
+                    <path d="M9 18l6-6-6-6"/>
+                </svg>`;
+
+            item.appendChild(inner);
+
+            item.addEventListener('mouseenter', () => {
+                dropdown.querySelectorAll('.autocomp-item').forEach(el => el.classList.remove('activo'));
+                item.classList.add('activo');
+                inner.style.background = '#eff6ff';
+            });
+            item.addEventListener('mouseleave', () => {
+                inner.style.background = '';
+            });
+
+            item.addEventListener('click', () => {
+                const lat = parseFloat(r.lat);
+                const lon = parseFloat(r.lon);
+
+                document.getElementById('direccion').value = titulo;
+                ocultarDropdown();
+                initMapaRegistro();
+                setTimeout(() => { mapaRegistro.invalidateSize(); }, 50);
+                colocarMarcador(lat, lon, false);
+                marcarUbicacionConfirmada();
+                showToast('Ubicación seleccionada. Arrastrá el pin para ajustar si es necesario.', 'success', 3000);
+            });
+
+            dropdown.appendChild(item);
+        });
+
+        // Pie del dropdown
+        const footer = document.createElement('div');
+        footer.style.cssText = 'padding:.5rem 1rem;font-size:.7rem;color:#94a3b8;text-align:center;border-top:1px solid #f1f5f9;font-family:"Plus Jakarta Sans",system-ui,sans-serif;';
+        footer.innerHTML = '© OpenStreetMap contributors';
+        dropdown.appendChild(footer);
+
+        dropdown.style.display = 'block';
+    }
+
+    function ocultarDropdown() {
+        const dropdown = document.getElementById('autocompletadoDropdown');
+        if (dropdown) { dropdown.style.display = 'none'; dropdown.innerHTML = ''; }
+    }
+
+    // =========================================================
+    // BOTÓN GPS
+    // =========================================================
+    function iniciarBotonGPS() {
+        const btn = document.getElementById('btnUsarUbicacion');
+        if (!btn) return;
+
+        btn.addEventListener('click', function () {
+            if (!navigator.geolocation) {
+                showToast('Tu navegador no soporta geolocalización.', 'warning');
+                return;
+            }
+
+            btn.disabled  = true;
+            btn.innerHTML = `${ICONS.spinner} Obteniendo ubicación...`;
+
+            navigator.geolocation.getCurrentPosition(
+                (pos) => {
+                    btn.disabled  = false;
+                    btn.innerHTML = `
+                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
+                             stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                             stroke-linejoin="round" style="width:15px;height:15px;flex-shrink:0;">
+                            <polygon points="3 11 22 2 13 21 11 13 3 11"/>
+                        </svg>
+                        Usar mi ubicación actual (GPS)`;
+
+                    const lat = pos.coords.latitude;
+                    const lon = pos.coords.longitude;
+
+                    if (lat < 4.45 || lat > 4.85 || lon < -74.25 || lon > -73.95) {
+                        showToast('Tu ubicación no está en Bogotá. Buscá la dirección manualmente.', 'warning');
+                        return;
+                    }
+
+                    initMapaRegistro();
+                    setTimeout(() => { mapaRegistro.invalidateSize(); }, 50);
+                    colocarMarcador(lat, lon, true);
+                    showToast('Ubicación GPS obtenida. Arrastrá el pin si necesitás ajustar.', 'success');
+                },
+                (err) => {
+                    btn.disabled  = false;
+                    btn.innerHTML = `
+                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
+                             stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                             stroke-linejoin="round" style="width:15px;height:15px;flex-shrink:0;">
+                            <polygon points="3 11 22 2 13 21 11 13 3 11"/>
+                        </svg>
+                        Usar mi ubicación actual (GPS)`;
+                    const msgs = {
+                        1: 'Permiso denegado. Activá la geolocalización en tu navegador.',
+                        2: 'No se pudo obtener tu posición.',
+                        3: 'Tiempo de espera agotado.'
+                    };
+                    showToast(msgs[err.code] || 'Error de geolocalización.', 'warning');
+                },
+                { timeout: 10000, maximumAge: 60000, enableHighAccuracy: true }
+            );
+        });
+    }
+
+    // =========================================================
+    // INICIALIZAR SISTEMA DE MAPA (se llama al entrar al paso 3)
+    // =========================================================
+    function inicializarSistemaMapa() {
+        if (sistemaMapaIniciado) return;
+        sistemaMapaIniciado = true;
+
+        iniciarAutocompletado();
+        iniciarBotonGPS();
+
+        // Cambio de localidad → centrar mapa + resetear confirmación
+        if (localidadSelect) {
+            localidadSelect.addEventListener('change', () => {
+                if (mapaRegistro) {
+                    const c = CENTROIDES_LOCALIDADES[localidadSelect.value] || [4.6533, -74.0836];
+                    mapaRegistro.setView(c, 13, { animate: true });
+                }
+                desconfirmarUbicacion();
+            });
+        }
+
+        // Cambio de barrio → centrar mapa en el barrio
+        if (barrioSelect) {
+            barrioSelect.addEventListener('change', () => {
+                if (mapaRegistro) {
+                    const bar = barrioSelect.value;
+                    const loc = localidadSelect.value;
+                    const c   = CENTROIDES_BARRIOS[bar] || CENTROIDES_LOCALIDADES[loc] || [4.6533, -74.0836];
+                    mapaRegistro.setView(c, 15, { animate: true });
+                }
+                desconfirmarUbicacion();
+            });
+        }
+    }
+
+    // =========================================================
+    // BLUR GENÉRICO
+    // =========================================================
+    const conCheckBackend = ['correo', 'cedula', 'telefono', 'nit'];
+    document.querySelectorAll("input, select").forEach(field => {
+        if (!conCheckBackend.includes(field.id)) {
+            field.addEventListener("blur", () => validateField(field.id));
+        }
+    });
 
     // =========================================================
     // NAVEGACIÓN ENTRE PASOS
     // =========================================================
 
+    // Paso 1
     document.getElementById("next1").addEventListener('click', async function () {
         if (!validateStep("step1")) {
             showAlert("Revisa los campos marcados en rojo antes de continuar.");
             return;
         }
-
         const btn = this;
         setBtnLoading(btn, true);
         const disponible = await verificarPaso1ConBackend();
         setBtnLoading(btn, false, 'Siguiente');
-
         if (!disponible) return;
 
         rolBloqueado = true;
@@ -789,11 +1260,8 @@ document.addEventListener('DOMContentLoaded', function () {
     // Cliente
     document.getElementById("backCliente").onclick = () => showStep("step1");
     document.getElementById("nextCliente").onclick = () => {
-        if (validateStep("stepCliente")) {
-            showStep("stepFinal");
-        } else {
-            showAlert("Revisa los datos del vehículo antes de continuar.");
-        }
+        if (validateStep("stepCliente")) showStep("stepFinal");
+        else showAlert("Revisa los datos del vehículo antes de continuar.");
     };
 
     // Sede — paso 2
@@ -803,34 +1271,56 @@ document.addEventListener('DOMContentLoaded', function () {
             document.getElementById("hiddenNombreSede").value = document.getElementById("nombreSede").value;
             document.getElementById("hiddenNit").value        = document.getElementById("nit").value;
             showStep("stepSede3");
+            // Inicializar mapa y sistema al entrar al paso 3
+            setTimeout(() => {
+                inicializarSistemaMapa();
+                initMapaRegistro();
+                mapaRegistro.invalidateSize();
+            }, 200);
         } else {
             showAlert("Revisa los datos básicos de la sede antes de continuar.");
         }
     };
 
-    // Sede — paso 3 con mini-mapa
+    // Sede — paso 3 (con validación de coordenadas)
     document.getElementById("backSede3").onclick = () => showStep("stepSede2");
-    document.getElementById("nextSede3").addEventListener('click', async function() {
+
+    document.getElementById("nextSede3").addEventListener('click', function () {
         if (!validateStep("stepSede3")) {
             showAlert("Revisa la ubicación de la sede antes de continuar.");
             return;
         }
 
+        // ✅ VALIDACIÓN CRÍTICA: coordenadas obligatorias
+        const latVal = document.getElementById('hiddenLatitud').value;
+        const lonVal = document.getElementById('hiddenLongitud').value;
+
+        if (!latVal || !lonVal || latVal === '' || lonVal === '') {
+            showAlert(
+                "Debés confirmar la ubicación en el mapa antes de continuar. " +
+                "Escribí la dirección y seleccioná una sugerencia, " +
+                "o hacé click directamente en el mapa.",
+                'warning'
+            );
+            document.getElementById('mapaRegistroWrapper')
+                ?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            return;
+        }
+
+        // Validar rango geográfico Bogotá
+        const lat = parseFloat(latVal);
+        const lon = parseFloat(lonVal);
+        if (lat < 4.45 || lat > 4.85 || lon < -74.25 || lon > -73.95) {
+            showAlert("La ubicación seleccionada está fuera de Bogotá.", 'error');
+            return;
+        }
+
+        // Sincronizar hiddens
         document.getElementById("hiddenDireccion").value = document.getElementById("direccion").value;
         document.getElementById("hiddenLocalidad").value = document.getElementById("localidad").value;
         document.getElementById("hiddenBarrio").value    = document.getElementById("barrio").value;
 
-        // Mostrar spinner en el botón mientras geocodifica
-        const btn = this;
-        setBtnLoading(btn, true, 'Siguiente');
-
-        await geocodificarYMostrarMapa();
-
-        setBtnLoading(btn, false, 'Siguiente');
         showStep("stepSede4");
-
-        // Invalidar tamaño del mapa después de que el paso sea visible
-        setTimeout(() => { if (mapaRegistro) mapaRegistro.invalidateSize(); }, 200);
     });
 
     // Sede — paso 4
@@ -838,6 +1328,7 @@ document.addEventListener('DOMContentLoaded', function () {
         showStep("stepSede3");
         setTimeout(() => { if (mapaRegistro) mapaRegistro.invalidateSize(); }, 200);
     };
+
     document.getElementById("nextSede4").onclick = () => {
         if (validateStep("stepSede4")) {
             document.getElementById("hiddenCuposTotales").value  = document.getElementById("cuposTotales").value;
@@ -857,16 +1348,6 @@ document.addEventListener('DOMContentLoaded', function () {
         if (rol === "CLIENTE") showStep("stepCliente");
         else                   showStep("stepSede4");
     };
-
-    // =========================================================
-    // BLUR GENÉRICO
-    // =========================================================
-    const conCheckBackend = ['correo', 'cedula', 'telefono', 'nit'];
-    document.querySelectorAll("input, select").forEach(field => {
-        if (!conCheckBackend.includes(field.id)) {
-            field.addEventListener("blur", () => validateField(field.id));
-        }
-    });
 
     // =========================================================
     // SUBMIT

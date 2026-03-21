@@ -69,10 +69,10 @@ public class Sede {
     private LocalDateTime fechaCreacion;
 
     // ── Coordenadas geocodificadas (existentes) ──────────────────────────────
-    @Column
+    @Column(nullable = false)
     private Double latitud;
 
-    @Column
+    @Column(nullable = false)
     private Double longitud;
 
     // ── NUEVOS CAMPOS — módulo configuración de sede ─────────────────────────

@@ -2,62 +2,70 @@
 <html lang="es" xmlns:th="http://www.thymeleaf.org">
 <!--
     FRAGMENTO: admin-modal-detalle-sede
-    Uso en dashboard: <div th:replace="modals/admin-modal-detalle-sede :: modal"></div>
-    Tipo: DIV propio con .aparca-modal-overlay (aparca-components.css)
-    Abre con: mostrarDetallesSede(sedeId)  →  modal.classList.add('show')
-    Cierra con: cerrarModalSede()          →  modal.classList.remove('show')
-
-    IMPORTANTE: El JS de adminD.js rellena dinámicamente:
-      - #modalSedeTitle  → nombre de la sede
-      - #modalSedeBody   → grid de datos de la sede
-    usando clases admin-info-* definidas en admin.css.
-    Las clases admin-modal-sede-* de este archivo son
-    exclusivas del contenedor y la cabecera del modal.
+    Uso: <div th:replace="modals/admin-modal-detalle-sede :: modal"></div>
+    Abre:   mostrarDetallesSede(sedeId)  → modal.classList.add('show')
+    Cierra: cerrarModalSede()            → modal.classList.remove('show')
+    CSS:    admin-modal-dinamico.css
+    Lógica: adminD.js — SIN CAMBIOS
 -->
 <body>
 <th:block th:fragment="modal">
 
     <div id="modalSede"
-         class="aparca-modal-overlay"
+         class="adm-modal-overlay"
          role="dialog"
          aria-labelledby="modalSedeTitle"
          aria-modal="true"
          aria-hidden="true">
 
-        <div class="aparca-modal-content">
+        <div class="adm-modal-box">
 
             <!-- Cabecera -->
-            <div class="aparca-modal-header">
-                <h3 id="modalSedeTitle">Información de la Sede</h3>
-                <button class="aparca-modal-close"
+            <div class="adm-modal-header">
+                <div class="adm-modal-header-left">
+                    <div class="adm-modal-icon">
+                        <!-- Lucide: building-2 -->
+                        <svg xmlns="http://www.w3.org/2000/svg" fill="none"
+                             viewBox="0 0 24 24" stroke="white"
+                             stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M6 22V4a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v18Z"/>
+                            <path d="M6 12H4a2 2 0 0 0-2 2v6a2 2 0 0 0 2 2h2"/>
+                            <path d="M18 9h2a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2h-2"/>
+                            <path d="M10 6h4"/><path d="M10 10h4"/>
+                            <path d="M10 14h4"/><path d="M10 18h4"/>
+                        </svg>
+                    </div>
+                    <div>
+                        <h3 id="modalSedeTitle" class="adm-modal-title">
+                            Información de la Sede
+                        </h3>
+                        <p class="adm-modal-subtitle">Detalle completo del registro</p>
+                    </div>
+                </div>
+                <button class="adm-modal-close"
                         onclick="cerrarModalSede()"
-                        aria-label="Cerrar modal de detalle de sede"
+                        aria-label="Cerrar modal"
                         type="button">
-                    &times;
+                    <!-- Lucide: x -->
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none"
+                         viewBox="0 0 24 24" stroke="currentColor"
+                         stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M18 6 6 18M6 6l12 12"/>
+                    </svg>
                 </button>
             </div>
 
             <!--
                 Cuerpo inyectado dinámicamente por adminD.js
-                en mostrarDetallesSede(sedeId).
-
                 Estructura esperada del innerHTML:
-                  <div class="admin-info-grid">
-                    <div class="admin-info-item admin-info-full">...</div>
-                    <div class="admin-info-item">...</div>
-                    ...
-                  </div>
+                  <div class="admin-info-grid"> ... </div>
                   <div class="admin-modal-sede-actions">
                     <button class="aparca-btn-outline">Editar Sede</button>
                     <button class="admin-modal-sede-btn-danger">Eliminar</button>
                   </div>
-
-                Las clases admin-info-* están en admin.css.
-                Las clases admin-modal-sede-* están en
-                /css/modals/admin-modal-detalle-sede.css
             -->
-            <div class="aparca-modal-body" id="modalSedeBody">
-                <!-- JS inyecta aquí el contenido -->
+            <div class="adm-modal-body" id="modalSedeBody">
+                <!-- JS inyecta aquí -->
             </div>
 
         </div>

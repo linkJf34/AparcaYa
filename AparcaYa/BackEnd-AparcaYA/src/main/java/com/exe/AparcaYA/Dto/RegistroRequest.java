@@ -32,6 +32,8 @@ public class RegistroRequest {
     private Double tarifaMinutoC;
     private Double tarifaMinutoM;
     private String hiddenHorarioSede;
+    private Double hiddenLatitud;
+    private Double hiddenLongitud;
 
    /* // Campos visibles para sede (mantén si los necesitas, pero el controlador usa hidden)
     private String nombreSede;

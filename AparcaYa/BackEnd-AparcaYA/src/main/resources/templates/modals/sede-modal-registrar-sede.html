@@ -1,0 +1,433 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<!--
+    FRAGMENTO: sede-modal-registrar-sede
+    Uso: <div th:replace="modals/sede-modal-registrar-sede :: modal"></div>
+    Abre:   abrirModalRegistrarSede()
+    Cierra: cerrarModalRegistrarSede()
+    Lógica: SedeD.js (bloque REGISTRAR SEDE)
+    CSS:    sede-modal-dinamico.css (sección SEDE al final)
+
+    NOTA: Leaflet se importa en DashboardSede.html <head>
+          NO repetir aquí para evitar doble carga.
+-->
+<body>
+<th:block th:fragment="modal">
+
+    <div id="registrarSedeModal"
+         class="sede-modal"
+         role="dialog"
+         aria-modal="true"
+         aria-labelledby="rsModalTitulo"
+         aria-hidden="true">
+
+        <div class="sede-modal-box" style="max-width:660px;max-height:92vh;overflow-y:auto;">
+
+            <!-- Encabezado -->
+            <div style="display:flex;align-items:center;gap:.75rem;margin-bottom:1.25rem;padding-bottom:1rem;border-bottom:1.5px solid #f1f5f9;">
+                <div style="width:42px;height:42px;border-radius:.75rem;background:linear-gradient(135deg,#134e4a,#0d9488);display:flex;align-items:center;justify-content:center;box-shadow:0 4px 12px rgba(13,148,136,.3);flex-shrink:0;">
+                    <!-- Lucide: building-2 -->
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
+                         stroke="white" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"
+                         style="width:22px;height:22px;">
+                        <path d="M6 22V4a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v18Z"/>
+                        <path d="M6 12H4a2 2 0 0 0-2 2v6a2 2 0 0 0 2 2h2"/>
+                        <path d="M18 9h2a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2h-2"/>
+                        <path d="M10 6h4"/><path d="M10 10h4"/>
+                        <path d="M10 14h4"/><path d="M10 18h4"/>
+                    </svg>
+                </div>
+                <div>
+                    <h3 id="rsModalTitulo" style="font-size:1.1rem;font-weight:800;color:#134e4a;margin:0;letter-spacing:-.02em;">Registrar Nueva Sede</h3>
+                    <p style="font-size:.78rem;color:#64748b;margin:0;font-weight:500;">Completa la información y confirma la ubicación en el mapa</p>
+                </div>
+            </div>
+
+            <!-- ═══ SECCIÓN 1 — INFORMACIÓN BÁSICA ═══ -->
+            <div class="rs-section-band teal">
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
+                     stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <circle cx="12" cy="12" r="10"/><path d="M12 16v-4"/><path d="M12 8h.01"/>
+                </svg>
+                Información Básica
+            </div>
+
+            <label for="rsNombre">
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
+                     stroke="#0d9488" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="m2 7 4.41-4.41A2 2 0 0 1 7.83 2h8.34a2 2 0 0 1 1.42.59L22 7"/>
+                    <path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8"/>
+                    <path d="M15 22v-4a2 2 0 0 0-2-2h-2a2 2 0 0 0-2 2v4"/>
+                    <path d="M2 7h20"/>
+                </svg>
+                Nombre de la sede *
+            </label>
+            <input type="text" id="rsNombre" placeholder="Ej: Parqueadero Centro Norte" maxlength="100" autocomplete="organization"/>
+            <span class="rs-err" id="err-rsNombre"></span>
+
+            <label for="rsNit">
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
+                     stroke="#0d9488" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <line x1="4" x2="20" y1="9" y2="9"/><line x1="4" x2="20" y1="15" y2="15"/>
+                    <line x1="10" x2="8" y1="3" y2="21"/><line x1="16" x2="14" y1="3" y2="21"/>
+                </svg>
+                NIT *
+            </label>
+            <input type="text" id="rsNit" placeholder="123456789-0" maxlength="15" autocomplete="off"
+                   style="font-family:monospace;letter-spacing:.06em;"/>
+            <span class="rs-err" id="err-rsNit"></span>
+
+            <!-- ═══ SECCIÓN 2 — UBICACIÓN ═══ -->
+            <div class="rs-section-band teal" style="margin-top:1.5rem;">
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
+                     stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M20 10c0 4.993-5.539 10.193-7.399 11.799a1 1 0 0 1-1.202 0C9.539 20.193 4 14.993 4 10a8 8 0 0 1 16 0"/>
+                    <circle cx="12" cy="10" r="3"/>
+                </svg>
+                Ubicación
+            </div>
+
+            <div class="rs-grid2">
+                <div>
+                    <label for="rsLocalidad">
+                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
+                             stroke="#0d9488" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M14.106 5.553a2 2 0 0 0 1.788 0l3.659-1.83A1 1 0 0 1 21 4.619v12.764a1 1 0 0 1-.553.894l-4.553 2.277a2 2 0 0 1-1.788 0l-4.212-2.106a2 2 0 0 0-1.788 0l-3.659 1.83A1 1 0 0 1 3 19.381V6.618a1 1 0 0 1 .553-.894l4.553-2.277a2 2 0 0 1 1.788 0z"/>
+                            <path d="M15 5.764v15"/><path d="M9 3.236v15"/>
+                        </svg>
+                        Localidad *
+                    </label>
+                    <select id="rsLocalidad">
+                        <option value="">Selecciona una localidad</option>
+                        <option value="USAQUEN">Usaquén</option>
+                        <option value="CHAPINERO">Chapinero</option>
+                        <option value="SANTA_FE">Santa Fe</option>
+                        <option value="SAN_CRISTOBAL">San Cristóbal</option>
+                        <option value="USME">Usme</option>
+                        <option value="TUNJUELITO">Tunjuelito</option>
+                        <option value="BOSA">Bosa</option>
+                        <option value="KENNEDY">Kennedy</option>
+                        <option value="FONTIBON">Fontibón</option>
+                        <option value="ENGATIVA">Engativá</option>
+                        <option value="SUBA">Suba</option>
+                        <option value="BARRIOS_UNIDOS">Barrios Unidos</option>
+                        <option value="TEUSAQUILLO">Teusaquillo</option>
+                        <option value="MARTIRES">Los Mártires</option>
+                        <option value="ANTONIO_NARINO">Antonio Nariño</option>
+                        <option value="PUENTE_ARANDA">Puente Aranda</option>
+                        <option value="CANDELARIA">La Candelaria</option>
+                        <option value="RAFAEL_URIBE_URIBE">Rafael Uribe Uribe</option>
+                        <option value="CIUDAD_BOLIVAR">Ciudad Bolívar</option>
+                        <option value="SUMAPAZ">Sumapaz</option>
+                    </select>
+                    <span class="rs-err" id="err-rsLocalidad"></span>
+                </div>
+                <div>
+                    <label for="rsBarrio">
+                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
+                             stroke="#0d9488" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <line x1="3" x2="21" y1="22" y2="22"/>
+                            <line x1="6" x2="6" y1="18" y2="11"/>
+                            <line x1="10" x2="10" y1="18" y2="11"/>
+                            <line x1="14" x2="14" y1="18" y2="11"/>
+                            <line x1="18" x2="18" y1="18" y2="11"/>
+                            <polygon points="12 2 20 7 4 7"/>
+                        </svg>
+                        Barrio *
+                    </label>
+                    <select id="rsBarrio">
+                        <option value="">Primero selecciona localidad</option>
+                    </select>
+                    <span class="rs-err" id="err-rsBarrio"></span>
+                </div>
+            </div>
+
+            <!-- Dirección con autocompletado -->
+            <div style="position:relative;margin-top:.25rem;">
+                <label for="rsDireccion">
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
+                         stroke="#0d9488" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/>
+                    </svg>
+                    Dirección *
+                    <span style="font-size:.72rem;font-weight:400;color:#64748b;margin-left:.25rem;">— escribí para ver sugerencias</span>
+                </label>
+                <input type="text" id="rsDireccion"
+                       placeholder="Ej: Calle 153 #45-67"
+                       maxlength="200" autocomplete="off"
+                       aria-autocomplete="list" aria-controls="rsAutocompletadoDropdown"/>
+                <span class="rs-err" id="err-rsDireccion"></span>
+
+                <div id="rsAutocompletadoDropdown"
+                     role="listbox"
+                     aria-label="Sugerencias de dirección"
+                     class="rs-autocomp-dropdown">
+                </div>
+            </div>
+
+            <!-- Botón GPS -->
+            <div style="margin-top:.625rem;">
+                <button type="button" id="rsBtnGPS" class="rs-btn-gps">
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
+                         stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <polygon points="3 11 22 2 13 21 11 13 3 11"/>
+                    </svg>
+                    Usar mi ubicación actual (GPS)
+                </button>
+            </div>
+
+            <!-- Mapa -->
+            <div class="rs-map-wrap" style="margin-top:.875rem;">
+                <div class="rs-map-header">
+                    <span class="rs-map-label">
+                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
+                             stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M20 10c0 4.993-5.539 10.193-7.399 11.799a1 1 0 0 1-1.202 0C9.539 20.193 4 14.993 4 10a8 8 0 0 1 16 0"/>
+                            <circle cx="12" cy="10" r="3"/>
+                        </svg>
+                        Confirma la ubicación exacta
+                    </span>
+                    <span id="rsMapStatus">Buscá la dirección o hacé click en el mapa</span>
+                </div>
+                <div id="rsMapContainer"></div>
+                <p class="rs-map-hint">
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
+                         stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <circle cx="12" cy="12" r="10"/><path d="M12 16v-4"/><path d="M12 8h.01"/>
+                    </svg>
+                    Escribí la dirección · Hacé click en el mapa · Arrastrá el pin para ajustar la posición exacta
+                </p>
+            </div>
+
+            <div id="rsUbicacionBadge"></div>
+            <input type="hidden" id="rsLatitud"/>
+            <input type="hidden" id="rsLongitud"/>
+
+            <!-- ═══ SECCIÓN 3 — DETALLES OPERATIVOS ═══ -->
+            <div class="rs-section-band blue" style="margin-top:1.5rem;">
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
+                     stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M20 7h-9"/><path d="M14 17H5"/>
+                    <circle cx="17" cy="17" r="3"/><circle cx="7" cy="7" r="3"/>
+                </svg>
+                Detalles Operativos
+            </div>
+
+            <label for="rsCupos">
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
+                     stroke="#1d4ed8" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <rect width="18" height="18" x="3" y="3" rx="2"/>
+                    <path d="M9 17V7h4a3 3 0 0 1 0 6H9"/>
+                </svg>
+                Cupos totales *
+            </label>
+            <input type="number" id="rsCupos" placeholder="Ej: 50" min="1" max="9999"/>
+            <span class="rs-err" id="err-rsCupos"></span>
+
+            <!-- Tarifas plenas -->
+            <div class="rs-tarifa-card blue" style="margin-top:.75rem;">
+                <div class="rs-tarifa-label">
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
+                         stroke="#1d4ed8" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <rect width="20" height="12" x="2" y="6" rx="2"/>
+                        <circle cx="12" cy="12" r="2"/>
+                        <path d="M6 12h.01M18 12h.01"/>
+                    </svg>
+                    Tarifas Plenas — Todo el día
+                </div>
+                <div class="rs-grid2">
+                    <div>
+                        <label for="rsTarifaPlenaC">
+                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
+                                 stroke="#1d4ed8" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <path d="M5 17H3v-5l2-5h14l2 5v5h-2"/>
+                                <circle cx="7.5" cy="17.5" r="2.5"/><circle cx="16.5" cy="17.5" r="2.5"/>
+                                <path d="M5 12h14"/>
+                            </svg>
+                            Carro ($)
+                        </label>
+                        <div class="rs-money">
+                            <span class="rs-money-s">$</span>
+                            <input type="number" id="rsTarifaPlenaC" placeholder="15000" min="0" step="100"/>
+                        </div>
+                        <span class="rs-err" id="err-rsTarifaPlenaC"></span>
+                    </div>
+                    <div>
+                        <label for="rsTarifaPlenaM">
+                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
+                                 stroke="#1d4ed8" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <circle cx="18.5" cy="17.5" r="3.5"/><circle cx="5.5" cy="17.5" r="3.5"/>
+                                <circle cx="15" cy="5" r="1"/>
+                                <path d="M12 17.5V14l-3-3 4-3 2 3h2"/>
+                            </svg>
+                            Moto ($)
+                        </label>
+                        <div class="rs-money">
+                            <span class="rs-money-s">$</span>
+                            <input type="number" id="rsTarifaPlenaM" placeholder="8000" min="0" step="100"/>
+                        </div>
+                        <span class="rs-err" id="err-rsTarifaPlenaM"></span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Tarifas por minuto -->
+            <div class="rs-tarifa-card green" style="margin-top:.75rem;">
+                <div class="rs-tarifa-label">
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
+                         stroke="#15803d" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <line x1="10" x2="14" y1="2" y2="2"/>
+                        <line x1="12" x2="15" y1="14" y2="11"/>
+                        <circle cx="12" cy="14" r="8"/>
+                    </svg>
+                    Tarifas por Minuto
+                </div>
+                <div class="rs-grid2">
+                    <div>
+                        <label for="rsTarifaMinutoC">
+                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
+                                 stroke="#15803d" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <path d="M5 17H3v-5l2-5h14l2 5v5h-2"/>
+                                <circle cx="7.5" cy="17.5" r="2.5"/><circle cx="16.5" cy="17.5" r="2.5"/>
+                                <path d="M5 12h14"/>
+                            </svg>
+                            Carro ($/min)
+                        </label>
+                        <div class="rs-money">
+                            <span class="rs-money-s">$</span>
+                            <input type="number" id="rsTarifaMinutoC" placeholder="50" min="0" step="1"/>
+                        </div>
+                        <span class="rs-err" id="err-rsTarifaMinutoC"></span>
+                    </div>
+                    <div>
+                        <label for="rsTarifaMinutoM">
+                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
+                                 stroke="#15803d" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <circle cx="18.5" cy="17.5" r="3.5"/><circle cx="5.5" cy="17.5" r="3.5"/>
+                                <circle cx="15" cy="5" r="1"/>
+                                <path d="M12 17.5V14l-3-3 4-3 2 3h2"/>
+                            </svg>
+                            Moto ($/min)
+                        </label>
+                        <div class="rs-money">
+                            <span class="rs-money-s">$</span>
+                            <input type="number" id="rsTarifaMinutoM" placeholder="30" min="0" step="1"/>
+                        </div>
+                        <span class="rs-err" id="err-rsTarifaMinutoM"></span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Horario -->
+            <label style="margin-top:1rem;">
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
+                     stroke="#0d9488" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/>
+                </svg>
+                Horario de atención
+            </label>
+
+            <div class="rs-horario-wrap">
+                <div class="rs-horario-col">
+                    <div class="rs-horario-col-label">
+                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
+                             stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M12 2v8"/><path d="m4.93 10.93 1.41 1.41"/>
+                            <path d="M2 18h2"/><path d="M20 18h2"/>
+                            <path d="m19.07 10.93-1.41 1.41"/>
+                            <path d="M22 22H2"/><path d="m8 6 4-4 4 4"/>
+                            <path d="M16 18a4 4 0 0 0-8 0"/>
+                        </svg>
+                        Apertura
+                    </div>
+                    <select id="rsHoraApertura" onchange="rsActualizarHorario()">
+                        <option value="0:00">12:00 AM</option><option value="1:00">1:00 AM</option>
+                        <option value="2:00">2:00 AM</option><option value="3:00">3:00 AM</option>
+                        <option value="4:00">4:00 AM</option><option value="5:00">5:00 AM</option>
+                        <option value="6:00">6:00 AM</option><option value="7:00" selected>7:00 AM</option>
+                        <option value="8:00">8:00 AM</option><option value="9:00">9:00 AM</option>
+                        <option value="10:00">10:00 AM</option><option value="11:00">11:00 AM</option>
+                        <option value="12:00">12:00 PM</option><option value="13:00">1:00 PM</option>
+                        <option value="14:00">2:00 PM</option><option value="15:00">3:00 PM</option>
+                        <option value="16:00">4:00 PM</option><option value="17:00">5:00 PM</option>
+                        <option value="18:00">6:00 PM</option><option value="19:00">7:00 PM</option>
+                        <option value="20:00">8:00 PM</option><option value="21:00">9:00 PM</option>
+                        <option value="22:00">10:00 PM</option><option value="23:00">11:00 PM</option>
+                    </select>
+                </div>
+
+                <div class="rs-horario-sep">
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
+                         stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+                         style="width:18px;height:18px;">
+                        <path d="M5 12h14"/><path d="m12 5 7 7-7 7"/>
+                    </svg>
+                </div>
+
+                <div class="rs-horario-col">
+                    <div class="rs-horario-col-label">
+                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
+                             stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M12 10V2"/><path d="m4.93 10.93 1.41 1.41"/>
+                            <path d="M2 18h2"/><path d="M20 18h2"/>
+                            <path d="m19.07 10.93-1.41 1.41"/>
+                            <path d="M22 22H2"/>
+                            <path d="m16 6-4 4-4-4"/>
+                            <path d="M16 18a4 4 0 0 0-8 0"/>
+                        </svg>
+                        Cierre
+                    </div>
+                    <select id="rsHoraCierre" onchange="rsActualizarHorario()">
+                        <option value="0:00">12:00 AM</option><option value="1:00">1:00 AM</option>
+                        <option value="2:00">2:00 AM</option><option value="3:00">3:00 AM</option>
+                        <option value="4:00">4:00 AM</option><option value="5:00">5:00 AM</option>
+                        <option value="6:00">6:00 AM</option><option value="7:00">7:00 AM</option>
+                        <option value="8:00">8:00 AM</option><option value="9:00">9:00 AM</option>
+                        <option value="10:00">10:00 AM</option><option value="11:00">11:00 AM</option>
+                        <option value="12:00">12:00 PM</option><option value="13:00">1:00 PM</option>
+                        <option value="14:00">2:00 PM</option><option value="15:00">3:00 PM</option>
+                        <option value="16:00">4:00 PM</option><option value="17:00">5:00 PM</option>
+                        <option value="18:00">6:00 PM</option><option value="19:00">7:00 PM</option>
+                        <option value="20:00">8:00 PM</option><option value="21:00">9:00 PM</option>
+                        <option value="22:00" selected>10:00 PM</option><option value="23:00">11:00 PM</option>
+                        <option value="23:59">11:59 PM</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="rs-horario-preview">
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
+                     stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+                     style="width:14px;height:14px;flex-shrink:0;color:#0d9488;">
+                    <circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/>
+                </svg>
+                Horario: <strong id="rsHorarioPreview" style="color:#0f766e;margin-left:.25rem;">7:00 AM → 10:00 PM</strong>
+            </div>
+
+            <!-- Acciones -->
+            <div class="sede-modal-action">
+                <button class="sede-btn-outline" onclick="cerrarModalRegistrarSede()" type="button">
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
+                         stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"
+                         style="width:15px;height:15px;">
+                        <path d="M18 6 6 18M6 6l12 12"/>
+                    </svg>
+                    Cancelar
+                </button>
+                <button class="sede-btn-primary" onclick="registrarSede()" type="button">
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
+                         stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+                         style="width:16px;height:16px;">
+                        <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/>
+                        <polyline points="22 4 12 14.01 9 11.01"/>
+                    </svg>
+                    Registrar Sede
+                </button>
+            </div>
+
+        </div>
+    </div>
+
+</th:block>
+</body>
+</html>

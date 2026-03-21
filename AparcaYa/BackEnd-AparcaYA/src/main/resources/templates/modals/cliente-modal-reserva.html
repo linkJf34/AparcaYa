@@ -1,94 +1,200 @@
 <!DOCTYPE html>
 <html lang="es" xmlns:th="http://www.thymeleaf.org">
 <!--
-    FRAGMENTO: cliente-modal-reserva
-    Uso: <div th:replace="~{modals/cliente-modal-reserva :: modal}"></div>
-    Abre:  abrirModalReserva()    → modal.style.display = 'flex'
-    Cierra: cerrarReservaModal()  → modal.style.display = 'none'
+  FRAGMENTO: cliente-modal-reserva
+  Ruta: templates/modals/cliente-modal-reserva.html
+  Uso: <div th:replace="~{modals/cliente-modal-reserva :: modal}"></div>
 
-    IDs que lee ClienteD.js:
-      #reservaSedeNombre  → nombre de la sede seleccionada
-      #vehiculoSelect     → select con vehículos del cliente
-      #fechaInicio        → datetime-local inicio
-      #fechaFin           → datetime-local fin
-      #reservarBtn        → botón confirmar — JS asigna onclick = crearReserva
+  IDs que lee ClienteD.js — NO TOCAR:
+    #reservaModal      → modal.style.display = 'flex'
+    #reservaSedeNombre → nombre de la sede
+    #vehiculoSelect    → select de vehículos
+    #fechaInicio       → YYYY-MM-DDTHH:mm leído por crearReserva()
+    #fechaFin          → YYYY-MM-DDTHH:mm leído por crearReserva()
+    #reservarBtn       → onclick = crearReserva
+
+  CSS: /css/modals/cliente-modal-reserva.css
+  JS:  /js/ClienteD.js  (resvToggle, resvNav, resvOk, resvReset al final)
 -->
 <body>
 <th:block th:fragment="modal">
 
+    <input type="hidden" id="fechaInicio"/>
+    <input type="hidden" id="fechaFin"/>
+
     <div id="reservaModal"
-         style="display:none;position:fixed;inset:0;z-index:1000;
-                background:rgba(0,0,0,0.5);
-                align-items:center;justify-content:center;padding:1rem;"
-         role="dialog"
-         aria-modal="true"
-         aria-labelledby="reservaModalTitle"
-         aria-hidden="true">
+         style="display:none; position:fixed; inset:0; z-index:1000;
+            background:rgba(0,0,0,0.55); align-items:center;
+            justify-content:center; padding:1rem; overflow-y:auto;"
+         role="dialog" aria-modal="true"
+         aria-labelledby="reservaModalTitle" aria-hidden="true">
 
-        <div class="sede-modal-box" style="max-width:480px;width:100%;">
+        <div class="resv-box">
 
-            <!-- Cabecera -->
-            <div style="display:flex;align-items:center;
-                        justify-content:space-between;margin-bottom:1.25rem;">
-                <h3 id="reservaModalTitle"
-                    style="font-size:1.125rem;font-weight:700;color:#4c1d95;margin:0;">
-                    📅 Nueva Reserva
-                </h3>
-                <button type="button"
-                        onclick="cerrarReservaModal()"
-                        aria-label="Cerrar modal"
-                        style="background:none;border:none;cursor:pointer;
-                               color:#64748b;padding:0.25rem;">
-                    <svg xmlns="http://www.w3.org/2000/svg"
-                         style="width:1.25rem;height:1.25rem;"
-                         fill="none" viewBox="0 0 24 24"
-                         stroke="currentColor" stroke-width="2">
+            <!-- CABECERA -->
+            <div class="resv-header">
+                <h3 id="reservaModalTitle" class="resv-title">
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
+                         stroke-width="1.5" stroke="currentColor" style="width:18px;height:18px;flex-shrink:0;">
                         <path stroke-linecap="round" stroke-linejoin="round"
-                              d="M6 18L18 6M6 6l12 12"/>
+                              d="M6.75 3v2.25M17.25 3v2.25M3 18.75V7.5a2.25 2.25 0 012.25-2.25h13.5A2.25
+                2.25 0 0121 7.5v11.25m-18 0A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021
+                18.75m-18 0v-7.5A2.25 2.25 0 015.25 9h13.5A2.25 2.25 0 0021 11.25v7.5"/>
+                    </svg>
+                    Nueva reserva
+                </h3>
+                <button type="button" class="resv-close"
+                        onclick="cerrarReservaModal()" aria-label="Cerrar">
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
+                         stroke-width="2" stroke="currentColor" style="width:16px;height:16px;">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/>
                     </svg>
                 </button>
             </div>
 
-            <!-- Nombre de la sede — rellena JS en abrirModalReserva() -->
-            <div style="background:#f5f3ff;border-radius:0.75rem;
-                        padding:1rem;margin-bottom:1.25rem;">
-                <p style="font-size:0.85rem;color:#6d28d9;font-weight:600;margin:0;">
-                    🅿️ <span id="reservaSedeNombre">—</span>
-                </p>
+            <!-- BODY -->
+            <div class="resv-body">
+
+                <!-- Sede -->
+                <div class="resv-sede-pill">
+                    <div class="resv-sede-dot"></div>
+                    <span id="reservaSedeNombre">—</span>
+                </div>
+
+                <!-- Vehículo -->
+                <div class="resv-field">
+                    <label for="vehiculoSelect" class="resv-label">Vehículo *</label>
+                    <select id="vehiculoSelect" required class="resv-select">
+                        <option value="">Selecciona un vehículo</option>
+                    </select>
+                </div>
+
+                <!-- Fechas — dos columnas -->
+                <div class="resv-dates-row">
+
+                    <!-- INICIO -->
+                    <div class="resv-field">
+                        <label class="resv-label">Inicio *</label>
+
+                        <button type="button" id="trigInicio"
+                                class="resv-dt-trigger" onclick="resvToggle('inicio')">
+                            <div class="resv-dt-top">
+                                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
+                                     stroke-width="1.5" stroke="currentColor" class="resv-dt-icon">
+                                    <path stroke-linecap="round" stroke-linejoin="round"
+                                          d="M6.75 3v2.25M17.25 3v2.25M3 18.75V7.5a2.25 2.25 0 012.25-2.25h13.5A2.25
+                      2.25 0 0121 7.5v11.25m-18 0A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021
+                      18.75m-18 0v-7.5A2.25 2.25 0 015.25 9h13.5A2.25 2.25 0 0021 11.25v7.5"/>
+                                </svg>
+                                <span id="lblFechaInicio" class="resv-dt-val resv-dt-ph">Seleccionar</span>
+                            </div>
+                            <div class="resv-dt-bottom">
+                                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
+                                     stroke-width="1.5" stroke="currentColor" class="resv-dt-icon-sm">
+                                    <path stroke-linecap="round" stroke-linejoin="round"
+                                          d="M12 6v6h4.5m4.5 0a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                                </svg>
+                                <span id="lblHoraInicio" class="resv-dt-hora">Sin hora</span>
+                            </div>
+                        </button>
+
+                        <div id="popInicio" class="resv-popup" style="display:none; position:fixed; z-index:9999;">
+                            <div class="resv-popup-header">
+                                <button type="button" class="resv-popup-nav" onclick="resvNav('inicio',-1)">
+                                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
+                                         stroke-width="2" stroke="currentColor" style="width:13px;height:13px;">
+                                        <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 19.5L8.25 12l7.5-7.5"/>
+                                    </svg>
+                                </button>
+                                <span id="lblMesInicio" class="resv-popup-mes"></span>
+                                <button type="button" class="resv-popup-nav" onclick="resvNav('inicio',1)">
+                                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
+                                         stroke-width="2" stroke="currentColor" style="width:13px;height:13px;">
+                                        <path stroke-linecap="round" stroke-linejoin="round" d="M8.25 4.5l7.5 7.5-7.5 7.5"/>
+                                    </svg>
+                                </button>
+                            </div>
+                            <div class="resv-popup-dow">
+                                <span>Lu</span><span>Ma</span><span>Mi</span>
+                                <span>Ju</span><span>Vi</span><span>Sá</span><span>Do</span>
+                            </div>
+                            <div id="gridInicio" class="resv-popup-grid"></div>
+                            <div class="resv-popup-time">
+                                <span class="resv-time-label">Hora</span>
+                                <select id="hrInicio" class="resv-time-sel"></select>
+                                <span class="resv-time-sep">:</span>
+                                <select id="mnInicio" class="resv-time-sel"></select>
+                                <button type="button" class="resv-time-ok" onclick="resvOk('inicio')">OK</button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- FIN -->
+                    <div class="resv-field">
+                        <label class="resv-label">Fin *</label>
+
+                        <button type="button" id="trigFin"
+                                class="resv-dt-trigger" onclick="resvToggle('fin')">
+                            <div class="resv-dt-top">
+                                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
+                                     stroke-width="1.5" stroke="currentColor" class="resv-dt-icon">
+                                    <path stroke-linecap="round" stroke-linejoin="round"
+                                          d="M6.75 3v2.25M17.25 3v2.25M3 18.75V7.5a2.25 2.25 0 012.25-2.25h13.5A2.25
+                      2.25 0 0121 7.5v11.25m-18 0A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021
+                      18.75m-18 0v-7.5A2.25 2.25 0 015.25 9h13.5A2.25 2.25 0 0021 11.25v7.5"/>
+                                </svg>
+                                <span id="lblFechaFin" class="resv-dt-val resv-dt-ph">Seleccionar</span>
+                            </div>
+                            <div class="resv-dt-bottom">
+                                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
+                                     stroke-width="1.5" stroke="currentColor" class="resv-dt-icon-sm">
+                                    <path stroke-linecap="round" stroke-linejoin="round"
+                                          d="M12 6v6h4.5m4.5 0a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                                </svg>
+                                <span id="lblHoraFin" class="resv-dt-hora">Sin hora</span>
+                            </div>
+                        </button>
+
+                        <div id="popFin" class="resv-popup" style="display:none; position:fixed; z-index:9999;">
+                            <div class="resv-popup-header">
+                                <button type="button" class="resv-popup-nav" onclick="resvNav('fin',-1)">
+                                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
+                                         stroke-width="2" stroke="currentColor" style="width:13px;height:13px;">
+                                        <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 19.5L8.25 12l7.5-7.5"/>
+                                    </svg>
+                                </button>
+                                <span id="lblMesFin" class="resv-popup-mes"></span>
+                                <button type="button" class="resv-popup-nav" onclick="resvNav('fin',1)">
+                                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
+                                         stroke-width="2" stroke="currentColor" style="width:13px;height:13px;">
+                                        <path stroke-linecap="round" stroke-linejoin="round" d="M8.25 4.5l7.5 7.5-7.5 7.5"/>
+                                    </svg>
+                                </button>
+                            </div>
+                            <div class="resv-popup-dow">
+                                <span>Lu</span><span>Ma</span><span>Mi</span>
+                                <span>Ju</span><span>Vi</span><span>Sá</span><span>Do</span>
+                            </div>
+                            <div id="gridFin" class="resv-popup-grid"></div>
+                            <div class="resv-popup-time">
+                                <span class="resv-time-label">Hora</span>
+                                <select id="hrFin" class="resv-time-sel"></select>
+                                <span class="resv-time-sep">:</span>
+                                <select id="mnFin" class="resv-time-sel"></select>
+                                <button type="button" class="resv-time-ok" onclick="resvOk('fin')">OK</button>
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
             </div>
 
-            <!-- Vehículo — poblado por cargarVehiculosSelect() en JS -->
-            <div class="sede-form-group">
-                <label for="vehiculoSelect">Vehículo *</label>
-                <select id="vehiculoSelect" required>
-                    <option value="">Selecciona un vehículo</option>
-                </select>
-            </div>
-
-            <!-- Fechas -->
-            <div class="sede-form-group">
-                <label for="fechaInicio">Fecha y hora de inicio *</label>
-                <input type="datetime-local" id="fechaInicio" required
-                       aria-label="Fecha y hora de inicio de la reserva"/>
-            </div>
-
-            <div class="sede-form-group">
-                <label for="fechaFin">Fecha y hora de fin *</label>
-                <input type="datetime-local" id="fechaFin" required
-                       aria-label="Fecha y hora de fin de la reserva"/>
-            </div>
-
-            <!-- Acciones -->
-            <div class="sede-modal-action">
-                <button type="button"
-                        class="sede-btn-secondary"
-                        onclick="cerrarReservaModal()">
-                    Cancelar
-                </button>
-                <button type="button"
-                        id="reservarBtn"
-                        class="cli-btn-confirm">
-                    Confirmar Reserva
+            <!-- FOOTER -->
+            <div class="resv-footer">
+                <button type="button" class="resv-btn-cancel"
+                        onclick="cerrarReservaModal()">Cancelar</button>
+                <button type="button" id="reservarBtn" class="resv-btn-confirm">
+                    Confirmar reserva
                 </button>
             </div>
 

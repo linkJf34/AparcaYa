@@ -1,108 +1,77 @@
 /* ============================================================
-   SEDE-MODAL-DINAMICO.CSS  — v2 (paleta teal unificada)
+   SEDE-MODAL-DINAMICO.CSS  — v4
    Ruta: static/css/modals/sede-modal-dinamico.css
 
-   MODALES: #salidaModal  y  #cobroModal  (DashboardSede)
-   TIPO:    DIV overlay gestionado por JS con display:flex/none
+   MODALES CUBIERTOS:
+     Secciones 1–13 : #salidaModal  y  #cobroModal
+     Sección 14     : #registrarTrabajadorModal
+     Sección 15     : #registrarSedeModal
 
-   PALETA — alineada con Sede.css:
+   PALETA:
      --sede-gradient-start : #0d9488
      --sede-gradient-mid   : #0f766e
      --sede-gradient-end   : #134e4a
      --sede-accent         : #14b8a6
      --sede-accent-light   : #ccfbf1
      --sede-surface        : #f0fdfa
-
-   BOTONES: .sede-btn-* ya definidos en Sede.css — reutilizados
-            sin duplicar.
-
-   CAMBIOS respecto a v1:
-     - Header: gradiente azul #0284c7/#00BFFF → teal #0d9488/#0f766e
-     - Body card: blanco plano → #f0fdfa (igual que Trabajador)
-     - Bordes internos: sin color → #ccfbf1
-     - Accent-color radio: #00BFFF → #0f766e
-     - Focus selects: #00BFFF → #14b8a6
-     - Total precio: mantiene #059669 (verde éxito — igual Trabajador)
    ============================================================ */
 
 
 /* ------------------------------------------------------------
    1. OVERLAY / BACKDROP
-   JS controla display:block→flex / none
    ------------------------------------------------------------ */
 .sede-modal-dinamico {
     display: none;
     position: fixed;
     z-index: 999999;
-    left: 0;
-    top: 0;
-    width: 100%;
-    height: 100%;
+    left: 0; top: 0;
+    width: 100%; height: 100%;
     overflow: auto;
-    background-color: rgba(0, 0, 0, 0.5);
+    background-color: rgba(0,0,0,.5);
     backdrop-filter: blur(2px);
-    /* Centrado igual que Trabajador */
     align-items: center;
     justify-content: center;
     padding: 1rem;
     box-sizing: border-box;
 }
-
-/* Apertura: JS añade display:flex */
-.sede-modal-dinamico.open {
-    display: flex;
-}
+.sede-modal-dinamico.open { display: flex; }
 
 
 /* ------------------------------------------------------------
    2. CAJA DEL MODAL
    ------------------------------------------------------------ */
 .sede-modal-dinamico-content {
-    background-color: #ffffff;
-    border-radius: 0.875rem;
+    background-color: #fff;
+    border-radius: .875rem;
     width: 100%;
     max-width: 520px;
-    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.25);
+    box-shadow: 0 20px 60px rgba(0,0,0,.25);
     position: relative;
     z-index: 1000000;
     pointer-events: auto;
     overflow: hidden;
-    animation: sede-modal-in 0.25s ease-out;
+    animation: sede-modal-in .25s ease-out;
 }
-
-/* Cobro necesita scroll interno */
-.sede-modal-dinamico-content--cobro {
-    max-height: 90vh;
-    overflow-y: auto;
-}
+.sede-modal-dinamico-content--cobro { max-height: 90vh; overflow-y: auto; }
 
 @keyframes sede-modal-in {
-    from {
-        opacity: 0;
-        transform: translateY(20px) scale(0.97);
-    }
-    to {
-        opacity: 1;
-        transform: translateY(0) scale(1);
-    }
+    from { opacity:0; transform:translateY(20px) scale(.97); }
+    to   { opacity:1; transform:translateY(0)    scale(1);   }
 }
 
 
 /* ------------------------------------------------------------
-   3. HEADER — gradiente teal (reemplaza azul anterior)
+   3. HEADER
    ------------------------------------------------------------ */
 .sede-modal-dinamico-header {
     display: flex;
     justify-content: space-between;
     align-items: center;
     padding: 1.25rem 1.5rem;
-    border-bottom: 1px solid var(--sede-accent-light, #ccfbf1);
-    background: linear-gradient(135deg,
-    var(--sede-gradient-start, #0d9488),
-    var(--sede-gradient-mid,   #0f766e));
-    border-radius: 0.875rem 0.875rem 0 0;
+    border-bottom: 1px solid #ccfbf1;
+    background: linear-gradient(135deg, #0d9488, #0f766e);
+    border-radius: .875rem .875rem 0 0;
 }
-
 .sede-modal-dinamico-header h2 {
     margin: 0;
     font-size: 1.125rem;
@@ -115,262 +84,454 @@
    4. BOTÓN CERRAR
    ------------------------------------------------------------ */
 .sede-modal-dinamico-close {
-    background: none;
-    border: none;
-    cursor: pointer;
-    color: rgba(255, 255, 255, 0.8);
-    padding: 0.25rem;
-    border-radius: 0.375rem;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    transition: color 0.2s, background-color 0.2s, transform 0.2s;
-    line-height: 1;
-    font-size: 1.5rem;
-    font-weight: bold;
+    background: none; border: none; cursor: pointer;
+    color: rgba(255,255,255,.8);
+    padding: .25rem; border-radius: .375rem;
+    display: flex; align-items: center; justify-content: center;
+    transition: color .2s, background-color .2s, transform .2s;
+    line-height: 1; font-size: 1.5rem; font-weight: bold;
     user-select: none;
 }
-
 .sede-modal-dinamico-close:hover {
     color: white;
-    background-color: rgba(255, 255, 255, 0.15);
+    background-color: rgba(255,255,255,.15);
     transform: scale(1.1);
 }
-
-/* Soporte tanto para SVG como para &times; */
-.sede-modal-dinamico-close svg {
-    width: 1.25rem;
-    height: 1.25rem;
-}
+.sede-modal-dinamico-close svg { width: 1.25rem; height: 1.25rem; }
 
 
 /* ------------------------------------------------------------
-   5. CUERPO DEL MODAL
+   5. CUERPO
    ------------------------------------------------------------ */
-.sede-modal-dinamico-body {
-    padding: 1.25rem 1.5rem 1.5rem;
-}
+.sede-modal-dinamico-body { padding: 1.25rem 1.5rem 1.5rem; }
 
 
 /* ------------------------------------------------------------
-   6. TARJETA INTERNA DE DATOS
-   Fondo #f0fdfa — igual que el Trabajador
+   6. TARJETA INTERNA
    ------------------------------------------------------------ */
 .sede-modal-dinamico-card {
-    background: var(--sede-surface, #f0fdfa);
-    border-radius: 0.75rem;
+    background: #f0fdfa;
+    border-radius: .75rem;
     padding: 1.25rem;
     margin-bottom: 1.25rem;
 }
 
 
 /* ------------------------------------------------------------
-   7. FILAS DE DATOS (salida y cobro)
+   7. FILAS DE DATOS
    ------------------------------------------------------------ */
-.sede-modal-salida-row {
-    display: flex;
-    align-items: flex-start;
-    gap: 0.5rem;
-    font-size: 0.9rem;
-    color: #1f2937;
-    margin-bottom: 0.6rem;
-}
-
-.sede-modal-salida-row:last-child {
-    margin-bottom: 0;
-}
-
-.sede-modal-salida-row strong {
-    min-width: 130px;
-    flex-shrink: 0;
-    color: #374151;
-    font-weight: 600;
-}
-
-/* Alias para cobro — mismas reglas */
+.sede-modal-salida-row,
 .sede-modal-cobro-row {
-    display: flex;
-    align-items: flex-start;
-    gap: 0.5rem;
-    font-size: 0.9rem;
-    color: #1f2937;
-    margin-bottom: 0.6rem;
+    display: flex; align-items: flex-start;
+    gap: .5rem; font-size: .9rem; color: #1f2937;
+    margin-bottom: .6rem;
 }
-
-.sede-modal-cobro-row:last-child {
-    margin-bottom: 0;
-}
-
+.sede-modal-salida-row:last-child,
+.sede-modal-cobro-row:last-child { margin-bottom: 0; }
+.sede-modal-salida-row strong,
 .sede-modal-cobro-row strong {
-    min-width: 130px;
-    flex-shrink: 0;
-    color: #374151;
-    font-weight: 600;
+    min-width: 130px; flex-shrink: 0;
+    color: #374151; font-weight: 600;
 }
-
-/* Separador interno de la tarjeta */
 .sede-modal-dinamico-divider {
-    margin-top: 0.75rem;
-    padding-top: 0.75rem;
-    border-top: 1px solid var(--sede-accent-light, #ccfbf1);
+    margin-top: .75rem; padding-top: .75rem;
+    border-top: 1px solid #ccfbf1;
 }
 
 
 /* ------------------------------------------------------------
-   8. SELECTOR DE TARIFA (cobro) — inyectado por JS
+   8. SELECTOR DE TARIFA
    ------------------------------------------------------------ */
-.sede-modal-cobro-selector {
-    margin-bottom: 1rem;
-}
-
+.sede-modal-cobro-selector { margin-bottom: 1rem; }
 .sede-modal-cobro-selector h3,
 .sede-modal-cobro-selector p {
-    margin: 0 0 0.75rem;
-    color: var(--sede-gradient-mid, #0f766e);
-    font-weight: 600;
-    font-size: 0.875rem;
+    margin: 0 0 .75rem;
+    color: #0f766e; font-weight: 600; font-size: .875rem;
 }
-
-/* Cada opción de tarifa */
 .sede-modal-cobro-opcion {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: 0.75rem;
-    padding: 0.75rem 1rem;
-    margin-bottom: 0.5rem;
-    background: white;
-    border: 2px solid var(--sede-accent-light, #ccfbf1);
-    border-radius: 0.5rem;
-    cursor: pointer;
-    transition: border-color 0.2s, background-color 0.2s;
-    font-size: 0.88rem;
+    display: flex; align-items: center;
+    justify-content: space-between; gap: .75rem;
+    padding: .75rem 1rem; margin-bottom: .5rem;
+    background: white; border: 2px solid #ccfbf1;
+    border-radius: .5rem; cursor: pointer;
+    transition: border-color .2s, background-color .2s;
+    font-size: .88rem;
 }
-
-.sede-modal-cobro-opcion:hover {
-    border-color: var(--sede-accent, #14b8a6);
-    background-color: var(--sede-surface, #f0fdfa);
-}
-
+.sede-modal-cobro-opcion:hover,
 .sede-modal-cobro-opcion:has(input:checked) {
-    border-color: var(--sede-accent, #14b8a6);
-    background-color: var(--sede-surface, #f0fdfa);
+    border-color: #14b8a6; background-color: #f0fdfa;
 }
-
 .sede-modal-cobro-opcion input[type="radio"] {
-    margin-right: 0.25rem;
-    accent-color: var(--sede-gradient-mid, #0f766e);
+    margin-right: .25rem;
+    accent-color: #0f766e;
     flex-shrink: 0;
 }
 
 
 /* ------------------------------------------------------------
-   9. MÉTODO DE PAGO (cobro)
+   9. MÉTODO DE PAGO
    ------------------------------------------------------------ */
-.sede-modal-cobro-metodo {
-    margin-bottom: 1.25rem;
-}
-
+.sede-modal-cobro-metodo { margin-bottom: 1.25rem; }
 .sede-modal-cobro-label {
-    display: block;
-    font-weight: 600;
-    font-size: 0.85rem;
-    color: #374151;
-    margin-bottom: 0.4rem;
+    display: block; font-weight: 600;
+    font-size: .85rem; color: #374151; margin-bottom: .4rem;
 }
-
 .sede-modal-cobro-select {
-    width: 100%;
-    padding: 0.6rem 0.9rem;
-    border: 1px solid #d1d5db;
-    border-radius: 0.5rem;
-    font-size: 0.9rem;
-    color: #374151;
-    background: white;
-    cursor: pointer;
-    transition: border-color 0.2s, box-shadow 0.2s;
+    width: 100%; padding: .6rem .9rem;
+    border: 1px solid #d1d5db; border-radius: .5rem;
+    font-size: .9rem; color: #374151; background: white;
+    cursor: pointer; transition: border-color .2s, box-shadow .2s;
     box-sizing: border-box;
 }
-
 .sede-modal-cobro-select:focus {
-    outline: none;
-    border-color: var(--sede-accent, #14b8a6);
-    box-shadow: 0 0 0 3px rgba(20, 184, 166, 0.15);
+    outline: none; border-color: #14b8a6;
+    box-shadow: 0 0 0 3px rgba(20,184,166,.15);
 }
 
 
 /* ------------------------------------------------------------
-   10. TOTAL A PAGAR (cobro)
+   10. TOTAL A PAGAR
    ------------------------------------------------------------ */
 .sede-modal-cobro-total {
-    display: flex;
-    align-items: center;
+    display: flex; align-items: center;
     justify-content: space-between;
-    margin-top: 0.5rem;
-    padding-top: 0.5rem;
-    border-top: 1px solid var(--sede-accent-light, #ccfbf1);
+    margin-top: .5rem; padding-top: .5rem;
+    border-top: 1px solid #ccfbf1;
 }
-
-.sede-modal-cobro-total strong {
-    color: #374151;
-    font-size: 0.9rem;
-}
-
-.sede-modal-cobro-precio {
-    font-size: 1.25rem;
-    font-weight: 800;
-    color: #059669;
-}
+.sede-modal-cobro-total strong { color: #374151; font-size: .9rem; }
+.sede-modal-cobro-precio { font-size: 1.25rem; font-weight: 800; color: #059669; }
 
 
 /* ------------------------------------------------------------
-   11. COBRO ESTIMADO (dentro de modal salida)
-   Inyectado por JS en #salidaCobroEstimado
+   11. COBRO ESTIMADO (modal salida)
    ------------------------------------------------------------ */
 .sede-modal-cobro-estimado {
-    margin-top: 0.75rem;
-    padding-top: 0.75rem;
-    border-top: 1px solid var(--sede-accent-light, #ccfbf1);
+    margin-top: .75rem; padding-top: .75rem;
+    border-top: 1px solid #ccfbf1;
 }
 
 
 /* ------------------------------------------------------------
-   12. ÁREA DE ACCIONES (pie del modal)
+   12. ÁREA DE ACCIONES
    ------------------------------------------------------------ */
 .sede-modal-dinamico-actions {
-    display: flex;
-    gap: 0.75rem;
+    display: flex; gap: .75rem;
     justify-content: flex-end;
-    margin-top: 1.25rem;
-    flex-wrap: wrap;
+    margin-top: 1.25rem; flex-wrap: wrap;
 }
 
 
 /* ------------------------------------------------------------
-   13. RESPONSIVE
+   13. RESPONSIVE GENERAL
    ------------------------------------------------------------ */
 @media (max-width: 640px) {
-    .sede-modal-dinamico-content {
-        max-width: 100%;
-    }
-
-    .sede-modal-dinamico-actions {
-        flex-direction: column-reverse;
-    }
-
-    .sede-modal-dinamico-actions button {
-        width: 100%;
-        justify-content: center;
-    }
-
+    .sede-modal-dinamico-content { max-width: 100%; }
+    .sede-modal-dinamico-actions { flex-direction: column-reverse; }
+    .sede-modal-dinamico-actions button { width: 100%; justify-content: center; }
     .sede-modal-salida-row,
-    .sede-modal-cobro-row {
-        flex-direction: column;
-        gap: 0.2rem;
-    }
-
+    .sede-modal-cobro-row { flex-direction: column; gap: .2rem; }
     .sede-modal-salida-row strong,
-    .sede-modal-cobro-row strong {
-        min-width: unset;
-    }
+    .sede-modal-cobro-row strong { min-width: unset; }
+}
+
+
+/* ============================================================
+   14. MODAL REGISTRAR TRABAJADOR
+   Aplica a: #registrarTrabajadorModal
+   ============================================================ */
+
+#registrarTrabajadorModal .rt-header {
+    display: flex; align-items: center;
+    gap: .875rem; margin-bottom: 1.25rem;
+    padding-bottom: 1rem; border-bottom: 1.5px solid #f1f5f9;
+}
+#registrarTrabajadorModal .rt-header-icon {
+    width: 44px; height: 44px; border-radius: .75rem;
+    background: linear-gradient(135deg, #134e4a, #0d9488);
+    display: flex; align-items: center; justify-content: center;
+    box-shadow: 0 4px 12px rgba(13,148,136,.28);
+    flex-shrink: 0;
+}
+#registrarTrabajadorModal .rt-header-icon svg { width: 22px; height: 22px; }
+#registrarTrabajadorModal .rt-header h3 {
+    font-size: 1.05rem; font-weight: 800;
+    color: #134e4a; margin: 0 0 .15rem; letter-spacing: -.02em;
+}
+#registrarTrabajadorModal .rt-header-sub {
+    font-size: .78rem; color: #64748b; margin: 0; font-weight: 500;
+}
+
+#registrarTrabajadorModal .rt-section-band {
+    display: flex; align-items: center; gap: .45rem;
+    padding: .5rem .875rem; border-radius: .5rem;
+    font-size: .72rem; font-weight: 700;
+    letter-spacing: .04em; text-transform: uppercase;
+    margin: 1rem 0 .625rem;
+    background: #f0fdfa; color: #0f766e;
+    border-left: 3px solid #0d9488;
+}
+#registrarTrabajadorModal .rt-section-band svg { width: 14px; height: 14px; flex-shrink: 0; }
+
+#registrarTrabajadorModal .rt-label {
+    display: flex; align-items: center; gap: .3rem;
+    font-size: .8rem; font-weight: 700; color: #1e293b;
+    margin-bottom: .3rem; margin-top: .75rem;
+}
+#registrarTrabajadorModal .rt-label svg { width: 13px; height: 13px; flex-shrink: 0; opacity: .75; color: #0d9488; }
+
+#registrarTrabajadorModal .rt-input {
+    display: block; width: 100%;
+    padding: .625rem .875rem;
+    background: #f8faff; border: 1.5px solid #dde5f4;
+    border-radius: .5rem; font-size: .875rem; color: #1e293b;
+    font-family: inherit; font-weight: 500; outline: none;
+    box-sizing: border-box;
+    transition: border-color .18s, box-shadow .18s, background .18s;
+    -webkit-appearance: none; appearance: none;
+}
+#registrarTrabajadorModal .rt-input:focus {
+    border-color: #0d9488; background: #fff;
+    box-shadow: 0 0 0 3px rgba(13,148,136,.1);
+}
+#registrarTrabajadorModal .rt-input:hover:not(:focus) { border-color: #a5c8c4; }
+#registrarTrabajadorModal .rt-input::placeholder { color: #b8c8dd; font-weight: 400; }
+
+#registrarTrabajadorModal .rt-grid2 {
+    display: grid; grid-template-columns: 1fr 1fr; gap: .75rem;
+}
+
+#registrarTrabajadorModal .rt-info-badge {
+    display: flex; align-items: flex-start; gap: .5rem;
+    margin-top: 1rem; padding: .65rem .875rem;
+    background: #f0fdfa; border: 1px solid #99f6e4;
+    border-radius: .5rem; font-size: .78rem;
+    font-weight: 500; color: #0f766e; line-height: 1.5;
+}
+#registrarTrabajadorModal .rt-info-badge svg { width: 15px; height: 15px; flex-shrink: 0; margin-top: .1rem; color: #0d9488; }
+#registrarTrabajadorModal .rt-info-badge strong { font-weight: 700; color: #134e4a; }
+
+#registrarTrabajadorModal .rt-actions {
+    margin-top: 1.5rem;
+    padding-top: 1.125rem;
+    border-top: 1.5px solid #f1f5f9;
+}
+
+@media (max-width: 520px) {
+    #registrarTrabajadorModal .rt-grid2 { grid-template-columns: 1fr; }
+    #registrarTrabajadorModal .rt-actions { flex-direction: column-reverse; }
+    #registrarTrabajadorModal .rt-actions button { width: 100%; justify-content: center; }
+}
+
+
+/* ============================================================
+   15. MODAL REGISTRAR SEDE
+   Aplica a: #registrarSedeModal
+   ============================================================ */
+
+/* Bandas de sección */
+#registrarSedeModal .rs-section-band {
+    display: flex; align-items: center; gap: .5rem;
+    padding: .55rem .875rem; border-radius: .5rem;
+    font-size: .78rem; font-weight: 700;
+    letter-spacing: .03em; text-transform: uppercase;
+    margin: 1.25rem 0 .875rem;
+}
+#registrarSedeModal .rs-section-band.teal  { background:#f0fdfa; color:#0f766e; border-left:3px solid #0d9488; }
+#registrarSedeModal .rs-section-band.blue  { background:#eff6ff; color:#1d4ed8; border-left:3px solid #3b82f6; }
+#registrarSedeModal .rs-section-band.green { background:#f0fdf4; color:#15803d; border-left:3px solid #22c55e; }
+#registrarSedeModal .rs-section-band svg   { width:15px; height:15px; flex-shrink:0; }
+
+/* Labels */
+#registrarSedeModal label {
+    display: flex; align-items: center; gap: .3rem;
+    font-size: .8rem; font-weight: 700; color: #1e293b;
+    margin-bottom: .3rem; margin-top: .75rem;
+}
+#registrarSedeModal label svg { width:13px; height:13px; flex-shrink:0; opacity:.75; }
+
+/* Inputs y selects */
+#registrarSedeModal input,
+#registrarSedeModal select {
+    display: block; width: 100%;
+    padding: .6rem .875rem;
+    background: #f8faff; border: 1.5px solid #dde5f4;
+    border-radius: .5rem; font-size: .875rem; color: #1e293b;
+    font-family: inherit; outline: none; box-sizing: border-box;
+    transition: border-color .18s, box-shadow .18s, background .18s;
+    -webkit-appearance: none; appearance: none;
+}
+#registrarSedeModal input:focus,
+#registrarSedeModal select:focus {
+    border-color: #0d9488; background: #fff;
+    box-shadow: 0 0 0 3px rgba(13,148,136,.1);
+}
+#registrarSedeModal select {
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='%2364748b' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right .7rem center;
+    background-size: 14px;
+    padding-right: 2.25rem;
+    cursor: pointer;
+}
+
+/* Grilla 2 columnas */
+#registrarSedeModal .rs-grid2 { display:grid; grid-template-columns:1fr 1fr; gap:.75rem; }
+
+/* Prefijo $ */
+#registrarSedeModal .rs-money { position:relative; display:block; }
+#registrarSedeModal .rs-money-s {
+    position:absolute; top:50%; left:.75rem;
+    transform:translateY(-50%);
+    color:#94a3b8; font-size:.875rem;
+    pointer-events:none; font-weight:600;
+}
+#registrarSedeModal .rs-money input { padding-left:1.6rem; }
+
+/* Mensajes de error */
+#registrarSedeModal .rs-err {
+    display:block; font-size:.77rem; font-weight:500;
+    color:#dc2626; margin-top:.25rem; min-height:.9rem;
+}
+
+/* Tarjeta de tarifas */
+#registrarSedeModal .rs-tarifa-card {
+    border-radius:.625rem; padding:.875rem 1rem;
+    margin-top:.25rem; border:1px solid;
+}
+#registrarSedeModal .rs-tarifa-card.blue  { background:#eff6ff; border-color:#bfdbfe; }
+#registrarSedeModal .rs-tarifa-card.green { background:#f0fdf4; border-color:#bbf7d0; }
+#registrarSedeModal .rs-tarifa-label {
+    display:flex; align-items:center; gap:.375rem;
+    font-size:.72rem; font-weight:700;
+    letter-spacing:.05em; text-transform:uppercase; margin-bottom:.625rem;
+}
+#registrarSedeModal .rs-tarifa-card.blue  .rs-tarifa-label { color:#1d4ed8; }
+#registrarSedeModal .rs-tarifa-card.green .rs-tarifa-label { color:#15803d; }
+#registrarSedeModal .rs-tarifa-label svg  { width:15px; height:15px; flex-shrink:0; }
+
+/* Horario */
+#registrarSedeModal .rs-horario-wrap {
+    display:flex; align-items:center; gap:.75rem; flex-wrap:wrap;
+    margin-top:.35rem; padding:.875rem 1rem;
+    background:#f8faff; border:1.5px solid #dde5f4; border-radius:.625rem;
+}
+#registrarSedeModal .rs-horario-col { display:flex; flex-direction:column; gap:.3rem; flex:1; min-width:110px; }
+#registrarSedeModal .rs-horario-col-label {
+    display:flex; align-items:center; gap:.3rem;
+    font-size:.68rem; font-weight:700; color:#64748b;
+    text-transform:uppercase; letter-spacing:.05em;
+}
+#registrarSedeModal .rs-horario-col-label svg { width:13px; height:13px; flex-shrink:0; color:#0d9488; }
+#registrarSedeModal .rs-horario-sep {
+    color:#94a3b8; font-size:1rem; font-weight:700;
+    margin-top:1.25rem; flex-shrink:0;
+    display:flex; align-items:center;
+}
+#registrarSedeModal .rs-horario-preview {
+    margin-top:.5rem; padding:.45rem .875rem;
+    background:#f0fdfa; border:1px solid #99f6e4;
+    border-radius:.5rem; font-size:.82rem;
+    color:#0f766e; font-weight:600;
+    display:flex; align-items:center; gap:.3rem;
+}
+
+/* Botón GPS */
+#registrarSedeModal .rs-btn-gps {
+    display:inline-flex; align-items:center; gap:.45rem;
+    padding:.45rem .9rem;
+    background:#f0f9ff; border:1.5px solid #bae6fd; border-radius:.5rem;
+    color:#0369a1; font-size:.8rem; font-weight:600; font-family:inherit;
+    cursor:pointer; transition:all .2s;
+}
+#registrarSedeModal .rs-btn-gps:hover { background:#e0f2fe; border-color:#7dd3fc; transform:translateY(-1px); }
+#registrarSedeModal .rs-btn-gps svg  { width:14px; height:14px; flex-shrink:0; }
+
+/* Mapa */
+#registrarSedeModal .rs-map-wrap {
+    margin-top:.5rem; border-radius:.75rem;
+    border:1.5px solid #dde5f4; overflow:hidden;
+    box-shadow:0 2px 8px rgba(30,58,138,.06);
+    transition:border-color .2s;
+}
+#registrarSedeModal .rs-map-wrap:hover { border-color:#a5b8e8; }
+
+#registrarSedeModal .rs-map-header {
+    display:flex; align-items:center; justify-content:space-between;
+    padding:.5rem .875rem;
+    background:linear-gradient(to right,#f8faff,#f0fdfa);
+    border-bottom:1px solid #dde5f4; gap:.5rem;
+}
+#registrarSedeModal .rs-map-label {
+    font-size:.8rem; font-weight:700; color:#1e293b;
+    display:flex; align-items:center; gap:.3rem;
+}
+#registrarSedeModal .rs-map-label svg { width:14px; height:14px; color:#0d9488; flex-shrink:0; }
+
+#registrarSedeModal #rsMapStatus {
+    font-size:.73rem; font-weight:500; font-style:italic;
+    color:#0ea5e9; display:flex; align-items:center; gap:.25rem;
+    transition:color .3s; max-width:200px;
+    text-align:right; line-height:1.3;
+}
+
+#registrarSedeModal #rsMapContainer { height:300px; width:100%; z-index:0; display:block; }
+
+#registrarSedeModal .rs-map-hint {
+    display:flex; align-items:flex-start; gap:.375rem;
+    font-size:.73rem; color:#64748b; font-weight:500;
+    padding:.5rem .875rem;
+    background:linear-gradient(to right,#f8faff,#f0fdfa);
+    border-top:1px solid #dde5f4; margin:0; line-height:1.5;
+}
+#registrarSedeModal .rs-map-hint svg { width:13px; height:13px; flex-shrink:0; margin-top:1px; color:#0d9488; }
+
+/* Badge de confirmación */
+#registrarSedeModal #rsUbicacionBadge {
+    display:none; align-items:center; gap:.5rem;
+    padding:.65rem 1rem; border-radius:.5rem;
+    font-size:.85rem; font-weight:600;
+    margin-top:.5rem; animation:rs-badge-in .3s ease;
+}
+@keyframes rs-badge-in { from{opacity:0;transform:translateY(-4px);}to{opacity:1;transform:translateY(0);} }
+
+/* Autocomplete dropdown */
+#registrarSedeModal .rs-autocomp-dropdown {
+    display: none;
+    position: absolute; top:100%; left:0; right:0;
+    background:#fff; border:1.5px solid #dde5f4; border-top:none;
+    border-radius:0 0 .625rem .625rem;
+    box-shadow:0 8px 24px rgba(13,148,136,.12);
+    z-index:2000; max-height:240px; overflow-y:auto;
+    scrollbar-width:thin; scrollbar-color:#dde5f4 transparent;
+}
+#registrarSedeModal .rs-autocomp-dropdown::-webkit-scrollbar { width:5px; }
+#registrarSedeModal .rs-autocomp-dropdown::-webkit-scrollbar-thumb { background:#dde5f4; border-radius:3px; }
+#registrarSedeModal .rs-autocomp-item:hover > div,
+#registrarSedeModal .rs-autocomp-item.activo > div { background:#f0fdfa !important; }
+
+/* Leaflet popup */
+#registrarSedeModal .leaflet-popup-content-wrapper {
+    border-radius:.625rem !important;
+    box-shadow:0 4px 16px rgba(13,148,136,.2) !important;
+    font-family:inherit !important;
+}
+#registrarSedeModal .leaflet-popup-tip-container { display:none !important; }
+
+/* Acciones del modal sede */
+#registrarSedeModal .sede-modal-action {
+    display:flex; gap:.75rem; margin-top:1.5rem;
+    justify-content:flex-end;
+    padding-top:1.25rem; border-top:1.5px solid #f1f5f9;
+}
+
+/* Animación spinner */
+@keyframes rs-spin { to { transform:rotate(360deg); } }
+
+/* Responsive */
+@media (max-width: 640px) {
+    #registrarSedeModal .rs-grid2 { grid-template-columns:1fr; }
+    #registrarSedeModal .rs-horario-wrap { flex-direction:column; align-items:stretch; }
+    #registrarSedeModal .rs-horario-sep { margin-top:0; justify-content:center; }
+    #registrarSedeModal .sede-modal-action { flex-direction:column-reverse; }
+    #registrarSedeModal .sede-modal-action button { width:100%; justify-content:center; }
 }

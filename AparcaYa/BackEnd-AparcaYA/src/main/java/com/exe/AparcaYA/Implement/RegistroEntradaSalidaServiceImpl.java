@@ -331,4 +331,36 @@ public class RegistroEntradaSalidaServiceImpl implements RegistroEntradaSalidaSe
 
         return new BigDecimal[] { precioPlena, precioMinuto };
     }
+
+    @Override
+    public BigDecimal sumIngresosEntreFechas(Sede sede,
+                                             LocalDateTime inicio, LocalDateTime fin) {
+        return registroRepository.sumIngresosEntreFechas(sede, inicio, fin);
+    }
+
+    @Override
+    public java.util.Map<String, Long> countActivosPorTipo(Sede sede) {
+        List<Object[]> rows = registroRepository.countActivosPorTipo(sede);
+        java.util.Map<String, Long> result = new java.util.LinkedHashMap<>();
+        // Inicializar todos los tipos en 0 para que el frontend siempre reciba los 3
+        result.put("CARRO",     0L);
+        result.put("MOTO",      0L);
+        result.put("BICICLETA", 0L);
+        for (Object[] row : rows) {
+            String tipo  = row[0].toString();
+            Long   count = ((Number) row[1]).longValue();
+            result.put(tipo, count);
+        }
+        return result;
+    }
+    @Override
+    public List<RegistroEntradaSalida> findBySedeAndFechaBetween(
+            Sede sede,
+            LocalDateTime inicio,
+            LocalDateTime fin) {
+        // Reutiliza el método existente en el repositorio —
+        // findBySedeAndFechaHoraEntradaBetween hace exactamente lo mismo
+        return registroRepository
+                .findBySedeAndFechaHoraEntradaBetween(sede, inicio, fin);
+    }
 }

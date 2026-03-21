@@ -1,0 +1,67 @@
+/* ============================================================
+   APARCA-DATEPICKER.CSS
+   Ruta: static/css/components/aparca-datepicker.css
+
+   CSS base del calendario de filtros.
+   Sin colores de acento — cada dashboard los define
+   en su propio CSS apuntando al popupId:
+
+     #popDesdeReserva { --apk-accent: #7c3aed; }  ← cliente (morado)
+     #popDesdePago    { --apk-accent: #7c3aed; }
+     #popDesdeSede    { --apk-accent: #0284c7; }  ← sede (azul)
+
+   CLASES: apk-*
+   ============================================================ */
+
+/* Días del calendario */
+.apk-day {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 26px;
+    border: none;
+    background: none;
+    cursor: pointer;
+    font-size: .72rem;
+    color: #374151;
+    border-radius: 4px;
+    transition: background .1s, color .1s;
+    font-family: inherit;
+    position: relative;
+    user-select: none;
+    padding: 0;
+    width: 100%;
+}
+
+.apk-day:hover:not([disabled]):not(.apk-sel) {
+    background: #f3f4f6;
+}
+
+.apk-day[disabled] {
+    color: #d1d5db;
+    cursor: not-allowed;
+    pointer-events: none;
+}
+
+.apk-today {
+    color: #7c3aed;
+    font-weight: 700;
+}
+
+.apk-today::after {
+    content: '';
+    position: absolute;
+    bottom: 2px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 3px;
+    height: 3px;
+    border-radius: 50%;
+    background: #7c3aed;
+}
+
+.apk-sel {
+    background: #7c3aed !important;
+    color: #fff !important;
+    font-weight: 700;
+}

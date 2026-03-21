@@ -1,0 +1,429 @@
+/* ============================================================
+   ADMIN-MODAL-DINAMICO.CSS
+   Ruta: static/css/modals/admin-modal-dinamico.css
+
+   MODALES CUBIERTOS:
+     Sección 1–8  : Base compartida (overlay, caja, header, body,
+                    inputs, grilla, badge, acciones)
+     Sección 9    : #modalSede          — detalle sede
+     Sección 10   : #modal_editar_sede  — editar sede
+     Sección 11   : #modal_editar_usuario — editar usuario
+
+   PALETA ADMIN (navy):
+     --adm-primary      : #1e40af
+     --adm-primary-dark : #1e3a8a
+     --adm-primary-mid  : #1d4ed8
+     --adm-surface      : #eff6ff
+     --adm-accent-light : #bfdbfe
+   ============================================================ */
+
+/* ── Variables ──────────────────────────────────────────────── */
+:root {
+    --adm-primary:       #1e40af;
+    --adm-primary-dark:  #1e3a8a;
+    --adm-primary-mid:   #1d4ed8;
+    --adm-surface:       #eff6ff;
+    --adm-accent-light:  #bfdbfe;
+}
+
+
+/* ============================================================
+   1. OVERLAY / BACKDROP
+   ============================================================ */
+.adm-modal-overlay {
+    display: none;
+    position: fixed;
+    inset: 0;
+    z-index: 9999;
+    background: rgba(0, 0, 0, 0.5);
+    backdrop-filter: blur(2px);
+    align-items: center;
+    justify-content: center;
+    padding: 1rem;
+    box-sizing: border-box;
+    overflow-y: auto;
+}
+
+.adm-modal-overlay.show {
+    display: flex;
+}
+
+
+/* ============================================================
+   2. CAJA DEL MODAL
+   ============================================================ */
+.adm-modal-box {
+    background: #fff;
+    border-radius: .875rem;
+    width: 100%;
+    max-width: 640px;
+    max-height: 90vh;
+    overflow-y: auto;
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.25);
+    position: relative;
+    z-index: 10000;
+    animation: adm-modal-in .25s ease-out;
+    pointer-events: auto;
+}
+
+@keyframes adm-modal-in {
+    from { opacity: 0; transform: translateY(20px) scale(.97); }
+    to   { opacity: 1; transform: translateY(0)    scale(1);   }
+}
+
+
+/* ============================================================
+   3. CABECERA
+   ============================================================ */
+.adm-modal-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 1.25rem 1.5rem;
+    background: linear-gradient(135deg, #1e3a8a, #1e40af);
+    border-radius: .875rem .875rem 0 0;
+    gap: .75rem;
+}
+
+.adm-modal-header-left {
+    display: flex;
+    align-items: center;
+    gap: .75rem;
+}
+
+.adm-modal-icon {
+    width: 42px;
+    height: 42px;
+    border-radius: .625rem;
+    background: rgba(255, 255, 255, .15);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+}
+
+.adm-modal-icon svg {
+    width: 22px;
+    height: 22px;
+}
+
+.adm-modal-title {
+    font-size: 1.05rem;
+    font-weight: 800;
+    color: white;
+    margin: 0 0 .15rem;
+    letter-spacing: -.02em;
+}
+
+.adm-modal-subtitle {
+    font-size: .77rem;
+    color: rgba(255, 255, 255, .75);
+    margin: 0;
+    font-weight: 500;
+}
+
+.adm-modal-close {
+    background: rgba(255, 255, 255, .15);
+    border: none;
+    border-radius: .5rem;
+    width: 32px;
+    height: 32px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    color: white;
+    flex-shrink: 0;
+    transition: background .2s;
+}
+
+.adm-modal-close:hover { background: rgba(255, 255, 255, .28); }
+
+.adm-modal-close svg {
+    width: 15px;
+    height: 15px;
+}
+
+
+/* ============================================================
+   4. CUERPO
+   ============================================================ */
+.adm-modal-body {
+    padding: 1.5rem;
+}
+
+
+/* ============================================================
+   5. LABELS E INPUTS
+   ============================================================ */
+.adm-label {
+    display: flex;
+    align-items: center;
+    gap: .3rem;
+    font-size: .8rem;
+    font-weight: 700;
+    color: #1e293b;
+    margin-bottom: .3rem;
+    margin-top: .875rem;
+}
+
+.adm-label:first-child { margin-top: 0; }
+
+.adm-label svg {
+    width: 13px;
+    height: 13px;
+    flex-shrink: 0;
+    opacity: .75;
+    color: var(--adm-primary);
+}
+
+.adm-required {
+    color: #dc2626;
+    font-weight: 700;
+    margin-left: .1rem;
+}
+
+.adm-input,
+.adm-select {
+    display: block;
+    width: 100%;
+    padding: .625rem .875rem;
+    background: #f8faff;
+    border: 1.5px solid #dde5f4;
+    border-radius: .5rem;
+    font-size: .875rem;
+    color: #1e293b;
+    font-family: inherit;
+    font-weight: 500;
+    outline: none;
+    box-sizing: border-box;
+    transition: border-color .18s, box-shadow .18s, background .18s;
+    -webkit-appearance: none;
+    appearance: none;
+}
+
+.adm-input:focus,
+.adm-select:focus {
+    border-color: var(--adm-primary);
+    background: #fff;
+    box-shadow: 0 0 0 3px rgba(30, 64, 175, .12);
+}
+
+.adm-input:hover:not(:focus),
+.adm-select:hover:not(:focus) {
+    border-color: #93b4e8;
+}
+
+.adm-input::placeholder { color: #b8c8dd; font-weight: 400; }
+
+.adm-select {
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='%2364748b' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right .7rem center;
+    background-size: 14px;
+    padding-right: 2.25rem;
+    cursor: pointer;
+}
+
+/* Errores inline */
+.adm-err {
+    display: block;
+    font-size: .75rem;
+    font-weight: 500;
+    color: #dc2626;
+    margin-top: .2rem;
+    min-height: .875rem;
+}
+
+/* Hint bajo un campo */
+.adm-hint {
+    font-size: .72rem;
+    color: #94a3b8;
+    margin: .2rem 0 0;
+    font-weight: 400;
+}
+
+
+/* ============================================================
+   6. GRILLA 2 COLUMNAS
+   ============================================================ */
+.adm-grid2 {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: .875rem;
+    margin-top: .25rem;
+}
+
+
+/* ============================================================
+   7. BADGE INFORMATIVO
+   ============================================================ */
+.adm-info-badge {
+    display: flex;
+    align-items: flex-start;
+    gap: .5rem;
+    margin-top: 1.25rem;
+    padding: .65rem .875rem;
+    background: var(--adm-surface);
+    border: 1px solid var(--adm-accent-light);
+    border-radius: .5rem;
+    font-size: .78rem;
+    font-weight: 500;
+    color: var(--adm-primary-dark);
+    line-height: 1.5;
+}
+
+.adm-info-badge svg {
+    width: 15px;
+    height: 15px;
+    flex-shrink: 0;
+    margin-top: .1rem;
+    color: var(--adm-primary);
+}
+
+.adm-info-badge strong {
+    font-weight: 700;
+    color: var(--adm-primary-dark);
+}
+
+
+/* ============================================================
+   8. ÁREA DE ACCIONES (pie)
+   ============================================================ */
+.adm-modal-actions {
+    display: flex;
+    gap: .75rem;
+    justify-content: flex-end;
+    margin-top: 1.5rem;
+    padding-top: 1.125rem;
+    border-top: 1.5px solid #f1f5f9;
+    flex-wrap: wrap;
+}
+
+/* Botón primario */
+.adm-btn-primary {
+    display: inline-flex;
+    align-items: center;
+    gap: .45rem;
+    padding: .6rem 1.375rem;
+    background: var(--adm-primary);
+    color: white;
+    border: none;
+    border-radius: .5rem;
+    font-weight: 600;
+    font-size: .875rem;
+    font-family: inherit;
+    cursor: pointer;
+    transition: background .2s, transform .15s, box-shadow .2s;
+    box-shadow: 0 2px 8px rgba(30, 64, 175, .28);
+}
+
+.adm-btn-primary:hover {
+    background: var(--adm-primary-dark);
+    transform: translateY(-1px);
+    box-shadow: 0 4px 14px rgba(30, 64, 175, .38);
+}
+
+/* Botón outline */
+.adm-btn-outline {
+    display: inline-flex;
+    align-items: center;
+    gap: .45rem;
+    padding: .575rem 1.25rem;
+    background: transparent;
+    color: #374151;
+    border: 1.5px solid #d1d5db;
+    border-radius: .5rem;
+    font-weight: 600;
+    font-size: .875rem;
+    font-family: inherit;
+    cursor: pointer;
+    transition: background .2s, border-color .2s, color .2s;
+}
+
+.adm-btn-outline:hover {
+    background: #f1f5f9;
+    border-color: #94a3b8;
+    color: #1e293b;
+}
+
+/* Botón peligro (usado por adminD.js en detalle sede) */
+.adm-btn-danger,
+.admin-modal-sede-btn-danger {
+    display: inline-flex;
+    align-items: center;
+    gap: .45rem;
+    padding: .575rem 1.25rem;
+    background: #dc2626;
+    color: white;
+    border: none;
+    border-radius: .5rem;
+    font-weight: 600;
+    font-size: .875rem;
+    font-family: inherit;
+    cursor: pointer;
+    transition: background .2s, transform .15s;
+}
+
+.adm-btn-danger:hover,
+.admin-modal-sede-btn-danger:hover {
+    background: #b91c1c;
+    transform: translateY(-1px);
+}
+
+/* Botón acciones del modal detalle sede (inyectado por JS) */
+.admin-modal-sede-actions {
+    display: flex;
+    gap: .75rem;
+    justify-content: flex-end;
+    margin-top: 1.5rem;
+    padding-top: 1.125rem;
+    border-top: 1.5px solid #f1f5f9;
+    flex-wrap: wrap;
+}
+
+
+/* ============================================================
+   9. DETALLE SEDE (#modalSede)
+   ============================================================ */
+#modalSede .adm-modal-box {
+    max-width: 580px;
+}
+
+
+/* ============================================================
+   10. EDITAR SEDE (#modal_editar_sede)
+   ============================================================ */
+#modal_editar_sede .adm-modal-box {
+    max-width: 640px;
+}
+
+
+/* ============================================================
+   11. EDITAR USUARIO (#modal_editar_usuario)
+   ============================================================ */
+#modal_editar_usuario .adm-modal-box {
+    max-width: 640px;
+}
+
+
+/* ============================================================
+   RESPONSIVE
+   ============================================================ */
+@media (max-width: 600px) {
+    .adm-modal-box { max-width: 100%; }
+    .adm-grid2     { grid-template-columns: 1fr; }
+
+    .adm-modal-actions,
+    .admin-modal-sede-actions {
+        flex-direction: column-reverse;
+    }
+
+    .adm-modal-actions button,
+    .admin-modal-sede-actions button,
+    .admin-modal-sede-actions .adm-btn-outline,
+    .admin-modal-sede-actions .admin-modal-sede-btn-danger {
+        width: 100%;
+        justify-content: center;
+    }
+}

@@ -88,10 +88,11 @@ document.addEventListener('DOMContentLoaded', function () {
     // =========================================================
     const loginForm = document.getElementById('login-form');
     if (loginForm) {
-        loginForm.addEventListener('submit', function (e) {
+        loginForm.addEventListener('submit', async function (e) {
+            e.preventDefault();  // ← siempre prevenir — manejamos todo en JS
+
             let isValid = true;
 
-            // Correo
             const correo = document.getElementById('correo').value.trim();
             if (!correo) {
                 showFieldError('correo', 'El correo es obligatorio.');
@@ -103,7 +104,6 @@ document.addEventListener('DOMContentLoaded', function () {
                 clearFieldError('correo');
             }
 
-            // Contraseña
             const contrasena = document.getElementById('contrasena').value;
             if (!contrasena) {
                 showFieldError('contrasena', 'La contraseña es obligatoria.');
@@ -112,9 +112,44 @@ document.addEventListener('DOMContentLoaded', function () {
                 clearFieldError('contrasena');
             }
 
-            // ✅ FIX L-03: eliminado bloque de validación del checkbox de términos
+            if (!isValid) return;
 
-            if (!isValid) e.preventDefault();
+            // Deshabilitar botón mientras se procesa
+            const btnSubmit = loginForm.querySelector('button[type="submit"]');
+            if (btnSubmit) {
+                btnSubmit.disabled = true;
+                btnSubmit.textContent = 'Iniciando sesión...';
+            }
+
+            try {
+                const response = await fetch('/api/auth/login', {
+                    method:  'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body:    JSON.stringify({ correo, contrasena })
+                });
+
+                const data = await response.json();
+
+                if (response.ok && data.success) {
+                    // Guardar token en sessionStorage de esta pestaña
+                    sessionStorage.setItem('aparca_jwt', data.token);
+                    // Redirigir al dashboard correspondiente al rol
+                    window.location.href = data.redirectUrl;
+                } else {
+                    // Mostrar error de credenciales
+                    const errorMsg = document.getElementById('error-msg');
+                    if (errorMsg) errorMsg.classList.remove('lg-hidden');
+                    showToast(data.message || 'Correo o contraseña incorrectos.', 'error');
+                }
+
+            } catch (err) {
+                showToast('Error de conexión. Intenta de nuevo.', 'error');
+            } finally {
+                if (btnSubmit) {
+                    btnSubmit.disabled = false;
+                    btnSubmit.textContent = 'Iniciar Sesión';
+                }
+            }
         });
     }
 

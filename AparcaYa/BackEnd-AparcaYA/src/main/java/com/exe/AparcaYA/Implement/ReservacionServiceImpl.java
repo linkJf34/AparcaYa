@@ -35,7 +35,7 @@ public class ReservacionServiceImpl implements ReservacionService {
     private VehiculoRepository vehiculoRepository;
 
     // ═══════════════════════════════════════════════════════════════════════
-    // CRUD BÁSICO — sin cambios respecto al original
+    // CRUD BÁSICO
     // ═══════════════════════════════════════════════════════════════════════
 
     @Override
@@ -56,12 +56,40 @@ public class ReservacionServiceImpl implements ReservacionService {
         return reservacionRepository.findById(id);
     }
 
+    // ✅ FIX-U1: update() ahora libera el cupo cuando la reserva pasa a estado terminal.
+    //
+    // Antes: update() solo hacía save() sin tocar el cupo.
+    //        Cuando el admin finalizaba o rechazaba una reserva via PUT /api/reservaciones/{id},
+    //        el cupo quedaba en estado RESERVADO indefinidamente, acumulándose con el tiempo
+    //        hasta que no quedaban cupos DISPONIBLES para nuevas reservas.
+    //
+    // Ahora: si el nuevo estado es FINALIZADA, CANCELADA o RECHAZADA,
+    //        se libera el cupo (RESERVADO → DISPONIBLE) dentro de la misma transacción.
     @Override
+    @Transactional
     public Reservacion update(Reservacion reservacion) {
-        if (reservacionRepository.existsById(reservacion.getIdReserva())) {
-            return reservacionRepository.save(reservacion);
+        if (!reservacionRepository.existsById(reservacion.getIdReserva())) {
+            throw new RuntimeException("Reservación no encontrada");
         }
-        throw new RuntimeException("Reservación no encontrada");
+
+        Reservacion saved = reservacionRepository.save(reservacion);
+
+        // Liberar cupo si la reserva pasó a estado terminal
+        boolean esEstadoTerminal =
+                saved.getEstado() == EstadoReservacion.COMPLETADA ||
+                        saved.getEstado() == EstadoReservacion.CANCELADA;
+
+        if (esEstadoTerminal) {
+            Cupo cupo = saved.getCupo();
+            if (cupo != null && cupo.getEstado() == EstadoCupo.RESERVADO) {
+                cupo.setEstado(EstadoCupo.DISPONIBLE);
+                cupoRepository.save(cupo);
+                log.info("Cupo {} liberado — reserva {} pasó a estado {}",
+                        cupo.getCodigo(), saved.getIdReserva(), saved.getEstado());
+            }
+        }
+
+        return saved;
     }
 
     @Override
@@ -80,7 +108,7 @@ public class ReservacionServiceImpl implements ReservacionService {
     }
 
     // ═══════════════════════════════════════════════════════════════════════
-    // CREAR RESERVA — orquestador principal
+    // CREAR RESERVA
     // ═══════════════════════════════════════════════════════════════════════
 
     @Override
@@ -102,7 +130,6 @@ public class ReservacionServiceImpl implements ReservacionService {
         }
 
         // ── 2. Verificar ownership del vehículo ───────────────────────────
-        // Impide que un cliente reserve con el vehículo de otro usuario
         Vehiculo vehiculo = vehiculoRepository.findById(dto.getVehiculoId())
                 .orElseThrow(() -> new IllegalArgumentException(
                         "Vehículo no encontrado con ID: " + dto.getVehiculoId()));
@@ -126,7 +153,6 @@ public class ReservacionServiceImpl implements ReservacionService {
         }
 
         // ── 4. Verificar conflicto de horario ─────────────────────────────
-        // Activa findConflictosHorario() que era código muerto en el Repository
         boolean hayConflicto = existeConflictoHorario(
                 cupo.getIdCupo(),
                 dto.getFechaInicio(),
@@ -140,7 +166,6 @@ public class ReservacionServiceImpl implements ReservacionService {
         }
 
         // ── 5. Verificar límite de reservas activas del cliente ───────────
-        // Usa countReservacionesActivasPorEstados() — ya no hardcodea 'ACTIVA'
         List<String> estadosActivos = List.of(
                 EstadoReservacion.PENDIENTE.name(),
                 EstadoReservacion.ACTIVA.name()
@@ -175,8 +200,6 @@ public class ReservacionServiceImpl implements ReservacionService {
                 dto.getFechaFin());
 
         // ── 7. Marcar el cupo como RESERVADO ──────────────────────────────
-        // Impide que otro cliente tome el mismo cupo mientras
-        // la reserva está PENDIENTE o ACTIVA
         cupo.setEstado(EstadoCupo.RESERVADO);
         cupoRepository.save(cupo);
         log.info("Cupo {} marcado como RESERVADO", cupo.getCodigo());
@@ -192,8 +215,6 @@ public class ReservacionServiceImpl implements ReservacionService {
     public boolean existeConflictoHorario(Long cupoId,
                                           LocalDateTime inicio,
                                           LocalDateTime fin) {
-        // Pasa los estados como String para que coincidan con
-        // @Enumerated(EnumType.STRING) en la entidad Reservacion
         List<String> estadosActivos = List.of(
                 EstadoReservacion.PENDIENTE.name(),
                 EstadoReservacion.ACTIVA.name()
@@ -241,7 +262,7 @@ public class ReservacionServiceImpl implements ReservacionService {
         Reservacion cancelada = reservacionRepository.save(reservacion);
         log.info("Reserva {} cancelada por cliente {}", idReserva, idCliente);
 
-        // 5. Liberar el cupo para que otros clientes puedan reservarlo
+        // 5. Liberar el cupo
         Cupo cupo = reservacion.getCupo();
         if (cupo != null) {
             cupo.setEstado(EstadoCupo.DISPONIBLE);

@@ -193,6 +193,20 @@ public class UsuarioController {
                 return "redirect:/registro";
             }
 
+            if (request.getHiddenLatitud() == null || request.getHiddenLongitud() == null) {
+                redirectAttributes.addFlashAttribute("error",
+                        "Debes confirmar la ubicación en el mapa antes de registrarte");
+                return "redirect:/registro";
+            }
+
+            double lat = request.getHiddenLatitud();
+            double lon = request.getHiddenLongitud();
+            if (lat < 4.45 || lat > 4.85 || lon < -74.25 || lon > -73.95) {
+                redirectAttributes.addFlashAttribute("error",
+                        "La ubicación debe estar dentro de Bogotá");
+                return "redirect:/registro";
+            }
+
             // Validar barrio coherente con localidad
             String barrio = request.getHiddenBarrio();
             try {
@@ -271,6 +285,8 @@ public class UsuarioController {
                 sede.setIdUsuario(guardado);
                 sede.setEstado(EstadoGeneral.ACTIVO);
                 sede.setFechaCreacion(LocalDateTime.now());
+                sede.setLatitud(request.getHiddenLatitud());
+                sede.setLongitud(request.getHiddenLongitud());
 
                 Sede sedeGuardada = sedeService.save(sede);
                 log.info("Sede guardada: id={}", sedeGuardada.getIdSede());

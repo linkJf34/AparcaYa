@@ -19,6 +19,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
@@ -38,8 +39,12 @@ public class ClienteController {
     @Autowired private ReservacionService reservacionService;
     @Autowired private SedeService        sedeService;
     @Autowired private PagoService        pagoService;
-    // ✅ CLI-C03: inyectado para el nuevo endpoint GET /cliente/vehiculos
     @Autowired private VehiculoService    vehiculoService;
+
+    // ✅ FIX-P1: inyectado para verificar y hashear contraseñas en cambiarPassword()
+    // Sin este bean, cambiarContrasena() del JS llamaba a /perfil/actualizar
+    // que ignoraba los campos de password — el botón nunca hacía nada real.
+    @Autowired private PasswordEncoder    passwordEncoder;
 
     // =========================================================
     // UTILIDAD
@@ -88,7 +93,7 @@ public class ClienteController {
     }
 
     // =========================================================
-    // PERFIL
+    // PERFIL — GET
     // =========================================================
     @GetMapping("/perfil")
     @ResponseBody
@@ -98,6 +103,11 @@ public class ClienteController {
         return ResponseEntity.ok(UsuarioDTO.fromEntity(usuario));
     }
 
+    // =========================================================
+    // PERFIL — Actualizar nombre y teléfono
+    // Solo procesa "nombre" y "telefono".
+    // Los campos de contraseña usan /perfil/cambiar-password.
+    // =========================================================
     @PostMapping("/perfil/actualizar")
     @ResponseBody
     public ResponseEntity<Map<String, Object>> actualizarPerfil(
@@ -124,13 +134,71 @@ public class ClienteController {
     }
 
     // =========================================================
-    // VEHÍCULOS
+    // PERFIL — Cambiar contraseña
     //
-    // ✅ CLI-C03: endpoint faltante que bloqueaba el flujo de reserva.
-    // ClienteD.js llama GET /cliente/vehiculos en cargarVehiculosSelect()
-    // para poblar el <select> del modal de reserva.
-    // Retorna solo los campos que el JS necesita: idVehiculo, placa,
-    // marca, tipo — sin datos sensibles del cliente propietario.
+    // ✅ FIX-P1: endpoint nuevo que realmente cambia la contraseña.
+    //
+    // Antes: cambiarContrasena() del JS llamaba a POST /perfil/actualizar,
+    //        que solo procesaba "nombre" y "telefono" — los campos
+    //        "passwordActual" y "passwordNueva" eran ignorados.
+    //        El botón "Actualizar contraseña" respondía success:true
+    //        sin modificar nada en la base de datos.
+    //
+    // Ahora: este endpoint verifica la contraseña actual con BCrypt,
+    //        valida la nueva, la hashea y la persiste correctamente.
+    // =========================================================
+    @PostMapping("/perfil/cambiar-password")
+    @ResponseBody
+    public ResponseEntity<Map<String, Object>> cambiarPassword(
+            @RequestBody Map<String, String> campos) {
+
+        Usuario usuario = getUsuarioAutenticado();
+        if (usuario == null) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                    .body(Map.of("success", false, "message", "No autenticado"));
+        }
+
+        String passwordActual = campos.get("passwordActual");
+        String passwordNueva  = campos.get("passwordNueva");
+
+        // Validar que vengan los dos campos
+        if (passwordActual == null || passwordActual.isBlank() ||
+                passwordNueva  == null || passwordNueva.isBlank()) {
+            return ResponseEntity.badRequest()
+                    .body(Map.of("success", false, "message", "Completa todos los campos"));
+        }
+
+        // Longitud mínima — espeja la validación del frontend
+        if (passwordNueva.length() < 8) {
+            return ResponseEntity.badRequest()
+                    .body(Map.of("success", false,
+                            "message", "La nueva contraseña debe tener al menos 8 caracteres"));
+        }
+
+        // Verificar que la contraseña actual sea correcta
+        if (!passwordEncoder.matches(passwordActual, usuario.getContrasena())) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                    .body(Map.of("success", false,
+                            "message", "La contraseña actual es incorrecta"));
+        }
+
+        try {
+            usuario.setContrasena(passwordEncoder.encode(passwordNueva));
+            usuarioService.update(usuario);
+            log.info("Contraseña actualizada — usuario={}", usuario.getIdUsuario());
+            return ResponseEntity.ok(Map.of("success", true,
+                    "message", "Contraseña actualizada correctamente"));
+        } catch (Exception e) {
+            log.error("Error actualizando contraseña — usuario={}: {}",
+                    usuario.getIdUsuario(), e.getMessage());
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(Map.of("success", false,
+                            "message", "Error al actualizar la contraseña"));
+        }
+    }
+
+    // =========================================================
+    // VEHÍCULOS
     // =========================================================
     @GetMapping("/vehiculos")
     @ResponseBody
@@ -146,11 +214,10 @@ public class ClienteController {
                 Map<String, Object> item = new LinkedHashMap<>();
                 item.put("idVehiculo", v.getIdVehiculo());
                 item.put("placa",      v.getPlaca());
-                // marca puede ser enum Marca — el JS usa v.marca como string
-                item.put("marca",  v.getMarca()  != null ? v.getMarca().name()  : "");
-                item.put("modelo", v.getTipo()   != null ? v.getTipo().name()   : "");
-                item.put("color",  v.getColor()  != null ? v.getColor()         : "");
-                item.put("anio",   v.getAnio()   != null ? v.getAnio()          : "");
+                item.put("marca",  v.getMarca() != null ? v.getMarca().name()  : "");
+                item.put("modelo", v.getTipo()  != null ? v.getTipo().name()   : "");
+                item.put("color",  v.getColor() != null ? v.getColor()         : "");
+                item.put("anio",   v.getAnio()  != null ? v.getAnio()          : "");
                 return item;
             }).collect(Collectors.toList());
 
@@ -162,14 +229,7 @@ public class ClienteController {
     }
 
     // =========================================================
-    // RESERVAS
-    //
-    // ✅ CLI-C01: retorna Map en lugar de entidad Reservacion directa.
-    // Antes: List<Reservacion> → riesgo de LazyInitializationException
-    //        si cupo/sede/vehiculo eran LAZY.
-    // Ahora: proyección manual con los campos exactos que consume
-    //        ClienteD.js en actualizarTablaReservas():
-    //        idReserva, fechaInicio, fechaFin, estado, cupo.sede.nombre
+    // RESERVAS — GET
     // =========================================================
     @GetMapping("/reservas")
     @ResponseBody
@@ -188,14 +248,11 @@ public class ClienteController {
                 item.put("fechaFin",    r.getFechaFin());
                 item.put("estado",      r.getEstado() != null ? r.getEstado().name() : "");
 
-                // Navegar cupo → sede de forma defensiva
-                // (el JS accede a reserva.cupo.sede.nombre)
                 String nombreSede = "Sede desconocida";
                 if (r.getCupo() != null && r.getCupo().getSede() != null
                         && r.getCupo().getSede().getNombre() != null) {
                     nombreSede = r.getCupo().getSede().getNombre();
                 }
-                // Se incluye la estructura anidada que espera el JS
                 Map<String, Object> sede = new LinkedHashMap<>();
                 sede.put("nombre", nombreSede);
                 Map<String, Object> cupo = new LinkedHashMap<>();
@@ -212,8 +269,9 @@ public class ClienteController {
         }
     }
 
-    // Reemplazar SOLO este método en ClienteController.java
-
+    // =========================================================
+    // RESERVAS — Cancelar
+    // =========================================================
     @PostMapping("/reservas/{reservaId}/cancelar")
     @ResponseBody
     public ResponseEntity<Map<String, Object>> cancelarReserva(
@@ -226,24 +284,19 @@ public class ClienteController {
         }
 
         try {
-            // Delega al Service — que verifica ownership y libera el cupo
             reservacionService.cancelarReserva(reservaId, usuario.getIdUsuario());
-
             return ResponseEntity.ok(Map.of(
                     "success", true,
                     "message", "Reserva cancelada correctamente"
             ));
-
         } catch (IllegalArgumentException e) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND)
                     .body(Map.of("success", false, "message", e.getMessage()));
-
         } catch (SecurityException e) {
             log.warn("Cliente {} intentó cancelar reserva {} de otro usuario",
                     usuario.getIdUsuario(), reservaId);
             return ResponseEntity.status(HttpStatus.FORBIDDEN)
                     .body(Map.of("success", false, "message", e.getMessage()));
-
         } catch (IllegalStateException e) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST)
                     .body(Map.of("success", false, "message", e.getMessage()));
@@ -273,13 +326,6 @@ public class ClienteController {
 
     // =========================================================
     // PAGOS
-    //
-    // ✅ CLI-C02: retorna Map en lugar de entidad Pago directa.
-    // Antes: List<Pago> → riesgo de LazyInitializationException
-    //        si reservacion era LAZY.
-    // Ahora: proyección manual con los campos que usa
-    //        ClienteD.js en actualizarTablaPagos():
-    //        fechaPago, monto, metodoPago, estado, reservacion.idReserva
     // =========================================================
     @GetMapping("/pagos")
     @ResponseBody
@@ -297,7 +343,6 @@ public class ClienteController {
                 item.put("metodoPago",  p.getMetodoPago() != null ? p.getMetodoPago().name() : "N/A");
                 item.put("estado",      p.getEstado()     != null ? p.getEstado().name()     : "");
 
-                // El JS accede a pago.reservacion.idReserva
                 Long idReserva = null;
                 if (p.getReservacion() != null) {
                     idReserva = p.getReservacion().getIdReserva();

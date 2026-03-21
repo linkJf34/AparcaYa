@@ -1,123 +1,89 @@
-let parkings     = [];
-let currentIndex = 0;
+/* ============================================================
+   INDEX.JS — AparcaYA
+   Slideshow automático en la columna derecha del hero.
+   Solo imágenes, sin texto, pasando con fade cada 4s.
+   ============================================================ */
 
-// DOMContentLoaded
-// CAMBIO: se elimina el bloque que añadía .opacity-100 a .animate-fade-in-up
-// aparca-animations.css ya maneja la animación con forwards, no necesita JS
-document.addEventListener('DOMContentLoaded', function() {
-    loadParkingAccordion();
+let heroSlides = [];
+let heroIndex  = 0;
+let heroTimer  = null;
+
+document.addEventListener('DOMContentLoaded', function () {
+    loadHeroSlideshow();
 });
 
-
-// ==================== ACORDEÓN DE PARQUEADEROS ====================
-async function loadParkingAccordion() {
+async function loadHeroSlideshow() {
     try {
         const response = await fetch('/api/sedes');
-        if (!response.ok) throw new Error('Error al cargar parqueaderos');
+        if (!response.ok) throw new Error('Error al cargar sedes');
 
-        parkings = await response.json();
+        const sedes = await response.json();
 
-        if (parkings.length > 0) {
-            showParking(currentIndex);
-            generateDots();
+        heroSlides = sedes.filter(function (s) { return s.imagenSede; });
 
-            // Auto-slide cada 5 segundos
-            setInterval(() => {
-                currentIndex = (currentIndex + 1) % parkings.length;
-                showParking(currentIndex);
-                updateDots();
-            }, 5000);
+        if (heroSlides.length === 0) {
+            ocultarLoading();
+            return;
         }
+
+        crearSlides();
+        crearDots();
+        ocultarLoading();
+        irASlide(0);
+
+        heroTimer = setInterval(function () {
+            irASlide((heroIndex + 1) % heroSlides.length);
+        }, 4000);
+
     } catch (error) {
-        console.error('Error cargando parqueaderos:', error);
-        const accordion = document.getElementById('parking-accordion');
-        if (accordion) {
-            accordion.innerHTML = `
-                <p class="text-red-500 p-4 text-center text-sm">
-                    Error al cargar parqueaderos. Intenta más tarde.
-                </p>`;
-        }
+        console.error('Error cargando slideshow:', error);
+        ocultarLoading();
     }
 }
 
-function showParking(index) {
-    const accordion = document.getElementById('parking-accordion');
-    if (!accordion) return;
-
-    const parking = parkings[index];
-    const imagen  = parking.imagenUrl
-        ? `<img src="${parking.imagenUrl}" alt="${parking.nombre}"
-               class="w-16 h-16 rounded-full object-cover">`
-        : `<div class="w-16 h-16 bg-gray-300 rounded-full flex
-                       items-center justify-content text-2xl">📷</div>`;
-
-    accordion.innerHTML = `
-        <div class="collapse collapse-arrow join-item border border-base-300">
-            <input type="radio" name="parking-accordion" checked />
-            <div class="collapse-title text-xl font-medium flex items-center gap-4">
-                ${imagen}
-                ${parking.nombre}
-            </div>
-            <div class="collapse-content">
-                <p><strong>Dirección:</strong>
-                   ${parking.direccion.calle} ${parking.direccion.numero},
-                   ${parking.direccion.ciudad}</p>
-                <p><strong>Horarios:</strong>
-                   ${parking.horaApertura} - ${parking.horaCierre}</p>
-                <p><strong>Capacidades:</strong>
-                   Carros: ${parking.capacidadCarros},
-                   Motos: ${parking.capacidadMotos},
-                   Bicicletas: ${parking.capacidadBicicletas}</p>
-                <p><strong>Descripción:</strong>
-                   ${parking.descripcion || 'Sin descripción'}</p>
-            </div>
-        </div>
-    `;
+function crearSlides() {
+    var slideshow = document.getElementById('hero-slideshow');
+    if (!slideshow) return;
+    var fade = slideshow.querySelector('.hero-slide-fade');
+    heroSlides.forEach(function (sede, i) {
+        var div = document.createElement('div');
+        div.className = 'hero-slide';
+        div.style.backgroundImage = "url('/uploads/" + sede.imagenSede + "')";
+        slideshow.insertBefore(div, fade);
+    });
 }
 
-function generateDots() {
-    const dotsBar = document.getElementById('dots-bar');
-    if (!dotsBar) return;
-
-    dotsBar.innerHTML = '';
-    parkings.forEach((_, index) => {
-        const dot = document.createElement('button');
-        dot.className = `btn btn-circle btn-xs ${index === 0 ? 'btn-primary' : 'btn-outline'}`;
-        dot.setAttribute('aria-label', `Parqueadero ${index + 1}`);
-        dot.addEventListener('click', () => {
-            currentIndex = index;
-            showParking(currentIndex);
-            updateDots();
+function crearDots() {
+    var dotsWrap = document.getElementById('hero-dots');
+    if (!dotsWrap || heroSlides.length <= 1) return;
+    heroSlides.forEach(function (_, i) {
+        var btn = document.createElement('button');
+        btn.className = 'hero-slide-dot';
+        btn.setAttribute('aria-label', 'Sede ' + (i + 1));
+        btn.addEventListener('click', function () {
+            clearInterval(heroTimer);
+            irASlide(i);
+            heroTimer = setInterval(function () {
+                irASlide((heroIndex + 1) % heroSlides.length);
+            }, 4000);
         });
-        dotsBar.appendChild(dot);
+        dotsWrap.appendChild(btn);
     });
 }
 
-function updateDots() {
-    const dots = document.querySelectorAll('#dots-bar .btn');
-    dots.forEach((dot, index) => {
-        dot.classList.toggle('btn-primary', index === currentIndex);
-        dot.classList.toggle('btn-outline', index !== currentIndex);
+function irASlide(index) {
+    heroIndex = index;
+    document.querySelectorAll('.hero-slide').forEach(function (el, i) {
+        el.classList.toggle('active', i === index);
+    });
+    document.querySelectorAll('.hero-slide-dot').forEach(function (dot, i) {
+        dot.classList.toggle('active', i === index);
     });
 }
 
-
-// ==================== NAVEGACIÓN CON FLECHAS ====================
-// CAMBIO: .addEventListener directo → ?.addEventListener
-// Los botones existen en el HTML pero se protege contra
-// posibles ausencias en entornos de prueba
-document.getElementById('prev-arrow')?.addEventListener('click', function() {
-    if (parkings.length > 0) {
-        currentIndex = (currentIndex - 1 + parkings.length) % parkings.length;
-        showParking(currentIndex);
-        updateDots();
-    }
-});
-
-document.getElementById('next-arrow')?.addEventListener('click', function() {
-    if (parkings.length > 0) {
-        currentIndex = (currentIndex + 1) % parkings.length;
-        showParking(currentIndex);
-        updateDots();
-    }
-});
+function ocultarLoading() {
+    var loading = document.getElementById('hero-slide-loading');
+    if (!loading) return;
+    loading.style.opacity = '0';
+    setTimeout(function () { loading.style.display = 'none'; }, 500);
+}

@@ -1,435 +1,500 @@
-<!DOCTYPE html>
-<html lang="es"
-      data-theme="light"
-      xmlns:th="http://www.thymeleaf.org">
-<head>
-    <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>Configuración de Sede — AparcaYA</title>
+<!-- ══════════════════════════════════════════════════════
+     BLOQUE 1 — INDICADORES EN TIEMPO REAL
+     Reemplaza todo el bloque <div class="user-indicators">
+     ══════════════════════════════════════════════════════ -->
 
-    <!-- Stack CSS idéntico al DashboardSede.html -->
-    <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://cdn.jsdelivr.net/npm/daisyui@4.12.10/dist/full.min.css" rel="stylesheet"/>
+<div class="indicadores-grid" id="indicadoresGrid"
+     aria-label="Indicadores en tiempo real de la sede">
 
-    <link rel="stylesheet" href="/css/base/aparca-animations.css"/>
-    <link rel="stylesheet" href="/css/components/aparca-components.css"/>
-    <link rel="stylesheet" href="/css/pages/Sede.css"/>
-    <!-- CSS exclusivo del módulo de configuración -->
-    <link rel="stylesheet" href="/css/pages/configuracion-sede.css"/>
-</head>
-<body>
-
-<div class="cfg-wrapper animate-fade-in-up">
-
-    <!-- ── ENCABEZADO ─────────────────────────────────────── -->
-    <div class="cfg-header">
-        <a href="/dashboard/administradorSede" class="cfg-header-back">
+    <!-- Ocupación actual -->
+    <article class="ind-card">
+        <div class="ind-icon ind-teal">
             <svg xmlns="http://www.w3.org/2000/svg" fill="none"
-                 viewBox="0 0 24 24" stroke="currentColor">
+                 viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
                 <path stroke-linecap="round" stroke-linejoin="round"
-                      stroke-width="2" d="M15 19l-7-7 7-7"/>
+                      d="M8.25 18.75a1.5 1.5 0 01-3 0m3 0a1.5 1.5 0 00-3
+                      0m3 0h6m-9 0H3.375a1.125 1.125 0 01-1.125-1.125V14.25
+                      m17.25 4.5a1.5 1.5 0 01-3 0m3 0a1.5 1.5 0 00-3 0m3
+                      0h1.125c.621 0 1.129-.504 1.09-1.124a17.902 17.902 0
+                      00-3.213-9.193 2.056 2.056 0 00-1.58-.86H14.25M16.5
+                      18.75h-2.25m0-11.177v-.958c0-.568-.422-1.048-.987-1.106
+                      a48.554 48.554 0 00-10.026 0 1.106 1.106 0 00-.987
+                      1.106v7.635m12-6.677v6.677m0 4.5v-4.5m0 0h-12"/>
             </svg>
-            Volver al Dashboard
-        </a>
-        <h1>⚙ Configuración de Sede</h1>
-    </div>
-
-    <!-- ── TABS ───────────────────────────────────────────── -->
-    <div class="cfg-tabs" role="tablist" aria-label="Secciones de configuración">
-        <button class="cfg-tab-btn active"
-                data-panel="info"
-                role="tab" aria-selected="true"
-                aria-controls="panel-info"
-                type="button">
-            📋 Información
-        </button>
-        <button class="cfg-tab-btn"
-                data-panel="tarifas"
-                role="tab" aria-selected="false"
-                aria-controls="panel-tarifas"
-                type="button">
-            💰 Tarifas
-        </button>
-        <button class="cfg-tab-btn"
-                data-panel="cupos"
-                role="tab" aria-selected="false"
-                aria-controls="panel-cupos"
-                type="button">
-            🚗 Cupos
-        </button>
-        <button class="cfg-tab-btn"
-                data-panel="imagen"
-                role="tab" aria-selected="false"
-                aria-controls="panel-imagen"
-                type="button">
-            🖼 Imagen
-        </button>
-        <button class="cfg-tab-btn"
-                data-panel="contrasena"
-                role="tab" aria-selected="false"
-                aria-controls="panel-contrasena"
-                type="button">
-            🔒 Contraseña
-        </button>
-    </div>
-
-
-    <!-- ====================================================
-         PANEL 1 — INFORMACIÓN BÁSICA
-         ==================================================== -->
-    <div id="panel-info" class="cfg-panel active"
-         role="tabpanel" aria-labelledby="tab-info">
-
-        <div class="cfg-card">
-            <h2>📋 Información de la Sede</h2>
-
-            <div class="cfg-grid">
-                <div class="cfg-field">
-                    <label for="cfg-nombre">Nombre de la sede *</label>
-                    <input type="text" id="cfg-nombre"
-                           placeholder="Ej: Sede Norte"
-                           maxlength="100"/>
-                    <span class="err-msg" id="err-nombre"></span>
-                </div>
-
-                <div class="cfg-field">
-                    <label for="cfg-nit">NIT</label>
-                    <input type="text" id="cfg-nit"
-                           placeholder="123456789-0"
-                           disabled
-                           title="El NIT no puede modificarse"/>
-                </div>
-
-                <div class="cfg-field full">
-                    <label for="cfg-direccion">Dirección *</label>
-                    <input type="text" id="cfg-direccion"
-                           placeholder="Calle 100 # 15-30"
-                           maxlength="200"/>
-                    <span class="err-msg" id="err-direccion"></span>
-                </div>
-
-                <div class="cfg-field">
-                    <label for="cfg-telefono">Teléfono de contacto</label>
-                    <input type="tel" id="cfg-telefono"
-                           placeholder="6011234567"
-                           maxlength="20"/>
-                </div>
-
-                <div class="cfg-field">
-                    <label for="cfg-correo">Correo de contacto</label>
-                    <input type="email" id="cfg-correo"
-                           placeholder="sede@ejemplo.com"/>
-                    <span class="err-msg" id="err-correo"></span>
-                </div>
-
-                <div class="cfg-field full">
-                    <label for="cfg-horario">Horario de atención</label>
-                    <input type="text" id="cfg-horario"
-                           placeholder="Lun-Vie 7am-9pm, Sab 8am-6pm"
-                           maxlength="100"/>
-                </div>
-            </div>
-
-            <div class="cfg-actions">
-                <button type="button"
-                        class="sede-btn-secondary"
-                        onclick="cargarDatosActuales()">
-                    Cancelar
-                </button>
-                <button type="button"
-                        class="sede-btn-primary"
-                        id="btn-guardar-info"
-                        onclick="guardarInformacion()">
-                    Guardar cambios
-                </button>
-            </div>
         </div>
-    </div>
-
-
-    <!-- ====================================================
-         PANEL 2 — TARIFAS
-         ==================================================== -->
-    <div id="panel-tarifas" class="cfg-panel"
-         role="tabpanel" aria-labelledby="tab-tarifas">
-
-        <div class="cfg-card">
-            <h2>💰 Configuración de Tarifas</h2>
-
-            <div class="cfg-info-band teal">
-                <strong>Tarifa plena:</strong> cobro fijo por día completo. &nbsp;
-                <strong>Tarifa minuto:</strong> cobro proporcional al tiempo transcurrido.
-            </div>
-
-            <div class="cfg-grid">
-                <div class="cfg-field">
-                    <label for="cfg-tarifaPlenaC">Tarifa plena — Carro ($)</label>
-                    <input type="number" id="cfg-tarifaPlenaC"
-                           min="0" step="100" placeholder="15000"/>
-                    <span class="err-msg" id="err-tarifaPlenaC"></span>
-                </div>
-
-                <div class="cfg-field">
-                    <label for="cfg-tarifaPlenaM">Tarifa plena — Moto ($)</label>
-                    <input type="number" id="cfg-tarifaPlenaM"
-                           min="0" step="100" placeholder="8000"/>
-                    <span class="err-msg" id="err-tarifaPlenaM"></span>
-                </div>
-
-                <div class="cfg-field">
-                    <label for="cfg-tarifaMinutoC">Tarifa minuto — Carro ($/min)</label>
-                    <input type="number" id="cfg-tarifaMinutoC"
-                           min="0" step="1" placeholder="80"/>
-                    <span class="err-msg" id="err-tarifaMinutoC"></span>
-                </div>
-
-                <div class="cfg-field">
-                    <label for="cfg-tarifaMinutoM">Tarifa minuto — Moto ($/min)</label>
-                    <input type="number" id="cfg-tarifaMinutoM"
-                           min="0" step="1" placeholder="50"/>
-                    <span class="err-msg" id="err-tarifaMinutoM"></span>
-                </div>
-            </div>
-
-            <!-- Vista previa -->
-            <div class="cfg-tarifa-preview">
-                <strong>Vista previa — 1 hora estacionado</strong>
-                <div class="cfg-tarifa-preview-grid">
-                    <span>🚗 Plena carro: <strong id="prev-plena-c">—</strong></span>
-                    <span>🚗 Minuto carro: <strong id="prev-min-c">—</strong></span>
-                    <span>🏍 Plena moto: <strong id="prev-plena-m">—</strong></span>
-                    <span>🏍 Minuto moto: <strong id="prev-min-m">—</strong></span>
-                </div>
-            </div>
-
-            <div class="cfg-actions">
-                <button type="button"
-                        class="sede-btn-secondary"
-                        onclick="cargarDatosActuales()">
-                    Cancelar
-                </button>
-                <button type="button"
-                        class="sede-btn-primary"
-                        onclick="guardarTarifas()">
-                    Guardar tarifas
-                </button>
-            </div>
+        <div class="ind-body">
+            <div class="ind-label">Ocupación actual</div>
+            <div class="ind-value" id="ind-ocupacion">—</div>
+            <div class="ind-sub"  id="ind-ocupacion-sub">Cargando...</div>
         </div>
-    </div>
+    </article>
 
-
-    <!-- ====================================================
-         PANEL 3 — CUPOS
-         ==================================================== -->
-    <div id="panel-cupos" class="cfg-panel"
-         role="tabpanel" aria-labelledby="tab-cupos">
-
-        <div class="cfg-card">
-            <h2>🚗 Cupos por Tipo de Vehículo</h2>
-
-            <div class="cfg-info-band yellow">
-                Configura aquí la capacidad diferenciada por tipo de vehículo.
-                La <strong>capacidad total</strong> del parqueadero se gestiona
-                desde el panel de administración.
-            </div>
-
-            <div class="cfg-grid">
-                <div class="cfg-field">
-                    <label for="cfg-cuposCarro">Cupos — Carro</label>
-                    <input type="number" id="cfg-cuposCarro"
-                           min="0" placeholder="20"/>
-                </div>
-
-                <div class="cfg-field">
-                    <label for="cfg-cuposMoto">Cupos — Moto</label>
-                    <input type="number" id="cfg-cuposMoto"
-                           min="0" placeholder="15"/>
-                </div>
-
-                <div class="cfg-field">
-                    <label for="cfg-cuposBicicleta">Cupos — Bicicleta</label>
-                    <input type="number" id="cfg-cuposBicicleta"
-                           min="0" placeholder="10"/>
-                </div>
-
-                <div class="cfg-field">
-                    <label>Capacidad total (referencia)</label>
-                    <input type="number" id="cfg-capacidadTotal"
-                           disabled
-                           title="Administrado desde el panel de sedes"/>
-                </div>
-            </div>
-
-            <!-- Barra visual de distribución -->
-            <div class="cfg-cupos-visual" id="cupos-visual">
-                <div class="cfg-cupos-visual-label">Distribución de cupos:</div>
-                <div class="cfg-cupos-bar" id="cfg-cupos-bar">
-                    <div class="cfg-cupos-bar-segment cfg-cupos-bar-carro"
-                         id="bar-carro" style="width:33%"></div>
-                    <div class="cfg-cupos-bar-segment cfg-cupos-bar-moto"
-                         id="bar-moto" style="width:33%"></div>
-                    <div class="cfg-cupos-bar-segment cfg-cupos-bar-bicicleta"
-                         id="bar-bicicleta" style="width:34%"></div>
-                </div>
-                <div class="cfg-cupos-legend">
-                    <span class="cfg-cupos-legend-item">
-                        <span class="cfg-cupos-legend-dot"
-                              style="background:var(--sede-accent)"></span>
-                        Carros: <strong id="leg-carro">0</strong>
-                    </span>
-                    <span class="cfg-cupos-legend-item">
-                        <span class="cfg-cupos-legend-dot"
-                              style="background:#0ea5e9"></span>
-                        Motos: <strong id="leg-moto">0</strong>
-                    </span>
-                    <span class="cfg-cupos-legend-item">
-                        <span class="cfg-cupos-legend-dot"
-                              style="background:#8b5cf6"></span>
-                        Bicicletas: <strong id="leg-bicicleta">0</strong>
-                    </span>
-                    <span class="cfg-cupos-legend-total">
-                        Total: <strong id="leg-total">0</strong>
-                    </span>
-                </div>
-            </div>
-
-            <div class="cfg-actions">
-                <button type="button"
-                        class="sede-btn-secondary"
-                        onclick="cargarDatosActuales()">
-                    Cancelar
-                </button>
-                <button type="button"
-                        class="sede-btn-primary"
-                        onclick="guardarCupos()">
-                    Guardar cupos
-                </button>
-            </div>
+    <!-- Cupos libres -->
+    <article class="ind-card">
+        <div class="ind-icon ind-green">
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none"
+                 viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round"
+                      d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+            </svg>
         </div>
-    </div>
+        <div class="ind-body">
+            <div class="ind-label">Cupos libres</div>
+            <div class="ind-value" id="ind-cupos">—</div>
+            <div class="ind-sub"  id="ind-cupos-sub">de — totales</div>
+        </div>
+    </article>
+
+    <!-- Ingresos del día -->
+    <article class="ind-card">
+        <div class="ind-icon ind-yellow">
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none"
+                 viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round"
+                      d="M12 6v12m-3-2.818l.879.659c1.171.879 3.07.879 4.242
+                      0 1.172-.879 1.172-2.303 0-3.182C13.536 12.219 12.768
+                      12 12 12c-.725 0-1.45-.22-2.003-.659-1.106-.879-1.106
+                      -2.303 0-3.182s2.9-.879 4.006 0l.415.33M21 12a9 9 0
+                      11-18 0 9 9 0 0118 0z"/>
+            </svg>
+        </div>
+        <div class="ind-body">
+            <div class="ind-label">Ingresos hoy</div>
+            <div class="ind-value" id="ind-ingresos">—</div>
+            <div class="ind-sub">Registros cobrados</div>
+        </div>
+    </article>
+
+    <!-- Vehículos hoy -->
+    <article class="ind-card">
+        <div class="ind-icon ind-blue">
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none"
+                 viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round"
+                      d="M6.75 3v2.25M17.25 3v2.25M3 18.75V7.5a2.25 2.25
+                      0 012.25-2.25h13.5A2.25 2.25 0 0121 7.5v11.25m-18
+                      0A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021
+                      18.75m-18 0v-7.5A2.25 2.25 0 015.25 9h13.5A2.25
+                      2.25 0 0121 11.25v7.5"/>
+            </svg>
+        </div>
+        <div class="ind-body">
+            <div class="ind-label">Vehículos hoy</div>
+            <div class="ind-value" id="ind-vehiculos-hoy">—</div>
+            <div class="ind-sub">Entradas del día</div>
+        </div>
+    </article>
+
+    <!-- Pendientes de cobro -->
+    <article class="ind-card">
+        <div class="ind-icon ind-orange">
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none"
+                 viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round"
+                      d="M12 6v6h4.5m4.5 0a9 9 0 11-18 0 9 9 0 0118 0z"/>
+            </svg>
+        </div>
+        <div class="ind-body">
+            <div class="ind-label">Pendientes cobro</div>
+            <div class="ind-value" id="ind-pendientes">—</div>
+            <div class="ind-sub">Esperando pago</div>
+        </div>
+    </article>
+
+    <!-- Porcentaje ocupación -->
+    <article class="ind-card">
+        <div class="ind-icon ind-purple" id="ind-pct-icon">
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none"
+                 viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round"
+                      d="M7.5 14.25v2.25m3-4.5v4.5m3-6.75v6.75m3-9v9M6
+                      20.25h12A2.25 2.25 0 0020.25 18V6A2.25 2.25 0
+                      0018 3.75H6A2.25 2.25 0 003.75 6v12A2.25 2.25
+                      0 006 20.25z"/>
+            </svg>
+        </div>
+        <div class="ind-body">
+            <div class="ind-label">% Ocupación</div>
+            <div class="ind-value" id="ind-porcentaje">—</div>
+            <div class="ind-sub"  id="ind-sede-nombre">—</div>
+        </div>
+    </article>
+
+</div>
+<!-- ══ FIN BLOQUE 1 ══ -->
 
 
-    <!-- ====================================================
-         PANEL 4 — IMAGEN
-         ==================================================== -->
-    <div id="panel-imagen" class="cfg-panel"
-         role="tabpanel" aria-labelledby="tab-imagen">
+<!-- ══════════════════════════════════════════════════════
+     BLOQUE 2 — MODAL DE CONFIGURACIÓN
+     Pegar justo ANTES de los modales Thymeleaf existentes:
+       <div th:replace="modals/sede-modal-registrar-trabajador :: modal"></div>
+     ══════════════════════════════════════════════════════ -->
 
-        <div class="cfg-card">
-            <h2>🖼 Imagen de la Sede</h2>
+<div id="cfgModalOverlay"
+     class="cfg-modal-overlay"
+     role="dialog"
+     aria-modal="true"
+     aria-labelledby="cfgModalTitle"
+     onclick="cfgClickFuera(event)">
 
-            <div class="cfg-imagen-area">
-                <div class="cfg-imagen-preview" id="imagenPreview">
-                    <span class="cfg-imagen-placeholder"
-                          id="imgPlaceholder">🏢</span>
-                    <img id="imgPreviewEl"
-                         src="" alt="Imagen de la sede"
-                         style="display:none;"/>
+    <div class="cfg-modal-box">
+
+        <!-- Cabecera -->
+        <div class="cfg-modal-header">
+            <h2 id="cfgModalTitle">
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none"
+                     viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round"
+                          d="M9.594 3.94c.09-.542.56-.94 1.11-.94h2.593c.55 0
+                          1.02.398 1.11.94l.213 1.281c.063.374.313.686.645.87
+                          .074.04.147.083.22.127.324.196.72.257 1.075.124l1.217
+                          -.456a1.125 1.125 0 011.37.49l1.296 2.247a1.125 1.125
+                          0 01-.26 1.431l-1.003.827c-.293.24-.438.613-.431.992
+                          a6.759 6.759 0 010 .255c-.007.378.138.75.43.99l1.005
+                          .828c.424.35.534.954.26 1.43l-1.298 2.247a1.125 1.125
+                          0 01-1.369.491l-1.217-.456c-.355-.133-.75-.072-1.076
+                          .124a6.57 6.57 0 01-.22.128c-.331.183-.581.495-.644
+                          .869l-.213 1.28c-.09.543-.56.941-1.11.941h-2.594c-.55
+                          0-1.02-.398-1.11-.94l-.213-1.281c-.062-.374-.312-.686
+                          -.644-.87a6.52 6.52 0 01-.22-.127c-.325-.196-.72-.257
+                          -1.076-.124l-1.217.456a1.125 1.125 0 01-1.369-.49l
+                          -1.297-2.247a1.125 1.125 0 01.26-1.431l1.004-.827
+                          c.292-.24.437-.613.43-.992a6.932 6.932 0 010-.255
+                          c.007-.378-.138-.75-.43-.99l-1.004-.828a1.125 1.125
+                          0 01-.26-1.43l1.297-2.247a1.125 1.125 0 011.37-.491
+                          l1.216.456c.356.133.751.072 1.076-.124.072-.044.146
+                          -.087.22-.128.332-.183.582-.495.644-.869l.214-1.281z"/>
+                    <path stroke-linecap="round" stroke-linejoin="round"
+                          d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
+                </svg>
+                Configuración de Sede
+            </h2>
+            <button class="cfg-modal-close"
+                    onclick="cerrarModalConfiguracion()"
+                    aria-label="Cerrar configuración"
+                    type="button">
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none"
+                     viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round"
+                          d="M6 18L18 6M6 6l12 12"/>
+                </svg>
+            </button>
+        </div>
+
+        <!-- Tabs -->
+        <div class="cfg-modal-tabs" role="tablist" aria-label="Secciones de configuración">
+
+            <button class="cfg-modal-tab active"
+                    data-cfg-panel="cfg-info"
+                    role="tab" aria-selected="true" type="button">
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none"
+                     viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round"
+                          d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2
+                          0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5
+                          10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/>
+                </svg>
+                Información
+            </button>
+
+            <button class="cfg-modal-tab"
+                    data-cfg-panel="cfg-tarifas"
+                    role="tab" aria-selected="false" type="button">
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none"
+                     viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round"
+                          d="M12 6v12m-3-2.818l.879.659c1.171.879 3.07.879
+                          4.242 0 1.172-.879 1.172-2.303 0-3.182C13.536
+                          12.219 12.768 12 12 12c-.725 0-1.45-.22-2.003-.659
+                          -1.106-.879-1.106-2.303 0-3.182s2.9-.879 4.006
+                          0l.415.33M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                </svg>
+                Tarifas
+            </button>
+
+            <button class="cfg-modal-tab"
+                    data-cfg-panel="cfg-cupos"
+                    role="tab" aria-selected="false" type="button">
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none"
+                     viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round"
+                          d="M8.25 18.75a1.5 1.5 0 01-3 0m3 0a1.5 1.5 0
+                          00-3 0m3 0h6m-9 0H3.375a1.125 1.125 0
+                          01-1.125-1.125V14.25m17.25 4.5a1.5 1.5 0 01-3
+                          0m3 0a1.5 1.5 0 00-3 0m3 0h1.125c.621 0
+                          1.129-.504 1.09-1.124a17.902 17.902 0
+                          00-3.213-9.193 2.056 2.056 0 00-1.58-.86H14.25
+                          M16.5 18.75h-2.25m0-11.177v-.958c0-.568-.422
+                          -1.048-.987-1.106a48.554 48.554 0 00-10.026 0
+                          1.106 1.106 0 00-.987 1.106v7.635m12-6.677v6.677
+                          m0 4.5v-4.5m0 0h-12"/>
+                </svg>
+                Cupos
+            </button>
+
+            <button class="cfg-modal-tab"
+                    data-cfg-panel="cfg-imagen"
+                    role="tab" aria-selected="false" type="button">
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none"
+                     viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round"
+                          d="M2.25 15.75l5.159-5.159a2.25 2.25 0 013.182
+                          0l5.159 5.159m-1.5-1.5l1.409-1.409a2.25 2.25 0
+                          013.182 0l2.909 2.909m-18 3.75h16.5a1.5 1.5 0
+                          001.5-1.5V6a1.5 1.5 0 00-1.5-1.5H3.75A1.5 1.5
+                          0 002.25 6v12a1.5 1.5 0 001.5 1.5zm10.5-11.25
+                          h.008v.008h-.008V8.25zm.375 0a.375.375 0 11-.75
+                          0 .375.375 0 01.75 0z"/>
+                </svg>
+                Imagen
+            </button>
+
+            <button class="cfg-modal-tab"
+                    data-cfg-panel="cfg-contrasena"
+                    role="tab" aria-selected="false" type="button">
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none"
+                     viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round"
+                          d="M16.5 10.5V6.75a4.5 4.5 0 10-9 0v3.75m-.75
+                          11.25h10.5a2.25 2.25 0 002.25-2.25v-6.75a2.25
+                          2.25 0 00-2.25-2.25H6.75a2.25 2.25 0
+                          00-2.25 2.25v6.75a2.25 2.25 0 002.25 2.25z"/>
+                </svg>
+                Contraseña
+            </button>
+
+        </div>
+
+        <!-- Cuerpo scrollable -->
+        <div class="cfg-modal-body">
+
+            <!-- PANEL: Información -->
+            <div id="cfg-info" class="cfg-panel active">
+                <div class="cfg-modal-grid">
+                    <div class="cfg-modal-field">
+                        <label for="cfg-nombre">Nombre de la sede *</label>
+                        <input type="text" id="cfg-nombre" placeholder="Ej: Sede Norte" maxlength="100"/>
+                        <span class="cfg-modal-err" id="err-nombre"></span>
+                    </div>
+                    <div class="cfg-modal-field">
+                        <label for="cfg-nit">NIT</label>
+                        <input type="text" id="cfg-nit" disabled title="El NIT no puede modificarse"/>
+                    </div>
+                    <div class="cfg-modal-field full">
+                        <label for="cfg-direccion">Dirección *</label>
+                        <input type="text" id="cfg-direccion" placeholder="Calle 100 # 15-30" maxlength="200"/>
+                        <span class="cfg-modal-err" id="err-direccion"></span>
+                    </div>
+                    <div class="cfg-modal-field">
+                        <label for="cfg-telefono">Teléfono de contacto</label>
+                        <input type="tel" id="cfg-telefono" placeholder="6011234567" maxlength="20"/>
+                    </div>
+                    <div class="cfg-modal-field">
+                        <label for="cfg-correo">Correo de contacto</label>
+                        <input type="email" id="cfg-correo" placeholder="sede@ejemplo.com"/>
+                        <span class="cfg-modal-err" id="err-correo"></span>
+                    </div>
+                    <div class="cfg-modal-field full">
+                        <label for="cfg-horario">Horario de atención</label>
+                        <input type="text" id="cfg-horario" placeholder="Lun-Vie 7am-9pm, Sab 8am-6pm" maxlength="100"/>
+                    </div>
                 </div>
+                <div class="cfg-panel-actions">
+                    <button type="button" class="sede-btn-secondary" onclick="cfgCargarDatos()">Cancelar</button>
+                    <button type="button" class="sede-btn-primary"   onclick="cfgGuardarInformacion()">Guardar cambios</button>
+                </div>
+            </div>
 
-                <div class="cfg-imagen-info">
-                    <p><strong>Formatos:</strong> JPG, PNG, WEBP</p>
-                    <p><strong>Tamaño máximo:</strong> 5 MB</p>
-                    <p class="cfg-imagen-nombre" id="cfg-img-nombre"></p>
+            <!-- PANEL: Tarifas -->
+            <div id="cfg-tarifas" class="cfg-panel">
+                <div class="cfg-info-band teal">
+                    <strong>Tarifa plena:</strong> cobro fijo por día completo. &nbsp;
+                    <strong>Tarifa minuto:</strong> cobro proporcional al tiempo transcurrido.
+                </div>
+                <div class="cfg-modal-grid">
+                    <div class="cfg-modal-field">
+                        <label for="cfg-tarifaPlenaC">Tarifa plena — Carro ($)</label>
+                        <input type="number" id="cfg-tarifaPlenaC" min="0" step="100" placeholder="15000" oninput="cfgActualizarPreview()"/>
+                        <span class="cfg-modal-err" id="err-tarifaPlenaC"></span>
+                    </div>
+                    <div class="cfg-modal-field">
+                        <label for="cfg-tarifaPlenaM">Tarifa plena — Moto ($)</label>
+                        <input type="number" id="cfg-tarifaPlenaM" min="0" step="100" placeholder="8000"  oninput="cfgActualizarPreview()"/>
+                        <span class="cfg-modal-err" id="err-tarifaPlenaM"></span>
+                    </div>
+                    <div class="cfg-modal-field">
+                        <label for="cfg-tarifaMinutoC">Tarifa minuto — Carro ($/min)</label>
+                        <input type="number" id="cfg-tarifaMinutoC" min="0" step="1" placeholder="80" oninput="cfgActualizarPreview()"/>
+                        <span class="cfg-modal-err" id="err-tarifaMinutoC"></span>
+                    </div>
+                    <div class="cfg-modal-field">
+                        <label for="cfg-tarifaMinutoM">Tarifa minuto — Moto ($/min)</label>
+                        <input type="number" id="cfg-tarifaMinutoM" min="0" step="1" placeholder="50"  oninput="cfgActualizarPreview()"/>
+                        <span class="cfg-modal-err" id="err-tarifaMinutoM"></span>
+                    </div>
+                </div>
+                <div class="cfg-tarifa-preview">
+                    <span>Vista previa — 1 hora estacionado</span>
+                    <div class="cfg-tarifa-preview-grid">
+                        <span>🚗 Plena carro: <strong id="prev-plena-c">—</strong></span>
+                        <span>🚗 Minuto carro (60 min): <strong id="prev-min-c">—</strong></span>
+                        <span>🏍 Plena moto: <strong id="prev-plena-m">—</strong></span>
+                        <span>🏍 Minuto moto (60 min): <strong id="prev-min-m">—</strong></span>
+                    </div>
+                </div>
+                <div class="cfg-panel-actions">
+                    <button type="button" class="sede-btn-secondary" onclick="cfgCargarDatos()">Cancelar</button>
+                    <button type="button" class="sede-btn-primary"   onclick="cfgGuardarTarifas()">Guardar tarifas</button>
+                </div>
+            </div>
 
-                    <input type="file"
-                           id="imagenInput"
-                           accept="image/jpeg,image/png,image/webp"
-                           style="display:none;"
-                           onchange="previsualizarImagen(this)"/>
+            <!-- PANEL: Cupos -->
+            <div id="cfg-cupos" class="cfg-panel">
+                <div class="cfg-info-band yellow">
+                    Configura la capacidad diferenciada por tipo de vehículo.
+                    La <strong>capacidad total</strong> se gestiona desde el panel de administración.
+                </div>
+                <div class="cfg-modal-grid">
+                    <div class="cfg-modal-field">
+                        <label for="cfg-cuposCarro">Cupos — Carro</label>
+                        <input type="number" id="cfg-cuposCarro"     min="0" placeholder="20" oninput="cfgActualizarBarra()"/>
+                    </div>
+                    <div class="cfg-modal-field">
+                        <label for="cfg-cuposMoto">Cupos — Moto</label>
+                        <input type="number" id="cfg-cuposMoto"      min="0" placeholder="15" oninput="cfgActualizarBarra()"/>
+                    </div>
+                    <div class="cfg-modal-field">
+                        <label for="cfg-cuposBicicleta">Cupos — Bicicleta</label>
+                        <input type="number" id="cfg-cuposBicicleta" min="0" placeholder="10" oninput="cfgActualizarBarra()"/>
+                    </div>
+                    <div class="cfg-modal-field">
+                        <label>Capacidad total (referencia)</label>
+                        <input type="number" id="cfg-capacidadTotal" disabled/>
+                    </div>
+                </div>
+                <!-- Barra de distribución -->
+                <div style="margin-bottom:1rem;">
+                    <div style="font-size:0.75rem;font-weight:700;color:#64748b;margin-bottom:0.35rem;">
+                        Distribución de cupos:
+                    </div>
+                    <div class="cfg-cupos-bar" id="cfg-cupos-bar">
+                        <div class="cfg-cupos-bar-segment cfg-cupos-bar-carro"     id="bar-carro"     style="width:33%"></div>
+                        <div class="cfg-cupos-bar-segment cfg-cupos-bar-moto"      id="bar-moto"      style="width:33%"></div>
+                        <div class="cfg-cupos-bar-segment cfg-cupos-bar-bicicleta" id="bar-bicicleta" style="width:34%"></div>
+                    </div>
+                    <div class="cfg-cupos-legend">
+                        <span class="cfg-cupos-legend-item">
+                            <span class="cfg-cupos-legend-dot" style="background:#0d9488"></span>
+                            Carros: <strong id="leg-carro">0</strong>
+                        </span>
+                        <span class="cfg-cupos-legend-item">
+                            <span class="cfg-cupos-legend-dot" style="background:#0ea5e9"></span>
+                            Motos: <strong id="leg-moto">0</strong>
+                        </span>
+                        <span class="cfg-cupos-legend-item">
+                            <span class="cfg-cupos-legend-dot" style="background:#8b5cf6"></span>
+                            Bicicletas: <strong id="leg-bicicleta">0</strong>
+                        </span>
+                        <span class="cfg-cupos-legend-total">
+                            Total: <strong id="leg-total">0</strong>
+                        </span>
+                    </div>
+                </div>
+                <div class="cfg-panel-actions">
+                    <button type="button" class="sede-btn-secondary" onclick="cfgCargarDatos()">Cancelar</button>
+                    <button type="button" class="sede-btn-primary"   onclick="cfgGuardarCupos()">Guardar cupos</button>
+                </div>
+            </div>
 
-                    <button type="button"
-                            class="cfg-upload-btn"
-                            onclick="document.getElementById('imagenInput').click()">
-                        <svg xmlns="http://www.w3.org/2000/svg" fill="none"
-                             viewBox="0 0 24 24" stroke="currentColor">
-                            <path stroke-linecap="round" stroke-linejoin="round"
-                                  stroke-width="2"
-                                  d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25
-                                  2.25 0 0021 18.75V16.5m-13.5-9L12 3m0 0l4.5
-                                  4.5M12 3v13.5"/>
-                        </svg>
-                        Seleccionar imagen
+            <!-- PANEL: Imagen -->
+            <div id="cfg-imagen" class="cfg-panel">
+                <div class="cfg-imagen-area">
+                    <div class="cfg-imagen-preview" id="cfgImagenPreview">
+                        <span class="cfg-imagen-placeholder" id="cfgImgPlaceholder">
+                            <svg xmlns="http://www.w3.org/2000/svg" fill="none"
+                                 viewBox="0 0 24 24" stroke-width="1"
+                                 stroke="#99f6e4" style="width:56px;height:56px;">
+                                <path stroke-linecap="round" stroke-linejoin="round"
+                                      d="M2.25 15.75l5.159-5.159a2.25 2.25 0 013.182
+                                      0l5.159 5.159m-1.5-1.5l1.409-1.409a2.25 2.25 0
+                                      013.182 0l2.909 2.909m-18 3.75h16.5a1.5 1.5 0
+                                      001.5-1.5V6a1.5 1.5 0 00-1.5-1.5H3.75A1.5 1.5
+                                      0 002.25 6v12a1.5 1.5 0 001.5 1.5zm10.5-11.25
+                                      h.008v.008h-.008V8.25zm.375 0a.375.375 0 11-.75
+                                      0 .375.375 0 01.75 0z"/>
+                            </svg>
+                        </span>
+                        <img id="cfgImgPreviewEl" src="" alt="Imagen de la sede"
+                             style="display:none;width:100%;height:100%;object-fit:cover;"/>
+                    </div>
+                    <div class="cfg-imagen-info">
+                        <p><strong>Formatos:</strong> JPG, PNG, WEBP</p>
+                        <p><strong>Tamaño máximo:</strong> 5 MB</p>
+                        <p class="cfg-imagen-nombre" id="cfg-img-nombre"></p>
+                        <input type="file" id="cfgImagenInput"
+                               accept="image/jpeg,image/png,image/webp"
+                               style="display:none;"
+                               onchange="cfgPrevisualizarImagen(this)"/>
+                        <button type="button" class="cfg-upload-btn"
+                                onclick="document.getElementById('cfgImagenInput').click()">
+                            <svg xmlns="http://www.w3.org/2000/svg" fill="none"
+                                 viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round"
+                                      d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25
+                                      2.25 0 0021 18.75V16.5m-13.5-9L12 3m0 0l4.5
+                                      4.5M12 3v13.5"/>
+                            </svg>
+                            Seleccionar imagen
+                        </button>
+                    </div>
+                </div>
+                <div class="cfg-panel-actions">
+                    <button type="button" class="sede-btn-secondary" onclick="cfgCargarDatos()">Cancelar</button>
+                    <button type="button" class="sede-btn-primary"
+                            id="btn-guardar-img"
+                            onclick="cfgGuardarImagen()" disabled>
+                        Subir imagen
                     </button>
                 </div>
             </div>
 
-            <div class="cfg-actions">
-                <button type="button"
-                        class="sede-btn-secondary"
-                        onclick="cargarDatosActuales()">
-                    Cancelar
-                </button>
-                <button type="button"
-                        class="sede-btn-primary"
-                        id="btn-guardar-img"
-                        onclick="guardarImagen()"
-                        disabled>
-                    Subir imagen
-                </button>
-            </div>
-        </div>
-    </div>
-
-
-    <!-- ====================================================
-         PANEL 5 — CONTRASEÑA
-         ==================================================== -->
-    <div id="panel-contrasena" class="cfg-panel"
-         role="tabpanel" aria-labelledby="tab-contrasena">
-
-        <div class="cfg-card">
-            <h2>🔒 Cambiar Contraseña</h2>
-
-            <div class="cfg-grid">
-                <div class="cfg-field full">
-                    <label for="cfg-passActual">Contraseña actual *</label>
-                    <input type="password" id="cfg-passActual"
-                           placeholder="Tu contraseña actual"
-                           autocomplete="current-password"/>
-                    <span class="err-msg" id="err-passActual"></span>
-                </div>
-
-                <div class="cfg-field">
-                    <label for="cfg-passNueva">Nueva contraseña *</label>
-                    <input type="password" id="cfg-passNueva"
-                           placeholder="Mínimo 8 caracteres"
-                           autocomplete="new-password"
-                           oninput="evaluarFortaleza(this.value)"/>
-                    <div class="cfg-strength-bar">
-                        <div class="cfg-strength-fill" id="strengthFill"></div>
+            <!-- PANEL: Contraseña -->
+            <div id="cfg-contrasena" class="cfg-panel">
+                <div class="cfg-modal-grid">
+                    <div class="cfg-modal-field full">
+                        <label for="cfg-passActual">Contraseña actual *</label>
+                        <input type="password" id="cfg-passActual"
+                               placeholder="Tu contraseña actual"
+                               autocomplete="current-password"/>
+                        <span class="cfg-modal-err" id="err-passActual"></span>
                     </div>
-                    <span class="cfg-strength-label" id="strengthLabel"></span>
-                    <span class="err-msg" id="err-passNueva"></span>
+                    <div class="cfg-modal-field">
+                        <label for="cfg-passNueva">Nueva contraseña *</label>
+                        <input type="password" id="cfg-passNueva"
+                               placeholder="Mínimo 8 caracteres"
+                               autocomplete="new-password"
+                               oninput="cfgEvaluarFortaleza(this.value)"/>
+                        <div class="cfg-strength-bar">
+                            <div class="cfg-strength-fill" id="cfgStrengthFill"></div>
+                        </div>
+                        <span class="cfg-strength-label" id="cfgStrengthLabel"></span>
+                        <span class="cfg-modal-err"      id="err-passNueva"></span>
+                    </div>
+                    <div class="cfg-modal-field">
+                        <label for="cfg-passConfirmar">Confirmar contraseña *</label>
+                        <input type="password" id="cfg-passConfirmar"
+                               placeholder="Repite la nueva contraseña"
+                               autocomplete="new-password"/>
+                        <span class="cfg-modal-err" id="err-passConfirmar"></span>
+                    </div>
                 </div>
-
-                <div class="cfg-field">
-                    <label for="cfg-passConfirmar">Confirmar nueva contraseña *</label>
-                    <input type="password" id="cfg-passConfirmar"
-                           placeholder="Repite la nueva contraseña"
-                           autocomplete="new-password"/>
-                    <span class="err-msg" id="err-passConfirmar"></span>
+                <div class="cfg-panel-actions">
+                    <button type="button" class="sede-btn-secondary" onclick="cfgLimpiarContrasena()">Cancelar</button>
+                    <button type="button" class="sede-btn-primary"   onclick="cfgCambiarContrasena()">Cambiar contraseña</button>
                 </div>
             </div>
 
-            <div class="cfg-actions">
-                <button type="button"
-                        class="sede-btn-secondary"
-                        onclick="limpiarFormContrasena()">
-                    Cancelar
-                </button>
-                <button type="button"
-                        class="sede-btn-primary"
-                        onclick="cambiarContrasena()">
-                    Cambiar contraseña
-                </button>
-            </div>
-        </div>
-    </div>
-
-</div><!-- /cfg-wrapper -->
-
-<script src="/js/configuracion-sede.js"></script>
-
-</body>
-</html>
+        </div><!-- /cfg-modal-body -->
+    </div><!-- /cfg-modal-box -->
+</div><!-- /cfgModalOverlay -->
+<!-- ══ FIN BLOQUE 2 ══ -->

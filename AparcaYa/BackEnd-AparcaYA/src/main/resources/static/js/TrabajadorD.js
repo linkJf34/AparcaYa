@@ -263,27 +263,7 @@ function initializeProfileMenu() {
 }
 
 // POST /logout invalida el SecurityContext de Spring
-async function handleLogout() {
-    var ok = await showConfirm(
-        'Cerrar sesión',
-        '¿Estás seguro de que deseas cerrar sesión?',
-        'Cerrar sesión',
-        'danger'
-    );
-    if (!ok) { return; }
-    if (updateInterval) { clearInterval(updateInterval); }
-    Object.values(timerIntervals).forEach(function(id) { clearInterval(id); });
-    try {
-        var csrfMeta   = document.querySelector('meta[name="_csrf"]');
-        var csrfHMeta  = document.querySelector('meta[name="_csrf_header"]');
-        var csrfToken  = csrfMeta  ? csrfMeta.getAttribute('content')  : null;
-        var csrfHeader = csrfHMeta ? csrfHMeta.getAttribute('content') : null;
-        var headers = { 'Content-Type': 'application/x-www-form-urlencoded' };
-        if (csrfToken && csrfHeader) { headers[csrfHeader] = csrfToken; }
-        await fetch('/logout', { method: 'POST', headers: headers, credentials: 'same-origin' });
-    } catch (e) { /* Si falla el fetch, redirigimos igual */ }
-    window.location.href = '/login';
-}
+function handleLogout()  { logoutJWT(); }
 
 function initializeMarcas() {
     var ts = document.getElementById('tipoVehiculo');

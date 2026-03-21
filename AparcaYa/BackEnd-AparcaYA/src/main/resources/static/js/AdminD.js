@@ -1,20 +1,6 @@
 // ============================================
 // ADMIND.JS — AparcaYA
 // Ruta: /js/AdminD.js
-//
-// CAMBIOS APLICADOS EN ESTA VERSIÓN:
-// ✅ SA-01: showToast() reemplazada por SweetAlert2 toast
-// ✅ SA-01: showConfirm() reemplazada por SweetAlert2 modal
-//           Ambas funciones mantienen FIRMA IDÉNTICA —
-//           todo el código existente funciona sin cambios.
-// ✅ S-03:  toggleSidebar() — sidebar colapsable con persistencia en localStorage
-//           para el control del drawer lateral en tablet/mobile.
-//
-// SIN CAMBIOS EN:
-// - Lógica de usuarios, sedes, mapa, gráficas, correos
-// - Nombres de variables y funciones
-// - Flujos de fetch y manejo de errores
-// - Funciones del menú de perfil
 // ============================================
 
 // ============================================
@@ -34,59 +20,24 @@ let sedes      = [];
 
 // ============================================
 // SISTEMA DE NOTIFICACIONES — SweetAlert2
-//
-// ✅ SA-01 FIX: Reemplaza la implementación manual anterior.
-//
-// FIRMA IDÉNTICA A LA VERSIÓN ANTERIOR:
-//   showToast(mensaje, tipo, duracion)
-//   showConfirm(titulo, cuerpo, btnTexto, btnColor) → Promise<boolean>
-//
-// Todo el código que llama a estas funciones sigue
-// funcionando exactamente igual, sin ningún cambio.
 // ============================================
-
-/**
- * Toast flotante con SweetAlert2.
- * Tipos: 'success' | 'error' | 'warning' | 'info'
- * Misma firma que la versión anterior.
- */
 function showToast(mensaje, tipo = 'info', duracion = 4000) {
-    // Mapeo de tipos propios → iconos de SweetAlert2
-    const iconMap = {
-        success: 'success',
-        error:   'error',
-        warning: 'warning',
-        info:    'info'
-    };
-
+    const iconMap = { success:'success', error:'error', warning:'warning', info:'info' };
     Swal.mixin({
         toast:             true,
         position:          'top-end',
         showConfirmButton: false,
         timer:             duracion,
         timerProgressBar:  true,
-        // Pausa el timer si el usuario pasa el ratón por el toast
         didOpen: (toast) => {
             toast.addEventListener('mouseenter', Swal.stopTimer);
             toast.addEventListener('mouseleave', Swal.resumeTimer);
         }
-    }).fire({
-        icon:  iconMap[tipo] || 'info',
-        title: mensaje
-    });
+    }).fire({ icon: iconMap[tipo] || 'info', title: mensaje });
 }
 
-/**
- * Modal de confirmación con SweetAlert2.
- * Retorna Promise<boolean> — misma firma que la versión anterior.
- * Todos los `await showConfirm(...)` existentes funcionan igual.
- */
 async function showConfirm(titulo, cuerpo, btnTexto = 'Eliminar', btnColor = 'danger') {
-    const colorMap = {
-        danger:  '#dc2626',
-        warning: '#f59e0b'
-    };
-
+    const colorMap = { danger:'#dc2626', warning:'#f59e0b' };
     const result = await Swal.fire({
         title:              titulo,
         html:               cuerpo,
@@ -97,7 +48,6 @@ async function showConfirm(titulo, cuerpo, btnTexto = 'Eliminar', btnColor = 'da
         confirmButtonColor: colorMap[btnColor] || colorMap.danger,
         cancelButtonColor:  '#6b7280',
         reverseButtons:     true,
-        // Foco en Cancelar por seguridad en acciones destructivas
         focusCancel:        true,
         customClass: {
             popup:         'swal-aparca-popup',
@@ -105,9 +55,24 @@ async function showConfirm(titulo, cuerpo, btnTexto = 'Eliminar', btnColor = 'da
             htmlContainer: 'swal-aparca-body'
         }
     });
-
-    // Mantiene exactamente el mismo valor boolean que retornaba antes
     return result.isConfirmed;
+}
+
+// ============================================
+// HELPERS — abrir/cerrar modales propios
+// ============================================
+function abrirModal(id) {
+    var m = document.getElementById(id);
+    if (!m) return;
+    m.classList.add('show');
+    m.setAttribute('aria-hidden', 'false');
+}
+
+function cerrarModal(id) {
+    var m = document.getElementById(id);
+    if (!m) return;
+    m.classList.remove('show');
+    m.setAttribute('aria-hidden', 'true');
 }
 
 // ============================================
@@ -122,19 +87,38 @@ document.addEventListener('DOMContentLoaded', () => {
 
     const formUnitario = document.getElementById('formCorreoUnitario');
     if (formUnitario) {
-        formUnitario.addEventListener('submit', function (e) {
-            e.preventDefault();
-            enviarCorreoUnitario(this);
-        });
+        formUnitario.addEventListener('submit', function(e) { e.preventDefault(); enviarCorreoUnitario(this); });
     }
-
     const formMasivo = document.getElementById('formCorreoMasivo');
     if (formMasivo) {
-        formMasivo.addEventListener('submit', function (e) {
-            e.preventDefault();
-            enviarCorreoMasivo(this);
-        });
+        formMasivo.addEventListener('submit', function(e) { e.preventDefault(); enviarCorreoMasivo(this); });
     }
+
+    // Cerrar modales al hacer clic en el overlay
+    ['modal_editar_usuario', 'modal_editar_sede', 'modalSede'].forEach(function(id) {
+        var el = document.getElementById(id);
+        if (el) {
+            el.addEventListener('click', function(e) {
+                if (e.target === el) {
+                    if (id === 'modal_editar_usuario') cerrarModalEdicion();
+                    else if (id === 'modal_editar_sede') cerrarModalEdicionSede();
+                    else cerrarModalSede();
+                }
+            });
+        }
+    });
+
+    // Badge en tiempo real mientras el admin escribe manualmente
+    var textarea = document.getElementById('emailsMassive');
+    if (textarea) textarea.addEventListener('input', _adminActualizarBadge);
+});
+
+// Escape cierra cualquier modal abierto
+document.addEventListener('keydown', function(e) {
+    if (e.key !== 'Escape') return;
+    cerrarModalSede();
+    cerrarModalEdicion();
+    cerrarModalEdicionSede();
 });
 
 // ============================================
@@ -146,7 +130,6 @@ if (profileBtn && profileDropdown) {
         profileBtn.setAttribute('aria-expanded', !expanded);
         profileDropdown.classList.toggle('show');
     });
-
     document.addEventListener('click', e => {
         if (!profileBtn.contains(e.target) && !profileDropdown.contains(e.target)) {
             profileDropdown.classList.remove('show');
@@ -169,17 +152,14 @@ navLinks.forEach(link => {
         sections.forEach(sec => {
             if (sec.id === target) {
                 sec.classList.remove('hidden');
-                if (target === 'sedes' && !map) setTimeout(initMap, 100);
-                if (target === 'graficas') setTimeout(inicializarGraficas, 100);
+                if (target === 'sedes'   && !map) setTimeout(initMap, 100);
+                if (target === 'graficas')        setTimeout(inicializarGraficas, 100);
             } else {
                 sec.classList.add('hidden');
             }
         });
 
-        // En mobile colapsa el sidebar al navegar para ganar espacio
-        if (window.innerWidth < 640) {
-            document.body.classList.add('sidebar-collapsed');
-        }
+        if (window.innerWidth < 640) document.body.classList.add('sidebar-collapsed');
     });
 });
 
@@ -192,17 +172,14 @@ async function cargarIndicadores() {
             fetch(`${API_BASE_URL}/indicadores`),
             fetch(`${API_BASE_URL}/indicadores/ingresos-por-rol`)
         ]);
-
         if (!indResp.ok || !rolesResp.ok) throw new Error('Error cargando indicadores');
 
         const data  = await indResp.json();
         const roles = await rolesResp.json();
 
-        // Donuts (los dos primeros se mantienen igual)
         actualizarIndicador(0, data.totalUsuarios, data.porcentajeUsuarios);
         actualizarIndicador(1, data.totalSedes,    data.porcentajeSedes);
 
-        // KPIs de gráficas (antes quedaban en "—")
         const kpiTotal   = document.getElementById('kpiUsuariosTotal');
         const kpiActivos = document.getElementById('kpiUsuariosActivos');
         const kpiSTotal  = document.getElementById('kpiSedesTotal');
@@ -210,14 +187,12 @@ async function cargarIndicadores() {
         if (kpiActivos) kpiActivos.textContent  = data.usuariosActivos;
         if (kpiSTotal)  kpiSTotal.textContent   = data.totalSedes;
 
-        // Nuevo widget de roles
         renderIngresosPorRol(roles.porRol);
-
     } catch (error) {
         console.error('Error cargando indicadores:', error);
     }
 }
-// Mapa de etiquetas legibles para los roles del enum
+
 const ROL_LABELS = {
     ADMIN:              'Admin',
     ADMINISTRADOR_SEDE: 'Admin Sede',
@@ -225,7 +200,6 @@ const ROL_LABELS = {
     CLIENTE:            'Cliente'
 };
 
-// Colores por rol (consistentes con las gráficas de barras)
 const ROL_COLORS = {
     ADMIN:              '#6366f1',
     ADMINISTRADOR_SEDE: '#f59e0b',
@@ -236,22 +210,18 @@ const ROL_COLORS = {
 function renderIngresosPorRol(porRol) {
     const container = document.getElementById('ingresosPorRolContainer');
     if (!container || !porRol) return;
-
     const total = Object.values(porRol).reduce((a, b) => a + b, 0);
     if (total === 0) {
         container.innerHTML = '<p class="admin-roles-empty">Sin usuarios registrados</p>';
         return;
     }
-
     container.innerHTML = Object.entries(porRol).map(([rol, cantidad]) => {
         const pct   = total > 0 ? Math.round((cantidad / total) * 100) : 0;
         const color = ROL_COLORS[rol] || '#94a3b8';
         const label = ROL_LABELS[rol] || rol;
         return `
         <div class="admin-rol-row">
-            <span class="admin-rol-badge" style="background:${color}20;color:${color}">
-                ${label}
-            </span>
+            <span class="admin-rol-badge" style="background:${color}20;color:${color}">${label}</span>
             <div class="admin-rol-bar-wrap">
                 <div class="admin-rol-bar" style="width:${pct}%;background:${color}"></div>
             </div>
@@ -287,22 +257,20 @@ async function cargarUsuarios() {
 function renderUsuarios(usuariosArray = usuarios) {
     const tbody = document.getElementById('tbodyUsuarios');
     if (!tbody) return;
-
     if (usuariosArray.length === 0) {
         tbody.innerHTML = '<tr><td colspan="6" class="text-center text-gray-500">No hay usuarios registrados</td></tr>';
         return;
     }
-
     tbody.innerHTML = usuariosArray.map(u => {
         const usuarioId = u.id || u.idUsuario || u.usuario_id;
         if (!usuarioId) { console.error('Usuario sin ID:', u); return ''; }
         return `
         <tr>
-            <td>${u.nombre  || 'N/A'}</td>
-            <td>${u.correo  || 'N/A'}</td>
-            <td>${u.telefono|| 'N/A'}</td>
+            <td>${u.nombre   || 'N/A'}</td>
+            <td>${u.correo   || 'N/A'}</td>
+            <td>${u.telefono || 'N/A'}</td>
             <td>${u.rol ? (u.rol.name || u.rol) : 'N/A'}</td>
-            <td>${u.estado  || 'N/A'}</td>
+            <td>${u.estado   || 'N/A'}</td>
             <td>
                 <button class="aparca-btn-outline mr-2" onclick="editarUsuario(${usuarioId})">Editar</button>
                 <button class="admin-modal-sede-btn-danger" onclick="eliminarUsuario(${usuarioId})">Eliminar</button>
@@ -312,20 +280,12 @@ function renderUsuarios(usuariosArray = usuarios) {
 }
 
 async function eliminarUsuario(id) {
-    if (!id) {
-        showToast('ID de usuario inválido', 'error');
-        return;
-    }
-
+    if (!id) { showToast('ID de usuario inválido', 'error'); return; }
     const usuario = usuarios.find(u => {
         const usuarioId = u.id || u.idUsuario || u.usuario_id;
         return usuarioId == id;
     });
-
-    if (!usuario) {
-        showToast('Usuario no encontrado', 'error');
-        return;
-    }
+    if (!usuario) { showToast('Usuario no encontrado', 'error'); return; }
 
     const confirmado = await showConfirm(
         'Eliminar usuario',
@@ -335,20 +295,16 @@ async function eliminarUsuario(id) {
 
     try {
         const response = await fetch(`${API_BASE_URL}/usuarios/eliminar/${id}`, {
-            method: 'DELETE',
-            headers: { 'Content-Type': 'application/json' }
+            method: 'DELETE', headers: { 'Content-Type': 'application/json' }
         });
-
         if (!response.ok) {
             const errorData = await response.json();
             throw new Error(errorData.mensaje || 'Error eliminando usuario');
         }
-
         const data = await response.json();
         showToast(data.mensaje || 'Usuario eliminado correctamente', 'success');
         await cargarUsuarios();
         await cargarIndicadores();
-
     } catch (error) {
         console.error('Error eliminando usuario:', error);
         showToast(`No se pudo eliminar el usuario: ${error.message}`, 'error');
@@ -360,20 +316,17 @@ function editarUsuario(id) {
         const usuarioId = u.id || u.idUsuario || u.usuario_id;
         return usuarioId == id;
     });
-
-    if (!usuario) {
-        showToast('Usuario no encontrado', 'error');
-        return;
-    }
+    if (!usuario) { showToast('Usuario no encontrado', 'error'); return; }
 
     document.getElementById('edit_usuario_id').value = id;
     document.getElementById('edit_nombre').value     = usuario.nombre   || '';
     document.getElementById('edit_email').value      = usuario.correo   || '';
     document.getElementById('edit_telefono').value   = usuario.telefono || '';
     document.getElementById('edit_rol').value        = usuario.rol?.name || usuario.rol || 'CLIENTE';
-    document.getElementById('edit_estado').value     = (usuario.estado || 'ACTIVO').toUpperCase();
+    document.getElementById('edit_estado').value     = (usuario.estado  || 'ACTIVO').toUpperCase();
 
-    document.getElementById('modal_editar_usuario').showModal();
+    // ✅ CAMBIADO: showModal() → classList.add('show')
+    abrirModal('modal_editar_usuario');
 }
 
 async function guardarEdicion() {
@@ -385,12 +338,10 @@ async function guardarEdicion() {
     const estado   = document.getElementById('edit_estado').value;
 
     if (!nombre || !email || !rol) {
-        showToast('Por favor completa todos los campos obligatorios', 'warning');
-        return;
+        showToast('Por favor completa todos los campos obligatorios', 'warning'); return;
     }
     if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
-        showToast('Por favor ingresa un correo válido', 'warning');
-        return;
+        showToast('Por favor ingresa un correo válido', 'warning'); return;
     }
 
     try {
@@ -399,15 +350,14 @@ async function guardarEdicion() {
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ nombre, correo: email, telefono: telefono || null, rol, estado })
         });
-
         const data = await response.json();
         if (!response.ok) throw new Error(data.mensaje || `Error ${response.status}`);
 
         showToast(data.mensaje || 'Usuario actualizado correctamente', 'success');
-        document.getElementById('modal_editar_usuario').close();
+        // ✅ CAMBIADO: .close() → classList.remove('show')
+        cerrarModalEdicion();
         await cargarUsuarios();
         await cargarIndicadores();
-
     } catch (error) {
         console.error('Error actualizando usuario:', error);
         showToast(`No se pudo actualizar el usuario: ${error.message}`, 'error');
@@ -415,12 +365,13 @@ async function guardarEdicion() {
 }
 
 function cerrarModalEdicion() {
-    document.getElementById('modal_editar_usuario').close();
+    // ✅ CAMBIADO: .close() → classList.remove('show')
+    cerrarModal('modal_editar_usuario');
     ['edit_usuario_id','edit_nombre','edit_email','edit_telefono'].forEach(id => {
-        document.getElementById(id).value = '';
+        var el = document.getElementById(id); if (el) el.value = '';
     });
-    document.getElementById('edit_rol').value    = 'CLIENTE';
-    document.getElementById('edit_estado').value = 'ACTIVO';
+    var rol    = document.getElementById('edit_rol');    if (rol)    rol.value    = 'CLIENTE';
+    var estado = document.getElementById('edit_estado'); if (estado) estado.value = 'ACTIVO';
 }
 
 // ============================================
@@ -428,7 +379,7 @@ function cerrarModalEdicion() {
 // ============================================
 const busquedaInput   = document.getElementById('busquedaInput');
 const filtroUnificado = document.getElementById('filtroUnificado');
-if (busquedaInput)   busquedaInput.addEventListener('input',  filtrarUsuarios);
+if (busquedaInput)   busquedaInput.addEventListener('input',   filtrarUsuarios);
 if (filtroUnificado) filtroUnificado.addEventListener('change', filtrarUsuarios);
 
 function filtrarUsuarios() {
@@ -452,7 +403,6 @@ function filtrarUsuarios() {
             if (tipo === 'estado') coincideFiltro = estado === valor;
             else if (tipo === 'rol') coincideFiltro = rol === valor;
         }
-
         return coincideTexto && coincideFiltro;
     }));
 }
@@ -476,12 +426,10 @@ async function cargarSedes() {
 function renderSedes(sedesArray = sedes) {
     const tbody = document.getElementById('tbodySedes');
     if (!tbody) return;
-
     if (sedesArray.length === 0) {
         tbody.innerHTML = '<tr><td colspan="7" class="text-center text-gray-500">No hay sedes registradas</td></tr>';
         return;
     }
-
     tbody.innerHTML = sedesArray.map(s => `
         <tr>
             <td>${s.nombre    || 'N/A'}</td>
@@ -499,16 +447,9 @@ function renderSedes(sedesArray = sedes) {
 }
 
 async function eliminarSede(id) {
-    if (!id) {
-        showToast('ID de sede inválido', 'error');
-        return;
-    }
-
+    if (!id) { showToast('ID de sede inválido', 'error'); return; }
     const sede = sedes.find(s => s.id == id);
-    if (!sede) {
-        showToast('Sede no encontrada', 'error');
-        return;
-    }
+    if (!sede) { showToast('Sede no encontrada', 'error'); return; }
 
     const confirmado = await showConfirm(
         'Eliminar sede',
@@ -522,12 +463,10 @@ async function eliminarSede(id) {
             const errorData = await response.json();
             throw new Error(errorData.mensaje || 'Error eliminando sede');
         }
-
         const data = await response.json();
         showToast(data.mensaje || 'Sede eliminada correctamente', 'success');
         await cargarSedes();
         await cargarIndicadores();
-
     } catch (error) {
         console.error('Error eliminando sede:', error);
         showToast(`No se pudo eliminar la sede: ${error.message}`, 'error');
@@ -536,10 +475,7 @@ async function eliminarSede(id) {
 
 function editarSede(id) {
     const sede = sedes.find(s => s.id == id);
-    if (!sede) {
-        showToast('Sede no encontrada', 'error');
-        return;
-    }
+    if (!sede) { showToast('Sede no encontrada', 'error'); return; }
 
     document.getElementById('edit_sede_id').value        = id;
     document.getElementById('edit_sede_nombre').value    = sede.nombre    || '';
@@ -547,7 +483,8 @@ function editarSede(id) {
     document.getElementById('edit_sede_capacidad').value = sede.capacidad || '';
     document.getElementById('edit_sede_estado').value    = (sede.estado   || 'ACTIVO').toUpperCase();
 
-    document.getElementById('modal_editar_sede').showModal();
+    // ✅ CAMBIADO: showModal() → classList.add('show')
+    abrirModal('modal_editar_sede');
 }
 
 async function guardarEdicionSede() {
@@ -558,12 +495,10 @@ async function guardarEdicionSede() {
     const estado    = document.getElementById('edit_sede_estado').value;
 
     if (!nombre || !direccion || !capacidad || !estado) {
-        showToast('Por favor completa todos los campos obligatorios', 'warning');
-        return;
+        showToast('Por favor completa todos los campos obligatorios', 'warning'); return;
     }
     if (capacidad <= 0) {
-        showToast('La capacidad debe ser mayor a 0', 'warning');
-        return;
+        showToast('La capacidad debe ser mayor a 0', 'warning'); return;
     }
 
     try {
@@ -572,15 +507,14 @@ async function guardarEdicionSede() {
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ nombre, direccion, capacidad, estado })
         });
-
         const data = await response.json();
         if (!response.ok) throw new Error(data.mensaje || `Error ${response.status}`);
 
         showToast(data.mensaje || 'Sede actualizada correctamente', 'success');
-        document.getElementById('modal_editar_sede').close();
+        // ✅ CAMBIADO: .close() → classList.remove('show')
+        cerrarModalEdicionSede();
         await cargarSedes();
         await cargarIndicadores();
-
     } catch (error) {
         console.error('Error actualizando sede:', error);
         showToast(`No se pudo actualizar la sede: ${error.message}`, 'error');
@@ -588,7 +522,8 @@ async function guardarEdicionSede() {
 }
 
 function cerrarModalEdicionSede() {
-    document.getElementById('modal_editar_sede').close();
+    // ✅ CAMBIADO: .close() → classList.remove('show')
+    cerrarModal('modal_editar_sede');
 }
 
 // ============================================
@@ -620,7 +555,6 @@ function filtrarSedes() {
             const [tipo, valor] = filtroSeleccionado.split(':');
             if (tipo === 'estado') coincideFiltro = estado === valor;
         }
-
         return coincideTexto && coincideFiltro;
     }));
 }
@@ -631,18 +565,15 @@ function filtrarSedes() {
 function initMap() {
     const mapContainer = document.getElementById('admin-map-container');
     if (!mapContainer || map) return;
-
     map = L.map('admin-map-container').setView([4.6533, -74.0836], 12);
     L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
         attribution: '&copy; OpenStreetMap contributors', maxZoom: 19
     }).addTo(map);
-
     agregarMarcadores();
 }
 
 async function agregarMarcadores() {
     if (!map) return;
-
     marcadores.forEach(m => m.remove());
     marcadores = [];
 
@@ -652,15 +583,12 @@ async function agregarMarcadores() {
 
         if (!lat || !lon) {
             const coords = await geocodificarFallback(sede.direccion, sede.localidad, sede.barrio);
-            if (!coords) {
-                console.warn(`Sin coordenadas para sede: ${sede.nombre} — se omite del mapa`);
-                continue;
-            }
+            if (!coords) { console.warn(`Sin coordenadas para sede: ${sede.nombre} — se omite del mapa`); continue; }
             lat = coords.lat;
             lon = coords.lon;
         }
 
-        const iconColor = sede.estado === 'ACTIVO' ? '#34a853' : '#dc2626';
+        const iconColor  = sede.estado === 'ACTIVO' ? '#34a853' : '#dc2626';
         const customIcon = L.divIcon({
             className: 'custom-marker',
             html: `<div style="background-color:${iconColor};width:32px;height:32px;
@@ -682,11 +610,11 @@ async function agregarMarcadores() {
                 <p style="margin:4px 0;color:#64748b;font-size:0.875rem;">📍 ${sede.direccion}</p>
                 <p style="margin:4px 0;color:#64748b;font-size:0.875rem;">🚗 Capacidad: ${sede.capacidad} vehículos</p>
                 <button onclick="mostrarDetallesSede(${sede.id})"
-                        style="margin-top:12px;width:100%;background:#00BFFF;color:white;
+                        style="margin-top:12px;width:100%;background:#1e40af;color:white;
                                border:none;padding:8px 16px;border-radius:6px;cursor:pointer;
                                font-weight:600;"
-                        onmouseover="this.style.background='#0284c7'"
-                        onmouseout="this.style.background='#00BFFF'">
+                        onmouseover="this.style.background='#1e3a8a'"
+                        onmouseout="this.style.background='#1e40af'">
                     Ver detalles completos
                 </button>
             </div>`, { maxWidth: 300 });
@@ -703,8 +631,7 @@ async function geocodificarFallback(direccion, localidad, barrio) {
     if (!direccion) return null;
 
     const localidadFmt = localidad
-        ? localidad.replace(/_/g, ' ').toLowerCase()
-            .replace(/\b\w/g, c => c.toUpperCase())
+        ? localidad.replace(/_/g, ' ').toLowerCase().replace(/\b\w/g, c => c.toUpperCase())
         : '';
 
     const queries = [
@@ -717,35 +644,17 @@ async function geocodificarFallback(direccion, localidad, barrio) {
         try {
             const url = `https://nominatim.openstreetmap.org/search?format=json&limit=3` +
                 `&countrycodes=co&q=${encodeURIComponent(queries[i])}`;
-
-            const res = await fetch(url, {
-                headers: { 'User-Agent': 'AparcaYA/1.0' }
-            });
-
+            const res  = await fetch(url, { headers: { 'User-Agent': 'AparcaYA/1.0' } });
             if (!res.ok) continue;
-
             const data = await res.json();
             if (!data || data.length === 0) continue;
-
-            const resultado = data.find(r =>
-                r.display_name.toLowerCase().includes('bogot')
-            ) || data[0];
-
-            if (resultado) {
-                return {
-                    lat: parseFloat(resultado.lat),
-                    lon: parseFloat(resultado.lon)
-                };
-            }
+            const resultado = data.find(r => r.display_name.toLowerCase().includes('bogot')) || data[0];
+            if (resultado) return { lat: parseFloat(resultado.lat), lon: parseFloat(resultado.lon) };
         } catch (e) {
             console.warn('geocodificarFallback error en query:', queries[i], e);
         }
-
-        if (i < queries.length - 1) {
-            await new Promise(r => setTimeout(r, 1100));
-        }
+        if (i < queries.length - 1) await new Promise(r => setTimeout(r, 1100));
     }
-
     return null;
 }
 
@@ -807,31 +716,16 @@ function mostrarDetallesSede(sedeId) {
             </div>
         </div>
         <div class="admin-modal-sede-actions">
-            <button class="aparca-btn-outline" onclick="editarSede(${sede.id}); cerrarModalSede();">Editar Sede</button>
-            <button class="admin-modal-sede-btn-danger"
-                    onclick="cerrarModalSede(); eliminarSede(${sede.id});">
-                Eliminar
-            </button>
+            <button class="adm-btn-outline" onclick="editarSede(${sede.id}); cerrarModalSede();">Editar Sede</button>
+            <button class="adm-btn-danger"  onclick="cerrarModalSede(); eliminarSede(${sede.id});">Eliminar</button>
         </div>`;
 
-    const modal = document.getElementById('modalSede');
-    modal.classList.add('show');
-    modal.setAttribute('aria-hidden', 'false');
+    abrirModal('modalSede');
 }
 
 function cerrarModalSede() {
-    const modal = document.getElementById('modalSede');
-    modal.classList.remove('show');
-    modal.setAttribute('aria-hidden', 'true');
+    cerrarModal('modalSede');
 }
-
-document.getElementById('modalSede')?.addEventListener('click', e => {
-    if (e.target.id === 'modalSede') cerrarModalSede();
-});
-
-document.addEventListener('keydown', e => {
-    if (e.key === 'Escape') cerrarModalSede();
-});
 
 // ============================================
 // GRÁFICAS
@@ -844,12 +738,11 @@ async function inicializarGraficas() {
     await cargarGraficaSedes();
 }
 
-// Paleta y etiquetas de roles — consistente en todo el dashboard
 const ROL_CONFIG = {
-    ADMIN:              { label: 'Admin',       color: '#6366f1' },
-    ADMINISTRADOR_SEDE: { label: 'Admin Sede',  color: '#f59e0b' },
-    OPERARIO:           { label: 'Operario',    color: '#10b981' },
-    CLIENTE:            { label: 'Cliente',     color: '#3b82f6' }
+    ADMIN:              { label: 'Admin',      color: '#6366f1' },
+    ADMINISTRADOR_SEDE: { label: 'Admin Sede', color: '#f59e0b' },
+    OPERARIO:           { label: 'Operario',   color: '#10b981' },
+    CLIENTE:            { label: 'Cliente',    color: '#3b82f6' }
 };
 
 async function cargarGraficaIngresos() {
@@ -858,25 +751,21 @@ async function cargarGraficaIngresos() {
         if (!response.ok) throw new Error('Error cargando gráfica de accesos');
         const data = await response.json();
 
-        // ── KPIs ─────────────────────────────────────────────────────────
         const kpiActual   = document.getElementById('kpiIngresosActual');
         const kpiAnterior = document.getElementById('kpiIngresosAnterior');
         const kpiAnio     = document.getElementById('kpiIngresosAnio');
-
         if (kpiAnterior) kpiAnterior.textContent = data.mesAnterior.toLocaleString('es-CO');
         if (kpiAnio)     kpiAnio.textContent     = data.acumuladoAnio.toLocaleString('es-CO');
-
         if (kpiActual) {
-            const signo    = data.variacion >= 0 ? '+' : '';
-            const sufijo   = data.variacion !== 0 ? ` (${signo}${data.variacion}%)` : '';
-            kpiActual.textContent  = data.mesActual.toLocaleString('es-CO') + sufijo;
-            kpiActual.className    = 'admin-kpi-value';
+            const signo  = data.variacion >= 0 ? '+' : '';
+            const sufijo = data.variacion !== 0 ? ` (${signo}${data.variacion}%)` : '';
+            kpiActual.textContent = data.mesActual.toLocaleString('es-CO') + sufijo;
+            kpiActual.className   = 'admin-kpi-value';
             if (data.variacion > 0)      kpiActual.classList.add('positive');
             else if (data.variacion < 0) kpiActual.classList.add('negative');
             else                         kpiActual.classList.add('accent');
         }
 
-        // ── Leyenda custom con totales por rol ───────────────────────────
         const legendContainer = document.getElementById('legendAccesos');
         if (legendContainer && data.porRol) {
             legendContainer.innerHTML = Object.entries(data.porRol)
@@ -886,20 +775,16 @@ async function cargarGraficaIngresos() {
                     const total = serie.reduce((a, b) => a + b, 0);
                     return `
                     <span class="admin-legend-item">
-                        <span class="admin-legend-dot"
-                              style="background:${cfg.color}"></span>
-                        ${cfg.label}
-                        <strong>${total.toLocaleString('es-CO')}</strong>
+                        <span class="admin-legend-dot" style="background:${cfg.color}"></span>
+                        ${cfg.label} <strong>${total.toLocaleString('es-CO')}</strong>
                     </span>`;
                 }).join('');
         }
 
-        // ── Gráfica apilada por rol ───────────────────────────────────────
         if (chartIngresos) chartIngresos.destroy();
         const canvas = document.getElementById('chartIngresos');
         if (!canvas) return;
 
-        // Construir datasets — uno por rol, apilados
         const datasets = Object.entries(ROL_CONFIG).map(([rol, cfg]) => ({
             label:           cfg.label,
             data:            data.porRol?.[rol] || Array(12).fill(0),
@@ -913,37 +798,22 @@ async function cargarGraficaIngresos() {
             type: 'bar',
             data: { labels: data.labels, datasets },
             options: {
-                responsive:          true,
-                maintainAspectRatio: false,
+                responsive: true, maintainAspectRatio: false,
                 plugins: {
-                    legend: { display: false }, // usamos leyenda custom
+                    legend: { display: false },
                     tooltip: {
                         callbacks: {
-                            label: ctx =>
-                                ` ${ctx.dataset.label}: ${ctx.parsed.y.toLocaleString('es-CO')} accesos`,
-                            footer: items => {
-                                const total = items.reduce((s, i) => s + i.parsed.y, 0);
-                                return 'Total mes: ' + total.toLocaleString('es-CO');
-                            }
+                            label:  ctx => ` ${ctx.dataset.label}: ${ctx.parsed.y.toLocaleString('es-CO')} accesos`,
+                            footer: items => 'Total mes: ' + items.reduce((s, i) => s + i.parsed.y, 0).toLocaleString('es-CO')
                         }
                     }
                 },
                 scales: {
-                    x: {
-                        stacked: true,
-                        grid:    { display: false },
-                        ticks:   { autoSkip: false }
-                    },
-                    y: {
-                        stacked:     true,
-                        beginAtZero: true,
-                        grid:        { color: 'rgba(0,0,0,0.05)' },
-                        ticks:       { precision: 0 }
-                    }
+                    x: { stacked: true, grid: { display: false }, ticks: { autoSkip: false } },
+                    y: { stacked: true, beginAtZero: true, grid: { color: 'rgba(0,0,0,0.05)' }, ticks: { precision: 0 } }
                 }
             }
         });
-
     } catch (e) {
         console.error('Error gráfica accesos:', e);
         ['kpiIngresosActual','kpiIngresosAnterior','kpiIngresosAnio']
@@ -956,57 +826,28 @@ async function cargarGraficaUsuarios() {
         const response = await fetch(`${API_BASE_URL}/grafica/usuarios-rol`);
         if (!response.ok) throw new Error();
         const data = await response.json();
-
         if (chartUsuarios) chartUsuarios.destroy();
         const canvas = document.getElementById('chartUsuarios');
         if (!canvas) return;
 
-        // Paleta dinámica: un color por rol garantizado
-        const PALETA = {
-            ADMIN:              '#6366f1',
-            ADMINISTRADOR_SEDE: '#f59e0b',
-            OPERARIO:           '#10b981',
-            CLIENTE:            '#3b82f6'
-        };
+        const PALETA = { ADMIN:'#6366f1', ADMINISTRADOR_SEDE:'#f59e0b', OPERARIO:'#10b981', CLIENTE:'#3b82f6' };
         const colores = data.labels.map(l => PALETA[l] || '#94a3b8');
-
-        // KPI total usuarios (fix P-03)
-        const total = data.data.reduce((a, b) => a + b, 0);
-        const kpiT  = document.getElementById('kpiUsuariosTotal');
+        const total   = data.data.reduce((a, b) => a + b, 0);
+        const kpiT    = document.getElementById('kpiUsuariosTotal');
         if (kpiT) kpiT.textContent = total;
 
         chartUsuarios = new Chart(canvas, {
             type: 'bar',
             data: {
-                labels: data.labels.map(l => ROL_LABELS[l] || l),
-                datasets: [{
-                    label: 'Usuarios',
-                    data:  data.data,
-                    backgroundColor: colores,
-                    borderRadius:    6,
-                    borderWidth:     0
-                }]
+                labels:   data.labels.map(l => ROL_LABELS[l] || l),
+                datasets: [{ label:'Usuarios', data:data.data, backgroundColor:colores, borderRadius:6, borderWidth:0 }]
             },
             options: {
-                responsive:          true,
-                maintainAspectRatio: false, // fix P-07
-                plugins: {
-                    legend: { display: false },
-                    tooltip: {
-                        callbacks: {
-                            label: ctx => ` ${ctx.parsed.y} usuarios`
-                        }
-                    }
-                },
+                responsive: true, maintainAspectRatio: false,
+                plugins: { legend:{ display:false }, tooltip:{ callbacks:{ label: ctx => ` ${ctx.parsed.y} usuarios` } } },
                 scales: {
-                    y: {
-                        beginAtZero: true,
-                        grid: { color: 'rgba(0,0,0,0.05)' },
-                        ticks: { precision: 0 }
-                    },
-                    x: {
-                        grid: { display: false }
-                    }
+                    y: { beginAtZero:true, grid:{ color:'rgba(0,0,0,0.05)' }, ticks:{ precision:0 } },
+                    x: { grid:{ display:false } }
                 }
             }
         });
@@ -1018,12 +859,10 @@ async function cargarGraficaSedes() {
         const response = await fetch(`${API_BASE_URL}/grafica/sedes`);
         if (!response.ok) throw new Error();
         const data = await response.json();
-
         if (chartSedes) chartSedes.destroy();
         const canvas = document.getElementById('chartSedes');
         if (!canvas) return;
 
-        // KPI capacidad total (fix P-03)
         const capacidadTotal = data.data.reduce((a, b) => a + b, 0);
         const kpiCap = document.getElementById('kpiSedesCapacidad');
         const kpiST  = document.getElementById('kpiSedesTotal');
@@ -1033,42 +872,15 @@ async function cargarGraficaSedes() {
         chartSedes = new Chart(canvas, {
             type: 'bar',
             data: {
-                labels: data.labels,
-                datasets: [{
-                    label:           'Capacidad (vehículos)',
-                    data:            data.data,
-                    backgroundColor: '#f59e0b',
-                    borderRadius:    6,
-                    borderWidth:     0
-                }]
+                labels:   data.labels,
+                datasets: [{ label:'Capacidad (vehículos)', data:data.data, backgroundColor:'#f59e0b', borderRadius:6, borderWidth:0 }]
             },
             options: {
-                responsive:          true,
-                maintainAspectRatio: false, // fix P-07
-                plugins: {
-                    legend: { display: false },
-                    tooltip: {
-                        callbacks: {
-                            label: ctx => ` ${ctx.parsed.y} vehículos`
-                        }
-                    }
-                },
+                responsive: true, maintainAspectRatio: false,
+                plugins: { legend:{ display:false }, tooltip:{ callbacks:{ label: ctx => ` ${ctx.parsed.y} vehículos` } } },
                 scales: {
-                    y: {
-                        beginAtZero: true,
-                        grid: { color: 'rgba(0,0,0,0.05)' },
-                        ticks: {
-                            precision: 0,
-                            callback: v => v + ' v.'
-                        }
-                    },
-                    x: {
-                        grid:  { display: false },
-                        ticks: {
-                            maxRotation: 35,
-                            autoSkip:    false
-                        }
-                    }
+                    y: { beginAtZero:true, grid:{ color:'rgba(0,0,0,0.05)' }, ticks:{ precision:0, callback: v => v + ' v.' } },
+                    x: { grid:{ display:false }, ticks:{ maxRotation:35, autoSkip:false } }
                 }
             }
         });
@@ -1083,8 +895,6 @@ async function cargarEstadisticasDonut() {
         const response = await fetch(`${API_BASE_URL}/estadisticas/generales`);
         if (!response.ok) throw new Error();
         const data = await response.json();
-        // Texto numérico gestionado exclusivamente por cargarIndicadores()
-        // para evitar sobreescritura no determinística del mismo elemento.
         animarDonut('.admin-usuario-segment',  data.totalUsuarios,      data.metaUsuarios  || 50);
         animarDonut('.admin-cuota-segment',    data.totalSedes,         data.metaSedes     || 10);
         animarDonut('.admin-ingresos-segment', data.ingresosTotal || 0, data.metaIngresos  || 100000);
@@ -1121,20 +931,13 @@ function animarDonut(selector, valorActual, valorMaximo) {
     }, 100);
 }
 
-function formatearIngresos(valor) {
-    if (valor >= 1000000) return `$${(valor / 1000000).toFixed(1)}M`;
-    if (valor >= 1000)    return `$${Math.round(valor / 1000)}K`;
-    return `$${valor}`;
-}
-
 // ============================================
 // REPORTES
 // ============================================
 async function generarPDF() {
     try {
-        const response = await fetch('/admin/reporte/usuarios/pdf');
+        const response    = await fetch('/admin/reporte/usuarios/pdf');
         if (!response.ok) throw new Error('Error generando PDF');
-        // Sesión expirada: Spring Security devuelve HTML del login en lugar del PDF
         const contentType = response.headers.get('Content-Type') || '';
         if (contentType.includes('text/html')) {
             showToast('Tu sesión expiró. Por favor inicia sesión nuevamente.', 'warning', 5000);
@@ -1144,24 +947,17 @@ async function generarPDF() {
         const blob = await response.blob();
         const url  = window.URL.createObjectURL(blob);
         const a    = document.createElement('a');
-        a.href = url;
-        a.download = `reporte_usuarios_${Date.now()}.pdf`;
-        document.body.appendChild(a);
-        a.click();
-        window.URL.revokeObjectURL(url);
-        document.body.removeChild(a);
+        a.href = url; a.download = `reporte_usuarios_${Date.now()}.pdf`;
+        document.body.appendChild(a); a.click();
+        window.URL.revokeObjectURL(url); document.body.removeChild(a);
         showToast('PDF generado correctamente', 'success');
-    } catch (error) {
-        showToast('Error al generar el PDF', 'error');
-        console.error(error);
-    }
+    } catch (error) { showToast('Error al generar el PDF', 'error'); console.error(error); }
 }
 
 async function generarExcel() {
     try {
-        const response = await fetch('/admin/reporte/usuarios/excel');
+        const response    = await fetch('/admin/reporte/usuarios/excel');
         if (!response.ok) throw new Error('Error generando Excel');
-        // Sesión expirada: Spring Security devuelve HTML del login en lugar del Excel
         const contentType = response.headers.get('Content-Type') || '';
         if (contentType.includes('text/html')) {
             showToast('Tu sesión expiró. Por favor inicia sesión nuevamente.', 'warning', 5000);
@@ -1171,17 +967,11 @@ async function generarExcel() {
         const blob = await response.blob();
         const url  = window.URL.createObjectURL(blob);
         const a    = document.createElement('a');
-        a.href = url;
-        a.download = `reporte_usuarios_${Date.now()}.xlsx`;
-        document.body.appendChild(a);
-        a.click();
-        window.URL.revokeObjectURL(url);
-        document.body.removeChild(a);
+        a.href = url; a.download = `reporte_usuarios_${Date.now()}.xlsx`;
+        document.body.appendChild(a); a.click();
+        window.URL.revokeObjectURL(url); document.body.removeChild(a);
         showToast('Excel generado correctamente', 'success');
-    } catch (error) {
-        showToast('Error al generar el Excel', 'error');
-        console.error(error);
-    }
+    } catch (error) { showToast('Error al generar el Excel', 'error'); console.error(error); }
 }
 
 // ============================================
@@ -1193,7 +983,6 @@ function setupMailTabs() {
         document.getElementById('correoUnitario'),
         document.getElementById('correoMasivo')
     ];
-
     tabsBtns.forEach((btn, idx) => {
         btn.addEventListener('click', () => {
             tabsBtns.forEach(b => { b.classList.remove('active'); b.setAttribute('aria-selected', 'false'); });
@@ -1229,22 +1018,19 @@ function enviarCorreoUnitario(form) {
     setBtnLoadingMail(btn, true);
 
     const formData = new URLSearchParams();
-    formData.append('correo', email);
-    formData.append('asunto', subject);
-    formData.append('mensaje', message);
+    formData.append('correo', email); formData.append('asunto', subject); formData.append('mensaje', message);
 
     fetch('/admin/correo/unitario', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+        method: 'POST', headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
         body: formData.toString()
     })
         .then(r => r.json())
         .then(data => {
             if (data.status === 'success') {
                 showToast(data.message, 'success');
-                document.getElementById('emailSingle').value   = '';
-                document.getElementById('subjectSingle').value = '';
-                document.getElementById('messageSingle').value = '';
+                ['emailSingle','subjectSingle','messageSingle'].forEach(id => {
+                    var el = document.getElementById(id); if (el) el.value = '';
+                });
             } else {
                 showToast(data.message || 'Error al enviar correo', 'error');
             }
@@ -1263,11 +1049,8 @@ function enviarCorreoMasivo(form) {
     const emailList     = emails.split(',').map(e => e.trim()).filter(e => e);
     const invalidEmails = emailList.filter(e => !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(e));
 
-    if (invalidEmails.length > 0) {
-        showToast(`Correos inválidos: ${invalidEmails.join(', ')}`, 'error', 6000);
-        return;
-    }
-    if (emailList.length === 0) { showToast('Ingresa al menos un correo válido', 'warning'); return; }
+    if (invalidEmails.length > 0) { showToast(`Correos inválidos: ${invalidEmails.join(', ')}`, 'error', 6000); return; }
+    if (emailList.length === 0)   { showToast('Ingresa al menos un correo válido', 'warning'); return; }
 
     const btn = form.querySelector('button[type="submit"]');
     const originalText = btn.innerHTML;
@@ -1275,21 +1058,19 @@ function enviarCorreoMasivo(form) {
 
     const formData = new URLSearchParams();
     emailList.forEach(email => formData.append('seleccionados', email));
-    formData.append('asunto', subject);
-    formData.append('mensaje', message);
+    formData.append('asunto', subject); formData.append('mensaje', message);
 
     fetch('/admin/correo/masivo', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+        method: 'POST', headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
         body: formData.toString()
     })
         .then(r => r.json())
         .then(data => {
             if (data.status === 'success') {
                 showToast(data.message, 'success');
-                document.getElementById('emailsMassive').value  = '';
-                document.getElementById('subjectMassive').value = '';
-                document.getElementById('messageMassive').value = '';
+                ['emailsMassive','subjectMassive','messageMassive'].forEach(id => {
+                    var el = document.getElementById(id); if (el) el.value = '';
+                });
             } else {
                 showToast(data.message || 'Error al enviar correos', 'error');
             }
@@ -1299,10 +1080,8 @@ function enviarCorreoMasivo(form) {
 }
 
 // ============================================
-// MÓDULO FILTRO DESTINATARIOS — DASHBOARD ADMIN
-// Funciones nuevas, no modifican ninguna existente
+// MÓDULO FILTRO DESTINATARIOS
 // ============================================
-
 let _adminDestinatariosCache = [];
 
 async function adminCargarDestinatarios() {
@@ -1313,12 +1092,8 @@ async function adminCargarDestinatarios() {
     const contEl   = document.getElementById('adminContadorLista');
     const btnEl    = document.getElementById('btnAdminCargar');
 
-    if (!rol) {
-        showToast('Selecciona un grupo primero', 'warning');
-        return;
-    }
+    if (!rol) { showToast('Selecciona un grupo primero', 'warning'); return; }
 
-    // Estado visual de carga
     if (estadoEl) estadoEl.textContent = 'Consultando base de datos...';
     if (listaEl)  listaEl.style.display = 'none';
     if (btnEl)    { btnEl.disabled = true; btnEl.textContent = 'Cargando...'; }
@@ -1341,32 +1116,26 @@ async function adminCargarDestinatarios() {
             return;
         }
 
-        // Renderizar filas con checkbox
         if (tablaEl) {
             tablaEl.innerHTML = datos.map(d => `
-                <label style="display:flex; align-items:center; gap:0.75rem;
-                               padding:0.6rem 0.75rem; cursor:pointer;
-                               border-bottom:1px solid #f1f5f9;
-                               transition:background 0.15s;"
+                <label style="display:flex;align-items:center;gap:.75rem;padding:.6rem .75rem;
+                               cursor:pointer;border-bottom:1px solid #f1f5f9;transition:background .15s;"
                        onmouseover="this.style.background='#f8fafc'"
                        onmouseout="this.style.background='transparent'">
-                    <input type="checkbox"
-                           class="admin-dest-check"
-                           data-correo="${d.correo}"
-                           style="width:16px;height:16px;cursor:pointer;accent-color:#0ea5e9;"
-                           checked/>
+                    <input type="checkbox" class="admin-dest-check" data-correo="${d.correo}"
+                           style="width:16px;height:16px;cursor:pointer;accent-color:#1e40af;" checked/>
                     <div style="flex:1;min-width:0;">
-                        <div style="font-weight:600;font-size:0.875rem;color:#1e293b;
+                        <div style="font-weight:600;font-size:.875rem;color:#1e293b;
                                     white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">
                             ${d.nombre || '(sin nombre)'}
                         </div>
-                        <div style="font-size:0.8rem;color:#64748b;
+                        <div style="font-size:.8rem;color:#64748b;
                                     white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">
                             ${d.correo}
                         </div>
                     </div>
-                    <span style="font-size:0.72rem;background:#e0f2fe;color:#0369a1;
-                                 border-radius:9999px;padding:0.15rem 0.5rem;white-space:nowrap;">
+                    <span style="font-size:.72rem;background:#dbeafe;color:#1e40af;
+                                 border-radius:9999px;padding:.15rem .5rem;white-space:nowrap;">
                         ${_adminRolLabel(d.rol)}
                     </span>
                 </label>
@@ -1387,86 +1156,51 @@ async function adminCargarDestinatarios() {
 }
 
 function _adminRolLabel(rol) {
-    const map = {
-        CLIENTE:            'Cliente',
-        ADMINISTRADOR_SEDE: 'Admin Sede',
-        OPERARIO:           'Operario'
-    };
+    const map = { CLIENTE:'Cliente', ADMINISTRADOR_SEDE:'Admin Sede', OPERARIO:'Operario' };
     return map[rol] || rol;
 }
 
 function adminSeleccionarTodos(estado) {
-    document.querySelectorAll('.admin-dest-check')
-        .forEach(cb => { cb.checked = estado; });
+    document.querySelectorAll('.admin-dest-check').forEach(cb => { cb.checked = estado; });
 }
 
 function adminAgregarSeleccionados() {
     const seleccionados = [...document.querySelectorAll('.admin-dest-check:checked')]
-        .map(cb => cb.dataset.correo)
-        .filter(Boolean);
+        .map(cb => cb.dataset.correo).filter(Boolean);
 
-    if (seleccionados.length === 0) {
-        showToast('No hay destinatarios seleccionados', 'warning');
-        return;
-    }
+    if (seleccionados.length === 0) { showToast('No hay destinatarios seleccionados', 'warning'); return; }
 
     const textarea = document.getElementById('emailsMassive');
     if (!textarea) return;
 
-    // Fusiona sin duplicar con lo que ya existe en el textarea
-    const existentes = textarea.value
-        .split(',')
-        .map(e => e.trim())
-        .filter(Boolean);
-
-    const nuevos = seleccionados.filter(e => !existentes.includes(e));
-    const todos  = [...existentes, ...nuevos].filter(Boolean);
+    const existentes = textarea.value.split(',').map(e => e.trim()).filter(Boolean);
+    const nuevos     = seleccionados.filter(e => !existentes.includes(e));
+    const todos      = [...existentes, ...nuevos].filter(Boolean);
 
     textarea.value = todos.join(', ');
     _adminActualizarBadge();
-
     showToast(`${nuevos.length} correo(s) agregado(s) al envío`, 'success');
 
-    // Colapsa el panel de selección tras agregar
     const lista = document.getElementById('adminListaDestinatarios');
     if (lista) lista.style.display = 'none';
     const estadoEl = document.getElementById('adminEstadoFiltro');
-    if (estadoEl) estadoEl.textContent =
-        `✓ ${seleccionados.length} destinatario(s) cargados desde BD.`;
+    if (estadoEl) estadoEl.textContent = `✓ ${seleccionados.length} destinatario(s) cargados desde BD.`;
 }
 
 function _adminActualizarBadge() {
     const textarea = document.getElementById('emailsMassive');
     const badge    = document.getElementById('adminBadgeConteo');
     if (!textarea || !badge) return;
-
-    const count = textarea.value
-        .split(',')
-        .map(e => e.trim())
-        .filter(e => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(e))
-        .length;
-
+    const count = textarea.value.split(',').map(e => e.trim())
+        .filter(e => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(e)).length;
     badge.textContent   = count;
     badge.style.display = count > 0 ? 'inline' : 'none';
 }
 
-// Badge en tiempo real mientras el admin escribe manualmente
-document.addEventListener('DOMContentLoaded', () => {
-    const textarea = document.getElementById('emailsMassive');
-    if (textarea) textarea.addEventListener('input', _adminActualizarBadge);
-});
-
-
-
 // ============================================
 // FUNCIONES DEL MENÚ PERFIL
 // ============================================
-function cerrarSesion() {
-    showConfirm('Cerrar sesión', '¿Estás seguro de cerrar tu sesión?', 'Cerrar sesión', 'warning')
-        .then(confirmado => {
-            if (confirmado) window.location.href = '/logout';
-        });
-}
+function cerrarSesion()  { logoutJWT(); }
 
 function irConfiguracion() {
     const configLink = document.querySelector('[data-tab="configuracion"]');
@@ -1484,26 +1218,15 @@ function irAyuda() {
 }
 
 // ============================================
-// DRAWER LATERAL — S-03 FIX
-// Control del sidebar en tablet/mobile.
-// Funciones separadas del resto de la lógica.
+// DRAWER LATERAL
 // ============================================
-
-/**
- * Colapsa o expande el sidebar lateral.
- * Alterna la clase 'sidebar-collapsed' en <body>.
- * El estado se persiste en localStorage.
- */
 function toggleSidebar() {
     const collapsed = document.body.classList.toggle('sidebar-collapsed');
     const btn       = document.getElementById('sidebarToggleBtn');
-    if (btn) {
-        btn.setAttribute('aria-label', collapsed ? 'Expandir menú lateral' : 'Colapsar menú lateral');
-    }
+    if (btn) btn.setAttribute('aria-label', collapsed ? 'Expandir menú lateral' : 'Colapsar menú lateral');
     try { localStorage.setItem('sidebar-collapsed', collapsed ? '1' : '0'); } catch(e) {}
 }
 
-// Restaura estado del sidebar al cargar la página
 (function restaurarSidebar() {
     try {
         if (localStorage.getItem('sidebar-collapsed') === '1') {
@@ -1517,20 +1240,19 @@ function toggleSidebar() {
 // ============================================
 // EXPONER FUNCIONES GLOBALES
 // ============================================
-window.eliminarUsuario        = eliminarUsuario;
-window.editarUsuario          = editarUsuario;
-window.guardarEdicion         = guardarEdicion;
-window.cerrarModalEdicion     = cerrarModalEdicion;
-window.eliminarSede           = eliminarSede;
-window.editarSede             = editarSede;
-window.guardarEdicionSede     = guardarEdicionSede;
-window.cerrarModalEdicionSede = cerrarModalEdicionSede;
-window.generarPDF             = generarPDF;
-window.generarExcel           = generarExcel;
-window.mostrarDetallesSede    = mostrarDetallesSede;
-window.cerrarModalSede        = cerrarModalSede;
-window.toggleSidebar          = toggleSidebar;
-// Exponer como globales para los onclick del HTML
+window.eliminarUsuario           = eliminarUsuario;
+window.editarUsuario             = editarUsuario;
+window.guardarEdicion            = guardarEdicion;
+window.cerrarModalEdicion        = cerrarModalEdicion;
+window.eliminarSede              = eliminarSede;
+window.editarSede                = editarSede;
+window.guardarEdicionSede        = guardarEdicionSede;
+window.cerrarModalEdicionSede    = cerrarModalEdicionSede;
+window.generarPDF                = generarPDF;
+window.generarExcel              = generarExcel;
+window.mostrarDetallesSede       = mostrarDetallesSede;
+window.cerrarModalSede           = cerrarModalSede;
+window.toggleSidebar             = toggleSidebar;
 window.adminCargarDestinatarios  = adminCargarDestinatarios;
 window.adminSeleccionarTodos     = adminSeleccionarTodos;
 window.adminAgregarSeleccionados = adminAgregarSeleccionados;
