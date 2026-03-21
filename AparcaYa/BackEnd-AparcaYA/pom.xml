@@ -35,11 +35,7 @@
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-mail</artifactId>
         </dependency>
-
-        <dependency>
-            <groupId>ch.qos.logback</groupId>
-            <artifactId>logback-classic</artifactId>
-       </dependency>    
+  
 
         <!-- Dependencia para JFreeChart (versión compatible) -->
         <dependency>
