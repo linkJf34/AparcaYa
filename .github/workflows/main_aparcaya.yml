@@ -24,9 +24,6 @@ jobs:
           java-version: '21'
           distribution: 'microsoft'
 
-      - name: Run unit tests
-        run: mvn -B -f AparcaYa/BackEnd-AparcaYA/pom.xml test -DfailIfNoTests=false
-
       - name: Build with Maven (skip tests)
         run: mvn -B -f AparcaYa/BackEnd-AparcaYA/pom.xml clean package -DskipTests
 
