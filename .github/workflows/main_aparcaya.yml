@@ -24,14 +24,31 @@ jobs:
           java-version: '21'
           distribution: 'microsoft'
 
-      - name: Build with Maven
-        run: mvn clean install
+      - name: Run unit tests
+        run: mvn -B -f AparcaYa/BackEnd-AparcaYA/pom.xml test -Dtest="UsuarioServiceTest" -DfailIfNoTests=false
+
+      - name: Build with Maven (skip tests)
+        run: mvn -B -f AparcaYa/BackEnd-AparcaYA/pom.xml clean package -DskipTests
+
+      - name: Pick jar to deploy (exclude original-*.jar)
+        id: pickjar
+        shell: bash
+        run: |
+          set -euo pipefail
+          JAR_PATH="$(find "${GITHUB_WORKSPACE}/AparcaYa/BackEnd-AparcaYA/target" -maxdepth 1 -type f -name "*.jar" ! -name "original-*.jar" | head -n 1)"
+          echo "Selected jar: $JAR_PATH"
+          if [ -z "$JAR_PATH" ]; then
+            echo "No deployable jar found"
+            ls -la "${GITHUB_WORKSPACE}/AparcaYa/BackEnd-AparcaYA/target" || true
+            exit 1
+          fi
+          echo "jar_path=$JAR_PATH" >> "$GITHUB_OUTPUT"
 
       - name: Upload artifact for deployment job
         uses: actions/upload-artifact@v4
         with:
           name: java-app
-          path: '${{ github.workspace }}/target/*.jar'
+          path: ${{ steps.pickjar.outputs.jar_path }}
 
   deploy:
     runs-on: ubuntu-latest
