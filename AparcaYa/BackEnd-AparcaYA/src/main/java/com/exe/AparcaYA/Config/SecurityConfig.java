@@ -71,8 +71,10 @@ public class SecurityConfig {
                         .requestMatchers(
                                 "/", "/login", "/registro", "/registrar",
                                 "/api/auth/**", "/check/**",
-                                "/css/**", "/js/**", "/images/**", "/dashboard/**"
+                                "/css/**", "/js/**", "/images/**", "/dashboard/**", "/uploads/**","/webjars/**"
                         ).permitAll()
+
+                        .requestMatchers("/admin/reportes/**").authenticated()
 
                         .anyRequest().authenticated()
                 )

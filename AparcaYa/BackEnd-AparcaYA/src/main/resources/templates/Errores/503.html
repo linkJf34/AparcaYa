@@ -1,133 +1,55 @@
 <!DOCTYPE html>
 <html lang="es" xmlns:th="http://www.thymeleaf.org">
 <head>
-    <meta charset="UTF-8"/>
+    <meta charset="utf-8"/>
     <meta name="viewport" content="width=device-width, initial-scale=1"/>
     <title>503 — Servicio no disponible · AparcaYA</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://cdn.jsdelivr.net/npm/daisyui@4.12.10/dist/full.min.css" rel="stylesheet"/>
-    <link rel="stylesheet" href="/css/pages/error.css"/>
+    <script src="https://cdn.jsdelivr.net/npm/lucide@latest/dist/umd/lucide.min.js"></script>
+    <link rel="stylesheet" href="/css/base/aparca-animations.css">
+    <link rel="stylesheet" href="/css/components/aparca-components.css">
     <style>
-        /* Animación del punto de estado parpadeante */
-        @keyframes er-blink {
-            0%, 100% { opacity: 1; } 50% { opacity: .3; }
-        }
-        .er-pulse-dot {
-            display: inline-block;
-            width: 8px; height: 8px;
-            border-radius: 50%;
-            background: currentColor;
-            animation: er-blink 1.4s ease-in-out infinite;
-            vertical-align: middle;
-            margin-right: .375rem;
-        }
-        .er-countdown {
-            font-family: 'Syne', sans-serif;
-            font-size: 1.125rem; font-weight: 700;
-            color: var(--er-accent);
-            letter-spacing: -.01em;
-        }
+        body { min-height: 100vh; display: flex; align-items: center; justify-content: center;
+            background: #f8fafc; font-family: system-ui, sans-serif; }
+        .error-card { background: white; border-radius: 1.25rem; box-shadow: 0 4px 32px rgba(0,0,0,.08);
+            padding: 3rem 2.5rem; max-width: 480px; width: 100%; text-align: center; }
+        .error-icon-wrap { width: 80px; height: 80px; border-radius: 50%; background: #f5f3ff;
+            display: flex; align-items: center; justify-content: center;
+            margin: 0 auto 1.5rem; }
+        .error-icon-wrap svg { width: 36px; height: 36px; stroke: #8b5cf6; }
+        .error-code { font-size: 4rem; font-weight: 700; letter-spacing: -.025em;
+            color: #5b21b6; line-height: 1; margin-bottom: .5rem; }
+        .error-title { font-size: 1.25rem; font-weight: 600; color: #1e293b; margin-bottom: .75rem; }
+        .error-desc { font-size: .9375rem; color: #64748b; line-height: 1.6; margin-bottom: 2rem; }
+        .btn-home { display: inline-flex; align-items: center; gap: .5rem; background: #1e40af;
+            color: white; padding: .75rem 1.75rem; border-radius: .625rem; font-weight: 600;
+            font-size: .9375rem; text-decoration: none; transition: background .15s; }
+        .btn-home:hover { background: #1e3a8a; }
+        .btn-home svg { width: 18px; height: 18px; stroke: white; }
+        .error-meta { margin-top: 1.5rem; font-size: .8125rem; color: #94a3b8; }
     </style>
 </head>
-
-<body class="er-sleep">
-
-<div class="er-bg" aria-hidden="true">
-    <div class="er-blob er-blob-1"></div>
-    <div class="er-blob er-blob-2"></div>
-    <div class="er-blob er-blob-3"></div>
-</div>
-
-<a href="/" class="er-brand" aria-label="Ir al inicio de AparcaYA">
-    <div class="er-brand-mark"><span class="er-brand-p">P</span></div>
-    <span class="er-brand-name">AparcaYA</span>
-</a>
-
-<div class="er-card" role="main">
-
-    <div class="er-icon-wrap" aria-hidden="true">
-        <svg xmlns="http://www.w3.org/2000/svg" fill="none"
-             viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8">
-            <path stroke-linecap="round" stroke-linejoin="round"
-                  d="M12 6v6h4.5m4.5 0a9 9 0 11-18 0 9 9 0 0118 0z"/>
+<body>
+<div class="error-card">
+    <div class="error-icon-wrap">
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
+             stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
         </svg>
     </div>
-
-    <span class="er-status-tag">
-        <span class="er-pulse-dot" aria-hidden="true"></span>
-        503 · En mantenimiento
-    </span>
-    <span class="er-code" aria-hidden="true">503</span>
-    <div class="er-divider"></div>
-    <h1 class="er-title">Volvemos pronto</h1>
-    <p class="er-desc">
-        AparcaYA está en <strong>mantenimiento programado</strong>
-        para mejorar tu experiencia. El servicio estará disponible
-        en breve. ¡Gracias por tu paciencia!
-    </p>
-
-    <!-- Contador regresivo (cosmético) -->
-    <div style="margin-bottom:1.75rem;">
-        <p style="font-size:.8125rem;color:var(--er-muted);margin-bottom:.375rem;">
-            Reintentando automáticamente en
-        </p>
-        <span class="er-countdown" id="er-timer" aria-live="polite">30</span>
-        <span style="font-size:.875rem;color:var(--er-muted)"> segundos</span>
-    </div>
-
-    <div class="er-actions">
-        <a href="javascript:location.reload()" class="er-btn-secondary">
-            <svg xmlns="http://www.w3.org/2000/svg" fill="none"
-                 viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
-                <path stroke-linecap="round" stroke-linejoin="round"
-                      d="M16.023 9.348h4.992v-.001M2.985
-                      19.644v-4.992m0 0h4.992m-4.993 0l3.181
-                      3.183a8.25 8.25 0 0013.803-3.7M4.031
-                      9.865a8.25 8.25 0 0113.803-3.7l3.181
-                      3.182m0-4.991v4.99"/>
-            </svg>
-            Reintentar ahora
-        </a>
-        <a href="/" class="er-btn-primary">
-            <svg xmlns="http://www.w3.org/2000/svg" fill="none"
-                 viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                <path stroke-linecap="round" stroke-linejoin="round"
-                      d="M2.25 12l8.954-8.955c.44-.439 1.152-.439
-                      1.591 0L21.75 12M4.5 9.75v10.125c0 .621.504
-                      1.125 1.125 1.125H9.75v-4.875c0-.621.504-1.125
-                      1.125-1.125h2.25c.621 0 1.125.504 1.125
-                      1.125V21h4.125c.621 0 1.125-.504
-                      1.125-1.125V9.75M8.25 21h8.25"/>
-            </svg>
-            Ir al inicio
-        </a>
-    </div>
-
-    <details class="er-detail">
-        <summary>Detalles técnicos</summary>
-        <div class="er-detail-body">
-            HTTP 503 Service Unavailable — El servidor no puede procesar
-            solicitudes en este momento, ya sea por mantenimiento
-            programado o por sobrecarga temporal. Código: SERVICE_UNAVAILABLE.
-            <br/><br/>
-            <span th:if="${message}" th:text="${message}"></span>
-        </div>
-    </details>
-
+    <div class="error-code">503</div>
+    <div class="error-title">Servicio no disponible</div>
+    <p class="error-desc">El sistema está temporalmente fuera de servicio.<br>Estamos trabajando para restablecerlo. Vuelve en unos minutos.</p>
+    <a href="/" class="btn-home">
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
+             stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/>
+            <polyline points="9 22 9 12 15 12 15 22"/>
+        </svg>
+        Volver al inicio
+    </a>
+    <p class="error-meta">AparcaYA &mdash; Error 503</p>
 </div>
-
-<script>
-    // Contador regresivo que recarga la página al llegar a 0
-    (function () {
-        var el  = document.getElementById('er-timer');
-        var seg = 30;
-        var iv  = setInterval(function () {
-            seg--;
-            if (el) el.textContent = seg;
-            if (seg <= 0) { clearInterval(iv); location.reload(); }
-        }, 1000);
-    })();
-</script>
-
+<script>if (typeof lucide !== 'undefined') lucide.createIcons();</script>
 </body>
 </html>

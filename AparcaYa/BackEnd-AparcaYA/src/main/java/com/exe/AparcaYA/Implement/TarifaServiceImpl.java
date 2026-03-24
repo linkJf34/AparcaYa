@@ -44,37 +44,37 @@ public class TarifaServiceImpl implements TarifaService {
         tarifaRepository.deleteById(id);
     }
 
-    /**
-     * ✅ CAMBIO #2: Creación de las 4 tarifas centralizada en el Service
-     * Antes: bloque idéntico de 16 líneas duplicado en:
-     *   - UsuarioController.registrarUsuario() (sede nueva en registro)
-     *   - SedeController.crearTarifasParaSede() (método privado del Controller)
-     * Ahora: un único método en el Service, ambos Controllers lo delegan aquí
-     */
+    @Override
+    public List<Tarifa> findBySede(Sede sede) {
+        return tarifaRepository.findBySede(sede);
+    }
+
+    @Override
+    public List<Tarifa> findBySede_IdSede(Long idSede) {
+        return tarifaRepository.findBySede_IdSede(idSede);
+    }
+
+    // CORRECCIÓN CRÍTICA — antes leía sede.getTarifaPlenaC() etc.
+    // Ahora Tarifa tiene todos los campos de precio directamente.
+    // Se crea una única Tarifa por sede con todos los precios incluidos.
     @Override
     public void crearTarifasParaSede(Sede sede) {
-        Tarifa tarifaPlenaC = new Tarifa();
-        tarifaPlenaC.setPrecio(sede.getTarifaPlenaC());
-        tarifaPlenaC.setTipoTarifa("PLENA_CARRO");
-        tarifaPlenaC.setSede(sede);
-        tarifaRepository.save(tarifaPlenaC);
-
-        Tarifa tarifaPlenaM = new Tarifa();
-        tarifaPlenaM.setPrecio(sede.getTarifaPlenaM());
-        tarifaPlenaM.setTipoTarifa("PLENA_MOTO");
-        tarifaPlenaM.setSede(sede);
-        tarifaRepository.save(tarifaPlenaM);
-
-        Tarifa tarifaMinutoC = new Tarifa();
-        tarifaMinutoC.setPrecio(sede.getTarifaMinutoC());
-        tarifaMinutoC.setTipoTarifa("MINUTO_CARRO");
-        tarifaMinutoC.setSede(sede);
-        tarifaRepository.save(tarifaMinutoC);
-
-        Tarifa tarifaMinutoM = new Tarifa();
-        tarifaMinutoM.setPrecio(sede.getTarifaMinutoM());
-        tarifaMinutoM.setTipoTarifa("MINUTO_MOTO");
-        tarifaMinutoM.setSede(sede);
-        tarifaRepository.save(tarifaMinutoM);
+        Tarifa tarifa = Tarifa.builder()
+                .tipoTarifa("GENERAL")
+                // Carro
+                .tarifaPlenaC(0.0)
+                .tarifaMinutoC(0.0)
+                .tarifaHoraC(0.0)
+                // Moto
+                .tarifaPlenaM(0.0)
+                .tarifaMinutoM(0.0)
+                .tarifaHoraM(0.0)
+                // Bicicleta
+                .tarifaPlenaB(0.0)
+                .tarifaMinutoB(0.0)
+                .tarifaHoraB(0.0)
+                .sede(sede)
+                .build();
+        tarifaRepository.save(tarifa);
     }
 }

@@ -13,12 +13,27 @@ import java.util.List;
 
 @Repository
 public interface CupoRepository extends JpaRepository<Cupo, Long> {
+
     List<Cupo> findBySede_IdSede(Long idSede);
     List<Cupo> findByEstado(EstadoCupo estado);
-    @Query("SELECT c FROM Cupo c WHERE LOWER(c.codigo) LIKE LOWER(CONCAT('%', :codigo, '%'))")
-    List<Cupo> findByCodigoContainingIgnoreCase(@Param("codigo") String codigo);
-    // AGREGAR este método al final de CupoRepository.java
     List<Cupo> findBySedeAndEstado(Sede sede, EstadoCupo estado);
+
+    @Query("SELECT c FROM Cupo c WHERE LOWER(c.codigo) " +
+            "LIKE LOWER(CONCAT('%', :codigo, '%'))")
+    List<Cupo> findByCodigoContainingIgnoreCase(@Param("codigo") String codigo);
+
+    // NUEVO — reemplaza sede.getCuposCarro/Moto/Bicicleta()
+    // Cuenta cupos por tipo de vehículo dentro de una sede
+    @Query("SELECT COUNT(c) FROM Cupo c " +
+            "WHERE c.sede.idSede = :idSede " +
+            "AND c.cuposCarro > 0 AND :tipo = 'CARRO' " +
+            "OR c.sede.idSede = :idSede " +
+            "AND c.cuposMoto > 0 AND :tipo = 'MOTO' " +
+            "OR c.sede.idSede = :idSede " +
+            "AND c.cuposBicicleta > 0 AND :tipo = 'BICICLETA'")
+    Integer contarCuposPorTipo(@Param("idSede") Long idSede,
+                               @Param("tipo") String tipo);
+
     @Query("""
         SELECT c FROM Cupo c
         WHERE c.sede.idSede = :sedeId
@@ -32,9 +47,9 @@ public interface CupoRepository extends JpaRepository<Cupo, Long> {
         )
     """)
     List<Cupo> findCuposDisponiblesEnRango(
-            @Param("sedeId")          Long          sedeId,
-            @Param("fechaInicio")     LocalDateTime fechaInicio,
-            @Param("fechaFin")        LocalDateTime fechaFin,
-            @Param("estadosActivos")  List<String>  estadosActivos
+            @Param("sedeId")         Long          sedeId,
+            @Param("fechaInicio")    LocalDateTime fechaInicio,
+            @Param("fechaFin")       LocalDateTime fechaFin,
+            @Param("estadosActivos") List<String>  estadosActivos
     );
 }

@@ -9,12 +9,12 @@
 
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://cdn.jsdelivr.net/npm/daisyui@4.12.10/dist/full.min.css" rel="stylesheet"/>
-    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
-    <link rel="stylesheet" href="/css/components/aparca-datepicker.css"/>
-    <link rel="stylesheet" href="/css/modals/cliente-modal-reserva.css/">
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.js"></script>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
     <link rel="stylesheet" href="/css/base/aparca-animations.css"/>
     <link rel="stylesheet" href="/css/components/aparca-components.css"/>
+    <link rel="stylesheet" href="/css/modals/cliente-modal-reserva.css"/>
     <link rel="stylesheet" href="/css/pages/Cliente.css"/>
 </head>
 <body>
@@ -268,7 +268,7 @@
                 <p>Gestiona tus reservas y parqueaderos en un solo lugar.</p>
             </div>
             <button class="cli-btn-nueva-reserva" id="btnNuevaReservaCTA" type="button"
-                    onclick="navegarA('misreservas')">
+                    onclick="irAlMapa()">
                 <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
                      stroke-width="2" stroke="currentColor" style="width:16px;height:16px;">
                     <path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15"/>
@@ -400,7 +400,7 @@
                                   18.75m-18 0v-7.5A2.25 2.25 0 015.25 9h13.5A2.25 2.25 0 0021 11.25v7.5"/>
                         </svg>
                         <p>No tienes reservas activas</p>
-                        <button class="cli-btn-sm-purple" onclick="navegarA('misreservas')">
+                        <button class="cli-btn-sm-purple" onclick="irAlMapa()">
                             Hacer una reserva
                         </button>
                     </div>
@@ -1094,116 +1094,6 @@
 </main>
 
 
-<!-- ══════════════════════════════════════════════════
-     POPUPS — AparcaDatepicker (filtros de reservas y pagos)
-     Posición fixed, gestionada por AparcaDatepicker.js.
-     IDs requeridos por la API del datepicker:
-       popupId → contenedor del popup  (position:fixed)
-       mesId   → label "Marzo 2026"
-       prevId  → botón ‹ mes anterior
-       nextId  → botón › mes siguiente
-       gridId  → grid de días
-     ══════════════════════════════════════════════════ -->
-
-<!-- Desde (reservas) -->
-<div id="popDesdeReserva"
-     style="display:none; position:fixed; z-index:9000;
-            background:#fff; border:1px solid #e2e8f0;
-            border-radius:0.5rem; padding:0.75rem;
-            box-shadow:0 8px 24px rgba(0,0,0,.12); width:240px;">
-    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:0.5rem;">
-        <button id="prevDesdeReserva" type="button"
-                style="border:none;background:none;cursor:pointer;padding:4px;border-radius:4px;color:#6b7280;">&#8249;</button>
-        <span id="mesDesdeReserva" style="font-size:.8rem;font-weight:600;color:#0f172a;"></span>
-        <button id="nextDesdeReserva" type="button"
-                style="border:none;background:none;cursor:pointer;padding:4px;border-radius:4px;color:#6b7280;">&#8250;</button>
-    </div>
-    <div style="display:grid;grid-template-columns:repeat(7,1fr);gap:2px;margin-bottom:4px;">
-        <span style="font-size:.65rem;color:#9ca3af;text-align:center;">Lu</span>
-        <span style="font-size:.65rem;color:#9ca3af;text-align:center;">Ma</span>
-        <span style="font-size:.65rem;color:#9ca3af;text-align:center;">Mi</span>
-        <span style="font-size:.65rem;color:#9ca3af;text-align:center;">Ju</span>
-        <span style="font-size:.65rem;color:#9ca3af;text-align:center;">Vi</span>
-        <span style="font-size:.65rem;color:#9ca3af;text-align:center;">Sá</span>
-        <span style="font-size:.65rem;color:#9ca3af;text-align:center;">Do</span>
-    </div>
-    <div id="gridDesdeReserva" style="display:grid;grid-template-columns:repeat(7,1fr);gap:2px;"></div>
-</div>
-
-<!-- Hasta (reservas) -->
-<div id="popHastaReserva"
-     style="display:none; position:fixed; z-index:9000;
-            background:#fff; border:1px solid #e2e8f0;
-            border-radius:0.5rem; padding:0.75rem;
-            box-shadow:0 8px 24px rgba(0,0,0,.12); width:240px;">
-    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:0.5rem;">
-        <button id="prevHastaReserva" type="button"
-                style="border:none;background:none;cursor:pointer;padding:4px;border-radius:4px;color:#6b7280;">&#8249;</button>
-        <span id="mesHastaReserva" style="font-size:.8rem;font-weight:600;color:#0f172a;"></span>
-        <button id="nextHastaReserva" type="button"
-                style="border:none;background:none;cursor:pointer;padding:4px;border-radius:4px;color:#6b7280;">&#8250;</button>
-    </div>
-    <div style="display:grid;grid-template-columns:repeat(7,1fr);gap:2px;margin-bottom:4px;">
-        <span style="font-size:.65rem;color:#9ca3af;text-align:center;">Lu</span>
-        <span style="font-size:.65rem;color:#9ca3af;text-align:center;">Ma</span>
-        <span style="font-size:.65rem;color:#9ca3af;text-align:center;">Mi</span>
-        <span style="font-size:.65rem;color:#9ca3af;text-align:center;">Ju</span>
-        <span style="font-size:.65rem;color:#9ca3af;text-align:center;">Vi</span>
-        <span style="font-size:.65rem;color:#9ca3af;text-align:center;">Sá</span>
-        <span style="font-size:.65rem;color:#9ca3af;text-align:center;">Do</span>
-    </div>
-    <div id="gridHastaReserva" style="display:grid;grid-template-columns:repeat(7,1fr);gap:2px;"></div>
-</div>
-
-<!-- Desde (pagos) -->
-<div id="popDesdePago"
-     style="display:none; position:fixed; z-index:9000;
-            background:#fff; border:1px solid #e2e8f0;
-            border-radius:0.5rem; padding:0.75rem;
-            box-shadow:0 8px 24px rgba(0,0,0,.12); width:240px;">
-    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:0.5rem;">
-        <button id="prevDesdePago" type="button"
-                style="border:none;background:none;cursor:pointer;padding:4px;border-radius:4px;color:#6b7280;">&#8249;</button>
-        <span id="mesDesdePago" style="font-size:.8rem;font-weight:600;color:#0f172a;"></span>
-        <button id="nextDesdePago" type="button"
-                style="border:none;background:none;cursor:pointer;padding:4px;border-radius:4px;color:#6b7280;">&#8250;</button>
-    </div>
-    <div style="display:grid;grid-template-columns:repeat(7,1fr);gap:2px;margin-bottom:4px;">
-        <span style="font-size:.65rem;color:#9ca3af;text-align:center;">Lu</span>
-        <span style="font-size:.65rem;color:#9ca3af;text-align:center;">Ma</span>
-        <span style="font-size:.65rem;color:#9ca3af;text-align:center;">Mi</span>
-        <span style="font-size:.65rem;color:#9ca3af;text-align:center;">Ju</span>
-        <span style="font-size:.65rem;color:#9ca3af;text-align:center;">Vi</span>
-        <span style="font-size:.65rem;color:#9ca3af;text-align:center;">Sá</span>
-        <span style="font-size:.65rem;color:#9ca3af;text-align:center;">Do</span>
-    </div>
-    <div id="gridDesdePago" style="display:grid;grid-template-columns:repeat(7,1fr);gap:2px;"></div>
-</div>
-
-<!-- Hasta (pagos) -->
-<div id="popHastaPago"
-     style="display:none; position:fixed; z-index:9000;
-            background:#fff; border:1px solid #e2e8f0;
-            border-radius:0.5rem; padding:0.75rem;
-            box-shadow:0 8px 24px rgba(0,0,0,.12); width:240px;">
-    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:0.5rem;">
-        <button id="prevHastaPago" type="button"
-                style="border:none;background:none;cursor:pointer;padding:4px;border-radius:4px;color:#6b7280;">&#8249;</button>
-        <span id="mesHastaPago" style="font-size:.8rem;font-weight:600;color:#0f172a;"></span>
-        <button id="nextHastaPago" type="button"
-                style="border:none;background:none;cursor:pointer;padding:4px;border-radius:4px;color:#6b7280;">&#8250;</button>
-    </div>
-    <div style="display:grid;grid-template-columns:repeat(7,1fr);gap:2px;margin-bottom:4px;">
-        <span style="font-size:.65rem;color:#9ca3af;text-align:center;">Lu</span>
-        <span style="font-size:.65rem;color:#9ca3af;text-align:center;">Ma</span>
-        <span style="font-size:.65rem;color:#9ca3af;text-align:center;">Mi</span>
-        <span style="font-size:.65rem;color:#9ca3af;text-align:center;">Ju</span>
-        <span style="font-size:.65rem;color:#9ca3af;text-align:center;">Vi</span>
-        <span style="font-size:.65rem;color:#9ca3af;text-align:center;">Sá</span>
-        <span style="font-size:.65rem;color:#9ca3af;text-align:center;">Do</span>
-    </div>
-    <div id="gridHastaPago" style="display:grid;grid-template-columns:repeat(7,1fr);gap:2px;"></div>
-</div>
 
 <!-- ══════════════════════════════════════════════════
      MODALES

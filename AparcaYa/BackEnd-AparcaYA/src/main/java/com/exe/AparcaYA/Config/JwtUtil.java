@@ -26,9 +26,12 @@ public class JwtUtil {
         return Keys.hmacShaKeyFor(secret.getBytes(StandardCharsets.UTF_8));
     }
 
-    public String generateToken(UserDetails userDetails, String rol) {
+    public String generateToken(UserDetails userDetails, String rol, Long sedeId) {
         Map<String, Object> claims = new HashMap<>();
         claims.put("rol", rol);
+        if (sedeId != null) {
+            claims.put("sedeId", sedeId);
+        }
         return Jwts.builder()
                 .claims(claims)
                 .subject(userDetails.getUsername())
@@ -38,12 +41,26 @@ public class JwtUtil {
                 .compact();
     }
 
+    // Sobrecarga sin sedeId — mantiene compatibilidad con código existente
+    public String generateToken(UserDetails userDetails, String rol) {
+        return generateToken(userDetails, rol, null);
+    }
+
     public String extractUsername(String token) {
         return extractClaims(token).getSubject();
     }
 
     public String extractRol(String token) {
         return extractClaims(token).get("rol", String.class);
+    }
+
+    public Long extractSedeId(String token) {
+        Object sedeId = extractClaims(token).get("sedeId");
+        if (sedeId == null) return null;
+        if (sedeId instanceof Integer) return ((Integer) sedeId).longValue();
+        if (sedeId instanceof Long)    return (Long) sedeId;
+        try { return Long.parseLong(sedeId.toString()); }
+        catch (NumberFormatException e) { return null; }
     }
 
     public boolean isTokenValid(String token, UserDetails userDetails) {

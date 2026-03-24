@@ -1,6 +1,5 @@
+'use strict';
 // ==================== CONFIGURACIÓN GLOBAL ====================
-// Autenticación por sesión de Spring Security.
-// El navegador envía la cookie automáticamente en cada fetch.
 var API_BASE_URL = '/api/trabajador';
 var REGISTRO_URL = '/api/trabajador/registrar-entrada';
 
@@ -9,14 +8,15 @@ var currentCobroRegistroId  = null;
 var opcionesTarifa          = null;
 var updateInterval          = null;
 var timerIntervals          = {};
+var modoRapido              = false;
 
 var marcasPorTipo = {
     CARRO: [
-        'RENAULT','KIA','TOYOTA','CHEVROLET','MAZDA','NISSAN','VOLKSWAGEN','FORD','HYUNDAI',
-        'BMW','MERCEDES_BENZ','AUDI','PEUGEOT','CITROEN','FIAT','VOLVO','JEEP','LAND_ROVER',
-        'PORSCHE','FERRARI','LAMBORGHINI','TESLA','BYD','CHANGAN','GEELY','JAC','CHERY',
-        'GREAT_WALL','HAVAL','GWM','MITSUBISHI','SUBARU','ISUZU','SSANGYONG','MG','RAM',
-        'DFSK','FOTON','OTRO'
+        'RENAULT','KIA','TOYOTA','CHEVROLET','MAZDA','NISSAN','VOLKSWAGEN','FORD',
+        'HYUNDAI','BMW','MERCEDES_BENZ','AUDI','PEUGEOT','CITROEN','FIAT','VOLVO',
+        'JEEP','LAND_ROVER','PORSCHE','FERRARI','LAMBORGHINI','TESLA','BYD','CHANGAN',
+        'GEELY','JAC','CHERY','GREAT_WALL','HAVAL','GWM','MITSUBISHI','SUBARU',
+        'ISUZU','SSANGYONG','MG','RAM','DFSK','FOTON','OTRO'
     ],
     MOTO: [
         'HONDA','YAMAHA','SUZUKI','KAWASAKI','BAJAJ','TVS','HERO','KTM','DUCATI',
@@ -30,36 +30,51 @@ var marcasPorTipo = {
     OTRO: ['OTRO']
 };
 
+// ── SVG Lucide inline para inyección en innerHTML ────────────────
+var SVG = {
+    car: '<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:13px;height:13px;display:inline;vertical-align:middle;margin-right:.3rem;flex-shrink:0;">' +
+        '<path d="M5 17H3v-5l2-5h14l2 5v5h-2"/><circle cx="7.5" cy="17.5" r="2.5"/><circle cx="16.5" cy="17.5" r="2.5"/><path d="M5 12h14"/></svg>',
 
-// ==================== MODAL DE CONFIRMACIÓN ====================
+    moto: '<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:13px;height:13px;display:inline;vertical-align:middle;margin-right:.3rem;flex-shrink:0;">' +
+        '<circle cx="18.5" cy="17.5" r="3.5"/><circle cx="5.5" cy="17.5" r="3.5"/><circle cx="15" cy="5" r="1"/><path d="M12 17.5V14l-3-3 4-3 2 3h2"/></svg>',
+
+    user: '<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:13px;height:13px;display:inline;vertical-align:middle;margin-right:.3rem;flex-shrink:0;">' +
+        '<path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>',
+
+    file: '<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:14px;height:14px;display:inline;vertical-align:middle;margin-right:.35rem;flex-shrink:0;">' +
+        '<path d="M15 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7Z"/><path d="M14 2v4a2 2 0 0 0 2 2h4"/></svg>',
+
+    zap: '<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:13px;height:13px;display:inline;vertical-align:middle;margin-right:.3rem;flex-shrink:0;">' +
+        '<path d="M4 14a1 1 0 0 1-.78-1.63l9.9-10.2a.5.5 0 0 1 .86.46l-1.92 6.02A1 1 0 0 0 13 10h7a1 1 0 0 1 .78 1.63l-9.9 10.2a.5.5 0 0 1-.86-.46l1.92-6.02A1 1 0 0 0 11 14z"/></svg>',
+
+    parking: '<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:13px;height:13px;display:inline;vertical-align:middle;margin-right:.3rem;flex-shrink:0;">' +
+        '<rect width="18" height="18" x="3" y="3" rx="2"/><path d="M9 17V7h4a3 3 0 0 1 0 6H9"/></svg>'
+};
+
+
+// ==================== NOTIFICACIONES ====================
+// MIGRADO: showNotification() custom eliminada.
+// Alias de compatibilidad — delega en el helper centralizado (aparca-notifications.js).
+function showNotification(message, type) {
+    showToast(message, type || 'info');
+}
+
+// MIGRADO: showConfirm() con overlay/innerHTML manual eliminado.
+// Wrapper de compatibilidad — delega en showConfirm() del helper centralizado.
 function showConfirm(titulo, cuerpo, btnTexto, btnColor) {
-    if (btnTexto === undefined) { btnTexto = 'Confirmar'; }
-    if (btnColor === undefined) { btnColor = 'danger'; }
-    return new Promise(function(resolve) {
-        var overlay = document.getElementById('confirm-overlay');
-        if (!overlay) {
-            overlay = document.createElement('div');
-            overlay.id = 'confirm-overlay';
-            overlay.style.cssText = 'position:fixed;inset:0;z-index:10000;background:rgba(0,0,0,0.5);display:flex;align-items:center;justify-content:center;padding:1rem;';
-            document.body.appendChild(overlay);
-        }
-        var btnColors = {
-            danger:  'background:#dc2626;color:#fff',
-            warning: 'background:#f59e0b;color:#fff'
-        };
-        overlay.innerHTML =
-            '<div role="dialog" aria-modal="true" style="background:#fff;border-radius:0.75rem;padding:2rem;max-width:420px;width:100%;box-shadow:0 20px 60px rgba(0,0,0,.3);">' +
-                '<h3 style="font-size:1.125rem;font-weight:700;color:#0f172a;margin:0 0 0.75rem;">' + titulo + '</h3>' +
-                '<p style="font-size:0.875rem;color:#64748b;margin:0 0 1.5rem;line-height:1.6;">' + cuerpo + '</p>' +
-                '<div style="display:flex;justify-content:flex-end;gap:0.75rem;">' +
-                    '<button id="confirm-cancel" style="padding:0.5rem 1.25rem;border:1px solid #e2e8f0;border-radius:0.5rem;background:#fff;color:#374151;cursor:pointer;">Cancelar</button>' +
-                    '<button id="confirm-ok" style="padding:0.5rem 1.25rem;border:none;border-radius:0.5rem;' + (btnColors[btnColor] || btnColors.danger) + ';cursor:pointer;font-weight:600;">' + btnTexto + '</button>' +
-                '</div>' +
-            '</div>';
-        overlay.style.display = 'flex';
-        document.getElementById('confirm-ok').onclick     = function() { overlay.style.display = 'none'; resolve(true);  };
-        document.getElementById('confirm-cancel').onclick = function() { overlay.style.display = 'none'; resolve(false); };
-    });
+    if (typeof titulo === 'object') {
+        return window.AparcaNotif
+            ? window.AparcaNotif.showConfirm(titulo)
+            : Promise.resolve(false);
+    }
+    return window.AparcaNotif
+        ? window.AparcaNotif.showConfirm({
+            title:    titulo,
+            body:     cuerpo     || '',
+            btnTexto: btnTexto   || 'Confirmar',
+            btnColor: btnColor   || 'danger'
+        })
+        : Promise.resolve(false);
 }
 
 
@@ -81,34 +96,14 @@ function formatDateTime(dateString) {
             year: 'numeric', month: '2-digit', day: '2-digit',
             hour: '2-digit', minute: '2-digit'
         });
-    } catch (e) {
-        return dateString;
-    }
+    } catch (e) { return dateString; }
 }
 
 function formatNumber(number) {
     if (number == null) { return '0'; }
     return Number(number).toLocaleString('es-CO', {
-        minimumFractionDigits: 0,
-        maximumFractionDigits: 0
+        minimumFractionDigits: 0, maximumFractionDigits: 0
     });
-}
-
-function showNotification(message, type) {
-    if (type === undefined) { type = 'info'; }
-    document.querySelectorAll('.toast-notification').forEach(function(t) { t.remove(); });
-    var toast = document.createElement('div');
-    toast.className = 'toast-notification';
-    toast.style.cssText = 'position:fixed;top:80px;right:20px;padding:1rem 1.5rem;border-radius:0.5rem;color:white;font-weight:600;z-index:9999;animation:trabSlideIn 0.3s ease-out;max-width:400px;box-shadow:0 4px 12px rgba(0,0,0,0.15);';
-    var colors = { success: '#10b981', error: '#ef4444', warning: '#f59e0b', info: '#3b82f6' };
-    toast.style.backgroundColor = colors[type] || colors.info;
-    toast.textContent = message;
-    document.body.appendChild(toast);
-    setTimeout(function() {
-        toast.style.opacity    = '0';
-        toast.style.transition = 'opacity 0.3s ease-in';
-        setTimeout(function() { toast.remove(); }, 300);
-    }, 5000);
 }
 
 function formatMarcaName(marca) {
@@ -136,7 +131,7 @@ function actualizarMarcasEntrada() {
     if (tipo && marcasPorTipo[tipo]) {
         marcasPorTipo[tipo].forEach(function(marca) {
             var opt = document.createElement('option');
-            opt.value       = marca;
+            opt.value = marca;
             opt.textContent = formatMarcaName(marca);
             marcaSelect.appendChild(opt);
         });
@@ -153,11 +148,40 @@ function limpiarFormularioEntrada() {
     ['nombre','correo','telefono','cedula','placa','tipoVehiculo','marca'].forEach(function(fId) {
         var err = document.getElementById(fId + '-error');
         if (err) { err.textContent = ''; }
-        var suc = document.getElementById(fId + '-success');
-        if (suc) { suc.textContent = ''; }
         var f = document.getElementById(fId);
         if (f) { f.classList.remove('border-red-500', 'border-green-500'); }
     });
+}
+
+
+// ==================== MODO RÁPIDO ====================
+function toggleModoRegistro() {
+    modoRapido = document.getElementById('modoRapidoToggle').checked;
+    var campos = document.getElementById('camposCompletos');
+    var badge  = document.getElementById('badgeModo');
+    var slider = document.getElementById('toggleSlider');
+    var knob   = document.getElementById('toggleKnob');
+    var txt    = document.getElementById('btnRegistrarTexto');
+
+    if (modoRapido) {
+        if (campos) { campos.style.maxHeight = '0'; campos.style.opacity = '0'; }
+        if (badge)  { badge.textContent = 'RÁPIDO'; badge.style.background = '#0d9488'; badge.style.color = 'white'; }
+        if (slider) { slider.style.background = '#0d9488'; }
+        if (knob)   { knob.style.transform = 'translateX(20px)'; }
+        if (txt)    { txt.textContent = 'Registrar Rápido'; }
+        ['nombre','correo','telefono','cedula','marca'].forEach(function(id) {
+            var e = document.getElementById(id + '-error');
+            var f = document.getElementById(id);
+            if (e) { e.textContent = ''; }
+            if (f) { f.classList.remove('border-red-500', 'border-green-500'); }
+        });
+    } else {
+        if (campos) { campos.style.maxHeight = '800px'; campos.style.opacity = '1'; }
+        if (badge)  { badge.textContent = 'COMPLETO'; badge.style.background = '#e2e8f0'; badge.style.color = '#475569'; }
+        if (slider) { slider.style.background = '#cbd5e1'; }
+        if (knob)   { knob.style.transform = 'translateX(0)'; }
+        if (txt)    { txt.textContent = 'Registrar Entrada'; }
+    }
 }
 
 
@@ -166,28 +190,26 @@ function validateFieldEntrada(fieldId) {
     var field     = document.getElementById(fieldId);
     var errorSpan = document.getElementById(fieldId + '-error');
     if (!field) { return true; }
-    var isValid = true;
-    var message = '';
-    var value   = field.value.trim();
+    var isValid = true, message = '', value = field.value.trim();
     switch (fieldId) {
         case 'nombre':
-            if (!value)            { isValid = false; message = 'El nombre es obligatorio.'; }
+            if (!value)                { isValid = false; message = 'El nombre es obligatorio.'; }
             else if (value.length < 2) { isValid = false; message = 'Al menos 2 caracteres.'; }
             break;
         case 'correo':
-            if (!value)                                     { isValid = false; message = 'El correo es obligatorio.'; }
+            if (!value)                                          { isValid = false; message = 'El correo es obligatorio.'; }
             else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value)) { isValid = false; message = 'Formato inválido.'; }
             break;
         case 'telefono':
-            if (!value)                        { isValid = false; message = 'El teléfono es obligatorio.'; }
+            if (!value)                          { isValid = false; message = 'El teléfono es obligatorio.'; }
             else if (!/^[0-9]{10}$/.test(value)) { isValid = false; message = 'Debe tener 10 dígitos.'; }
             break;
         case 'cedula':
-            if (!value)                        { isValid = false; message = 'La cédula es obligatoria.'; }
+            if (!value)                          { isValid = false; message = 'La cédula es obligatoria.'; }
             else if (!/^[0-9]{10}$/.test(value)) { isValid = false; message = 'Debe tener 10 dígitos.'; }
             break;
         case 'placa':
-            if (!value)                              { isValid = false; message = 'La placa es obligatoria.'; }
+            if (!value)                                  { isValid = false; message = 'La placa es obligatoria.'; }
             else if (!/^[A-Z]{3}[0-9]{3}$/.test(value)) { isValid = false; message = 'Formato: ABC123'; }
             break;
         case 'tipoVehiculo':
@@ -196,8 +218,7 @@ function validateFieldEntrada(fieldId) {
         case 'marca':
             if (!value) { isValid = false; message = 'Selecciona la marca.'; }
             break;
-        default:
-            break;
+        default: break;
     }
     if (errorSpan) { errorSpan.textContent = isValid ? '' : message; }
     field.classList.toggle('border-red-500',   !isValid);
@@ -206,26 +227,76 @@ function validateFieldEntrada(fieldId) {
 }
 
 function validateFormularioEntrada() {
-    return ['nombre','correo','telefono','cedula','placa','tipoVehiculo','marca']
-        .map(function(c) { return validateFieldEntrada(c); })
+    var campos = modoRapido
+        ? ['placa', 'tipoVehiculo']
+        : ['nombre', 'correo', 'telefono', 'cedula', 'placa', 'tipoVehiculo', 'marca'];
+    return campos.map(function(c) { return validateFieldEntrada(c); })
         .every(function(v) { return v; });
 }
 
 
+// ==================== INDICADORES ====================
+async function loadIndicadores() {
+    try {
+        var response = await fetch(API_BASE_URL + '/indicadores', {
+            headers: { 'Content-Type': 'application/json' }
+        });
+        if (!response.ok) { throw new Error('Error al cargar indicadores'); }
+        var d = await response.json();
+
+        function set(id, v) { var el = document.getElementById(id); if (el) el.textContent = v; }
+
+        set('sedeNombre',        d.sedeNombre || 'Parqueadero');
+        set('ind-sede-nombre',   d.sedeNombre || '—');
+        set('ind-ocupacion',     (d.ocupacionActual || 0) + ' veh.');
+        set('ind-ocupacion-sub', 'de ' + (d.capacidadTotal || 0) + ' cupos totales');
+        set('ind-cupos',         d.cuposLibres || 0);
+        set('ind-cupos-sub',     'de ' + (d.capacidadTotal || 0) + ' totales');
+        set('ind-ingresos',      '$' + formatNumber(d.ingresosDia || 0));
+        set('ind-vehiculos-hoy', d.vehiculosHoy || 0);
+        set('ind-pendientes',    d.pendientesCobro || 0);
+        set('ind-porcentaje',    (d.porcentajeOcupacion || 0) + '%');
+
+        var pct = d.porcentajeOcupacion || 0;
+        var ic  = document.getElementById('ind-pct-icon');
+        if (ic) {
+            ic.className = 'ind-icon ' +
+                (pct >= 90 ? 'ind-orange' : pct >= 70 ? 'ind-yellow' : 'ind-purple');
+        }
+
+        var tarifaDisplay = document.getElementById('tarifaDisplay');
+        if (tarifaDisplay) {
+            var pc = d.tarifaPlenaC  != null ? '$' + formatNumber(d.tarifaPlenaC)  : 'N/A';
+            var mc = d.tarifaMinutoC != null ? '$' + formatNumber(d.tarifaMinutoC) : 'N/A';
+            var pm = d.tarifaPlenaM  != null ? '$' + formatNumber(d.tarifaPlenaM)  : 'N/A';
+            var mm = d.tarifaMinutoM != null ? '$' + formatNumber(d.tarifaMinutoM) : 'N/A';
+            tarifaDisplay.innerHTML =
+                '<span style="display:inline-flex;align-items:center;margin-right:1.5rem;">' +
+                SVG.car +
+                'Plena: <strong style="margin:0 .25rem;">' + pc +
+                '</strong> &middot; /min: <strong style="margin-left:.25rem;">' + mc + '</strong>' +
+                '</span>' +
+                '<span style="display:inline-flex;align-items:center;">' +
+                SVG.moto +
+                'Plena: <strong style="margin:0 .25rem;">' + pm +
+                '</strong> &middot; /min: <strong style="margin-left:.25rem;">' + mm + '</strong>' +
+                '</span>';
+        }
+    } catch (error) {
+        console.error('Error indicadores:', error);
+    }
+}
+
+
 // ==================== NAVEGACIÓN ====================
-// FIX: sections.forEach oculta todas las secciones antes de mostrar
-// la activa — sin esto varias quedaban visibles simultáneamente.
 function initializeTabs() {
     var navLinks = document.querySelectorAll('.aparca-sidebar-nav a');
     var sections = document.querySelectorAll('.aparca-content-section');
-
     navLinks.forEach(function(link) {
         link.addEventListener('click', function(e) {
             e.preventDefault();
-
             navLinks.forEach(function(l) { l.classList.remove('active'); });
             sections.forEach(function(s) { s.classList.add('hidden'); });
-
             link.classList.add('active');
             var tabId   = link.getAttribute('data-tab');
             var section = document.getElementById(tabId);
@@ -235,12 +306,7 @@ function initializeTabs() {
                 if (tabId === 'gestion')       { loadVehiculosActivos(); loadPendientesCobro(); }
                 if (tabId === 'reservaciones') { loadReservaciones(); }
             }
-
-            // En mobile cierra el sidebar al navegar
-            if (window.innerWidth < 768) {
-                var sidebar = document.querySelector('.aparca-sidebar');
-                if (sidebar) { sidebar.style.transform = 'translateX(-100%)'; }
-            }
+            if (window.innerWidth < 768) { document.body.classList.add('sidebar-collapsed'); }
         });
     });
 }
@@ -252,8 +318,7 @@ function initializeProfileMenu() {
         btn.addEventListener('click', function(e) {
             e.stopPropagation();
             dropdown.classList.toggle('show');
-            btn.setAttribute('aria-expanded',
-                dropdown.classList.contains('show') ? 'true' : 'false');
+            btn.setAttribute('aria-expanded', dropdown.classList.contains('show') ? 'true' : 'false');
         });
         document.addEventListener('click', function() {
             dropdown.classList.remove('show');
@@ -262,62 +327,11 @@ function initializeProfileMenu() {
     }
 }
 
-// POST /logout invalida el SecurityContext de Spring
-function handleLogout()  { logoutJWT(); }
+function handleLogout() { logoutJWT(); }
 
 function initializeMarcas() {
     var ts = document.getElementById('tipoVehiculo');
-    if (ts) {
-        ts.addEventListener('change', actualizarMarcasEntrada);
-        actualizarMarcasEntrada();
-    }
-}
-
-
-// ==================== INDICADORES ====================
-async function loadIndicadores() {
-    try {
-        var response = await fetch(API_BASE_URL + '/indicadores', {
-            headers: { 'Content-Type': 'application/json' }
-        });
-        if (!response.ok) { throw new Error('Error'); }
-        var data = await response.json();
-
-        // FIX: ingresosDia incluye signo $ — la card no lo pone en el HTML
-        var elementos = {
-            'sedeNombre':          data.sedeNombre        || 'Parqueadero',
-            'ocupacionActual':     data.ocupacionActual   + '/' + data.capacidadTotal,
-            'porcentajeOcupacion': data.porcentajeOcupacion + '%',
-            'cuposLibres':         data.cuposLibres,
-            'vehiculosHoy':        data.vehiculosHoy,
-            'ingresosDia':         '$' + formatNumber(data.ingresosDia),
-            'pendientesCobro':     data.pendientesCobro
-        };
-        Object.keys(elementos).forEach(function(id) {
-            var el = document.getElementById(id);
-            if (el) { el.textContent = elementos[id]; }
-        });
-
-        var tarifaDisplay = document.getElementById('tarifaDisplay');
-        if (tarifaDisplay && data.tarifaPlenaC != null) {
-            tarifaDisplay.innerHTML =
-                'Carro plena: $'  + formatNumber(data.tarifaPlenaC)  + '<br>' +
-                'Carro/min: $'    + formatNumber(data.tarifaMinutoC) + '<br>' +
-                'Moto plena: $'   + formatNumber(data.tarifaPlenaM)  + '<br>' +
-                'Moto/min: $'     + formatNumber(data.tarifaMinutoM);
-        }
-
-        // Color del card de ocupación según porcentaje
-        var card = document.getElementById('cardOcupacion');
-        if (card) {
-            card.classList.remove('ocupacion-alta', 'ocupacion-media', 'ocupacion-libre');
-            if      (data.porcentajeOcupacion >= 90) { card.classList.add('ocupacion-alta');  }
-            else if (data.porcentajeOcupacion >= 70) { card.classList.add('ocupacion-media'); }
-            else                                     { card.classList.add('ocupacion-libre'); }
-        }
-    } catch (error) {
-        console.error('Error indicadores:', error);
-    }
+    if (ts) { ts.addEventListener('change', actualizarMarcasEntrada); actualizarMarcasEntrada(); }
 }
 
 
@@ -329,11 +343,10 @@ function initializeFormularioEntrada() {
             e.preventDefault();
             await registrarEntradaDirecto();
         });
-
         ['nombre','telefono','correo','cedula','placa','tipoVehiculo','marca'].forEach(function(campoId) {
             var campo = document.getElementById(campoId);
             if (campo) {
-                campo.addEventListener('blur', function() { validateFieldEntrada(campoId); });
+                campo.addEventListener('blur',  function() { validateFieldEntrada(campoId); });
                 campo.addEventListener('input', function() {
                     var err = document.getElementById(campoId + '-error');
                     if (err && campo.value.trim()) {
@@ -343,67 +356,55 @@ function initializeFormularioEntrada() {
                 });
             }
         });
-
         var tel = document.getElementById('telefono');
-        if (tel) {
-            tel.addEventListener('input', function(e) {
-                e.target.value = e.target.value.replace(/[^0-9]/g, '').slice(0, 10);
-            });
-        }
+        if (tel) tel.addEventListener('input', function(e) { e.target.value = e.target.value.replace(/[^0-9]/g, '').slice(0, 10); });
         var ced = document.getElementById('cedula');
-        if (ced) {
-            ced.addEventListener('input', function(e) {
-                e.target.value = e.target.value.replace(/[^0-9]/g, '').slice(0, 10);
-            });
-        }
+        if (ced) ced.addEventListener('input', function(e) { e.target.value = e.target.value.replace(/[^0-9]/g, '').slice(0, 10); });
         var plc = document.getElementById('placa');
-        if (plc) {
-            plc.addEventListener('input', function(e) {
-                e.target.value = e.target.value.toUpperCase().replace(/[^A-Z0-9]/g, '').substring(0, 6);
-            });
-        }
+        if (plc) plc.addEventListener('input', function(e) { e.target.value = e.target.value.toUpperCase().replace(/[^A-Z0-9]/g, '').substring(0, 6); });
         var tv = document.getElementById('tipoVehiculo');
-        if (tv) {
-            tv.addEventListener('change', function() {
-                actualizarMarcasEntrada();
-                validateFieldEntrada('tipoVehiculo');
-            });
-        }
+        if (tv) tv.addEventListener('change', function() { actualizarMarcasEntrada(); validateFieldEntrada('tipoVehiculo'); });
         var mk = document.getElementById('marca');
-        if (mk) {
-            mk.addEventListener('change', function() { validateFieldEntrada('marca'); });
-        }
+        if (mk) mk.addEventListener('change', function() { validateFieldEntrada('marca'); });
     }
-
     var buscar = document.getElementById('buscarPlaca');
     if (buscar) {
-        buscar.addEventListener('input', function(e) {
-            e.target.value = e.target.value.toUpperCase().replace(/[^A-Z0-9]/g, '');
-        });
-        buscar.addEventListener('keypress', function(e) {
-            if (e.key === 'Enter') { e.preventDefault(); buscarPorPlacaIntegrado(); }
-        });
+        buscar.addEventListener('input',    function(e) { e.target.value = e.target.value.toUpperCase().replace(/[^A-Z0-9]/g, ''); });
+        buscar.addEventListener('keypress', function(e) { if (e.key === 'Enter') { e.preventDefault(); buscarPorPlacaIntegrado(); } });
     }
 }
 
 async function registrarEntradaDirecto() {
     if (!validateFormularioEntrada()) {
-        showNotification('Completa todos los campos correctamente', 'error');
+        showWarning(
+            modoRapido
+                ? 'Ingresa la placa y el tipo de vehículo'
+                : 'Completa todos los campos correctamente'
+        );
         return;
     }
     try {
-        showNotification('Registrando entrada...', 'info');
+        var placa = getInputValue('placa');
         var datos = {
-            clienteNombre:   getInputValue('nombre'),
-            clienteTelefono: getInputValue('telefono'),
-            clienteEmail:    getInputValue('correo'),
-            clienteCedula:   getInputValue('cedula'),
-            vehiculoPlaca:   getInputValue('placa'),
-            vehiculoTipo:    getInputValue('tipoVehiculo'),
-            vehiculoMarca:   getInputValue('marca'),
-            vehiculoColor:   getInputValue('color') || 'NO ESPECIFICADO',
-            vehiculoAnio:    getInputValue('anio')  || '2020'
+            vehiculoPlaca: placa,
+            vehiculoTipo:  getInputValue('tipoVehiculo'),
+            vehiculoMarca: getInputValue('marca') || 'OTRO',
+            vehiculoColor: getInputValue('color') || 'NO ESPECIFICADO',
+            vehiculoAnio:  getInputValue('anio')  || '2020'
         };
+        if (modoRapido) {
+            datos.clienteNombre   = 'Visitante';
+            datos.clienteTelefono = '';
+            datos.clienteEmail    = placa.toLowerCase() + '@temp.aparcaya.co';
+            datos.clienteCedula   = '';
+            showInfo('Registrando entrada rápida...');
+        } else {
+            datos.clienteNombre   = getInputValue('nombre');
+            datos.clienteTelefono = getInputValue('telefono');
+            datos.clienteEmail    = getInputValue('correo');
+            datos.clienteCedula   = getInputValue('cedula');
+            showInfo('Registrando entrada...');
+        }
         var response = await fetch(REGISTRO_URL, {
             method:  'POST',
             headers: { 'Content-Type': 'application/json' },
@@ -413,20 +414,22 @@ async function registrarEntradaDirecto() {
             var err = await response.json();
             throw new Error(err.error || 'Error al registrar entrada');
         }
-        showNotification('Entrada registrada. Timer iniciado', 'success');
+        var result = await response.json();
+        showSuccess(
+            modoRapido
+                ? 'Placa ' + placa + ' registrada. Cupo: ' + (result.cupo || 'S/A')
+                : 'Entrada de ' + result.clienteNombre + '. Cupo: ' + (result.cupo || 'S/A')
+        );
         limpiarFormularioEntrada();
-        setTimeout(function() { loadVehiculosActivos(); loadIndicadores(); }, 500);
+        setTimeout(function() { loadVehiculosActivos(); loadIndicadores(); }, 400);
     } catch (error) {
-        showNotification(error.message, 'error');
+        showError(error.message);
     }
 }
 
 async function buscarPorPlacaIntegrado() {
     var placa = getInputValue('buscarPlaca');
-    if (!placa || placa.length < 5) {
-        showNotification('Ingrese una placa válida', 'warning');
-        return;
-    }
+    if (!placa || placa.length < 5) { showWarning('Ingrese una placa válida'); return; }
     try {
         var response = await fetch(API_BASE_URL + '/buscar-por-placa/' + placa, {
             headers: { 'Content-Type': 'application/json' }
@@ -446,18 +449,22 @@ async function buscarPorPlacaIntegrado() {
                 actualizarMarcasEntrada();
                 setTimeout(function() {
                     var ms = document.getElementById('marca');
-                    if (ms) { ms.value = data.vehiculo.marca; }
+                    if (ms) ms.value = data.vehiculo.marca;
                 }, 100);
             }
             if (data.vehiculo.anio) { setInputValue('anio', data.vehiculo.anio); }
-            showNotification('Vehículo encontrado', 'success');
+            if (modoRapido) {
+                var tog = document.getElementById('modoRapidoToggle');
+                if (tog) { tog.checked = false; toggleModoRegistro(); }
+            }
+            showSuccess('Vehículo encontrado — datos cargados');
         } else {
             limpiarFormularioEntrada();
             setInputValue('placa', placa);
-            showNotification('Vehículo nuevo. Complete los datos.', 'info');
+            showInfo('Vehículo nuevo. Complete los datos.');
         }
     } catch (error) {
-        showNotification('Error al buscar', 'error');
+        showError('Error al buscar');
     }
 }
 
@@ -473,7 +480,6 @@ async function loadVehiculosActivos() {
         var tbody = document.getElementById('vehiculosActivosBody');
         if (!tbody) { return; }
 
-        // Limpiar timers anteriores antes de actualizar
         Object.values(timerIntervals).forEach(function(id) { clearInterval(id); });
         timerIntervals = {};
 
@@ -481,7 +487,6 @@ async function loadVehiculosActivos() {
             tbody.innerHTML = '<tr><td colspan="8" style="text-align:center;padding:1.5rem;color:#64748b;">No hay vehículos en el parqueadero</td></tr>';
             return;
         }
-
         tbody.innerHTML = vehiculos.map(function(v) {
             return '<tr>' +
                 '<td><strong>' + v.placa + '</strong></td>' +
@@ -490,35 +495,30 @@ async function loadVehiculosActivos() {
                 '<td>' + v.clienteTelefono + '</td>' +
                 '<td>' + formatDateTime(v.horaEntrada) + '</td>' +
                 '<td><span class="tiempo-activo" id="timer-' + v.registroId + '">' + v.tiempoTranscurrido + '</span></td>' +
-                '<td>' +
-                    '<div style="font-size:0.82rem;line-height:1.6;">' +
-                        '<div><strong>Plena:</strong> $' + formatNumber(v.cobroEstimadoPlena) + '</div>' +
-                        '<div style="color:#059669;"><strong>Minuto:</strong> $' + formatNumber(v.cobroEstimadoMinuto) + '</div>' +
-                    '</div>' +
-                '</td>' +
-                '<td>' +
-                    '<button class="sede-btn-success btn-salida" data-id="' + v.registroId + '" style="font-size:0.8rem;padding:0.35rem 0.75rem;">Salida</button>' +
-                '</td>' +
-            '</tr>';
+                '<td><div style="font-size:.82rem;line-height:1.6;">' +
+                '<div><strong>Plena:</strong> $' + formatNumber(v.cobroEstimadoPlena) + '</div>' +
+                '<div style="color:#059669;"><strong>Minuto:</strong> $' + formatNumber(v.cobroEstimadoMinuto) + '</div>' +
+                '</div></td>' +
+                '<td><button class="sede-btn-warning btn-salida" data-id="' + v.registroId + '" style="font-size:.8rem;padding:.35rem .75rem;">Salida</button></td>' +
+                '</tr>';
         }).join('');
 
-        // Iniciar temporizadores en tiempo real
         vehiculos.forEach(function(v) {
             var el = document.getElementById('timer-' + v.registroId);
             if (!el) { return; }
             var secs = v.segundosTranscurridos || 0;
             timerIntervals[v.registroId] = setInterval(function() {
                 secs++;
-                var h = Math.floor(secs / 3600);
-                var m = Math.floor((secs % 3600) / 60);
-                var s = secs % 60;
-                if (h > 0)       { el.textContent = h + 'h ' + m + 'm ' + s + 's'; }
-                else if (m > 0)  { el.textContent = m + 'm ' + s + 's'; }
-                else             { el.textContent = s + 's'; }
+                var h = Math.floor(secs / 3600),
+                    m = Math.floor((secs % 3600) / 60),
+                    s = secs % 60;
+                if (h > 0)      el.textContent = h + 'h ' + m + 'm ' + s + 's';
+                else if (m > 0) el.textContent = m + 'm ' + s + 's';
+                else            el.textContent = s + 's';
             }, 1000);
         });
     } catch (error) {
-        showNotification('Error al cargar vehículos activos', 'error');
+        showError('Error al cargar vehículos activos');
     }
 }
 
@@ -526,7 +526,7 @@ async function loadVehiculosActivos() {
 // ==================== MODAL SALIDA ====================
 async function abrirModalSalida(registroId) {
     var modal = document.getElementById('salidaModal');
-    if (!modal) { showNotification('Error: Modal no encontrado', 'error'); return; }
+    if (!modal) { showError('Error: Modal no encontrado'); return; }
     try {
         currentSalidaRegistroId = registroId;
         var response = await fetch(API_BASE_URL + '/vehiculos-activos', {
@@ -536,64 +536,57 @@ async function abrirModalSalida(registroId) {
         var vehiculos = await response.json();
         var v = vehiculos.find(function(x) { return x.registroId === registroId; });
         if (!v) {
-            showNotification('Este vehículo ya no está activo. Actualizando lista...', 'warning');
+            showWarning('Este vehículo ya no está activo. Actualizando lista...');
             await loadVehiculosActivos();
             return;
         }
-
-        var elPlaca   = document.getElementById('salidaPlaca');
-        var elCliente = document.getElementById('salidaCliente');
-        var elEntrada = document.getElementById('salidaHoraEntrada');
-        var elTiempo  = document.getElementById('salidaTiempo');
-        var elCobro   = document.getElementById('salidaCobroEstimado');
-
-        if (elPlaca)   { elPlaca.textContent   = v.placa; }
-        if (elCliente) { elCliente.textContent = v.clienteNombre; }
-        if (elEntrada) { elEntrada.textContent = formatDateTime(v.horaEntrada); }
-        if (elTiempo)  { elTiempo.textContent  = v.tiempoTranscurrido; }
+        function set(id, val) { var el = document.getElementById(id); if (el) el.textContent = val; }
+        set('salidaPlaca',       v.placa);
+        set('salidaCliente',     v.clienteNombre);
+        set('salidaHoraEntrada', formatDateTime(v.horaEntrada));
+        set('salidaTiempo',      v.tiempoTranscurrido);
+        var elCobro = document.getElementById('salidaCobroEstimado');
         if (elCobro) {
             elCobro.innerHTML =
-                '<div class="sede-modal-salida-row"><strong>Plena:</strong><span>$' + formatNumber(v.cobroEstimadoPlena) + '</span></div>' +
-                '<div class="sede-modal-salida-row" style="color:#059669;"><strong>Minuto:</strong><span>$' + formatNumber(v.cobroEstimadoMinuto) + '</span></div>';
+                '<div class="trab-modal-cobro-estimado-row">' +
+                '<strong>Plena:</strong><span>$' + formatNumber(v.cobroEstimadoPlena) + '</span>' +
+                '</div>' +
+                '<div class="trab-modal-cobro-estimado-row trab-modal-cobro-estimado-row--minuto">' +
+                '<strong>Minuto:</strong><span>$' + formatNumber(v.cobroEstimadoMinuto) + '</span>' +
+                '</div>';
         }
-
-        modal.style.display    = 'flex';
-        modal.style.visibility = 'visible';
-        modal.style.opacity    = '1';
+        modal.classList.add('open');
         modal.setAttribute('aria-hidden', 'false');
     } catch (error) {
-        showNotification('Error al abrir modal', 'error');
+        showError('Error al abrir modal de salida');
     }
 }
 
 function cerrarModalSalida() {
     var modal = document.getElementById('salidaModal');
-    if (modal) {
-        modal.style.display = 'none';
-        modal.setAttribute('aria-hidden', 'true');
-    }
+    if (modal) { modal.classList.remove('open'); modal.setAttribute('aria-hidden', 'true'); }
     currentSalidaRegistroId = null;
 }
 
 async function confirmarSalida() {
     if (!currentSalidaRegistroId) { return; }
     try {
-        showNotification('Registrando salida...', 'info');
-        var response = await fetch(API_BASE_URL + '/registrar-salida/' + currentSalidaRegistroId, {
-            method:  'POST',
-            headers: { 'Content-Type': 'application/json' }
-        });
+        showInfo('Registrando salida...');
+        var response = await fetch(
+            API_BASE_URL + '/registrar-salida/' + currentSalidaRegistroId,
+            { method: 'POST', headers: { 'Content-Type': 'application/json' } }
+        );
         if (!response.ok) {
             var err = await response.json();
             throw new Error(err.error || 'Error');
         }
-        showNotification('Salida registrada. Proceda a cobrar.', 'success');
+        showSuccess('Salida registrada. Proceda a cobrar.');
         cerrarModalSalida();
         await loadVehiculosActivos();
         await loadPendientesCobro();
         await loadIndicadores();
     } catch (error) {
-        showNotification(error.message, 'error');
+        showError(error.message);
     }
 }
 
@@ -620,10 +613,8 @@ async function loadPendientesCobro() {
                 '<td>' + formatDateTime(p.horaSalida) + '</td>' +
                 '<td>' + p.tiempoTotal + '</td>' +
                 '<td style="font-weight:700;color:#059669;">$' + formatNumber(p.precio) + '</td>' +
-                '<td>' +
-                    '<button class="sede-btn-primary btn-cobrar" data-id="' + p.registroId + '" style="font-size:0.8rem;padding:0.35rem 0.75rem;">Cobrar</button>' +
-                '</td>' +
-            '</tr>';
+                '<td><button class="sede-btn-primary btn-cobrar" data-id="' + p.registroId + '" style="font-size:.8rem;padding:.35rem .75rem;">Cobrar</button></td>' +
+                '</tr>';
         }).join('');
     } catch (error) {
         console.error('Error pendientes cobro:', error);
@@ -636,9 +627,7 @@ async function abrirModalCobro(registroId) {
     currentCobroRegistroId = registroId;
     var modal = document.getElementById('cobroModal');
     if (!modal) { return; }
-    modal.style.display    = 'flex';
-    modal.style.visibility = 'visible';
-    modal.style.opacity    = '1';
+    modal.classList.add('open');
     modal.setAttribute('aria-hidden', 'false');
     try {
         var response = await fetch(API_BASE_URL + '/opciones-cobro/' + registroId, {
@@ -651,39 +640,32 @@ async function abrirModalCobro(registroId) {
         var data = await response.json();
         opcionesTarifa = data;
 
-        var elCliente   = document.getElementById('cobroCliente');
-        var elPlaca     = document.getElementById('cobroPlaca');
-        var elTiempo    = document.getElementById('cobroTiempo');
-        var elPrecio    = document.getElementById('cobroPrecio');
-        var container   = document.getElementById('tarifaSelectorContainer');
+        function set(id, val) { var el = document.getElementById(id); if (el) el.textContent = val; }
+        set('cobroCliente', data.clienteNombre);
+        set('cobroPlaca',   data.placa);
+        set('cobroTiempo',  data.tiempoTotal);
 
-        if (elCliente) { elCliente.textContent = data.clienteNombre; }
-        if (elPlaca)   { elPlaca.textContent   = data.placa; }
-        if (elTiempo)  { elTiempo.textContent  = data.tiempoTotal; }
-
+        var container = document.getElementById('tarifaSelectorContainer');
         if (container) {
-            container.innerHTML = '<div class="sede-modal-cobro-selector">' +
-                '<p style="font-size:0.85rem;font-weight:600;color:#0f766e;margin:0 0 0.75rem;">Seleccione tarifa:</p>' +
+            container.innerHTML =
+                '<div class="sede-modal-cobro-selector">' +
+                '<p style="font-size:.85rem;font-weight:600;color:#0f766e;margin:0 0 .75rem;">Seleccione tarifa:</p>' +
                 data.opciones.map(function(op, i) {
                     return '<label class="sede-modal-cobro-opcion">' +
                         '<input type="radio" name="tipoTarifa" value="' + op.tipo + '"' +
                         (i === 0 ? ' checked' : '') +
                         ' onchange="actualizarPrecioCobro(\'' + op.tipo + '\',' + op.precio + ')">' +
-                        '<div>' +
-                            '<strong>' + op.nombre + '</strong>' +
-                            '<div style="font-size:0.8rem;color:#64748b;">' + (op.descripcion || '') + '</div>' +
+                        '<div><strong>' + op.nombre + '</strong>' +
+                        '<div style="font-size:.8rem;color:#64748b;">' + (op.descripcion || '') + '</div>' +
                         '</div>' +
                         '<span style="color:#059669;font-weight:700;white-space:nowrap;">$' + formatNumber(op.precio) + ' COP</span>' +
-                    '</label>';
-                }).join('') +
-            '</div>';
+                        '</label>';
+                }).join('') + '</div>';
         }
-
-        if (elPrecio && data.opciones[0]) {
-            elPrecio.textContent = formatNumber(data.opciones[0].precio);
-        }
+        var ep = document.getElementById('cobroPrecio');
+        if (ep && data.opciones[0]) { ep.textContent = formatNumber(data.opciones[0].precio); }
     } catch (error) {
-        showNotification(error.message, 'error');
+        showError(error.message);
     }
 }
 
@@ -694,12 +676,7 @@ function actualizarPrecioCobro(tipo, precio) {
 
 function cerrarModalCobro() {
     var modal = document.getElementById('cobroModal');
-    if (modal) {
-        modal.style.display    = 'none';
-        modal.style.visibility = 'hidden';
-        modal.style.opacity    = '0';
-        modal.setAttribute('aria-hidden', 'true');
-    }
+    if (modal) { modal.classList.remove('open'); modal.setAttribute('aria-hidden', 'true'); }
     currentCobroRegistroId = null;
     opcionesTarifa = null;
     var container = document.getElementById('tarifaSelectorContainer');
@@ -712,8 +689,8 @@ async function procesarCobro() {
         var metodoPagoEl = document.getElementById('metodoPago');
         var metodoPago   = metodoPagoEl ? metodoPagoEl.value : 'EFECTIVO';
         var tipoTarifa   = document.querySelector('input[name="tipoTarifa"]:checked');
-        if (!tipoTarifa) { showNotification('Seleccione una tarifa', 'warning'); return; }
-        showNotification('Procesando cobro...', 'info');
+        if (!tipoTarifa) { showWarning('Seleccione una tarifa'); return; }
+        showInfo('Procesando cobro...');
         var response = await fetch(API_BASE_URL + '/confirmar-cobro/' + currentCobroRegistroId, {
             method:  'POST',
             headers: { 'Content-Type': 'application/json' },
@@ -724,12 +701,12 @@ async function procesarCobro() {
             throw new Error(err.error || 'Error');
         }
         var data = await response.json();
-        showNotification('Cobro: $' + formatNumber(data.precio) + ' - ' + data.tipoTarifaAplicada, 'success');
+        showSuccess('Cobro: $' + formatNumber(data.precio) + ' — ' + data.tipoTarifaAplicada);
         cerrarModalCobro();
         await loadPendientesCobro();
         await loadIndicadores();
     } catch (error) {
-        showNotification(error.message, 'error');
+        showError(error.message);
     }
 }
 
@@ -746,10 +723,7 @@ async function loadHistorial() {
         if (fecha)  { params.append('fecha',  fecha);  }
         if (estado) { params.append('estado', estado); }
         if (params.toString()) { url += '?' + params.toString(); }
-
-        var response = await fetch(url, {
-            headers: { 'Content-Type': 'application/json' }
-        });
+        var response = await fetch(url, { headers: { 'Content-Type': 'application/json' } });
         if (!response.ok) { throw new Error('Error'); }
         var registros = await response.json();
         var tbody = document.getElementById('historialBody');
@@ -760,10 +734,10 @@ async function loadHistorial() {
         }
         tbody.innerHTML = registros.map(function(r) {
             var badge;
-            if      (r.estado === 'ACTIVO')     { badge = '<span class="trab-badge trab-badge-info">Activo</span>'; }
-            else if (r.estado === 'FINALIZADO') { badge = '<span class="trab-badge trab-badge-warning">Pendiente</span>'; }
-            else if (r.estado === 'COBRADO')    { badge = '<span class="trab-badge trab-badge-success">Cobrado</span>'; }
-            else                                { badge = '<span class="trab-badge trab-badge-danger">Cancelado</span>'; }
+            if      (r.estado === 'ACTIVO')     badge = '<span class="trab-badge trab-badge-info">Activo</span>';
+            else if (r.estado === 'FINALIZADO') badge = '<span class="trab-badge trab-badge-warning">Pendiente</span>';
+            else if (r.estado === 'COBRADO')    badge = '<span class="trab-badge trab-badge-success">Cobrado</span>';
+            else                                badge = '<span class="trab-badge trab-badge-danger">Cancelado</span>';
             return '<tr>' +
                 '<td><strong>' + r.placa + '</strong></td>' +
                 '<td>' + r.tipoVehiculo + '</td>' +
@@ -774,7 +748,7 @@ async function loadHistorial() {
                 '<td>' + r.tiempoTotal + '</td>' +
                 '<td>' + (r.precio ? '$' + formatNumber(r.precio) : '-') + '</td>' +
                 '<td>' + badge + '</td>' +
-            '</tr>';
+                '</tr>';
         }).join('');
     } catch (error) {
         console.error('Error historial:', error);
@@ -793,7 +767,7 @@ async function loadReservaciones() {
         var tbody = document.getElementById('reservacionesBody');
         if (!tbody) { return; }
         if (reservas.length === 0) {
-            tbody.innerHTML = '<tr><td colspan="8" style="text-align:center;padding:1.5rem;color:#64748b;">Sin reservaciones pendientes</td></tr>';
+            tbody.innerHTML = '<tr><td colspan="9" style="text-align:center;padding:1.5rem;color:#64748b;">Sin reservaciones activas</td></tr>';
             return;
         }
         tbody.innerHTML = reservas.map(function(r) {
@@ -805,72 +779,151 @@ async function loadReservaciones() {
                 '<td>' + formatDateTime(r.horaInicio) + '</td>' +
                 '<td>' + formatDateTime(r.horaFin) + '</td>' +
                 '<td><span class="trab-badge trab-badge-info">' + r.cupo + '</span></td>' +
-                '<td>' +
-                    '<button class="sede-btn-success btn-aceptar"  data-id="' + r.id + '" style="font-size:0.8rem;padding:0.35rem 0.75rem;margin-right:0.25rem;">Aceptar</button>' +
-                    '<button class="sede-btn-danger  btn-rechazar" data-id="' + r.id + '" style="font-size:0.8rem;padding:0.35rem 0.75rem;">Rechazar</button>' +
-                '</td>' +
-            '</tr>';
+                '<td>' + renderBadgeEstado(r.estado) + '</td>' +
+                '<td>' + renderAccionesReserva(r.id, r.estado) + '</td>' +
+                '</tr>';
         }).join('');
     } catch (error) {
         console.error('Error reservaciones:', error);
     }
 }
 
-async function aceptarReservacion(id) {
-    var ok = await showConfirm(
-        'Aceptar reservación',
-        '¿Confirmas que deseas aceptar esta reservación?',
-        'Aceptar',
-        'warning'
-    );
-    if (!ok) { return; }
-    try {
-        var response = await fetch(API_BASE_URL + '/aceptar-reservacion/' + id, {
-            method:  'POST',
-            headers: { 'Content-Type': 'application/json' }
-        });
-        if (!response.ok) {
-            var err = await response.json();
-            throw new Error(err.error || 'Error al aceptar la reservación');
-        }
-        showNotification('Reservación aceptada', 'success');
-        await loadReservaciones();
-        await loadVehiculosActivos();
-        await loadIndicadores();
-    } catch (error) {
-        showNotification(error.message, 'error');
+// Badge de color por estado
+function renderBadgeEstado(estado) {
+    var map = {
+        'PENDIENTE':  ['trab-badge-warning',  'Pendiente'],
+        'ACEPTADA':   ['trab-badge-info',     'Aceptada'],
+        'EN_CURSO':   ['trab-badge-success',  'En curso'],
+        'COMPLETADA': ['trab-badge-primary',  'Completada'],
+        'PAGADA':     ['trab-badge-success',  'Pagada'],
+        'CANCELADA':  ['trab-badge-danger',   'Cancelada']
+    };
+    var cfg = map[estado] || ['trab-badge-danger', estado];
+    return '<span class="trab-badge ' + cfg[0] + '">' + cfg[1] + '</span>';
+}
+
+// Botones según el estado actual — solo la acción válida siguiente
+function renderAccionesReserva(id, estado) {
+    switch (estado) {
+        case 'PENDIENTE':
+            return '<button class="sede-btn-success btn-aceptar" data-id="' + id + '" style="font-size:.8rem;padding:.35rem .75rem;margin-right:.25rem;">Aceptar</button>' +
+                '<button class="sede-btn-danger btn-rechazar" data-id="' + id + '" style="font-size:.8rem;padding:.35rem .75rem;">Rechazar</button>';
+        case 'ACEPTADA':
+            return '<button class="sede-btn-primary btn-iniciar" data-id="' + id + '" style="font-size:.8rem;padding:.35rem .75rem;">Iniciar entrada</button>';
+        case 'EN_CURSO':
+            return '<button class="sede-btn-warning btn-completar" data-id="' + id + '" style="font-size:.8rem;padding:.35rem .75rem;">Registrar salida</button>';
+        case 'COMPLETADA':
+            return '<button class="sede-btn-success btn-cobrar-reserva" data-id="' + id + '" style="font-size:.8rem;padding:.35rem .75rem;">Cobrar</button>';
+        default:
+            return '<span style="color:#94a3b8;font-size:.8rem;">—</span>';
     }
 }
+
 
 async function rechazarReservacion(id) {
     var ok = await showConfirm(
         'Rechazar reservación',
         '¿Confirmas que deseas rechazar esta reservación?',
-        'Rechazar',
-        'danger'
+        'Rechazar', 'danger'
     );
     if (!ok) { return; }
     try {
-        var response = await fetch(API_BASE_URL + '/rechazar-reservacion/' + id, {
-            method:  'POST',
-            headers: { 'Content-Type': 'application/json' }
+        var response = await fetch('/api/reservaciones/' + id + '/cancelar', {
+            method: 'POST', headers: { 'Content-Type': 'application/json' }
         });
-        if (!response.ok) { throw new Error('Error'); }
-        showNotification('Reservación rechazada', 'success');
+        if (!response.ok) {
+            var err = await response.json();
+            throw new Error(err.message || 'Error al rechazar');
+        }
+        showSuccess('Reservación rechazada');
         await loadReservaciones();
     } catch (error) {
-        showNotification('Error', 'error');
+        showError('Error al rechazar reservación');
+    }
+}
+
+async function iniciarReservacion(id) {
+    var ok = await showConfirm(
+        'Iniciar reservación',
+        '¿El vehículo ya ingresó físicamente al parqueadero?',
+        'Confirmar entrada', 'warning'
+    );
+    if (!ok) { return; }
+    try {
+        var response = await fetch('/api/reservaciones/' + id + '/iniciar', {
+            method: 'POST', headers: { 'Content-Type': 'application/json' }
+        });
+        if (!response.ok) {
+            var err = await response.json();
+            throw new Error(err.message || 'Error');
+        }
+        showSuccess('Reservación iniciada — vehículo en curso');
+        await loadReservaciones();
+        await loadVehiculosActivos();
+        await loadIndicadores();
+    } catch (error) {
+        showError(error.message);
+    }
+}
+
+async function completarReservacion(id) {
+    var ok = await showConfirm(
+        'Registrar salida',
+        '¿El vehículo ya salió del parqueadero?',
+        'Confirmar salida', 'warning'
+    );
+    if (!ok) { return; }
+    try {
+        var response = await fetch('/api/reservaciones/' + id + '/completar', {
+            method: 'POST', headers: { 'Content-Type': 'application/json' }
+        });
+        if (!response.ok) {
+            var err = await response.json();
+            throw new Error(err.message || 'Error');
+        }
+        showSuccess('Salida registrada — reserva pendiente de cobro');
+        await loadReservaciones();
+        await loadPendientesCobro();
+        await loadIndicadores();
+    } catch (error) {
+        showError(error.message);
+    }
+}
+
+async function cobrarReservacion(id) {
+    var metodoPago = 'EFECTIVO';
+    // Si quieres selección de método, puedes abrir un SweetAlert aquí.
+    // Por ahora confirma con método por defecto.
+    var ok = await showConfirm(
+        'Cobrar reservación',
+        '¿Confirmas el cobro de esta reservación?',
+        'Cobrar', 'warning'
+    );
+    if (!ok) { return; }
+    try {
+        var response = await fetch('/api/pagos/cobrar-reserva', {
+            method:  'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body:    JSON.stringify({ idReserva: parseInt(id), metodoPago: metodoPago })
+        });
+        if (!response.ok) {
+            var err = await response.json();
+            throw new Error(err.message || 'Error al cobrar');
+        }
+        var data = await response.json();
+        showSuccess('Cobro registrado — $' + formatNumber(data.monto));
+        await loadReservaciones();
+        await loadIndicadores();
+    } catch (error) {
+        showError(error.message);
     }
 }
 
 
 // ==================== PLANTILLAS EXCEL ====================
 function descargarPlantillaCompleta() {
-    if (typeof XLSX === 'undefined') {
-        showNotification('Error: Librería XLSX no cargada.', 'error');
-        return;
-    }
-    var wb     = XLSX.utils.book_new();
+    if (typeof XLSX === 'undefined') { showError('Error: Librería XLSX no cargada.'); return; }
+    var wb      = XLSX.utils.book_new();
     var wsDatos = XLSX.utils.aoa_to_sheet([
         ['Tipo','Dato1','Dato2','Dato3','Dato4','Dato5','Dato6'],
         ['Cliente','Juan Pérez Ejemplo','3001234589','juan.perez@gmail.com','1234567899','',''],
@@ -878,50 +931,33 @@ function descargarPlantillaCompleta() {
         ['Vehiculo','ABC123','CARRO','TOYOTA','Blanco','2020','juan.perez@gmail.com'],
         ['Vehiculo','XYZ789','MOTO','HONDA','Negro','2021','maria.gonzalez@gmail.com']
     ]);
-    var sHdr = { font:{bold:true,color:{rgb:'FFFFFF'},sz:11}, fill:{fgColor:{rgb:'1E3A5F'}}, alignment:{horizontal:'center',vertical:'center',wrapText:true} };
-    var sCli = { font:{color:{rgb:'065F46'},sz:10},           fill:{fgColor:{rgb:'D1FAE5'}}, alignment:{horizontal:'left',vertical:'center'} };
-    var sVeh = { font:{color:{rgb:'1E3A8A'},sz:10},           fill:{fgColor:{rgb:'DBEAFE'}}, alignment:{horizontal:'left',vertical:'center'} };
-    ['A1','B1','C1','D1','E1','F1','G1'].forEach(function(r) { if (wsDatos[r]) { wsDatos[r].s = sHdr; } });
-    ['A2','B2','C2','D2','E2','F2','G2','A3','B3','C3','D3','E3','F3','G3'].forEach(function(r) { if (wsDatos[r]) { wsDatos[r].s = sCli; } });
-    ['A4','B4','C4','D4','E4','F4','G4','A5','B5','C5','D5','E5','F5','G5'].forEach(function(r) { if (wsDatos[r]) { wsDatos[r].s = sVeh; } });
     wsDatos['!cols'] = [{wch:10},{wch:25},{wch:15},{wch:30},{wch:15},{wch:10},{wch:30}];
-    wsDatos['!rows'] = [{ hpt: 22 }];
     XLSX.utils.book_append_sheet(wb, wsDatos, 'Datos');
-
     var wsInst = XLSX.utils.aoa_to_sheet([
-        ['INSTRUCCIONES PARA LA CARGA MASIVA'], [''],
-        ['Todo debe estar en UNA SOLA HOJA llamada "Datos"'], [''],
+        ['INSTRUCCIONES PARA LA CARGA MASIVA'],[''],
         ['CLIENTES:  Tipo | Nombre | Teléfono | Email | Cédula'],
-        ['VEHÍCULOS: Tipo | Placa | TipoVeh | Marca | Color | Año | EmailCliente'], [''],
+        ['VEHÍCULOS: Tipo | Placa | TipoVeh | Marca | Color | Año | EmailCliente'],[''],
         ['TIPOS VÁLIDOS: CARRO, MOTO, BICICLETA, OTRO'],
         ['ORDEN: primero los Clientes, luego los Vehículos']
     ]);
     wsInst['!cols'] = [{wch:80}];
     XLSX.utils.book_append_sheet(wb, wsInst, 'Instrucciones');
     XLSX.writeFile(wb, 'Plantilla_Carga_Masiva_Completa.xlsx');
-    showNotification('Plantilla completa descargada', 'success');
+    showSuccess('Plantilla completa descargada');
 }
 
 function descargarPlantillaVehiculosSolo() {
-    if (typeof XLSX === 'undefined') {
-        showNotification('Error: Librería XLSX no cargada.', 'error');
-        return;
-    }
+    if (typeof XLSX === 'undefined') { showError('Error: Librería XLSX no cargada.'); return; }
     var wb = XLSX.utils.book_new();
     var ws = XLSX.utils.aoa_to_sheet([
         ['Tipo','Placa','Tipo Vehículo','Marca','Color','Año','Email Cliente'],
         ['Vehiculo','ABC123','CARRO','TOYOTA','Blanco','2020','cliente1@gmail.com'],
         ['Vehiculo','XYZ789','MOTO','HONDA','Negro','2021','cliente2@gmail.com']
     ]);
-    var sHdr2 = { font:{bold:true,color:{rgb:'FFFFFF'},sz:11}, fill:{fgColor:{rgb:'1E3A5F'}}, alignment:{horizontal:'center',vertical:'center'} };
-    var sDat2 = { font:{color:{rgb:'1E3A8A'},sz:10},           fill:{fgColor:{rgb:'DBEAFE'}}, alignment:{horizontal:'left',vertical:'center'} };
-    ['A1','B1','C1','D1','E1','F1','G1'].forEach(function(r) { if (ws[r]) { ws[r].s = sHdr2; } });
-    ['A2','B2','C2','D2','E2','F2','G2','A3','B3','C3','D3','E3','F3','G3'].forEach(function(r) { if (ws[r]) { ws[r].s = sDat2; } });
     ws['!cols'] = [{wch:10},{wch:10},{wch:15},{wch:12},{wch:10},{wch:8},{wch:28}];
-    ws['!rows'] = [{ hpt: 22 }];
     XLSX.utils.book_append_sheet(wb, ws, 'Datos');
     XLSX.writeFile(wb, 'Plantilla_Vehiculos.xlsx');
-    showNotification('Plantilla de vehículos descargada', 'success');
+    showSuccess('Plantilla de vehículos descargada');
 }
 
 function mostrarArchivoSeleccionado() {
@@ -929,8 +965,12 @@ function mostrarArchivoSeleccionado() {
     var info = document.getElementById('archivoSeleccionado');
     if (fi && fi.files[0]) {
         var f = fi.files[0];
-        info.innerHTML = '📎 <strong>' + f.name + '</strong> (' + (f.size / 1024).toFixed(2) + ' KB)';
-        info.style.color = '#059669';
+        info.innerHTML =
+            '<span style="display:inline-flex;align-items:center;gap:.35rem;color:#059669;font-weight:600;">' +
+            SVG.file +
+            '<strong>' + f.name + '</strong>' +
+            '<span style="font-weight:400;color:#64748b;">(' + (f.size / 1024).toFixed(2) + ' KB)</span>' +
+            '</span>';
     } else if (info) {
         info.innerHTML = '';
     }
@@ -941,122 +981,96 @@ function mostrarArchivoSeleccionado() {
 async function cargarExcel() {
     var fileInput = document.getElementById('excelFile');
     var file      = fileInput ? fileInput.files[0] : null;
-    if (!file) {
-        showNotification('Por favor seleccione un archivo Excel', 'warning');
-        return;
-    }
+    if (!file) { showWarning('Por favor seleccione un archivo Excel'); return; }
     var ext = file.name.split('.').pop().toLowerCase();
-    if (ext !== 'xlsx' && ext !== 'xls') {
-        showNotification('El archivo debe ser formato Excel (.xlsx o .xls)', 'warning');
-        return;
-    }
+    if (ext !== 'xlsx' && ext !== 'xls') { showWarning('El archivo debe ser formato Excel (.xlsx o .xls)'); return; }
     var pc = document.getElementById('progressContainer');
     var pb = document.getElementById('progressBar');
     var pt = document.getElementById('progressText');
     try {
-        if (pc) { pc.style.display = 'block'; }
+        if (pc) pc.style.display = 'block';
         if (pb) { pb.style.width = '30%'; pb.textContent = '30%'; }
-        if (pt) { pt.textContent = 'Subiendo archivo...'; }
-
+        if (pt) pt.textContent = 'Subiendo archivo...';
         var formData = new FormData();
         formData.append('file', file);
-        var response = await fetch(API_BASE_URL + '/carga-masiva', {
-            method: 'POST',
-            body:   formData
-        });
-
+        var response = await fetch(API_BASE_URL + '/carga-masiva', { method: 'POST', body: formData });
         if (pb) { pb.style.width = '70%'; pb.textContent = '70%'; }
-        if (pt) { pt.textContent = 'Procesando datos...'; }
-
+        if (pt) pt.textContent = 'Procesando datos...';
         if (!response.ok) {
             var errData = {};
-            try { errData = await response.json(); } catch (e2) {}
+            try { errData = await response.json(); } catch(e2) {}
             throw new Error(errData.error || 'Error al procesar el archivo');
         }
         var data = await response.json();
-
         if (pb) { pb.style.width = '100%'; pb.textContent = '100%'; }
-        if (pt) { pt.textContent = 'Completado'; }
-
+        if (pt) pt.textContent = 'Completado';
         mostrarResultadosCarga(data);
-        showNotification(
-            data.tieneErrores
-                ? 'Carga con ' + data.errores.length + ' error(es). Total: ' + (data.totalRegistros || 0)
-                : 'Carga exitosa: ' + (data.totalRegistros || 0) + ' registros',
-            data.tieneErrores ? 'warning' : 'success'
-        );
+        if (data.tieneErrores) {
+            showWarning('Carga con ' + data.errores.length + ' error(es). Total: ' + (data.totalRegistros || 0));
+        } else {
+            showSuccess('Carga exitosa: ' + (data.totalRegistros || 0) + ' registros');
+        }
         fileInput.value = '';
         var ai = document.getElementById('archivoSeleccionado');
-        if (ai) { ai.innerHTML = ''; }
-        setTimeout(function() { if (pc) { pc.style.display = 'none'; } }, 2000);
+        if (ai) ai.innerHTML = '';
+        setTimeout(function() { if (pc) pc.style.display = 'none'; }, 2000);
     } catch (error) {
-        showNotification('Error: ' + error.message, 'error');
-        if (pc) { pc.style.display = 'none'; }
+        showError('Error: ' + error.message);
+        if (pc) pc.style.display = 'none';
     }
 }
 
 function mostrarResultadosCarga(data) {
     var rd = document.getElementById('resultadosCarga');
-    if (rd) { rd.style.display = 'block'; }
-
+    if (rd) rd.style.display = 'block';
     var resumen = document.getElementById('resumenCarga');
     if (resumen) {
         resumen.innerHTML =
             '<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:1rem;">' +
-                '<div style="background:linear-gradient(135deg,#d1fae5,#a7f3d0);padding:1.5rem;border-radius:0.75rem;text-align:center;">' +
-                    '<div style="font-size:2rem;font-weight:700;color:#065f46;">' + (data.clientesRegistrados || 0) + '</div>' +
-                    '<div style="font-size:0.88rem;color:#047857;font-weight:600;">Clientes Registrados</div>' +
-                '</div>' +
-                '<div style="background:linear-gradient(135deg,#dbeafe,#bfdbfe);padding:1.5rem;border-radius:0.75rem;text-align:center;">' +
-                    '<div style="font-size:2rem;font-weight:700;color:#1e40af;">' + (data.vehiculosRegistrados || 0) + '</div>' +
-                    '<div style="font-size:0.88rem;color:#1e3a8a;font-weight:600;">Vehículos Registrados</div>' +
-                '</div>' +
-                '<div style="background:linear-gradient(135deg,#e0e7ff,#c7d2fe);padding:1.5rem;border-radius:0.75rem;text-align:center;">' +
-                    '<div style="font-size:2rem;font-weight:700;color:#4338ca;">' + (data.totalRegistros || 0) + '</div>' +
-                    '<div style="font-size:0.88rem;color:#3730a3;font-weight:600;">Total Registros</div>' +
-                '</div>' +
+            '<div style="background:linear-gradient(135deg,#d1fae5,#a7f3d0);padding:1.5rem;border-radius:.75rem;text-align:center;">' +
+            '<div style="font-size:2rem;font-weight:700;color:#065f46;">' + (data.clientesRegistrados || 0) + '</div>' +
+            '<div style="font-size:.88rem;color:#047857;font-weight:600;">Clientes</div></div>' +
+            '<div style="background:linear-gradient(135deg,#dbeafe,#bfdbfe);padding:1.5rem;border-radius:.75rem;text-align:center;">' +
+            '<div style="font-size:2rem;font-weight:700;color:#1e40af;">' + (data.vehiculosRegistrados || 0) + '</div>' +
+            '<div style="font-size:.88rem;color:#1e3a8a;font-weight:600;">Vehículos</div></div>' +
+            '<div style="background:linear-gradient(135deg,#e0e7ff,#c7d2fe);padding:1.5rem;border-radius:.75rem;text-align:center;">' +
+            '<div style="font-size:2rem;font-weight:700;color:#4338ca;">' + (data.totalRegistros || 0) + '</div>' +
+            '<div style="font-size:.88rem;color:#3730a3;font-weight:600;">Total</div></div>' +
             '</div>';
     }
-
     var ec = document.getElementById('erroresContainer');
     var le = document.getElementById('listaErrores');
     if (data.errores && data.errores.length > 0) {
-        if (ec) { ec.style.display = 'block'; }
-        if (le) {
-            le.innerHTML = data.errores.map(function(e) {
-                return '<li>' + e + '</li>';
-            }).join('');
-        }
+        if (ec) ec.style.display = 'block';
+        if (le) le.innerHTML = data.errores.map(function(e) { return '<li>' + e + '</li>'; }).join('');
     } else {
-        if (ec) { ec.style.display = 'none'; }
+        if (ec) ec.style.display = 'none';
     }
-
     var tbody = document.getElementById('resultadosCargaBody');
     if (tbody && data.registrosCargados) {
-        // FIX: r.anio (sin tilde) — consistente con el backend
         tbody.innerHTML = data.registrosCargados.map(function(r) {
             if (r.tipo === 'Vehículo' || r.tipo === 'Vehiculo') {
                 return '<tr>' +
-                    '<td><span class="trab-badge trab-badge-info">🚗 ' + r.tipo + '</span></td>' +
+                    '<td><span class="trab-badge trab-badge-info" style="display:inline-flex;align-items:center;gap:.2rem;">' +
+                    SVG.parking + r.tipo + '</span></td>' +
                     '<td><strong>' + (r.placa || 'N/A') + '</strong></td>' +
-                    '<td>' +
-                        '<strong>' + (r.marca || 'N/A') + '</strong> ' + (r.tipoVehiculo || '') +
-                        '<br><small style="color:#64748b;">Color: ' + (r.color || 'N/A') + ' · Año: ' + (r.anio || 'N/A') + '</small>' +
-                        '<br><small style="color:#64748b;">Propietario: ' + (r.propietario || 'N/A') + '</small>' +
-                    '</td>' +
+                    '<td><strong>' + (r.marca || 'N/A') + '</strong> ' + (r.tipoVehiculo || '') +
+                    '<br><small style="color:#64748b;">Color: ' + (r.color || 'N/A') +
+                    ' · Año: ' + (r.anio || 'N/A') + '</small>' +
+                    '<br><small style="color:#64748b;">Propietario: ' + (r.propietario || 'N/A') + '</small></td>' +
                     '<td><span class="trab-badge trab-badge-success">Registrado</span></td>' +
-                '</tr>';
+                    '</tr>';
             }
             if (r.tipo === 'Cliente') {
                 return '<tr>' +
-                    '<td><span class="trab-badge trab-badge-success">👤 ' + r.tipo + '</span></td>' +
+                    '<td><span class="trab-badge trab-badge-success" style="display:inline-flex;align-items:center;gap:.2rem;">' +
+                    SVG.user + r.tipo + '</span></td>' +
                     '<td><strong>' + (r.nombre || 'N/A') + '</strong></td>' +
-                    '<td>' +
-                        (r.email || 'N/A') +
-                        '<br><small style="color:#64748b;">Tel: ' + (r.telefono || 'N/A') + ' · Cédula: ' + (r.cedula || 'N/A') + '</small>' +
-                    '</td>' +
+                    '<td>' + (r.email || 'N/A') +
+                    '<br><small style="color:#64748b;">Tel: ' + (r.telefono || 'N/A') +
+                    ' · Cédula: ' + (r.cedula || 'N/A') + '</small></td>' +
                     '<td><span class="trab-badge trab-badge-success">Registrado</span></td>' +
-                '</tr>';
+                    '</tr>';
             }
             return '';
         }).join('');
@@ -1067,26 +1081,33 @@ function mostrarResultadosCarga(data) {
 // ==================== DELEGACIÓN DE EVENTOS ====================
 function setupGlobalEventDelegation() {
     document.body.addEventListener('click', function(e) {
-        var salida   = e.target.closest('.btn-salida');
-        var cobrar   = e.target.closest('.btn-cobrar');
-        var aceptar  = e.target.closest('.btn-aceptar');
-        var rechazar = e.target.closest('.btn-rechazar');
-        if (salida)   { e.preventDefault(); abrirModalSalida(parseInt(salida.dataset.id));   return; }
-        if (cobrar)   { e.preventDefault(); abrirModalCobro(parseInt(cobrar.dataset.id));    return; }
-        if (aceptar)  { e.preventDefault(); aceptarReservacion(aceptar.dataset.id);          return; }
-        if (rechazar) { e.preventDefault(); rechazarReservacion(rechazar.dataset.id);        return; }
+        var salida        = e.target.closest('.btn-salida');
+        var cobrar        = e.target.closest('.btn-cobrar');
+        var aceptar       = e.target.closest('.btn-aceptar');
+        var rechazar      = e.target.closest('.btn-rechazar');
+        // NUEVOS
+        var iniciar       = e.target.closest('.btn-iniciar');
+        var completar     = e.target.closest('.btn-completar');
+        var cobrarReserva = e.target.closest('.btn-cobrar-reserva');
+
+        if (salida)        { e.preventDefault(); abrirModalSalida(parseInt(salida.dataset.id));        return; }
+        if (cobrar)        { e.preventDefault(); abrirModalCobro(parseInt(cobrar.dataset.id));         return; }
+        if (aceptar)       { e.preventDefault(); aceptarReservacion(aceptar.dataset.id);               return; }
+        if (rechazar)      { e.preventDefault(); rechazarReservacion(rechazar.dataset.id);             return; }
+        if (iniciar)       { e.preventDefault(); iniciarReservacion(iniciar.dataset.id);               return; }
+        if (completar)     { e.preventDefault(); completarReservacion(completar.dataset.id);           return; }
+        if (cobrarReserva) { e.preventDefault(); cobrarReservacion(cobrarReserva.dataset.id);          return; }
     });
 }
 
 
 // ==================== EVENTOS GLOBALES ====================
 document.addEventListener('keydown', function(e) {
-    if (e.key === 'Escape') {
-        var cobro  = document.getElementById('cobroModal');
-        var salida = document.getElementById('salidaModal');
-        if (cobro  && cobro.style.display  === 'flex') { cerrarModalCobro();  }
-        if (salida && salida.style.display === 'flex') { cerrarModalSalida(); }
-    }
+    if (e.key !== 'Escape') { return; }
+    var cobro  = document.getElementById('cobroModal');
+    var salida = document.getElementById('salidaModal');
+    if (cobro  && cobro.classList.contains('open'))  { cerrarModalCobro();  }
+    if (salida && salida.classList.contains('open')) { cerrarModalSalida(); }
 });
 
 window.addEventListener('click', function(e) {
@@ -1096,7 +1117,6 @@ window.addEventListener('click', function(e) {
     if (e.target === salida) { cerrarModalSalida(); }
 });
 
-// FIX: limpiar timers al cerrar la página — evita memory leak
 window.addEventListener('beforeunload', function() {
     if (updateInterval) { clearInterval(updateInterval); }
     Object.values(timerIntervals).forEach(function(id) { clearInterval(id); });
@@ -1111,8 +1131,6 @@ document.addEventListener('DOMContentLoaded', function() {
     initializeMarcas();
     setupGlobalEventDelegation();
     loadIndicadores();
-
-    // Actualización automática cada 30 segundos
     updateInterval = setInterval(function() {
         loadIndicadores();
         var activeTab = document.querySelector('.aparca-sidebar-nav a.active');
@@ -1123,4 +1141,25 @@ document.addEventListener('DOMContentLoaded', function() {
     }, 30000);
 });
 
-console.log('TrabajadorD.js cargado correctamente');
+
+// ==================== EXPONER GLOBALES ====================
+window.toggleModoRegistro              = toggleModoRegistro;
+window.buscarPorPlacaIntegrado         = buscarPorPlacaIntegrado;
+window.limpiarFormularioEntrada        = limpiarFormularioEntrada;
+window.loadHistorial                   = loadHistorial;
+window.loadReservaciones               = loadReservaciones;
+window.cerrarModalSalida               = cerrarModalSalida;
+window.confirmarSalida                 = confirmarSalida;
+window.cerrarModalCobro                = cerrarModalCobro;
+window.procesarCobro                   = procesarCobro;
+window.actualizarPrecioCobro           = actualizarPrecioCobro;
+window.handleLogout                    = handleLogout;
+window.mostrarArchivoSeleccionado      = mostrarArchivoSeleccionado;
+window.cargarExcel                     = cargarExcel;
+window.descargarPlantillaCompleta      = descargarPlantillaCompleta;
+window.descargarPlantillaVehiculosSolo = descargarPlantillaVehiculosSolo;
+window.iniciarReservacion    = iniciarReservacion;
+window.completarReservacion  = completarReservacion;
+window.cobrarReservacion     = cobrarReservacion;
+window.renderBadgeEstado     = renderBadgeEstado;
+window.renderAccionesReserva = renderAccionesReserva;

@@ -1,41 +1,443 @@
 <!DOCTYPE html>
 <html lang="es" xmlns:th="http://www.thymeleaf.org">
 <!--
-  FRAGMENTO: cliente-modal-reserva
+  FRAGMENTO: cliente-modal-reserva  v3.0
   Ruta: templates/modals/cliente-modal-reserva.html
   Uso: <div th:replace="~{modals/cliente-modal-reserva :: modal}"></div>
+
+  CAMBIOS v3.0:
+  ✅ FIX C-1: resvOk() silencioso eliminado — ahora Flatpickr valida siempre
+  ✅ FIX C-2: popups position:fixed eliminados — calendario inline en modal
+  ✅ FIX C-3: initSelects() race condition eliminada — Flatpickr lo maneja
+  ✅ FIX C-4: z-index unificado sobre SweetAlert2 (z-index: 8500)
+  ✅ FIX M-2: selects nativos sin estilo reemplazados por Flatpickr time picker
+  ✅ FIX M-3: resumen de fechas visible tras confirmar selección
+  ✅ Flatpickr justificado: 4 bugs entrelazados en sistema casero,
+     librería de 16KB sin dependencias, CDN jsdelivr.net permitido
+  ✅ Paleta migrada a emerald (--resv-accent: #059669) coherente con v3
+  ✅ inputs #fechaInicio / #fechaFin DENTRO del modal (fix estructural)
+  ✅ IDs contract con ClienteD.js 100% preservados
 
   IDs que lee ClienteD.js — NO TOCAR:
     #reservaModal      → modal.style.display = 'flex'
     #reservaSedeNombre → nombre de la sede
     #vehiculoSelect    → select de vehículos
-    #fechaInicio       → YYYY-MM-DDTHH:mm leído por crearReserva()
-    #fechaFin          → YYYY-MM-DDTHH:mm leído por crearReserva()
-    #reservarBtn       → onclick = crearReserva
-
-  CSS: /css/modals/cliente-modal-reserva.css
-  JS:  /js/ClienteD.js  (resvToggle, resvNav, resvOk, resvReset al final)
+    #fechaInicio       → YYYY-MM-DDTHH:mm:ss leído por crearReserva()
+    #fechaFin          → YYYY-MM-DDTHH:mm:ss leído por crearReserva()
+    #reservarBtn       → onclick = crearReserva / validarYConfirmar
 -->
 <body>
 <th:block th:fragment="modal">
 
-    <input type="hidden" id="fechaInicio"/>
-    <input type="hidden" id="fechaFin"/>
+    <!-- ── Flatpickr CDN (jsdelivr.net — en lista CSP permitida) ── -->
+    <link rel="stylesheet"
+          href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css"/>
+    <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+    <script src="https://cdn.jsdelivr.net/npm/flatpickr/dist/l10n/es.js"></script>
 
+    <style>
+        /* ═══════════════════════════════════════════════════════════
+           MODAL RESERVA v3.0 — Paleta emerald + slate
+           ═══════════════════════════════════════════════════════════ */
+
+        /* ── Variables locales ── */
+        #reservaModal {
+            --resv-accent:       #059669;
+            --resv-accent-dark:  #047857;
+            --resv-accent-light: #d1fae5;
+            --resv-accent-pale:  #f0fdf4;
+            --resv-surface:      #f8fafc;
+            --resv-border:       #e2e8f0;
+            --resv-text:         #0f172a;
+            --resv-muted:        #64748b;
+            --resv-danger:       #ef4444;
+            --resv-warn-bg:      #fefce8;
+            --resv-warn-border:  #fde047;
+            --resv-warn-text:    #713f12;
+            --resv-err-bg:       #fef2f2;
+            --resv-err-border:   #fca5a5;
+            --resv-err-text:     #7f1d1d;
+            --resv-radius:       0.75rem;
+            --resv-radius-sm:    0.5rem;
+            --resv-shadow:       0 20px 60px rgba(0,0,0,.20);
+        }
+
+        /* ── Overlay ── */
+        #reservaModal {
+            display: none;
+            position: fixed;
+            inset: 0;
+            /* FIX C-4: z-index por encima de SweetAlert2 (z=10000) y Leaflet (z=1000) */
+            z-index: 8500;
+            background: rgba(15, 23, 42, 0.55);
+            align-items: center;
+            justify-content: center;
+            padding: 1rem;
+            overflow-y: auto;
+        }
+
+        /* ── Caja del modal ── */
+        .resv-box {
+            background: #fff;
+            border-radius: 1.25rem;
+            box-shadow: var(--resv-shadow);
+            width: 100%;
+            max-width: 500px;
+            display: flex;
+            flex-direction: column;
+            animation: resvSlideIn .22s cubic-bezier(.16,1,.3,1);
+            position: relative;
+            margin: auto;
+        }
+        @keyframes resvSlideIn {
+            from { opacity:0; transform:translateY(16px) scale(.97); }
+            to   { opacity:1; transform:translateY(0) scale(1); }
+        }
+
+        /* ── Header ── */
+        .resv-header {
+            background: linear-gradient(135deg, #059669, #047857);
+            padding: 1.125rem 1.5rem;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            border-radius: 1.25rem 1.25rem 0 0;
+            flex-shrink: 0;
+        }
+        .resv-title {
+            color: #fff;
+            font-size: 1rem;
+            font-weight: 700;
+            margin: 0;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .resv-close {
+            background: rgba(255,255,255,.18);
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            padding: 5px;
+            display: flex;
+            align-items: center;
+            color: #fff;
+            transition: background .15s;
+            flex-shrink: 0;
+        }
+        .resv-close:hover { background: rgba(255,255,255,.30); }
+
+        /* ── Body ── */
+        .resv-body {
+            padding: 1.25rem 1.5rem;
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+            overflow-y: auto;
+        }
+
+        /* ── Pill de sede ── */
+        .resv-sede-pill {
+            background: var(--resv-accent-pale);
+            border: 1px solid var(--resv-accent-light);
+            border-radius: 10px;
+            padding: 9px 14px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: .875rem;
+            font-weight: 600;
+            color: #064e3b;
+        }
+        .resv-sede-dot {
+            width: 8px; height: 8px;
+            border-radius: 50%;
+            background: var(--resv-accent);
+            flex-shrink: 0;
+        }
+
+        /* ── Banner validación ── */
+        .resv-banner {
+            display: none;
+            padding: .65rem 1rem;
+            border-radius: var(--resv-radius-sm);
+            font-size: .82rem;
+            font-weight: 500;
+            align-items: center;
+            gap: .5rem;
+            line-height: 1.4;
+        }
+        .resv-banner.show { display: flex; }
+        .resv-banner.warn {
+            background: var(--resv-warn-bg);
+            border: 1px solid var(--resv-warn-border);
+            color: var(--resv-warn-text);
+        }
+        .resv-banner.err {
+            background: var(--resv-err-bg);
+            border: 1px solid var(--resv-err-border);
+            color: var(--resv-err-text);
+        }
+        .resv-banner svg { width: 15px; height: 15px; flex-shrink: 0; }
+
+        /* ── Label de campo ── */
+        .resv-label {
+            font-size: .72rem;
+            font-weight: 700;
+            color: var(--resv-muted);
+            text-transform: uppercase;
+            letter-spacing: .05em;
+            display: block;
+            margin-bottom: 5px;
+        }
+
+        /* ── Grid de fechas ── */
+        .resv-dates-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: .875rem;
+        }
+
+        /* ── Wrapper del input Flatpickr ── */
+        .resv-fp-wrap {
+            position: relative;
+        }
+        .resv-fp-wrap .resv-fp-icon {
+            position: absolute;
+            left: .75rem;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 14px; height: 14px;
+            color: var(--resv-muted);
+            pointer-events: none;
+            z-index: 1;
+        }
+
+        /* Input visible de Flatpickr (readonly, Flatpickr lo maneja) */
+        .resv-fp-input {
+            width: 100%;
+            padding: .6rem .75rem .6rem 2.25rem;
+            border: 1.5px solid var(--resv-border);
+            border-radius: var(--resv-radius-sm);
+            font-size: .855rem;
+            color: var(--resv-text);
+            background: var(--resv-surface);
+            cursor: pointer;
+            transition: border-color .15s, box-shadow .15s;
+            font-family: inherit;
+            box-sizing: border-box;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        .resv-fp-input::placeholder { color: var(--resv-muted); }
+        .resv-fp-input:focus,
+        .resv-fp-input.fp-input-focus {
+            border-color: var(--resv-accent);
+            box-shadow: 0 0 0 3px rgba(5,150,105,.15);
+            outline: none;
+        }
+        .resv-fp-input.resv-filled {
+            border-color: var(--resv-accent);
+            background: var(--resv-accent-pale);
+            color: #064e3b;
+        }
+
+        /* ── Resumen de selección ── */
+        .resv-summary {
+            display: none;
+            background: var(--resv-accent-pale);
+            border: 1px solid var(--resv-accent-light);
+            border-radius: var(--resv-radius-sm);
+            padding: .75rem 1rem;
+            gap: .75rem;
+            align-items: stretch;
+            flex-wrap: wrap;
+        }
+        .resv-summary.show { display: flex; }
+        .resv-summary-item {
+            display: flex;
+            flex-direction: column;
+            gap: .15rem;
+            flex: 1;
+            min-width: 100px;
+        }
+        .resv-summary-lbl {
+            font-size: .68rem;
+            font-weight: 700;
+            color: var(--resv-accent);
+            text-transform: uppercase;
+            letter-spacing: .05em;
+        }
+        .resv-summary-val {
+            font-size: .82rem;
+            font-weight: 600;
+            color: #064e3b;
+        }
+        .resv-summary-sep {
+            width: 1px;
+            background: var(--resv-accent-light);
+            align-self: stretch;
+        }
+
+        /* ── Select de vehículo ── */
+        .resv-select {
+            width: 100%;
+            padding: .6rem .75rem;
+            border: 1.5px solid var(--resv-border);
+            border-radius: var(--resv-radius-sm);
+            font-size: .875rem;
+            font-family: inherit;
+            color: var(--resv-text);
+            background: var(--resv-surface)
+            url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='%2364748b' stroke-width='2'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' d='M19.5 8.25l-7.5 7.5-7.5-7.5'/%3E%3C/svg%3E")
+            no-repeat right .75rem center / 14px;
+            -webkit-appearance: none;
+            appearance: none;
+            cursor: pointer;
+            transition: border-color .15s, box-shadow .15s;
+            box-sizing: border-box;
+            padding-right: 2.25rem;
+        }
+        .resv-select:focus {
+            outline: none;
+            border-color: var(--resv-accent);
+            box-shadow: 0 0 0 3px rgba(5,150,105,.15);
+        }
+
+        /* ── Footer ── */
+        .resv-footer {
+            display: flex;
+            justify-content: flex-end;
+            gap: .75rem;
+            padding: 1rem 1.5rem;
+            border-top: 1px solid var(--resv-border);
+            flex-shrink: 0;
+            border-radius: 0 0 1.25rem 1.25rem;
+            background: #fff;
+        }
+        .resv-btn-cancel {
+            padding: .55rem 1.125rem;
+            border: 1.5px solid var(--resv-border);
+            border-radius: var(--resv-radius-sm);
+            background: #fff;
+            font-size: .875rem;
+            font-weight: 500;
+            color: var(--resv-muted);
+            cursor: pointer;
+            font-family: inherit;
+            transition: background .15s, border-color .15s;
+        }
+        .resv-btn-cancel:hover { background: var(--resv-surface); border-color: #cbd5e1; color: var(--resv-text); }
+
+        .resv-btn-confirm {
+            display: inline-flex;
+            align-items: center;
+            gap: .4rem;
+            padding: .55rem 1.375rem;
+            border: none;
+            border-radius: var(--resv-radius-sm);
+            background: var(--resv-accent);
+            color: #fff;
+            font-size: .875rem;
+            font-weight: 700;
+            cursor: pointer;
+            font-family: inherit;
+            transition: background .15s, transform .12s;
+            box-shadow: 0 2px 8px rgba(5,150,105,.28);
+        }
+        .resv-btn-confirm:hover:not(:disabled) {
+            background: var(--resv-accent-dark);
+            transform: translateY(-1px);
+            box-shadow: 0 4px 14px rgba(4,120,87,.36);
+        }
+        .resv-btn-confirm:active:not(:disabled) { transform: scale(.97); }
+        .resv-btn-confirm:disabled {
+            background: #94a3b8;
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+        }
+        .resv-btn-confirm svg { width: 15px; height: 15px; stroke: #fff; flex-shrink: 0; }
+
+        /* ── Spinner en botón ── */
+        .resv-spinner {
+            display: inline-block;
+            width: 14px; height: 14px;
+            border: 2px solid rgba(255,255,255,.3);
+            border-top-color: #fff;
+            border-radius: 50%;
+            animation: resvSpin .7s linear infinite;
+            flex-shrink: 0;
+        }
+        @keyframes resvSpin { to { transform: rotate(360deg); } }
+
+        /* ── Flatpickr overrides — paleta emerald ── */
+        .flatpickr-calendar {
+            box-shadow: 0 12px 40px rgba(0,0,0,.14) !important;
+            border-radius: .875rem !important;
+            border: 1px solid var(--resv-border, #e2e8f0) !important;
+            font-family: inherit !important;
+            /* FIX C-4: sobre SweetAlert2 */
+            z-index: 8600 !important;
+        }
+        .flatpickr-day.selected,
+        .flatpickr-day.selected:hover,
+        .flatpickr-day.startRange,
+        .flatpickr-day.endRange {
+            background: #059669 !important;
+            border-color: #059669 !important;
+            color: #fff !important;
+        }
+        .flatpickr-day:hover:not(.selected):not([class*="disabled"]) {
+            background: #d1fae5 !important;
+            color: #064e3b !important;
+        }
+        .flatpickr-day.today {
+            border-color: #059669 !important;
+            color: #059669 !important;
+            font-weight: 700;
+        }
+        .flatpickr-day.today:hover { background: #d1fae5 !important; }
+        .flatpickr-months .flatpickr-month {
+            border-radius: .875rem .875rem 0 0 !important;
+            background: #059669 !important;
+            color: #fff !important;
+        }
+        .flatpickr-months .flatpickr-prev-month,
+        .flatpickr-months .flatpickr-next-month { color: #fff !important; fill: #fff !important; }
+        .flatpickr-current-month .flatpickr-monthDropdown-months { color: #fff !important; }
+        .flatpickr-current-month input.cur-year { color: #fff !important; }
+        .flatpickr-weekday { color: #047857 !important; font-weight: 700 !important; }
+        .flatpickr-time input:hover,
+        .flatpickr-time .flatpickr-am-pm:hover,
+        .flatpickr-time input:focus,
+        .flatpickr-time .flatpickr-am-pm:focus { background: #d1fae5 !important; }
+        .flatpickr-time .flatpickr-time-separator { color: #059669 !important; font-weight: 700 !important; }
+
+        /* ── Responsive ── */
+        @media (max-width: 480px) {
+            .resv-dates-row { grid-template-columns: 1fr; }
+            .resv-box { border-radius: 1rem; max-width: 100%; margin: 0; }
+            .resv-summary-sep { display: none; }
+        }
+    </style>
+
+    <!-- ══ MODAL DOM ══════════════════════════════════════════════ -->
     <div id="reservaModal"
-         style="display:none; position:fixed; inset:0; z-index:1000;
-            background:rgba(0,0,0,0.55); align-items:center;
-            justify-content:center; padding:1rem; overflow-y:auto;"
-         role="dialog" aria-modal="true"
-         aria-labelledby="reservaModalTitle" aria-hidden="true">
+         role="dialog"
+         aria-modal="true"
+         aria-labelledby="reservaModalTitle"
+         aria-hidden="true">
 
-        <div class="resv-box">
+        <div class="resv-box" role="document">
 
-            <!-- CABECERA -->
+            <!-- ── Header ── -->
             <div class="resv-header">
                 <h3 id="reservaModalTitle" class="resv-title">
-                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
-                         stroke-width="1.5" stroke="currentColor" style="width:18px;height:18px;flex-shrink:0;">
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none"
+                         viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"
+                         style="width:18px;height:18px;flex-shrink:0;">
                         <path stroke-linecap="round" stroke-linejoin="round"
                               d="M6.75 3v2.25M17.25 3v2.25M3 18.75V7.5a2.25 2.25 0 012.25-2.25h13.5A2.25
                 2.25 0 0121 7.5v11.25m-18 0A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021
@@ -44,7 +446,8 @@
                     Nueva reserva
                 </h3>
                 <button type="button" class="resv-close"
-                        onclick="cerrarReservaModal()" aria-label="Cerrar">
+                        onclick="cerrarReservaModal()"
+                        aria-label="Cerrar modal de reserva">
                     <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
                          stroke-width="2" stroke="currentColor" style="width:16px;height:16px;">
                         <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/>
@@ -52,154 +455,440 @@
                 </button>
             </div>
 
-            <!-- BODY -->
+            <!-- ── Body ── -->
             <div class="resv-body">
 
-                <!-- Sede -->
+                <!-- Pill sede -->
                 <div class="resv-sede-pill">
                     <div class="resv-sede-dot"></div>
                     <span id="reservaSedeNombre">—</span>
                 </div>
 
+                <!-- Banner de validación — oculto por defecto -->
+                <div class="resv-banner" id="resvBanner" role="alert" aria-live="polite">
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
+                         stroke-width="2" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round"
+                              d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71
+                c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0
+                L2.697 16.126zM12 15.75h.007v.008H12v-.008z"/>
+                    </svg>
+                    <span id="resvBannerMsg"></span>
+                </div>
+
+                <!-- Campos de fecha con Flatpickr -->
+                <div class="resv-dates-row">
+
+                    <!-- Inicio -->
+                    <div class="resv-field">
+                        <label class="resv-label" for="fpInicio">Inicio *</label>
+                        <div class="resv-fp-wrap">
+                            <svg class="resv-fp-icon" xmlns="http://www.w3.org/2000/svg"
+                                 fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round"
+                                      d="M6.75 3v2.25M17.25 3v2.25M3 18.75V7.5a2.25 2.25 0 012.25-2.25h13.5A2.25
+                    2.25 0 0121 7.5v11.25m-18 0A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021
+                    18.75m-18 0v-7.5A2.25 2.25 0 015.25 9h13.5A2.25 2.25 0 0021 11.25v7.5"/>
+                            </svg>
+                            <!--
+                              FIX ESTRUCTURAL: #fechaInicio está DENTRO del modal.
+                              En el original estaba fuera del #reservaModal — bug que causaba
+                              que crearReserva() a veces no encontrara el valor actualizado.
+                              Flatpickr escribe aquí mediante onChange. crearReserva() lo lee igual.
+                            -->
+                            <input type="hidden" id="fechaInicio"/>
+                            <input type="text"
+                                   id="fpInicio"
+                                   class="resv-fp-input"
+                                   placeholder="Seleccionar fecha y hora"
+                                   readonly="readonly"
+                                   aria-label="Fecha y hora de inicio de la reserva"/>
+                        </div>
+                    </div>
+
+                    <!-- Fin -->
+                    <div class="resv-field">
+                        <label class="resv-label" for="fpFin">Fin *</label>
+                        <div class="resv-fp-wrap">
+                            <svg class="resv-fp-icon" xmlns="http://www.w3.org/2000/svg"
+                                 fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round"
+                                      d="M12 6v6h4.5m4.5 0a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                            </svg>
+                            <input type="hidden" id="fechaFin"/>
+                            <input type="text"
+                                   id="fpFin"
+                                   class="resv-fp-input"
+                                   placeholder="Seleccionar fecha y hora"
+                                   readonly="readonly"
+                                   aria-label="Fecha y hora de fin de la reserva"/>
+                        </div>
+                    </div>
+
+                </div><!-- /resv-dates-row -->
+
+                <!-- Resumen de selección — visible solo cuando ambas fechas están elegidas -->
+                <div class="resv-summary" id="resvSummary" aria-live="polite">
+                    <div class="resv-summary-item">
+                        <span class="resv-summary-lbl">Inicio</span>
+                        <span class="resv-summary-val" id="resvSumInicio">—</span>
+                    </div>
+                    <div class="resv-summary-sep"></div>
+                    <div class="resv-summary-item">
+                        <span class="resv-summary-lbl">Fin</span>
+                        <span class="resv-summary-val" id="resvSumFin">—</span>
+                    </div>
+                    <div class="resv-summary-sep"></div>
+                    <div class="resv-summary-item">
+                        <span class="resv-summary-lbl">Duración</span>
+                        <span class="resv-summary-val" id="resvSumDuracion">—</span>
+                    </div>
+                </div>
+
                 <!-- Vehículo -->
                 <div class="resv-field">
-                    <label for="vehiculoSelect" class="resv-label">Vehículo *</label>
-                    <select id="vehiculoSelect" required class="resv-select">
+                    <label class="resv-label" for="vehiculoSelect">Vehículo *</label>
+                    <select id="vehiculoSelect" class="resv-select" required
+                            aria-label="Seleccionar vehículo para la reserva">
                         <option value="">Selecciona un vehículo</option>
                     </select>
                 </div>
 
-                <!-- Fechas — dos columnas -->
-                <div class="resv-dates-row">
+            </div><!-- /resv-body -->
 
-                    <!-- INICIO -->
-                    <div class="resv-field">
-                        <label class="resv-label">Inicio *</label>
-
-                        <button type="button" id="trigInicio"
-                                class="resv-dt-trigger" onclick="resvToggle('inicio')">
-                            <div class="resv-dt-top">
-                                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
-                                     stroke-width="1.5" stroke="currentColor" class="resv-dt-icon">
-                                    <path stroke-linecap="round" stroke-linejoin="round"
-                                          d="M6.75 3v2.25M17.25 3v2.25M3 18.75V7.5a2.25 2.25 0 012.25-2.25h13.5A2.25
-                      2.25 0 0121 7.5v11.25m-18 0A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021
-                      18.75m-18 0v-7.5A2.25 2.25 0 015.25 9h13.5A2.25 2.25 0 0021 11.25v7.5"/>
-                                </svg>
-                                <span id="lblFechaInicio" class="resv-dt-val resv-dt-ph">Seleccionar</span>
-                            </div>
-                            <div class="resv-dt-bottom">
-                                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
-                                     stroke-width="1.5" stroke="currentColor" class="resv-dt-icon-sm">
-                                    <path stroke-linecap="round" stroke-linejoin="round"
-                                          d="M12 6v6h4.5m4.5 0a9 9 0 11-18 0 9 9 0 0118 0z"/>
-                                </svg>
-                                <span id="lblHoraInicio" class="resv-dt-hora">Sin hora</span>
-                            </div>
-                        </button>
-
-                        <div id="popInicio" class="resv-popup" style="display:none; position:fixed; z-index:9999;">
-                            <div class="resv-popup-header">
-                                <button type="button" class="resv-popup-nav" onclick="resvNav('inicio',-1)">
-                                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
-                                         stroke-width="2" stroke="currentColor" style="width:13px;height:13px;">
-                                        <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 19.5L8.25 12l7.5-7.5"/>
-                                    </svg>
-                                </button>
-                                <span id="lblMesInicio" class="resv-popup-mes"></span>
-                                <button type="button" class="resv-popup-nav" onclick="resvNav('inicio',1)">
-                                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
-                                         stroke-width="2" stroke="currentColor" style="width:13px;height:13px;">
-                                        <path stroke-linecap="round" stroke-linejoin="round" d="M8.25 4.5l7.5 7.5-7.5 7.5"/>
-                                    </svg>
-                                </button>
-                            </div>
-                            <div class="resv-popup-dow">
-                                <span>Lu</span><span>Ma</span><span>Mi</span>
-                                <span>Ju</span><span>Vi</span><span>Sá</span><span>Do</span>
-                            </div>
-                            <div id="gridInicio" class="resv-popup-grid"></div>
-                            <div class="resv-popup-time">
-                                <span class="resv-time-label">Hora</span>
-                                <select id="hrInicio" class="resv-time-sel"></select>
-                                <span class="resv-time-sep">:</span>
-                                <select id="mnInicio" class="resv-time-sel"></select>
-                                <button type="button" class="resv-time-ok" onclick="resvOk('inicio')">OK</button>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- FIN -->
-                    <div class="resv-field">
-                        <label class="resv-label">Fin *</label>
-
-                        <button type="button" id="trigFin"
-                                class="resv-dt-trigger" onclick="resvToggle('fin')">
-                            <div class="resv-dt-top">
-                                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
-                                     stroke-width="1.5" stroke="currentColor" class="resv-dt-icon">
-                                    <path stroke-linecap="round" stroke-linejoin="round"
-                                          d="M6.75 3v2.25M17.25 3v2.25M3 18.75V7.5a2.25 2.25 0 012.25-2.25h13.5A2.25
-                      2.25 0 0121 7.5v11.25m-18 0A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021
-                      18.75m-18 0v-7.5A2.25 2.25 0 015.25 9h13.5A2.25 2.25 0 0021 11.25v7.5"/>
-                                </svg>
-                                <span id="lblFechaFin" class="resv-dt-val resv-dt-ph">Seleccionar</span>
-                            </div>
-                            <div class="resv-dt-bottom">
-                                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
-                                     stroke-width="1.5" stroke="currentColor" class="resv-dt-icon-sm">
-                                    <path stroke-linecap="round" stroke-linejoin="round"
-                                          d="M12 6v6h4.5m4.5 0a9 9 0 11-18 0 9 9 0 0118 0z"/>
-                                </svg>
-                                <span id="lblHoraFin" class="resv-dt-hora">Sin hora</span>
-                            </div>
-                        </button>
-
-                        <div id="popFin" class="resv-popup" style="display:none; position:fixed; z-index:9999;">
-                            <div class="resv-popup-header">
-                                <button type="button" class="resv-popup-nav" onclick="resvNav('fin',-1)">
-                                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
-                                         stroke-width="2" stroke="currentColor" style="width:13px;height:13px;">
-                                        <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 19.5L8.25 12l7.5-7.5"/>
-                                    </svg>
-                                </button>
-                                <span id="lblMesFin" class="resv-popup-mes"></span>
-                                <button type="button" class="resv-popup-nav" onclick="resvNav('fin',1)">
-                                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
-                                         stroke-width="2" stroke="currentColor" style="width:13px;height:13px;">
-                                        <path stroke-linecap="round" stroke-linejoin="round" d="M8.25 4.5l7.5 7.5-7.5 7.5"/>
-                                    </svg>
-                                </button>
-                            </div>
-                            <div class="resv-popup-dow">
-                                <span>Lu</span><span>Ma</span><span>Mi</span>
-                                <span>Ju</span><span>Vi</span><span>Sá</span><span>Do</span>
-                            </div>
-                            <div id="gridFin" class="resv-popup-grid"></div>
-                            <div class="resv-popup-time">
-                                <span class="resv-time-label">Hora</span>
-                                <select id="hrFin" class="resv-time-sel"></select>
-                                <span class="resv-time-sep">:</span>
-                                <select id="mnFin" class="resv-time-sel"></select>
-                                <button type="button" class="resv-time-ok" onclick="resvOk('fin')">OK</button>
-                            </div>
-                        </div>
-                    </div>
-
-                </div>
-            </div>
-
-            <!-- FOOTER -->
+            <!-- ── Footer ── -->
             <div class="resv-footer">
                 <button type="button" class="resv-btn-cancel"
                         onclick="cerrarReservaModal()">Cancelar</button>
                 <button type="button" id="reservarBtn" class="resv-btn-confirm">
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
+                         stroke-width="2.5" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M4.5 12.75l6 6 9-13.5"/>
+                    </svg>
                     Confirmar reserva
                 </button>
             </div>
 
-        </div>
-    </div>
+        </div><!-- /resv-box -->
+    </div><!-- /reservaModal -->
+
+
+    <!-- ══ JS del modal de reserva ════════════════════════════════
+         Reemplaza completamente el IIFE al final de ClienteD.js
+         (resvToggle, resvNav, resvOk, resvReset).
+         Los IDs #fechaInicio / #fechaFin son idénticos — crearReserva()
+         en ClienteD.js los lee exactamente igual que antes.
+         ═════════════════════════════════════════════════════════ -->
+    <script>
+        (function () {
+            'use strict';
+
+            /* ── instancias Flatpickr ── */
+            var _fpInicio = null;
+            var _fpFin    = null;
+
+            /* ── pad "7" → "07" ── */
+            function pad(n) { return String(n).padStart(2, '0'); }
+
+            /* ── Date → "YYYY-MM-DDTHH:mm:ss"  (FIX-R2: segundos requeridos) ── */
+            function toISO(d) {
+                return d.getFullYear() + '-' + pad(d.getMonth() + 1) + '-' + pad(d.getDate()) +
+                    'T' + pad(d.getHours()) + ':' + pad(d.getMinutes()) + ':00';
+            }
+
+            /* ── Formatear para mostrar en el resumen ── */
+            function fmtDisplay(isoStr) {
+                if (!isoStr) return '—';
+                var d = new Date(isoStr);
+                return d.toLocaleString('es-CO', {
+                    day: '2-digit', month: 'short', year: 'numeric',
+                    hour: '2-digit', minute: '2-digit'
+                });
+            }
+
+            /* ── Duración en horas/min ── */
+            function calcDuracion(isoIni, isoFin) {
+                if (!isoIni || !isoFin) return '—';
+                var diff = (new Date(isoFin) - new Date(isoIni)) / 60000;
+                if (diff <= 0) return '⚠ Inválida';
+                var h = Math.floor(diff / 60);
+                var m = diff % 60;
+                return (h > 0 ? h + ' h ' : '') + (m > 0 ? m + ' min' : '').trim();
+            }
+
+            /* ── Actualizar resumen y ocultar banner ── */
+            function actualizarResumen() {
+                var ini  = document.getElementById('fechaInicio');
+                var fin  = document.getElementById('fechaFin');
+                var sumEl = document.getElementById('resvSummary');
+                if (!ini || !fin || !sumEl) return;
+
+                if (ini.value && fin.value) {
+                    sumEl.classList.add('show');
+                    var sI = document.getElementById('resvSumInicio');
+                    var sF = document.getElementById('resvSumFin');
+                    var sD = document.getElementById('resvSumDuracion');
+                    if (sI) sI.textContent = fmtDisplay(ini.value);
+                    if (sF) sF.textContent = fmtDisplay(fin.value);
+                    if (sD) sD.textContent = calcDuracion(ini.value, fin.value);
+                } else {
+                    sumEl.classList.remove('show');
+                }
+
+                if (ini.value && fin.value) ocultarBanner();
+            }
+
+            /* ── Banner ── */
+            function mostrarBanner(msg, tipo) {
+                var b = document.getElementById('resvBanner');
+                var t = document.getElementById('resvBannerMsg');
+                if (!b || !t) return;
+                t.textContent = msg;
+                b.className = 'resv-banner show ' + (tipo || 'warn');
+            }
+            function ocultarBanner() {
+                var b = document.getElementById('resvBanner');
+                if (b) b.className = 'resv-banner';
+            }
+
+            /* ── Marcar input como llenado (estilo verde) ── */
+            function marcarLleno(inputId, lleno) {
+                var el = document.getElementById(inputId);
+                if (!el) return;
+                if (lleno) {
+                    el.classList.add('resv-filled');
+                } else {
+                    el.classList.remove('resv-filled');
+                    el.value = '';
+                }
+            }
+
+            /* ── Inicializar Flatpickr ── */
+            function initFlatpickr() {
+                if (typeof flatpickr === 'undefined') {
+                    /* Flatpickr aún cargando — reintentar en 80ms */
+                    setTimeout(initFlatpickr, 80);
+                    return;
+                }
+
+                var ahora   = new Date();
+                var minIni  = new Date(ahora.getTime() + 5 * 60000); /* mín: ahora + 5 min */
+
+                /* ── Flatpickr INICIO ── */
+                _fpInicio = flatpickr('#fpInicio', {
+                    locale:          'es',
+                    enableTime:      true,
+                    time_24hr:       true,
+                    minDate:         minIni,
+                    minuteIncrement: 15,
+                    disableMobile:   true,  /* fuerza picker escritorio en móviles */
+                    onReady: function (_, __, fp) {
+                        /* FIX C-4: sobre Leaflet y SweetAlert2 */
+                        if (fp.calendarContainer) {
+                            fp.calendarContainer.style.zIndex = '8600';
+                        }
+                    },
+                    onChange: function (dates) {
+                        var hid = document.getElementById('fechaInicio');
+                        if (!dates[0]) {
+                            if (hid) hid.value = '';
+                            marcarLleno('fpInicio', false);
+                            actualizarResumen();
+                            return;
+                        }
+
+                        var iso = toISO(dates[0]);
+                        if (hid) hid.value = iso;
+                        marcarLleno('fpInicio', true);
+
+                        /* Ajustar mínimo del picker Fin: al menos 15 min después del inicio */
+                        var minFin = new Date(dates[0].getTime() + 15 * 60000);
+                        if (_fpFin) {
+                            _fpFin.set('minDate', minFin);
+                            /* Si la fecha fin actual ya no es válida, limpiarla */
+                            var hidFin = document.getElementById('fechaFin');
+                            if (hidFin && hidFin.value && new Date(hidFin.value) <= dates[0]) {
+                                _fpFin.clear();
+                                hidFin.value = '';
+                                marcarLleno('fpFin', false);
+                            }
+                        }
+                        actualizarResumen();
+
+                        /*
+                          UX: Tras elegir inicio, abrir automáticamente el picker Fin
+                          con un pequeño delay para que el calendario cierre primero.
+                        */
+                        setTimeout(function () {
+                            if (_fpFin) _fpFin.open();
+                        }, 120);
+                    }
+                });
+
+                /* ── Flatpickr FIN ── */
+                _fpFin = flatpickr('#fpFin', {
+                    locale:          'es',
+                    enableTime:      true,
+                    time_24hr:       true,
+                    minDate:         new Date(minIni.getTime() + 15 * 60000),
+                    minuteIncrement: 15,
+                    disableMobile:   true,
+                    onReady: function (_, __, fp) {
+                        if (fp.calendarContainer) {
+                            fp.calendarContainer.style.zIndex = '8600';
+                        }
+                    },
+                    onChange: function (dates) {
+                        var hid = document.getElementById('fechaFin');
+                        if (!dates[0]) {
+                            if (hid) hid.value = '';
+                            marcarLleno('fpFin', false);
+                            actualizarResumen();
+                            return;
+                        }
+
+                        var iso = toISO(dates[0]);
+                        if (hid) hid.value = iso;
+                        marcarLleno('fpFin', true);
+                        actualizarResumen();
+                    }
+                });
+            }
+
+            /* ── Reset completo del modal ── */
+            function resvModalReset() {
+                if (_fpInicio) _fpInicio.clear();
+                if (_fpFin)    _fpFin.clear();
+
+                ['fechaInicio', 'fechaFin'].forEach(function (id) {
+                    var el = document.getElementById(id);
+                    if (el) el.value = '';
+                });
+                ['fpInicio', 'fpFin'].forEach(function (id) {
+                    marcarLleno(id, false);
+                });
+
+                var sum = document.getElementById('resvSummary');
+                if (sum) sum.classList.remove('show');
+
+                ocultarBanner();
+
+                /* Re-establecer mínimos con la hora actual */
+                if (_fpInicio || _fpFin) {
+                    var ahora   = new Date();
+                    var minIni  = new Date(ahora.getTime() + 5 * 60000);
+                    var minFin  = new Date(ahora.getTime() + 20 * 60000);
+                    if (_fpInicio) _fpInicio.set('minDate', minIni);
+                    if (_fpFin)    _fpFin.set('minDate', minFin);
+                }
+            }
+
+            /* ── Validación previa al submit ─────────────────────────────
+               FIX C-1: la validación ya no es silenciosa.
+               Se ejecuta ANTES de llamar crearReserva().
+               Si algo falta, muestra el banner y hace foco en el picker correcto.
+               ─────────────────────────────────────────────────────────── */
+            function validarYConfirmar() {
+                var ini = document.getElementById('fechaInicio');
+                var fin = document.getElementById('fechaFin');
+                var veh = document.getElementById('vehiculoSelect');
+
+                var valIni = ini ? ini.value : '';
+                var valFin = fin ? fin.value : '';
+                var valVeh = veh ? veh.value : '';
+
+                if (!valIni) {
+                    mostrarBanner('Selecciona la fecha y hora de inicio.', 'warn');
+                    if (_fpInicio) _fpInicio.open();
+                    return;
+                }
+                if (!valFin) {
+                    mostrarBanner('Selecciona la fecha y hora de fin.', 'warn');
+                    if (_fpFin) _fpFin.open();
+                    return;
+                }
+                if (new Date(valFin) <= new Date(valIni)) {
+                    mostrarBanner('La fecha de fin debe ser posterior al inicio.', 'err');
+                    if (_fpFin) _fpFin.open();
+                    return;
+                }
+                if (!valVeh) {
+                    mostrarBanner('Selecciona un vehículo para continuar.', 'warn');
+                    var sel = document.getElementById('vehiculoSelect');
+                    if (sel) sel.focus();
+                    return;
+                }
+
+                ocultarBanner();
+
+                /* Delegar a crearReserva() de ClienteD.js — contrato idéntico */
+                if (typeof crearReserva === 'function') {
+                    crearReserva();
+                }
+            }
+
+            /* ── Exponer al scope global ── */
+            window.resvModalReset   = resvModalReset;
+            window.resvValidarYConf = validarYConfirmar;
+
+            /*
+              Exponer showError/showSuccess/showWarning como shims seguros
+              por si aparca-notifications.js no está cargado aún cuando
+              este script ejecuta.
+            */
+            function _shim(fn) {
+                return function (msg) {
+                    if (typeof window[fn] === 'function') { window[fn](msg); return; }
+                    console.warn('[AparcaNotif shim]', fn, msg);
+                };
+            }
+            window._resvShowError   = _shim('showError');
+            window._resvShowWarning = _shim('showWarning');
+            window._resvShowSuccess = _shim('showSuccess');
+
+            /* ── DOMContentLoaded: conectar todo ── */
+            document.addEventListener('DOMContentLoaded', function () {
+
+                /* 1. Inicializar Flatpickr */
+                initFlatpickr();
+
+                /* 2. Reemplazar handler del botón Confirmar */
+                var btn = document.getElementById('reservarBtn');
+                if (btn) {
+                    btn.onclick = validarYConfirmar;
+                }
+
+                /* 3. Parchear abrirModalReserva para incluir reset de estado
+                      FIX A-4: wrapping más robusto — solo parchea si la función existe
+                      y no la hemos parchado ya (evita doble-wrap entre ClienteD.js y aquí) */
+                var _parchado = false;
+                function intentarParchear() {
+                    if (_parchado) return;
+                    if (typeof window.abrirModalReserva !== 'function') {
+                        /* ClienteD.js puede no haber cargado aún — reintentar */
+                        setTimeout(intentarParchear, 100);
+                        return;
+                    }
+                    var _orig = window.abrirModalReserva;
+                    window.abrirModalReserva = async function () {
+                        await _orig.apply(this, arguments);
+                        resvModalReset();
+                    };
+                    _parchado = true;
+                }
+                intentarParchear();
+
+                /* 4. Cerrar Flatpickr al cerrar el modal con Escape */
+                document.addEventListener('keydown', function (e) {
+                    if (e.key === 'Escape') {
+                        if (_fpInicio) _fpInicio.close();
+                        if (_fpFin)    _fpFin.close();
+                    }
+                });
+            });
+
+        })();
+    </script>
 
 </th:block>
 </body>

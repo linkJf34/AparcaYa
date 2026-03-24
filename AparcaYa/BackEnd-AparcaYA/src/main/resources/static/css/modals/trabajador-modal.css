@@ -1,30 +1,23 @@
 /* ============================================================
-   TRABAJADOR-MODAL.CSS
+   TRABAJADOR-MODAL.CSS  — v2
    Ruta: static/css/modals/trabajador-modal.css
 
    MODALES: #salidaModal  y  #cobroModal
    DASHBOARD: DashboardTrabajador
-   TIPO: DIV fragmento Thymeleaf, display gestionado por JS
 
-   PREFIJO: trab-modal-
    PALETA:
-     Verde oscuro:  #0f766e
-     Verde medio:   #14b8a6
+     Verde oscuro:  #0f766e / #134e4a
+     Verde medio:   #14b8a6 / #0d9488
      Verde claro:   #f0fdfa
      Borde claro:   #ccfbf1
      Texto oscuro:  #0f172a
      Texto gris:    #64748b
      Éxito cobro:   #059669
-
-   NO sobreescribe nada de sede-modal-dinamico.css
-   Las clases .sede-btn-* de aparca-components.css
-   son reutilizadas aquí sin duplicar.
    ============================================================ */
 
 
 /* ------------------------------------------------------------
    1. OVERLAY / BACKDROP
-   JS controla display:flex/none
    ------------------------------------------------------------ */
 .trab-modal-overlay {
     display: none;
@@ -32,12 +25,12 @@
     inset: 0;
     z-index: 1000;
     background: rgba(0, 0, 0, 0.5);
+    backdrop-filter: blur(2px);
     align-items: center;
     justify-content: center;
     padding: 1rem;
 }
 
-/* Clase activa inyectada por JS */
 .trab-modal-overlay.open {
     display: flex;
 }
@@ -66,62 +59,91 @@
 }
 
 @keyframes trab-modal-in {
-    from {
-        opacity: 0;
-        transform: translateY(20px) scale(0.97);
-    }
-    to {
-        opacity: 1;
-        transform: translateY(0) scale(1);
-    }
+    from { opacity: 0; transform: translateY(20px) scale(0.97); }
+    to   { opacity: 1; transform: translateY(0)    scale(1);    }
 }
 
 
 /* ------------------------------------------------------------
-   3. CABECERA DEL MODAL
+   3. CABECERA — v2: gradiente teal + icono + subtítulo
    ------------------------------------------------------------ */
 .trab-modal-header {
     display: flex;
     align-items: center;
     justify-content: space-between;
-    padding: 1.25rem 1.5rem;
-    border-bottom: 1px solid #ccfbf1;
+    padding: 1.125rem 1.5rem;
+    background: linear-gradient(135deg, #134e4a, #0d9488);
+    gap: .75rem;
 }
 
-.trab-modal-header h3 {
-    font-size: 1.125rem;
-    font-weight: 700;
-    color: #0f172a;
-    margin: 0;
+.trab-modal-header-left {
+    display: flex;
+    align-items: center;
+    gap: .625rem;
 }
 
-.trab-modal-close {
-    background: none;
-    border: none;
-    cursor: pointer;
-    color: #64748b;
-    padding: 0.25rem;
-    border-radius: 0.375rem;
+/* Caja del icono en el header */
+.trab-modal-icon {
+    width: 38px;
+    height: 38px;
+    border-radius: .5rem;
+    background: rgba(255, 255, 255, .15);
     display: flex;
     align-items: center;
     justify-content: center;
-    transition: color 0.2s, background-color 0.2s;
-    line-height: 1;
+    flex-shrink: 0;
+}
+
+.trab-modal-icon svg {
+    width: 19px;
+    height: 19px;
+}
+
+/* Título y subtítulo del header */
+.trab-modal-title {
+    font-size: 1rem;
+    font-weight: 800;
+    color: white;
+    margin: 0 0 .1rem;
+    letter-spacing: -.02em;
+}
+
+.trab-modal-subtitle {
+    font-size: .73rem;
+    color: rgba(255, 255, 255, .75);
+    margin: 0;
+    font-weight: 500;
+}
+
+/* Botón cerrar — adaptado al header teal */
+.trab-modal-close {
+    background: rgba(255, 255, 255, .15);
+    border: none;
+    cursor: pointer;
+    color: white;
+    padding: 0;
+    width: 30px;
+    height: 30px;
+    border-radius: .4rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    transition: background .2s;
 }
 
 .trab-modal-close:hover {
-    color: #0f172a;
-    background-color: #f0fdfa;
+    background: rgba(255, 255, 255, .28);
 }
 
 .trab-modal-close svg {
-    width: 1.25rem;
-    height: 1.25rem;
+    width: 15px;
+    height: 15px;
 }
 
 
 /* ------------------------------------------------------------
-   4. CUERPO DEL MODAL
+   4. CUERPO
    ------------------------------------------------------------ */
 .trab-modal-body {
     padding: 1.25rem 1.5rem 1.5rem;
@@ -130,7 +152,6 @@
 
 /* ------------------------------------------------------------
    5. TARJETA DE DATOS INTERNOS
-   Fondo verde muy claro — mismo #f0fdfa del diseño original
    ------------------------------------------------------------ */
 .trab-modal-card {
     background: #f0fdfa;
@@ -141,8 +162,7 @@
 
 
 /* ------------------------------------------------------------
-   6. FILAS DE DATOS (salida y cobro)
-   Mantiene el mismo layout del diseño original
+   6. FILAS DE DATOS
    ------------------------------------------------------------ */
 .trab-modal-row {
     display: flex;
@@ -153,9 +173,7 @@
     margin-bottom: 0.6rem;
 }
 
-.trab-modal-row:last-child {
-    margin-bottom: 0;
-}
+.trab-modal-row:last-child { margin-bottom: 0; }
 
 .trab-modal-row strong {
     min-width: 120px;
@@ -164,10 +182,12 @@
     font-weight: 600;
 }
 
-/* Valores destacados — placa y tiempo */
 .trab-modal-row .trab-modal-value--accent {
     font-weight: 700;
     color: #0f766e;
+    font-family: monospace;
+    letter-spacing: .06em;
+    font-size: 1rem;
 }
 
 .trab-modal-row .trab-modal-value--mono {
@@ -178,7 +198,7 @@
 
 
 /* ------------------------------------------------------------
-   7. SEPARADOR INTERNO DE LA TARJETA
+   7. SEPARADOR INTERNO
    ------------------------------------------------------------ */
 .trab-modal-divider {
     margin-top: 0.75rem;
@@ -188,10 +208,7 @@
 
 
 /* ------------------------------------------------------------
-   8. COBRO ESTIMADO (dentro del modal salida)
-   Inyectado por JS en #salidaCobroEstimado
-   Las clases .trab-modal-cobro-estimado-row se aplican
-   al innerHTML generado en TrabajadorD.js
+   8. COBRO ESTIMADO (inyectado por JS en #salidaCobroEstimado)
    ------------------------------------------------------------ */
 .trab-modal-cobro-estimado {
     margin-top: 0.75rem;
@@ -207,27 +224,15 @@
     margin-bottom: 0.35rem;
 }
 
-.trab-modal-cobro-estimado-row strong {
-    min-width: 80px;
-    color: #374151;
-}
-
-.trab-modal-cobro-estimado-row span {
-    font-weight: 700;
-}
-
-.trab-modal-cobro-estimado-row--minuto span {
-    color: #059669;
-}
+.trab-modal-cobro-estimado-row strong { min-width: 80px; color: #374151; }
+.trab-modal-cobro-estimado-row span   { font-weight: 700; }
+.trab-modal-cobro-estimado-row--minuto span { color: #059669; }
 
 
 /* ------------------------------------------------------------
-   9. SELECTOR DE TARIFA (modal cobro)
-   Inyectado por JS en #tarifaSelectorContainer
+   9. SELECTOR DE TARIFA (inyectado por JS en #tarifaSelectorContainer)
    ------------------------------------------------------------ */
-.trab-modal-tarifa-selector {
-    margin-bottom: 1rem;
-}
+.trab-modal-tarifa-selector { margin-bottom: 1rem; }
 
 .trab-modal-tarifa-selector p {
     font-size: 0.85rem;
@@ -236,7 +241,6 @@
     margin: 0 0 0.75rem;
 }
 
-/* Cada opción radio */
 .trab-modal-tarifa-opcion {
     display: flex;
     align-items: center;
@@ -252,7 +256,8 @@
     font-size: 0.88rem;
 }
 
-.trab-modal-tarifa-opcion:hover {
+.trab-modal-tarifa-opcion:hover,
+.trab-modal-tarifa-opcion:has(input:checked) {
     border-color: #14b8a6;
     background-color: #f0fdfa;
 }
@@ -263,66 +268,53 @@
     flex-shrink: 0;
 }
 
-.trab-modal-tarifa-opcion-info {
-    flex: 1;
-}
-
-.trab-modal-tarifa-opcion-info strong {
-    display: block;
-    color: #0f172a;
-    font-size: 0.9rem;
-}
-
-.trab-modal-tarifa-opcion-info small {
-    color: #64748b;
-    font-size: 0.78rem;
-}
-
-.trab-modal-tarifa-opcion-precio {
-    color: #059669;
-    font-weight: 700;
-    white-space: nowrap;
-    font-size: 0.9rem;
-}
+.trab-modal-tarifa-opcion-info          { flex: 1; }
+.trab-modal-tarifa-opcion-info strong   { display: block; color: #0f172a; font-size: 0.9rem; }
+.trab-modal-tarifa-opcion-info small    { color: #64748b; font-size: 0.78rem; }
+.trab-modal-tarifa-opcion-precio        { color: #059669; font-weight: 700; white-space: nowrap; font-size: 0.9rem; }
 
 
 /* ------------------------------------------------------------
-   10. MÉTODO DE PAGO (modal cobro)
+   10. MÉTODO DE PAGO
    ------------------------------------------------------------ */
-.trab-modal-metodo-pago {
-    margin-bottom: 1.25rem;
-}
+.trab-modal-metodo-pago { margin-bottom: 1.25rem; }
 
 .trab-modal-metodo-pago label {
-    display: block;
+    display: flex;
+    align-items: center;
     font-size: 0.85rem;
     font-weight: 600;
     color: #374151;
     margin-bottom: 0.4rem;
+    gap: .25rem;
 }
 
 .trab-modal-metodo-pago select {
     width: 100%;
     padding: 0.6rem 0.9rem;
-    border: 1px solid #d1d5db;
+    border: 1.5px solid #dde5f4;
     border-radius: 0.5rem;
     font-size: 0.9rem;
     color: #374151;
-    background: white;
+    background: #f8faff;
     cursor: pointer;
     transition: border-color 0.2s, box-shadow 0.2s;
     box-sizing: border-box;
+    font-family: inherit;
+    -webkit-appearance: none;
+    appearance: none;
 }
 
 .trab-modal-metodo-pago select:focus {
     outline: none;
-    border-color: #14b8a6;
-    box-shadow: 0 0 0 3px rgba(20, 184, 166, 0.15);
+    border-color: #0d9488;
+    background: white;
+    box-shadow: 0 0 0 3px rgba(13, 148, 136, .12);
 }
 
 
 /* ------------------------------------------------------------
-   11. TOTAL A COBRAR (modal cobro)
+   11. TOTAL A COBRAR
    ------------------------------------------------------------ */
 .trab-modal-total-row {
     display: flex;
@@ -333,10 +325,7 @@
     border-top: 1px solid #ccfbf1;
 }
 
-.trab-modal-total-row strong {
-    color: #374151;
-    font-size: 0.9rem;
-}
+.trab-modal-total-row strong { color: #374151; font-size: 0.9rem; }
 
 .trab-modal-total-valor {
     font-size: 1.25rem;
@@ -362,25 +351,11 @@
    ------------------------------------------------------------ */
 @media (max-width: 640px) {
     .trab-modal-box--salida,
-    .trab-modal-box--cobro {
-        max-width: 100%;
-    }
+    .trab-modal-box--cobro { max-width: 100%; }
 
-    .trab-modal-actions {
-        flex-direction: column-reverse;
-    }
+    .trab-modal-actions { flex-direction: column-reverse; }
+    .trab-modal-actions button { width: 100%; justify-content: center; }
 
-    .trab-modal-actions button {
-        width: 100%;
-        justify-content: center;
-    }
-
-    .trab-modal-row {
-        flex-direction: column;
-        gap: 0.2rem;
-    }
-
-    .trab-modal-row strong {
-        min-width: unset;
-    }
+    .trab-modal-row { flex-direction: column; gap: 0.2rem; }
+    .trab-modal-row strong { min-width: unset; }
 }

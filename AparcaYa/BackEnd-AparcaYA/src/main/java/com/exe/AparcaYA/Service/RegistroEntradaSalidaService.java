@@ -3,56 +3,54 @@ package com.exe.AparcaYA.Service;
 import com.exe.AparcaYA.Entity.*;
 import com.exe.AparcaYA.Enum.EstadoRegistro;
 
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
 public interface RegistroEntradaSalidaService {
 
-    // CRUD básico
+    // ── CRUD básico ───────────────────────────────────────────
     RegistroEntradaSalida save(RegistroEntradaSalida registro);
     List<RegistroEntradaSalida> findAll();
     Optional<RegistroEntradaSalida> findById(Long id);
     RegistroEntradaSalida update(RegistroEntradaSalida registro);
     void delete(Long id);
 
-    // Consultas por sede
+    // ── Consultas por sede ────────────────────────────────────
     List<RegistroEntradaSalida> findBySede(Sede sede);
     List<RegistroEntradaSalida> findBySedeAndEstado(Sede sede, EstadoRegistro estado);
     List<RegistroEntradaSalida> findBySedeAndEstadoIn(Sede sede, List<EstadoRegistro> estados);
-    List<RegistroEntradaSalida> findBySedeAndFechaHoraEntradaBetween(Sede sede, LocalDateTime inicio, LocalDateTime fin);
+    List<RegistroEntradaSalida> findBySedeAndFechaHoraEntradaBetween(Sede sede,
+                                                                     LocalDateTime inicio,
+                                                                     LocalDateTime fin);
+    List<RegistroEntradaSalida> findBySedeAndFechaBetween(Sede sede,
+                                                          LocalDateTime inicio,
+                                                          LocalDateTime fin);
 
-    // Consultas por vehículo
+    // ── Consultas por vehículo ────────────────────────────────
     Optional<RegistroEntradaSalida> findVehiculoActivo(Vehiculo vehiculo);
     List<RegistroEntradaSalida> findByVehiculo(Vehiculo vehiculo);
 
-    // Historial
+    // ── Historial y conteos ───────────────────────────────────
     List<RegistroEntradaSalida> findHistorialBySede(Sede sede);
     Long countBySedeAndEstado(Sede sede, EstadoRegistro estado);
+    Map<String, Long> countActivosPorTipo(Sede sede);
 
-    // Operaciones de negocio
-    RegistroEntradaSalida registrarEntrada(Vehiculo vehiculo, Sede sede, Cupo cupo, Usuario trabajador);
+    // ── Ingresos ──────────────────────────────────────────────
+    BigDecimal sumIngresosEntreFechas(Sede sede,
+                                      LocalDateTime inicio,
+                                      LocalDateTime fin);
+
+    // ── Operaciones de negocio ────────────────────────────────
+    RegistroEntradaSalida registrarEntrada(Vehiculo vehiculo,
+                                           Sede sede,
+                                           Cupo cupo,
+                                           Usuario trabajador);
     RegistroEntradaSalida registrarSalida(Long registroId);
     RegistroEntradaSalida confirmarCobro(Long registroId, String metodoPago);
-
-    // ✅ CAMBIO #8: Método subido a la interfaz
-    // Antes: solo existía en RegistroEntradaSalidaServiceImpl como método público no declarado
-    // en la interfaz, lo que obligaba a hacer un cast en TrabajadorController
-    // Ahora: cualquier llamante puede usarlo programando contra la interfaz
-    RegistroEntradaSalida confirmarCobroConTarifa(Long registroId, String metodoPago, String tipoTarifa);
-
-    java.math.BigDecimal sumIngresosEntreFechas(Sede sede,
-                                                java.time.LocalDateTime inicio,
-                                                java.time.LocalDateTime fin);
-
-    /**
-     * Mapa de vehículos activos agrupados por TipoVehiculo.
-     */
-    java.util.Map<String, Long> countActivosPorTipo(Sede sede);
-
-    List<RegistroEntradaSalida> findBySedeAndFechaBetween(
-            Sede sede,
-            LocalDateTime inicio,
-            LocalDateTime fin);
-
+    RegistroEntradaSalida confirmarCobroConTarifa(Long registroId,
+                                                  String metodoPago,
+                                                  String tipoTarifa);
 }

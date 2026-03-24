@@ -1,86 +1,55 @@
 <!DOCTYPE html>
 <html lang="es" xmlns:th="http://www.thymeleaf.org">
 <head>
-    <meta charset="UTF-8"/>
+    <meta charset="utf-8"/>
     <meta name="viewport" content="width=device-width, initial-scale=1"/>
-    <title>400 — Solicitud Incorrecta · AparcaYA</title>
+    <title>400 — Solicitud incorrecta · AparcaYA</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://cdn.jsdelivr.net/npm/daisyui@4.12.10/dist/full.min.css" rel="stylesheet"/>
-    <link rel="stylesheet" href="/css/pages/error.css"/>
+    <script src="https://cdn.jsdelivr.net/npm/lucide@latest/dist/umd/lucide.min.js"></script>
+    <link rel="stylesheet" href="/css/base/aparca-animations.css">
+    <link rel="stylesheet" href="/css/components/aparca-components.css">
+    <style>
+        body { min-height: 100vh; display: flex; align-items: center; justify-content: center;
+            background: #f8fafc; font-family: system-ui, sans-serif; }
+        .error-card { background: white; border-radius: 1.25rem; box-shadow: 0 4px 32px rgba(0,0,0,.08);
+            padding: 3rem 2.5rem; max-width: 480px; width: 100%; text-align: center; }
+        .error-icon-wrap { width: 80px; height: 80px; border-radius: 50%; background: #eff6ff;
+            display: flex; align-items: center; justify-content: center;
+            margin: 0 auto 1.5rem; }
+        .error-icon-wrap svg { width: 36px; height: 36px; stroke: #3b82f6; }
+        .error-code { font-size: 4rem; font-weight: 700; letter-spacing: -.025em;
+            color: #1e3a8a; line-height: 1; margin-bottom: .5rem; }
+        .error-title { font-size: 1.25rem; font-weight: 600; color: #1e293b; margin-bottom: .75rem; }
+        .error-desc { font-size: .9375rem; color: #64748b; line-height: 1.6; margin-bottom: 2rem; }
+        .btn-home { display: inline-flex; align-items: center; gap: .5rem; background: #1e40af;
+            color: white; padding: .75rem 1.75rem; border-radius: .625rem; font-weight: 600;
+            font-size: .9375rem; text-decoration: none; transition: background .15s; }
+        .btn-home:hover { background: #1e3a8a; }
+        .btn-home svg { width: 18px; height: 18px; stroke: white; }
+        .error-meta { margin-top: 1.5rem; font-size: .8125rem; color: #94a3b8; }
+    </style>
 </head>
-
-<body class="er-warn">
-
-<div class="er-bg" aria-hidden="true">
-    <div class="er-blob er-blob-1"></div>
-    <div class="er-blob er-blob-2"></div>
-    <div class="er-blob er-blob-3"></div>
-</div>
-
-<a href="/" class="er-brand" aria-label="Ir al inicio de AparcaYA">
-    <div class="er-brand-mark"><span class="er-brand-p">P</span></div>
-    <span class="er-brand-name">AparcaYA</span>
-</a>
-
-<div class="er-card" role="main">
-
-    <!-- Ícono -->
-    <div class="er-icon-wrap" aria-hidden="true">
-        <svg xmlns="http://www.w3.org/2000/svg" fill="none"
-             viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8">
-            <path stroke-linecap="round" stroke-linejoin="round"
-                  d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374
-                  1.948 3.374h14.71c1.73 0 2.813-1.874
-                  1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898
-                  0L2.697 16.126zM12 15.75h.007v.008H12v-.008z"/>
+<body>
+<div class="error-card">
+    <div class="error-icon-wrap">
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
+             stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/>
         </svg>
     </div>
-
-    <span class="er-status-tag">400 · Bad Request</span>
-    <span class="er-code" aria-hidden="true">400</span>
-    <div class="er-divider"></div>
-    <h1 class="er-title">Solicitud incorrecta</h1>
-    <p class="er-desc">
-        El servidor no pudo entender tu solicitud porque contiene
-        <strong>datos mal formados o parámetros inválidos</strong>.
-        Verifica la información e inténtalo de nuevo.
-    </p>
-
-    <div class="er-actions">
-        <a href="javascript:history.back()" class="er-btn-secondary">
-            <svg xmlns="http://www.w3.org/2000/svg" fill="none"
-                 viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
-                <path stroke-linecap="round" stroke-linejoin="round"
-                      d="M10.5 19.5L3 12m0 0l7.5-7.5M3 12h18"/>
-            </svg>
-            Volver
-        </a>
-        <a href="/" class="er-btn-primary">
-            <svg xmlns="http://www.w3.org/2000/svg" fill="none"
-                 viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                <path stroke-linecap="round" stroke-linejoin="round"
-                      d="M2.25 12l8.954-8.955c.44-.439 1.152-.439
-                      1.591 0L21.75 12M4.5 9.75v10.125c0 .621.504
-                      1.125 1.125 1.125H9.75v-4.875c0-.621.504-1.125
-                      1.125-1.125h2.25c.621 0 1.125.504 1.125
-                      1.125V21h4.125c.621 0 1.125-.504
-                      1.125-1.125V9.75M8.25 21h8.25"/>
-            </svg>
-            Ir al inicio
-        </a>
-    </div>
-
-    <details class="er-detail">
-        <summary>Detalles técnicos</summary>
-        <div class="er-detail-body">
-            HTTP 400 Bad Request — La solicitud no pudo ser procesada
-            debido a una sintaxis incorrecta o parámetros inválidos en
-            la petición del cliente. Código: BAD_REQUEST.
-            <br/><br/>
-            <span th:if="${message}" th:text="${message}"></span>
-        </div>
-    </details>
-
+    <div class="error-code">400</div>
+    <div class="error-title">Solicitud incorrecta</div>
+    <p class="error-desc">La solicitud enviada contiene datos inválidos.<br>Verifica la información e intenta de nuevo.</p>
+    <a href="/" class="btn-home">
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
+             stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/>
+            <polyline points="9 22 9 12 15 12 15 22"/>
+        </svg>
+        Volver al inicio
+    </a>
+    <p class="error-meta">AparcaYA &mdash; Error 400</p>
 </div>
+<script>if (typeof lucide !== 'undefined') lucide.createIcons();</script>
 </body>
 </html>

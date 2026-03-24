@@ -166,6 +166,11 @@ body {
     border: 1px solid #e9eef5;
     display: flex;
     flex-direction: column;
+    transition: box-shadow 0.2s;
+}
+
+.admin-chart-container:hover {
+    box-shadow: 0 4px 20px rgba(30,58,138,0.08);
 }
 
 .admin-chart-container h3 {
@@ -186,6 +191,50 @@ body {
     color: #0ea5e9;
     flex-shrink: 0;
 }
+
+/* Encabezado de tarjeta con botones export */
+.admin-chart-header {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    margin-bottom: 0.75rem;
+    padding-bottom: 0.75rem;
+    border-bottom: 1px solid #f1f5f9;
+    gap: 8px;
+}
+
+.admin-chart-header h3 {
+    margin: 0;
+    padding-bottom: 0;
+    border-bottom: none;
+    flex: 1;
+}
+
+.admin-chart-export-btns {
+    display: flex;
+    gap: 5px;
+    flex-shrink: 0;
+}
+
+.chart-export-btn {
+    font-size: 11px;
+    font-weight: 600;
+    padding: 4px 10px;
+    border-radius: 6px;
+    border: 1.5px solid #e2e8f0;
+    background: #fff;
+    cursor: pointer;
+    transition: border-color 0.15s, background 0.15s;
+    line-height: 1.4;
+}
+
+.chart-export-btn:hover {
+    background: #f8faff;
+    border-color: #1d4ed8;
+}
+
+.chart-export-btn.pdf   { color: #dc2626; }
+.chart-export-btn.excel { color: #15803d; }
 
 .admin-kpi-row {
     display: flex;
@@ -233,12 +282,13 @@ body {
 
 .admin-kpi-value.positive { color: #10b981; }
 .admin-kpi-value.negative { color: #ef4444; }
-.admin-kpi-value.accent   { color: #6366f1; }
+.admin-kpi-value.accent   { color: #1d4ed8; }
 
 .admin-chart-container canvas {
     flex: 1;
     max-height: 260px;
     min-height: 160px;
+    height: 260px !important;
 }
 
 @media (max-width: 1024px) {
@@ -287,7 +337,7 @@ body {
 
 
 /* ============================================================
-   5. BADGES
+   5. BADGES — generales
    ============================================================ */
 .admin-badge {
     display: inline-block;
@@ -324,8 +374,9 @@ body {
     #admin-map-container { height: 250px; }
 }
 
+
 /* ============================================================
-   7. WIDGET — Usuarios por Rol (reemplaza donut de ingresos)
+   7. WIDGET — Usuarios por Rol
    ============================================================ */
 .admin-stats-card--roles {
     text-align: left;
@@ -397,9 +448,503 @@ body {
     padding: 1rem 0;
 }
 
-/* Fix canvas height para gráficas (P-07) */
-.admin-chart-container canvas {
-    max-height: 260px;
-    min-height: 160px;
-    height: 260px !important; /* fuerza height en contenedor flex */
+
+/* ============================================================
+   8. LEYENDA DE GRÁFICAS
+   ============================================================ */
+.admin-legend-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.75rem;
+    margin-bottom: 1rem;
 }
+
+.admin-legend-item {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 0.8rem;
+    color: #475569;
+}
+
+.admin-legend-dot {
+    width: 9px;
+    height: 9px;
+    border-radius: 50%;
+    flex-shrink: 0;
+}
+
+
+/* ============================================================
+   9. MÓDULO DE CORREOS — Layout 2 columnas
+   ============================================================ */
+
+/* Contenedor principal: formulario izq + historial der */
+.correo-layout {
+    display: grid;
+    grid-template-columns: 1fr 420px;
+    gap: 1.25rem;
+    align-items: start;
+}
+
+@media (max-width: 1100px) {
+    .correo-layout {
+        grid-template-columns: 1fr;
+    }
+}
+
+/* KPIs de correos — fila encima del layout */
+.correo-kpi-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 0.75rem;
+    margin-bottom: 1.25rem;
+}
+
+@media (max-width: 700px) {
+    .correo-kpi-grid { grid-template-columns: repeat(2, 1fr); }
+}
+
+.correo-kpi-card {
+    background: white;
+    border: 1px solid #e9eef5;
+    border-radius: 0.75rem;
+    padding: 0.875rem 1rem;
+    box-shadow: 0 1px 4px rgba(0,0,0,0.04);
+    transition: box-shadow 0.2s;
+}
+
+.correo-kpi-card:hover {
+    box-shadow: 0 3px 12px rgba(30,58,138,0.08);
+}
+
+.correo-kpi-label {
+    font-size: 0.68rem;
+    font-weight: 700;
+    color: #94a3b8;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    margin-bottom: 4px;
+}
+
+.correo-kpi-valor {
+    font-size: 1.5rem;
+    font-weight: 800;
+    margin-top: 2px;
+    font-variant-numeric: tabular-nums;
+}
+
+.correo-kpi-enviados  .correo-kpi-valor { color: #15803d; }
+.correo-kpi-pendientes .correo-kpi-valor { color: #a16207; }
+.correo-kpi-errores   .correo-kpi-valor { color: #dc2626; }
+.correo-kpi-total     .correo-kpi-valor { color: #1e3a8a; }
+
+
+/* ============================================================
+   10. SELECTOR DE PLANTILLAS
+   ============================================================ */
+.plantillas-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 7px;
+    margin-bottom: 4px;
+}
+
+[data-plantilla],
+[data-plantilla-masivo] {
+    display: flex;
+    align-items: center;
+    gap: 9px;
+    padding: 9px 11px;
+    border: 1.5px solid #e9eef5;
+    border-radius: 9px;
+    background: #fff;
+    cursor: pointer;
+    text-align: left;
+    transition: border-color 0.15s, box-shadow 0.15s, background 0.15s;
+    width: 100%;
+}
+
+[data-plantilla]:hover,
+[data-plantilla-masivo]:hover {
+    border-color: #93c5fd;
+    background: #f8faff;
+}
+
+[data-plantilla].plantilla-activa,
+[data-plantilla-masivo].plantilla-activa {
+    border-color: #1d4ed8;
+    box-shadow: 0 0 0 3px rgba(29,78,216,0.12);
+    background: #eff6ff;
+}
+
+.plantilla-icon {
+    width: 32px;
+    height: 32px;
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+}
+
+.plantilla-titulo {
+    font-size: 12px;
+    font-weight: 600;
+    color: #1e3a8a;
+    line-height: 1.3;
+}
+
+.plantilla-sub {
+    font-size: 10px;
+    color: #94a3b8;
+    margin-top: 1px;
+    line-height: 1.3;
+}
+
+/* Badge plantilla activa */
+.plantilla-badge-activa {
+    display: none;
+    font-size: 11px;
+    background: #dbeafe;
+    color: #1e40af;
+    padding: 2px 10px;
+    border-radius: 999px;
+    font-weight: 600;
+    margin-top: 6px;
+}
+
+
+/* ============================================================
+   11. PANEL DE HISTORIAL DE CORREOS (columna derecha)
+   ============================================================ */
+.historial-panel {
+    background: white;
+    border: 1px solid #e9eef5;
+    border-radius: 1rem;
+    box-shadow: 0 1px 4px rgba(0,0,0,0.05), 0 4px 12px rgba(0,0,0,0.04);
+    display: flex;
+    flex-direction: column;
+    max-height: 780px;
+    overflow: hidden;
+}
+
+.historial-panel-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 14px 16px 10px;
+    border-bottom: 1px solid #f1f5f9;
+    flex-shrink: 0;
+}
+
+.historial-panel-titulo {
+    font-size: 14px;
+    font-weight: 700;
+    color: #1e3a8a;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.historial-contador {
+    font-size: 11px;
+    background: #eff6ff;
+    color: #1d4ed8;
+    padding: 2px 8px;
+    border-radius: 999px;
+    font-weight: 700;
+}
+
+.historial-refresh-btn {
+    font-size: 12px;
+    color: #1d4ed8;
+    background: none;
+    border: none;
+    cursor: pointer;
+    font-weight: 600;
+    padding: 3px 6px;
+    border-radius: 5px;
+    transition: background 0.15s;
+}
+
+.historial-refresh-btn:hover { background: #eff6ff; }
+
+/* Filtros del historial */
+.historial-filtros {
+    padding: 10px 14px;
+    background: #f8faff;
+    border-bottom: 1px solid #e9eef5;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    align-items: center;
+    flex-shrink: 0;
+}
+
+.historial-filtros select,
+.historial-filtros input[type="datetime-local"] {
+    border: 1px solid #e9eef5;
+    border-radius: 6px;
+    padding: 4px 8px;
+    font-size: 12px;
+    background: #fff;
+    color: #334155;
+    flex: 1;
+    min-width: 110px;
+    max-width: 160px;
+}
+
+.historial-filtros select:focus,
+.historial-filtros input:focus {
+    outline: none;
+    border-color: #1d4ed8;
+    box-shadow: 0 0 0 2px rgba(29,78,216,0.1);
+}
+
+.historial-filtro-btn {
+    background: #1d4ed8;
+    color: white;
+    border: none;
+    border-radius: 6px;
+    padding: 5px 12px;
+    font-size: 12px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background 0.15s;
+    white-space: nowrap;
+}
+
+.historial-filtro-btn:hover { background: #1e3a8a; }
+
+.historial-limpiar-btn {
+    background: none;
+    color: #64748b;
+    border: 1px solid #e9eef5;
+    border-radius: 6px;
+    padding: 5px 10px;
+    font-size: 12px;
+    cursor: pointer;
+    transition: border-color 0.15s;
+    white-space: nowrap;
+}
+
+.historial-limpiar-btn:hover { border-color: #93c5fd; color: #1d4ed8; }
+
+/* Tabla del historial */
+.historial-tabla-wrap {
+    overflow-y: auto;
+    flex: 1;
+}
+
+.hist-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 12px;
+}
+
+.hist-table thead tr {
+    background: #f8faff;
+    position: sticky;
+    top: 0;
+    z-index: 1;
+}
+
+.hist-table th {
+    text-align: left;
+    padding: 8px 12px;
+    font-size: 10px;
+    font-weight: 700;
+    color: #64748b;
+    text-transform: uppercase;
+    letter-spacing: 0.4px;
+    border-bottom: 1px solid #e9eef5;
+    white-space: nowrap;
+}
+
+.hist-table tbody tr {
+    border-bottom: 1px solid #f1f5f9;
+    transition: background 0.1s;
+}
+
+.hist-table tbody tr:hover { background: #f8faff; }
+.hist-table tbody tr:last-child { border-bottom: none; }
+
+.hist-table td {
+    padding: 8px 12px;
+    color: #334155;
+    vertical-align: middle;
+}
+
+.hist-table .hist-dest {
+    font-size: 12px;
+    color: #1e293b;
+    font-weight: 500;
+    max-width: 120px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.hist-table .hist-asunto {
+    font-size: 11px;
+    color: #475569;
+    max-width: 110px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.hist-table .hist-fecha {
+    font-size: 11px;
+    color: #94a3b8;
+    white-space: nowrap;
+}
+
+/* Tipo badge en historial */
+.hist-tipo-badge {
+    font-size: 10px;
+    background: #eff6ff;
+    color: #1e40af;
+    padding: 2px 7px;
+    border-radius: 999px;
+    white-space: nowrap;
+    font-weight: 600;
+}
+
+/* Badges de estado del historial */
+.historial-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    font-size: 10px;
+    font-weight: 700;
+    padding: 2px 8px;
+    border-radius: 999px;
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
+    white-space: nowrap;
+}
+
+.historial-badge::before {
+    content: '';
+    width: 5px;
+    height: 5px;
+    border-radius: 50%;
+    background: currentColor;
+    flex-shrink: 0;
+}
+
+.historial-badge.enviado   { background: #dcfce7; color: #15803d; }
+.historial-badge.error     { background: #fee2e2; color: #dc2626; }
+.historial-badge.pendiente { background: #fef9c3; color: #a16207; }
+
+/* Estado vacío y error en tabla */
+.hist-empty {
+    text-align: center;
+    color: #94a3b8;
+    padding: 24px 16px;
+    font-size: 12px;
+}
+
+.hist-error-row {
+    text-align: center;
+    color: #ef4444;
+    padding: 16px;
+    font-size: 12px;
+}
+
+
+/* ============================================================
+   12. FILTROS DE GRÁFICAS
+   ============================================================ */
+.graficas-filtros {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    align-items: flex-end;
+    background: white;
+    border: 1px solid #e9eef5;
+    border-radius: 10px;
+    padding: 12px 14px;
+    margin-bottom: 20px;
+    box-shadow: 0 1px 4px rgba(0,0,0,0.04);
+}
+
+.graficas-filtros label {
+    display: block;
+    font-size: 10px;
+    font-weight: 700;
+    color: #64748b;
+    margin-bottom: 4px;
+    text-transform: uppercase;
+    letter-spacing: 0.4px;
+}
+
+.graficas-filtros input[type="date"],
+.graficas-filtros select {
+    border: 1px solid #e9eef5;
+    border-radius: 7px;
+    padding: 5px 10px;
+    font-size: 13px;
+    background: #fff;
+    color: #334155;
+    transition: border-color 0.15s, box-shadow 0.15s;
+}
+
+.graficas-filtros input:focus,
+.graficas-filtros select:focus {
+    outline: none;
+    border-color: #1d4ed8;
+    box-shadow: 0 0 0 2px rgba(29,78,216,0.1);
+}
+
+.graficas-filtros-acciones {
+    display: flex;
+    gap: 6px;
+    margin-left: auto;
+    align-self: flex-end;
+}
+
+.graficas-aplicar-btn {
+    background: #1d4ed8;
+    color: white;
+    border: none;
+    border-radius: 7px;
+    padding: 6px 14px;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background 0.15s;
+}
+
+.graficas-aplicar-btn:hover { background: #1e3a8a; }
+
+.graficas-limpiar-btn {
+    background: white;
+    color: #64748b;
+    border: 1px solid #e9eef5;
+    border-radius: 7px;
+    padding: 6px 12px;
+    font-size: 13px;
+    cursor: pointer;
+    transition: border-color 0.15s;
+}
+
+.graficas-limpiar-btn:hover { border-color: #93c5fd; color: #1d4ed8; }
+
+.graficas-reporte-btn {
+    border-radius: 7px;
+    padding: 6px 13px;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    border: 1.5px solid;
+    background: white;
+    transition: background 0.15s;
+}
+
+.graficas-reporte-btn.pdf   { color: #dc2626; border-color: #fecaca; }
+.graficas-reporte-btn.excel { color: #15803d; border-color: #bbf7d0; }
+.graficas-reporte-btn.pdf:hover   { background: #fff5f5; }
+.graficas-reporte-btn.excel:hover { background: #f0fdf4; }

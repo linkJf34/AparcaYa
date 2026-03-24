@@ -7,8 +7,6 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-
-import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
 @Entity
@@ -35,14 +33,10 @@ public class RegistroEntradaSalida {
     @Column(nullable = false)
     private EstadoRegistro estado;
 
-    @Column(precision = 10, scale = 2)
-    private BigDecimal precio;
-
-    @Column(length = 50)
-    private String metodoPago;
-
     @Column(length = 500)
     private String observaciones;
+
+    // ── Relaciones ───────────────────────────────────────────────────────────
 
     @NotNull(message = "El vehículo es obligatorio")
     @ManyToOne(fetch = FetchType.LAZY)
@@ -61,4 +55,10 @@ public class RegistroEntradaSalida {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "id_usuario")
     private Usuario trabajador;
+
+    // Relación con Pago — nullable porque el pago puede
+    // registrarse después de la entrada
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "id_pago")
+    private Pago pago;
 }

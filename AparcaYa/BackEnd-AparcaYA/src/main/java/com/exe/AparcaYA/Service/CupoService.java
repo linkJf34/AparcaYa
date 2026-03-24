@@ -18,11 +18,14 @@ public interface CupoService {
     List<Cupo> findByEstado(EstadoCupo estado);
     List<Cupo> findBySedeAndEstado(Sede sede, EstadoCupo estadoCupo);
 
-    // ✅ CAMBIO #6: Creación de cupos extraída del Controller al Service
-    // Antes: bucle for inline en UsuarioController.registrarUsuario()
-    // Ahora: lógica centralizada — reutilizable desde cualquier Controller
+    // Creación de cupos al registrar una sede
     void crearCuposParaSede(Sede sede);
+
+    // Cupos disponibles en un rango de fechas — para reservaciones
     List<Cupo> findCuposDisponiblesEnRango(Long sedeId,
                                            LocalDateTime fechaInicio,
                                            LocalDateTime fechaFin);
+
+    // Contar cupos por tipo — reemplaza sede.getCuposCarro/Moto/Bicicleta()
+    Integer contarCuposPorTipo(Long idSede, String tipo);
 }

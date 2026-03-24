@@ -12,7 +12,6 @@ public interface VehiculoService {
     Vehiculo update(Vehiculo vehiculo);
     void delete(Long id);
     List<Vehiculo> findByPlacaContainingIgnoreCase(String placa);
-    // Agregado: Método para buscar por placa exacta (necesario para reservas)
     Optional<Vehiculo> findByPlaca(String placa);
     List<Vehiculo> findByIdUsuario(Long idUsuario);
 }

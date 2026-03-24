@@ -74,9 +74,6 @@ public class SedeServiceImpl implements SedeService {
         return null;
     }
 
-    // ✅ RIESGO #8: countByEstado() delega a BD — elimina findAll() en memoria
-    // Antes: findAll().stream().filter(ACTIVO).count() → O(n) en memoria
-    // Ahora: SELECT COUNT(*) WHERE estado = 'ACTIVO' → O(1) en BD
     @Override
     public long contarActivas() {
         return sedeRepository.countByEstado(EstadoGeneral.ACTIVO);
@@ -90,5 +87,10 @@ public class SedeServiceImpl implements SedeService {
     @Override
     public Optional<Sede> findFirstByAdminId(Long idUsuario) {
         return sedeRepository.findFirstByIdUsuario_IdUsuario(idUsuario);
+    }
+
+    @Override
+    public List<Sede> findAllByAdminId(Long idUsuario) {
+        return sedeRepository.findByIdUsuario_IdUsuario(idUsuario);
     }
 }

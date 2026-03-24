@@ -2,9 +2,11 @@ package com.exe.AparcaYA.Controllers;
 
 import com.exe.AparcaYA.Config.JwtUtil;
 import com.exe.AparcaYA.Entity.PasswordResetToken;
+import com.exe.AparcaYA.Entity.Sede;
 import com.exe.AparcaYA.Entity.Usuario;
 import com.exe.AparcaYA.Service.LogAccesoService;
 import com.exe.AparcaYA.Service.PasswordResetService;
+import com.exe.AparcaYA.Service.SedeService;
 import com.exe.AparcaYA.Service.UsuarioService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -18,6 +20,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
 
@@ -26,60 +29,32 @@ import java.util.Optional;
 @RequiredArgsConstructor
 public class AuthController {
 
-
-    private final PasswordResetService passwordResetService;
+    private final PasswordResetService  passwordResetService;
     private final UsuarioService        usuarioService;
+    private final SedeService           sedeService;
     private final PasswordEncoder       passwordEncoder;
     private final AuthenticationManager authenticationManager;
-    private final JwtUtil jwtUtil;
-    private final UserDetailsService userDetailsService;
-    private final LogAccesoService logAccesoService;
+    private final JwtUtil               jwtUtil;
+    private final UserDetailsService    userDetailsService;
+    private final LogAccesoService      logAccesoService;
 
     // =====================================================================
     // VISTAS
     // =====================================================================
 
     @GetMapping("/")
-    public String index() {
-        return "Index";
-    }
+    public String index() { return "Index"; }
 
     @GetMapping("/login")
-    public String loginPage() {
-        return "Login";
-    }
+    public String loginPage() { return "Login"; }
 
     @GetMapping("/registro")
-    public String registroPage() {
-        return "Registro_1";
-    }
+    public String registroPage() { return "Registro_1"; }
 
     // =====================================================================
     // RECUPERACIÓN DE CONTRASEÑA
-    //
-    // ANTES: endpoints comentados → JS recibía 404 → mostraba
-    //        "Error de conexión. Intenta de nuevo." (mensaje incorrecto)
-    //
-    // AHORA: flujo completo implementado en dos pasos:
-    //   POST /api/auth/forgot-password → genera token + envía email
-    //   POST /api/auth/reset-password  → valida token + actualiza contraseña
-    //
-    // Ambos endpoints están en permitAll() de SecurityConfig (/api/auth/**)
     // =====================================================================
 
-    /**
-     * PASO 1 — Solicitar token de recuperación.
-     * El JS envía el correo, el backend verifica que existe,
-     * genera el token y lo envía por email.
-     *
-     * POST /api/auth/forgot-password
-     * Body: { "email": "usuario@ejemplo.com" }
-     *
-     * Respuestas:
-     *   200 OK      → token enviado (siempre, incluso si el correo no existe,
-     *                  para no revelar qué correos están registrados)
-     *   500 Error   → fallo al enviar el email
-     */
     @PostMapping("/api/auth/forgot-password")
     @ResponseBody
     public ResponseEntity<Map<String, Object>> forgotPassword(
@@ -87,61 +62,38 @@ public class AuthController {
 
         String email = body.get("email");
 
-        // Validación básica del formato
         if (email == null || email.isBlank() ||
                 !email.matches("^[^\\s@]+@[^\\s@]+\\.[^\\s@]+$")) {
             return ResponseEntity.badRequest().body(Map.of(
-                    "success", false,
-                    "message", "Correo inválido"
-            ));
+                    "success", false, "message", "Correo inválido"));
         }
 
         email = email.trim().toLowerCase();
         log.info("Solicitud de recuperación de contraseña para: {}", email);
 
-        // Buscar el usuario — respuesta genérica para no revelar si existe
         Optional<Usuario> usuarioOpt = usuarioService.findByCorreo(email);
-
         if (usuarioOpt.isEmpty()) {
-            // No revelar que el correo no está registrado (seguridad)
             log.warn("Solicitud de recuperación para correo no registrado: {}", email);
             return ResponseEntity.ok(Map.of(
                     "success", true,
-                    "message", "Si el correo está registrado, recibirás un código en breve"
-            ));
+                    "message", "Si el correo está registrado, recibirás un código en breve"));
         }
 
         try {
             String token = passwordResetService.createPasswordResetToken(usuarioOpt.get());
             passwordResetService.sendResetEmail(email, token);
             log.info("Token de recuperación enviado a: {}", email);
-
             return ResponseEntity.ok(Map.of(
                     "success", true,
-                    "message", "Si el correo está registrado, recibirás un código en breve"
-            ));
-
+                    "message", "Si el correo está registrado, recibirás un código en breve"));
         } catch (Exception e) {
             log.error("Error enviando email de recuperación a {}: {}", email, e.getMessage());
             return ResponseEntity.internalServerError().body(Map.of(
                     "success", false,
-                    "message", "No se pudo enviar el correo. Intenta de nuevo más tarde."
-            ));
+                    "message", "No se pudo enviar el correo. Intenta de nuevo más tarde."));
         }
     }
 
-    /**
-     * PASO 2 — Restablecer contraseña con token.
-     * El JS envía el token y la nueva contraseña.
-     * El backend valida el token, actualiza la contraseña y lo marca como usado.
-     *
-     * POST /api/auth/reset-password
-     * Body: { "token": "ABC12345", "newPassword": "nuevaPass123" }
-     *
-     * Respuestas:
-     *   200 OK       → contraseña actualizada
-     *   400 Bad Req  → token inválido, expirado, ya usado o contraseña inválida
-     */
     @PostMapping("/api/auth/reset-password")
     @ResponseBody
     public ResponseEntity<Map<String, Object>> resetPassword(
@@ -150,26 +102,18 @@ public class AuthController {
         String token       = body.get("token");
         String newPassword = body.get("newPassword");
 
-        // Validación de campos
         if (token == null || token.isBlank()) {
             return ResponseEntity.badRequest().body(Map.of(
-                    "success", false,
-                    "message", "El token es obligatorio"
-            ));
+                    "success", false, "message", "El token es obligatorio"));
         }
-
-        // ✅ FIX: mínimo 8 caracteres — consistente con el registro
-        // Antes el JS pedía mínimo 6, inconsistente con el registro que pide 8
         if (newPassword == null || newPassword.length() < 8) {
             return ResponseEntity.badRequest().body(Map.of(
                     "success", false,
-                    "message", "La contraseña debe tener al menos 8 caracteres"
-            ));
+                    "message", "La contraseña debe tener al menos 8 caracteres"));
         }
 
         log.info("Intento de reset de contraseña con token: {}", token.toUpperCase());
 
-        // Validar token
         Optional<PasswordResetToken> tokenOpt =
                 passwordResetService.validateToken(token.trim().toUpperCase());
 
@@ -177,34 +121,28 @@ public class AuthController {
             log.warn("Token inválido o expirado: {}", token);
             return ResponseEntity.badRequest().body(Map.of(
                     "success", false,
-                    "message", "El código es inválido o ya expiró. Solicita uno nuevo."
-            ));
+                    "message", "El código es inválido o ya expiró. Solicita uno nuevo."));
         }
 
         try {
-            // Actualizar contraseña del usuario
             Usuario usuario = tokenOpt.get().getUsuario();
             usuario.setContrasena(passwordEncoder.encode(newPassword));
             usuarioService.save(usuario);
-
-            // Marcar token como usado para que no pueda reutilizarse
             passwordResetService.markTokenAsUsed(token.trim().toUpperCase());
-
             log.info("Contraseña actualizada exitosamente para: {}", usuario.getCorreo());
-
             return ResponseEntity.ok(Map.of(
                     "success", true,
-                    "message", "Contraseña actualizada exitosamente"
-            ));
-
+                    "message", "Contraseña actualizada exitosamente"));
         } catch (Exception e) {
             log.error("Error actualizando contraseña: {}", e.getMessage());
             return ResponseEntity.internalServerError().body(Map.of(
-                    "success", false,
-                    "message", "Error interno. Intenta de nuevo."
-            ));
+                    "success", false, "message", "Error interno. Intenta de nuevo."));
         }
     }
+
+    // =====================================================================
+    // LOGIN
+    // =====================================================================
 
     @PostMapping("/api/auth/login")
     @ResponseBody
@@ -217,19 +155,16 @@ public class AuthController {
         if (correo == null || contrasena == null) {
             return ResponseEntity.badRequest().body(Map.of(
                     "success", false,
-                    "message", "Correo y contraseña son obligatorios"
-            ));
+                    "message", "Correo y contraseña son obligatorios"));
         }
 
         try {
             authenticationManager.authenticate(
-                    new UsernamePasswordAuthenticationToken(correo, contrasena)
-            );
+                    new UsernamePasswordAuthenticationToken(correo, contrasena));
         } catch (BadCredentialsException e) {
             return ResponseEntity.status(401).body(Map.of(
                     "success", false,
-                    "message", "Correo o contraseña incorrectos"
-            ));
+                    "message", "Correo o contraseña incorrectos"));
         }
 
         UserDetails userDetails = userDetailsService.loadUserByUsername(correo);
@@ -237,16 +172,24 @@ public class AuthController {
 
         if (usuarioOpt.isEmpty()) {
             return ResponseEntity.status(401).body(Map.of(
-                    "success", false,
-                    "message", "Usuario no encontrado"
-            ));
+                    "success", false, "message", "Usuario no encontrado"));
         }
 
         Usuario usuario = usuarioOpt.get();
-        String rol = usuario.getRol().name();
-        String token = jwtUtil.generateToken(userDetails, rol);
+        String  rol     = usuario.getRol().name();
 
-        // Registrar acceso
+
+        Long sedeId = null;
+        if ("ADMINISTRADOR_SEDE".equals(rol)) {
+            Sede primerasSede = sedeService.findByIdUsuario(usuario.getIdUsuario());
+            if (primerasSede != null) sedeId = primerasSede.getIdSede();
+        } else if ("OPERARIO".equals(rol)) {
+            if (usuario.getSedeAsignada() != null)
+                sedeId = usuario.getSedeAsignada().getIdSede();
+        }
+
+        String token = jwtUtil.generateToken(userDetails, rol, sedeId);
+
         logAccesoService.registrarAcceso(usuario);
 
         String redirectUrl = switch (usuario.getRol()) {
@@ -257,12 +200,89 @@ public class AuthController {
             default                 -> "/login";
         };
 
-        return ResponseEntity.ok(Map.of(
-                "success",     true,
-                "token",       token,
-                "rol",         rol,
-                "redirectUrl", redirectUrl,
-                "nombre",      usuario.getNombre()
-        ));
+        Map<String, Object> respuesta = new HashMap<>();
+        respuesta.put("success",     true);
+        respuesta.put("token",       token);
+        respuesta.put("rol",         rol);
+        respuesta.put("redirectUrl", redirectUrl);
+        respuesta.put("nombre",      usuario.getNombre());
+        if (sedeId != null) respuesta.put("sedeId", sedeId);
+
+        return ResponseEntity.ok(respuesta);
+    }
+
+    // =====================================================================
+    // CAMBIAR SEDE ACTIVA
+    // =====================================================================
+
+    @PostMapping("/api/auth/cambiar-sede")
+    @ResponseBody
+    public ResponseEntity<Map<String, Object>> cambiarSede(
+            @RequestBody Map<String, Object> body,
+            @RequestHeader("Authorization") String authHeader) {
+
+        if (authHeader == null || !authHeader.startsWith("Bearer ")) {
+            return ResponseEntity.status(401).body(Map.of(
+                    "success", false, "message", "No autenticado"));
+        }
+
+        String tokenActual = authHeader.substring(7);
+        String correo;
+        try {
+            correo = jwtUtil.extractUsername(tokenActual);
+        } catch (Exception e) {
+            return ResponseEntity.status(401).body(Map.of(
+                    "success", false, "message", "Token inválido"));
+        }
+
+        Object sedeIdObj = body.get("sedeId");
+        if (sedeIdObj == null) {
+            return ResponseEntity.badRequest().body(Map.of(
+                    "success", false, "message", "sedeId es obligatorio"));
+        }
+        Long sedeId;
+        try {
+            sedeId = Long.parseLong(sedeIdObj.toString());
+        } catch (NumberFormatException e) {
+            return ResponseEntity.badRequest().body(Map.of(
+                    "success", false, "message", "sedeId inválido"));
+        }
+
+        Optional<Usuario> usuarioOpt = usuarioService.findByCorreo(correo);
+        if (usuarioOpt.isEmpty()) {
+            return ResponseEntity.status(401).body(Map.of(
+                    "success", false, "message", "Usuario no encontrado"));
+        }
+        Usuario usuario = usuarioOpt.get();
+        if (!"ADMINISTRADOR_SEDE".equals(usuario.getRol().name())) {
+            return ResponseEntity.status(403).body(Map.of(
+                    "success", false,
+                    "message", "Solo los administradores de sede pueden cambiar de sede"));
+        }
+
+        Optional<Sede> sedeOpt = sedeService.findById(sedeId);
+        if (sedeOpt.isEmpty()) {
+            return ResponseEntity.status(404).body(Map.of(
+                    "success", false, "message", "Sede no encontrada"));
+        }
+        Sede sede = sedeOpt.get();
+        if (!sede.getIdUsuario().getIdUsuario().equals(usuario.getIdUsuario())) {
+            return ResponseEntity.status(403).body(Map.of(
+                    "success", false,
+                    "message", "No tiene permisos sobre esta sede"));
+        }
+
+        UserDetails userDetails = userDetailsService.loadUserByUsername(correo);
+        String nuevoToken = jwtUtil.generateToken(
+                userDetails, usuario.getRol().name(), sedeId);
+
+        log.info("Sede activa cambiada a id={} para admin={}", sedeId, correo);
+
+        Map<String, Object> respuesta = new HashMap<>();
+        respuesta.put("success",    true);
+        respuesta.put("token",      nuevoToken);
+        respuesta.put("sedeId",     sedeId);
+        respuesta.put("sedeNombre", sede.getNombre());
+        return ResponseEntity.ok(respuesta);
     }
 }

@@ -32,12 +32,22 @@ public class Cupo {
     @Column(nullable = false)
     private EstadoCupo estado;
 
+    // ── Contadores por tipo de vehículo ──────────────────────────────────────
+    @Column(nullable = false)
+    private Integer cuposCarro;
+
+    @Column(nullable = false)
+    private Integer cuposMoto;
+
+    @Column(nullable = false)
+    private Integer cuposBicicleta;
+
+    // ── Relaciones ───────────────────────────────────────────────────────────
     @NotNull(message = "La sede es obligatoria")
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "id_sede", nullable = false)
     private Sede sede;
 
-    // Agregado: Un cupo puede tener muchas reservaciones
     @OneToMany(mappedBy = "cupo", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     private List<Reservacion> reservaciones = new ArrayList<>();
 }

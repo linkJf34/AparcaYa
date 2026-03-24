@@ -2,7 +2,6 @@ package com.exe.AparcaYA.Entity;
 
 import com.exe.AparcaYA.Enum.EstadoGeneral;
 import com.exe.AparcaYA.Enum.Localidad;
-import com.fasterxml.jackson.annotation.JsonBackReference;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotBlank;
@@ -47,18 +46,6 @@ public class Sede {
     private Integer capacidad;
 
     @Column(nullable = false)
-    private Double tarifaPlenaC;
-
-    @Column(nullable = false)
-    private Double tarifaPlenaM;
-
-    @Column(nullable = false)
-    private Double tarifaMinutoC;
-
-    @Column(nullable = false)
-    private Double tarifaMinutoM;
-
-    @Column(nullable = false)
     private String horarioSede;
 
     @Enumerated(EnumType.STRING)
@@ -68,41 +55,27 @@ public class Sede {
     @Column(nullable = false)
     private LocalDateTime fechaCreacion;
 
-    // ── Coordenadas geocodificadas (existentes) ──────────────────────────────
     @Column(nullable = false)
     private Double latitud;
 
     @Column(nullable = false)
     private Double longitud;
 
-    // ── NUEVOS CAMPOS — módulo configuración de sede ─────────────────────────
-    // Todos nullable para compatibilidad con sedes existentes (sin migración forzada)
-
-    /** Ruta relativa de la imagen: "sedes/12/imagen.jpg" */
     @Column(name = "imagen_sede")
     private String imagenSede;
 
-    /** Teléfono de contacto de la sede (distinto al del admin-usuario) */
     @Column(name = "telefono_sede")
     private String telefonoSede;
 
-    /** Correo de contacto público de la sede */
     @Column(name = "correo_sede")
     private String correoSede;
 
-    /** Cupos disponibles para carros (permite controlar disponibilidad por tipo) */
-    @Column(name = "cupos_carro")
-    private Integer cuposCarro;
+    // ── Relaciones ───────────────────────────────────────────────────────────
 
-    /** Cupos disponibles para motos */
-    @Column(name = "cupos_moto")
-    private Integer cuposMoto;
-
-    /** Cupos disponibles para bicicletas */
-    @Column(name = "cupos_bicicleta")
-    private Integer cuposBicicleta;
-
-    // ── Relaciones (sin cambios) ─────────────────────────────────────────────
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "id_usuario", nullable = false)
+    @JsonIgnore
+    private Usuario idUsuario;
 
     @OneToMany(mappedBy = "sede", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     @JsonIgnore
@@ -111,9 +84,4 @@ public class Sede {
     @OneToMany(mappedBy = "sede", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     @JsonIgnore
     private List<Tarifa> tarifas = new ArrayList<>();
-
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "id_usuario", nullable = false)
-    @JsonIgnore
-    private Usuario idUsuario;
 }

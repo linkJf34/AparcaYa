@@ -20,4 +20,7 @@ public interface ReservacionService {
     Reservacion crearReserva(ReservacionDTO dto, Usuario cliente);
     boolean existeConflictoHorario(Long cupoId, LocalDateTime inicio, LocalDateTime fin);
     Reservacion cancelarReserva(Long idReserva, Long idCliente);
+    Reservacion aceptarReserva(Long idReserva, Long idOperario);
+    Reservacion iniciarReserva(Long idReserva, Long idOperario);
+    Reservacion completarReserva(Long idReserva, Long idOperario);
 }

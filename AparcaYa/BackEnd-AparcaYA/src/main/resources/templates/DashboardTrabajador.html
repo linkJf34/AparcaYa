@@ -10,9 +10,12 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://cdn.jsdelivr.net/npm/daisyui@4.12.10/dist/full.min.css" rel="stylesheet"/>
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script src="https://cdn.jsdelivr.net/npm/lucide@latest/dist/umd/lucide.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
 
     <link rel="stylesheet" href="/css/base/aparca-animations.css"/>
     <link rel="stylesheet" href="/css/components/aparca-components.css"/>
+    <link rel="stylesheet" href="/css/modals/trabajador-modal.css"/>
     <link rel="stylesheet" href="/css/pages/Trabajador.css"/>
 </head>
 <body>
@@ -205,7 +208,9 @@
 <main class="aparca-dashboard-main animate-fade-in-up" id="mainContent">
 
 
-    <!-- ── INICIO ── -->
+    <!-- ════════════════════════════════════════════
+         INICIO — indicadores idénticos a Sede
+         ════════════════════════════════════════════ -->
     <section id="inicio" class="aparca-content-section">
         <h2>Panel de Control</h2>
 
@@ -213,44 +218,140 @@
             Sede: <span id="sedeNombre" class="font-semibold text-teal-700">Cargando...</span>
         </p>
 
-        <div class="trab-kpi-grid">
+        <!-- Indicadores en tiempo real — misma estructura que DashboardSede -->
+        <div class="indicadores-grid" id="indicadoresGrid">
 
-            <article class="trab-kpi-card" id="cardOcupacion">
-                <div class="trab-kpi-label">Ocupación</div>
-                <div class="trab-kpi-value" id="ocupacionActual">0/0</div>
-                <div class="trab-kpi-sub" id="porcentajeOcupacion">0%</div>
+            <article class="ind-card">
+                <div class="ind-icon ind-teal">
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none"
+                         viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round"
+                              d="M8.25 18.75a1.5 1.5 0 01-3 0m3 0a1.5 1.5 0
+                              00-3 0m3 0h6m-9 0H3.375a1.125 1.125 0
+                              01-1.125-1.125V14.25m17.25 4.5a1.5 1.5 0 01-3
+                              0m3 0a1.5 1.5 0 00-3 0m3 0h1.125c.621 0
+                              1.129-.504 1.09-1.124a17.902 17.902 0
+                              00-3.213-9.193 2.056 2.056 0 00-1.58-.86H14.25
+                              M16.5 18.75h-2.25m0-11.177v-.958c0-.568-.422
+                              -1.048-.987-1.106a48.554 48.554 0 00-10.026 0
+                              1.106 1.106 0 00-.987 1.106v7.635m12-6.677v6.677
+                              m0 4.5v-4.5m0 0h-12"/>
+                    </svg>
+                </div>
+                <div class="ind-body">
+                    <div class="ind-label">Ocupación actual</div>
+                    <div class="ind-value" id="ind-ocupacion">—</div>
+                    <div class="ind-sub"   id="ind-ocupacion-sub">Cargando...</div>
+                </div>
             </article>
 
-            <article class="trab-kpi-card">
-                <div class="trab-kpi-label">Cupos Libres</div>
-                <div class="trab-kpi-value trab-kpi-green" id="cuposLibres">0</div>
+            <article class="ind-card">
+                <div class="ind-icon ind-green">
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none"
+                         viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round"
+                              d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0
+                              11-18 0 9 9 0 0118 0z"/>
+                    </svg>
+                </div>
+                <div class="ind-body">
+                    <div class="ind-label">Cupos libres</div>
+                    <div class="ind-value" id="ind-cupos">—</div>
+                    <div class="ind-sub"   id="ind-cupos-sub">de — totales</div>
+                </div>
             </article>
 
-            <article class="trab-kpi-card">
-                <div class="trab-kpi-label">Vehículos Hoy</div>
-                <div class="trab-kpi-value" id="vehiculosHoy">0</div>
+            <article class="ind-card">
+                <div class="ind-icon ind-yellow">
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none"
+                         viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round"
+                              d="M12 6v12m-3-2.818l.879.659c1.171.879 3.07.879
+                              4.242 0 1.172-.879 1.172-2.303 0-3.182C13.536
+                              12.219 12.768 12 12 12c-.725 0-1.45-.22-2.003
+                              -.659-1.106-.879-1.106-2.303 0-3.182s2.9-.879
+                              4.006 0l.415.33M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                    </svg>
+                </div>
+                <div class="ind-body">
+                    <div class="ind-label">Ingresos hoy</div>
+                    <div class="ind-value" id="ind-ingresos">—</div>
+                    <div class="ind-sub">Registros cobrados</div>
+                </div>
             </article>
 
-            <article class="trab-kpi-card">
-                <div class="trab-kpi-label">Ingresos Día</div>
-                <div class="trab-kpi-value trab-kpi-green" id="ingresosDia">$0</div>
+            <article class="ind-card">
+                <div class="ind-icon ind-blue">
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none"
+                         viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round"
+                              d="M6.75 3v2.25M17.25 3v2.25M3 18.75V7.5a2.25
+                              2.25 0 012.25-2.25h13.5A2.25 2.25 0 0121 7.5
+                              v11.25m-18 0A2.25 2.25 0 005.25 21h13.5A2.25
+                              2.25 0 0021 18.75m-18 0v-7.5A2.25 2.25 0
+                              015.25 9h13.5A2.25 2.25 0 0121 11.25v7.5"/>
+                    </svg>
+                </div>
+                <div class="ind-body">
+                    <div class="ind-label">Vehículos hoy</div>
+                    <div class="ind-value" id="ind-vehiculos-hoy">—</div>
+                    <div class="ind-sub">Entradas del día</div>
+                </div>
             </article>
 
-            <article class="trab-kpi-card trab-kpi-warn">
-                <div class="trab-kpi-label">Pend. Cobro</div>
-                <div class="trab-kpi-value" id="pendientesCobro">0</div>
+            <article class="ind-card">
+                <div class="ind-icon ind-orange">
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none"
+                         viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round"
+                              d="M12 6v6h4.5m4.5 0a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                    </svg>
+                </div>
+                <div class="ind-body">
+                    <div class="ind-label">Pendientes cobro</div>
+                    <div class="ind-value" id="ind-pendientes">—</div>
+                    <div class="ind-sub">Esperando pago</div>
+                </div>
             </article>
 
-            <article class="trab-kpi-card trab-kpi-rates">
-                <div class="trab-kpi-label">Tarifas</div>
-                <div class="trab-kpi-rates-body" id="tarifaDisplay">Cargando...</div>
+            <article class="ind-card">
+                <div class="ind-icon ind-purple" id="ind-pct-icon">
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none"
+                         viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round"
+                              d="M7.5 14.25v2.25m3-4.5v4.5m3-6.75v6.75m3-9v9
+                              M6 20.25h12A2.25 2.25 0 0020.25 18V6A2.25 2.25
+                              0 0018 3.75H6A2.25 2.25 0 003.75 6v12A2.25 2.25
+                              0 006 20.25z"/>
+                    </svg>
+                </div>
+                <div class="ind-body">
+                    <div class="ind-label">% Ocupación</div>
+                    <div class="ind-value" id="ind-porcentaje">—</div>
+                    <div class="ind-sub"   id="ind-sede-nombre">—</div>
+                </div>
             </article>
 
         </div>
+
+        <!-- Bloque de tarifas vigentes — separado de los KPI -->
+        <div style="background:#f0fdfa;border-radius:.75rem;
+                    padding:1rem 1.25rem;border:1px solid #ccfbf1;">
+            <div style="font-size:.75rem;font-weight:700;color:#0f766e;
+                        margin-bottom:.5rem;text-transform:uppercase;
+                        letter-spacing:.05em;">Tarifas vigentes</div>
+            <div id="tarifaDisplay"
+                 style="font-size:.85rem;color:#374151;line-height:1.8;">
+                Cargando...
+            </div>
+        </div>
+
     </section>
 
 
-    <!-- ── GESTIÓN VEHÍCULOS ── -->
+    <!-- ════════════════════════════════════════════
+         GESTIÓN VEHÍCULOS — con Modo Rápido
+         ════════════════════════════════════════════ -->
     <section id="gestion" class="aparca-content-section hidden">
         <h2>Gestión de Vehículos</h2>
 
@@ -258,12 +359,14 @@
         <div class="sub-section">
             <h3 class="sub-section-title">Registrar Entrada de Vehículo</h3>
 
+            <!-- Búsqueda por placa -->
             <div class="flex gap-2 mb-4">
                 <input type="text" id="buscarPlaca"
-                       placeholder="Buscar por placa..."
+                       placeholder="Buscar cliente por placa existente..."
                        class="flex-1 px-3 py-2 border border-gray-200 rounded-lg
                               text-sm focus:outline-none focus:border-teal-400
-                              focus:ring-2 focus:ring-teal-100"/>
+                              focus:ring-2 focus:ring-teal-100"
+                       aria-label="Buscar por placa"/>
                 <button class="sede-btn-primary" type="button"
                         onclick="buscarPorPlacaIntegrado()">
                     <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4"
@@ -276,90 +379,169 @@
                 </button>
             </div>
 
+            <!-- ⚡ Toggle Modo Rápido — igual que DashboardSede -->
+            <div class="modo-rapido-toggle">
+                <label style="display:flex;align-items:center;gap:.5rem;cursor:pointer;">
+                    <div style="position:relative;display:inline-block;width:44px;height:24px;">
+                        <input type="checkbox" id="modoRapidoToggle"
+                               style="opacity:0;width:0;height:0;position:absolute;"
+                               onchange="toggleModoRegistro()"/>
+                        <span id="toggleSlider"
+                              style="position:absolute;inset:0;background:#cbd5e1;
+                                     border-radius:9999px;cursor:pointer;transition:background .2s;">
+                            <span id="toggleKnob"
+                                  style="position:absolute;top:3px;left:3px;
+                                         width:18px;height:18px;background:white;
+                                         border-radius:50%;transition:transform .2s;
+                                         box-shadow:0 1px 3px rgba(0,0,0,.2);"></span>
+                        </span>
+                    </div>
+                    <div>
+                        <div style="font-weight:700;font-size:.875rem;color:#0f766e;
+            display:flex;align-items:center;gap:.375rem;">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" fill="none"
+                                 viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"
+                                 stroke-linecap="round" stroke-linejoin="round">
+                                <path d="M4 14a1 1 0 0 1-.78-1.63l9.9-10.2a.5.5 0 0 1 .86.46
+                 l-1.92 6.02A1 1 0 0 0 13 10h7a1 1 0 0 1 .78 1.63
+                 l-9.9 10.2a.5.5 0 0 1-.86-.46l1.92-6.02A1 1 0 0 0 11 14z"/>
+                            </svg>
+                            Modo Rápido
+                        </div>
+                        <div style="font-size:.75rem;color:#64748b;">
+                            Solo placa y tipo — ideal para hora pico
+                        </div>
+                    </div>
+                </label>
+                <span id="badgeModo" class="modo-rapido-badge">COMPLETO</span>
+            </div>
+
+            <!-- Formulario de entrada -->
             <form id="registroEntradaForm" novalidate>
 
+                <!-- Campos SIEMPRE visibles: placa y tipo -->
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-
                     <div class="sede-form-group">
-                        <label for="nombre">Nombre Cliente *</label>
-                        <input type="text" id="nombre" name="nombre"
-                               required placeholder="Ej: Juan Pérez"/>
-                        <span id="nombre-error" class="error-message"></span>
-                    </div>
-
-                    <div class="sede-form-group">
-                        <label for="telefono">Teléfono *</label>
-                        <input type="tel" id="telefono" name="telefono"
-                               required placeholder="3001234567"/>
-                        <span id="telefono-error" class="error-message"></span>
-                    </div>
-
-                    <div class="sede-form-group">
-                        <label for="correo">Email *</label>
-                        <input type="email" id="correo" name="correo"
-                               required placeholder="ejemplo@correo.com"/>
-                        <span id="correo-error" class="error-message"></span>
-                    </div>
-
-                    <div class="sede-form-group">
-                        <label for="cedula">Cédula *</label>
-                        <input type="text" id="cedula" name="cedula"
-                               required placeholder="1234567890"/>
-                        <span id="cedula-error" class="error-message"></span>
-                    </div>
-
-                    <div class="sede-form-group">
-                        <label for="placa">Placa *</label>
+                        <label for="placa">Placa *
+                            <span style="font-size:.7rem;font-weight:400;
+                                         color:#64748b;margin-left:.25rem;">
+                                (requerida siempre)
+                            </span>
+                        </label>
                         <input type="text" id="placa" name="placa"
                                required maxlength="6" placeholder="ABC123"
-                               style="text-transform:uppercase"/>
-                        <span id="placa-error" class="error-message"></span>
+                               style="text-transform:uppercase;font-size:1.05rem;
+                                      font-weight:700;letter-spacing:.08em;"
+                               oninput="this.value=this.value.toUpperCase()
+                                        .replace(/[^A-Z0-9]/g,'').substring(0,6)"/>
+                        <span id="placa-error" class="error-message"
+                              aria-live="polite"></span>
                     </div>
-
                     <div class="sede-form-group">
-                        <label for="tipoVehiculo">Tipo Vehículo *</label>
+                        <label for="tipoVehiculo">Tipo Vehículo *
+                            <span style="font-size:.7rem;font-weight:400;
+                                         color:#64748b;margin-left:.25rem;">
+                                (requerido siempre)
+                            </span>
+                        </label>
                         <select id="tipoVehiculo" name="tipoVehiculo" required>
-                            <option value="">Selecciona un tipo</option>
                             <option value="CARRO">Carro</option>
                             <option value="MOTO">Moto</option>
                             <option value="BICICLETA">Bicicleta</option>
                             <option value="OTRO">Otro</option>
                         </select>
-                        <span id="tipoVehiculo-error" class="error-message"></span>
+                        <span id="tipoVehiculo-error" class="error-message"
+                              aria-live="polite"></span>
                     </div>
+                </div>
 
-                    <div class="sede-form-group">
-                        <label for="marca">Marca *</label>
-                        <select id="marca" name="marca" required>
-                            <option value="">Selecciona una marca</option>
-                        </select>
-                        <span id="marca-error" class="error-message"></span>
+                <!-- Campos OPCIONALES en modo rápido -->
+                <div id="camposCompletos"
+                     style="overflow:hidden;transition:max-height .35s ease,
+                            opacity .3s ease;max-height:800px;opacity:1;">
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4"
+                         style="padding-top:.5rem;">
+
+                        <div class="sede-form-group">
+                            <label for="nombre">Nombre Cliente</label>
+                            <input type="text" id="nombre" name="nombre"
+                                   minlength="2" maxlength="100"
+                                   autocomplete="name"
+                                   placeholder="Ej: Juan Pérez"/>
+                            <span id="nombre-error" class="error-message"
+                                  aria-live="polite"></span>
+                        </div>
+
+                        <div class="sede-form-group">
+                            <label for="telefono">Teléfono</label>
+                            <input type="tel" id="telefono" name="telefono"
+                                   autocomplete="tel"
+                                   placeholder="Ej: 3001234567"/>
+                            <span id="telefono-error" class="error-message"
+                                  aria-live="polite"></span>
+                        </div>
+
+                        <div class="sede-form-group">
+                            <label for="correo">Email</label>
+                            <input type="email" id="correo" name="correo"
+                                   autocomplete="email"
+                                   placeholder="ejemplo@correo.com"/>
+                            <span id="correo-error" class="error-message"
+                                  aria-live="polite"></span>
+                        </div>
+
+                        <div class="sede-form-group">
+                            <label for="cedula">Cédula</label>
+                            <input type="text" id="cedula" name="cedula"
+                                   autocomplete="off"
+                                   placeholder="Ej: 1234567890"/>
+                            <span id="cedula-error" class="error-message"
+                                  aria-live="polite"></span>
+                        </div>
+
+                        <div class="sede-form-group">
+                            <label for="marca">Marca</label>
+                            <select id="marca" name="marca">
+                                <option value="">Selecciona una marca</option>
+                            </select>
+                            <span id="marca-error" class="error-message"
+                                  aria-live="polite"></span>
+                        </div>
+
+                        <div class="sede-form-group">
+                            <label for="color">Color</label>
+                            <input type="text" id="color" name="color"
+                                   placeholder="Ej: Rojo"/>
+                        </div>
+
+                        <div class="sede-form-group">
+                            <label for="anio">Año</label>
+                            <input type="number" id="anio" name="anio"
+                                   min="2000" max="2025" placeholder="2020"/>
+                        </div>
+
                     </div>
-
-                    <div class="sede-form-group">
-                        <label for="color">Color</label>
-                        <input type="text" id="color" name="color" placeholder="Ej: Rojo"/>
-                    </div>
-
-                    <div class="sede-form-group">
-                        <label for="anio">Año</label>
-                        <input type="number" id="anio" name="anio"
-                               min="2000" max="2025" placeholder="2020"/>
-                    </div>
-
                 </div>
 
                 <div class="flex gap-2 mt-4">
-                    <button type="submit" class="sede-btn-success">
+                    <button type="submit" class="sede-btn-success" style="flex:1;">
                         <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4"
                              fill="none" viewBox="0 0 24 24" stroke="currentColor">
                             <path stroke-linecap="round" stroke-linejoin="round"
                                   stroke-width="2" d="M5 13l4 4L19 7"/>
                         </svg>
-                        Registrar Entrada
+                        <span id="btnRegistrarTexto">Registrar Entrada</span>
                     </button>
                     <button type="button" class="sede-btn-secondary"
                             onclick="limpiarFormularioEntrada()">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4"
+                             fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round"
+                                  stroke-width="2"
+                                  d="M4 4v5h.582m15.356 2A8.001 8.001 0
+                                  004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003
+                                  8.003 0 01-15.357-2m15.357 2H15"/>
+                        </svg>
                         Limpiar
                     </button>
                 </div>
@@ -368,7 +550,7 @@
 
         <!-- Vehículos activos -->
         <div class="sub-section">
-            <h3 class="sub-section-title">⏱ Vehículos en Parqueadero</h3>
+            <h3 class="sub-section-title">Vehículos en Parqueadero (Temporizando)</h3>
             <div class="overflow-x-auto">
                 <table class="aparca-table">
                     <thead>
@@ -387,7 +569,7 @@
 
         <!-- Pendientes de cobro -->
         <div class="sub-section">
-            <h3 class="sub-section-title">💰 Pendientes de Cobro</h3>
+            <h3 class="sub-section-title">Pendientes de Cobro</h3>
             <div class="overflow-x-auto">
                 <table class="aparca-table">
                     <thead>
@@ -406,19 +588,23 @@
     </section>
 
 
-    <!-- ── HISTORIAL ── -->
+    <!-- ════════════════════════════════════════════
+         HISTORIAL
+         ════════════════════════════════════════════ -->
     <section id="historial" class="aparca-content-section hidden">
         <h2>Historial de Registros</h2>
 
         <div class="filter-bar">
-            <input type="date" id="filtroFecha"/>
-            <select id="filtroEstado">
+            <input type="date" id="filtroFecha"
+                   aria-label="Filtrar por fecha"/>
+            <select id="filtroEstado" aria-label="Filtrar por estado">
                 <option value="">Todos los estados</option>
                 <option value="ACTIVO">Activo</option>
                 <option value="FINALIZADO">Pendiente Cobro</option>
                 <option value="COBRADO">Cobrado</option>
             </select>
-            <button class="sede-btn-primary" type="button" onclick="loadHistorial()">
+            <button class="sede-btn-primary" type="button"
+                    onclick="loadHistorial()">
                 <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4"
                      fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path stroke-linecap="round" stroke-linejoin="round"
@@ -439,14 +625,18 @@
                 </tr>
                 </thead>
                 <tbody id="historialBody">
-                <tr><td colspan="9" class="loading">Seleccione filtros y presione Filtrar</td></tr>
+                <tr><td colspan="9" class="loading">
+                    Seleccione filtros y presione Filtrar
+                </td></tr>
                 </tbody>
             </table>
         </div>
     </section>
 
 
-    <!-- ── RESERVACIONES ── -->
+    <!-- ════════════════════════════════════════════
+         RESERVACIONES
+         ════════════════════════════════════════════ -->
     <section id="reservaciones" class="aparca-content-section hidden">
         <h2>Reservaciones Pendientes</h2>
 
@@ -466,7 +656,9 @@
     </section>
 
 
-    <!-- ── CARGA MASIVA ── -->
+    <!-- ════════════════════════════════════════════
+         CARGA MASIVA
+         ════════════════════════════════════════════ -->
     <section id="cargamasiva" class="aparca-content-section hidden">
         <h2>Carga Masiva desde Excel</h2>
 
@@ -536,6 +728,7 @@
                 <div class="flex-1 min-w-60">
                     <input type="file" id="excelFile" accept=".xlsx,.xls"
                            onchange="mostrarArchivoSeleccionado()"
+                           aria-label="Seleccionar archivo Excel"
                            class="w-full px-3 py-2 border-2 border-dashed
                                   border-gray-200 rounded-lg cursor-pointer
                                   text-sm text-gray-500 hover:border-teal-300
@@ -563,11 +756,11 @@
                 <div id="progressBar"
                      style="height:1.5rem;
                             background:linear-gradient(90deg,#14b8a6,#0f766e);
-                            border-radius:0.25rem;width:0%;
-                            transition:width 0.3s ease;
+                            border-radius:.25rem;width:0%;
+                            transition:width .3s ease;
                             display:flex;align-items:center;
                             justify-content:center;
-                            color:white;font-size:0.85rem;font-weight:600;"></div>
+                            color:white;font-size:.85rem;font-weight:600;"></div>
             </div>
             <p id="progressText" class="text-center text-gray-500 text-sm"></p>
         </div>
@@ -578,7 +771,8 @@
             <div id="erroresContainer" style="display:none" class="mb-4">
                 <div class="bg-red-50 border-l-4 border-red-400 p-4 rounded-lg">
                     <h4 class="text-red-600 font-semibold mb-2">Errores encontrados:</h4>
-                    <ul id="listaErrores" class="text-red-800 text-sm list-disc ml-5"></ul>
+                    <ul id="listaErrores"
+                        class="text-red-800 text-sm list-disc ml-5"></ul>
                 </div>
             </div>
             <div class="overflow-x-auto">
@@ -598,150 +792,14 @@
 </main>
 
 
-<!-- ==================================================
-     MODAL SALIDA
-     ================================================== -->
-<div id="salidaModal"
-     style="display:none;position:fixed;inset:0;z-index:1000;
-            background:rgba(0,0,0,0.5);
-            align-items:center;justify-content:center;padding:1rem;"
-     role="dialog" aria-modal="true" aria-labelledby="salidaModalTitulo">
-
-    <div class="sede-modal-box" style="max-width:480px;width:100%;">
-
-        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:1.25rem;">
-            <h3 id="salidaModalTitulo" style="font-size:1.125rem;font-weight:700;color:#0f172a;margin:0;">
-                Registrar Salida
-            </h3>
-            <button type="button" onclick="cerrarModalSalida()"
-                    style="background:none;border:none;cursor:pointer;color:#64748b;padding:0.25rem;">
-                <svg xmlns="http://www.w3.org/2000/svg" style="width:1.25rem;height:1.25rem;"
-                     fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                    <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/>
-                </svg>
-            </button>
-        </div>
-
-        <div style="background:#f0fdfa;border-radius:0.75rem;padding:1.25rem;margin-bottom:1.25rem;">
-            <div class="sede-modal-salida-row">
-                <strong>Placa:</strong>
-                <span id="salidaPlaca" style="font-weight:700;color:#0f766e;">—</span>
-            </div>
-            <div class="sede-modal-salida-row">
-                <strong>Cliente:</strong>
-                <span id="salidaCliente">—</span>
-            </div>
-            <div class="sede-modal-salida-row">
-                <strong>Hora Entrada:</strong>
-                <span id="salidaHoraEntrada">—</span>
-            </div>
-            <div class="sede-modal-salida-row">
-                <strong>Tiempo:</strong>
-                <span id="salidaTiempo" style="font-family:'Courier New',monospace;font-weight:700;color:#0f766e;">—</span>
-            </div>
-            <div id="salidaCobroEstimado"
-                 style="margin-top:0.75rem;padding-top:0.75rem;border-top:1px solid #ccfbf1;">
-            </div>
-        </div>
-
-        <div class="sede-modal-action">
-            <button type="button" class="sede-btn-secondary" onclick="cerrarModalSalida()">
-                Cancelar
-            </button>
-            <button type="button" class="sede-btn-success" onclick="confirmarSalida()">
-                <svg xmlns="http://www.w3.org/2000/svg" style="width:1rem;height:1rem;"
-                     fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                    <path stroke-linecap="round" stroke-linejoin="round"
-                          d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0
-                             01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"/>
-                </svg>
-                Confirmar Salida
-            </button>
-        </div>
-
-    </div>
-</div>
-
-
-<!-- ==================================================
-     MODAL COBRO
-     ================================================== -->
-<div id="cobroModal"
-     style="display:none;position:fixed;inset:0;z-index:1000;
-            background:rgba(0,0,0,0.5);
-            align-items:center;justify-content:center;padding:1rem;"
-     role="dialog" aria-modal="true" aria-labelledby="cobroModalTitulo">
-
-    <div class="sede-modal-box" style="max-width:520px;width:100%;max-height:90vh;overflow-y:auto;">
-
-        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:1.25rem;">
-            <h3 id="cobroModalTitulo" style="font-size:1.125rem;font-weight:700;color:#0f172a;margin:0;">
-                💰 Procesar Cobro
-            </h3>
-            <button type="button" onclick="cerrarModalCobro()"
-                    style="background:none;border:none;cursor:pointer;color:#64748b;padding:0.25rem;">
-                <svg xmlns="http://www.w3.org/2000/svg" style="width:1.25rem;height:1.25rem;"
-                     fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                    <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/>
-                </svg>
-            </button>
-        </div>
-
-        <div style="background:#f0fdfa;border-radius:0.75rem;padding:1.25rem;margin-bottom:1rem;">
-            <div class="sede-modal-cobro-row">
-                <strong>Cliente:</strong>
-                <span id="cobroCliente">—</span>
-            </div>
-            <div class="sede-modal-cobro-row">
-                <strong>Placa:</strong>
-                <span id="cobroPlaca" style="font-weight:700;color:#0f766e;">—</span>
-            </div>
-            <div class="sede-modal-cobro-row">
-                <strong>Tiempo total:</strong>
-                <span id="cobroTiempo" style="font-family:'Courier New',monospace;font-weight:700;color:#0f766e;">—</span>
-            </div>
-            <div class="sede-modal-cobro-row"
-                 style="margin-top:0.5rem;padding-top:0.5rem;border-top:1px solid #ccfbf1;">
-                <strong>Total a cobrar:</strong>
-                <span style="font-size:1.25rem;font-weight:800;color:#059669;">
-                    $<span id="cobroPrecio">0</span>
-                </span>
-            </div>
-        </div>
-
-        <div id="tarifaSelectorContainer" style="margin-bottom:1rem;"></div>
-
-        <div class="sede-form-group" style="margin-bottom:1.25rem;">
-            <label for="metodoPago"
-                   style="font-size:0.85rem;font-weight:600;color:#374151;display:block;margin-bottom:0.4rem;">
-                Método de Pago
-            </label>
-            <select id="metodoPago"
-                    style="width:100%;padding:0.6rem 0.9rem;border:1px solid #d1d5db;
-                           border-radius:0.5rem;font-size:0.9rem;color:#374151;
-                           background:white;cursor:pointer;">
-                <option value="EFECTIVO">💵 Efectivo</option>
-                <option value="TARJETA">💳 Tarjeta</option>
-                <option value="TRANSFERENCIA">📱 Transferencia</option>
-            </select>
-        </div>
-
-        <div class="sede-modal-action">
-            <button type="button" class="sede-btn-secondary" onclick="cerrarModalCobro()">
-                Cancelar
-            </button>
-            <button type="button" class="sede-btn-primary" onclick="procesarCobro()">
-                Confirmar Cobro
-            </button>
-        </div>
-
-    </div>
-</div>
-
+<div th:replace="modals/trabajador-modal-salida :: modal"></div>
+<div th:replace="modals/trabajador-modal-cobro :: modal"></div>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<script src="/js/aparca-notifications.js"></script>
 <script src="/js/sessionHandler.js"></script>
 <script src="/js/TrabajadorD.js"></script>
+
 
 <script>
     function toggleSidebar() {
@@ -751,7 +809,9 @@
             btn.setAttribute('aria-label',
                 collapsed ? 'Expandir menú lateral' : 'Colapsar menú lateral');
         }
-        try { localStorage.setItem('trab-sidebar-collapsed', collapsed ? '1' : '0'); } catch(e) {}
+        try {
+            localStorage.setItem('trab-sidebar-collapsed', collapsed ? '1' : '0');
+        } catch(e) {}
     }
 
     (function() {
@@ -765,6 +825,8 @@
     })();
 
     document.addEventListener('DOMContentLoaded', function() {
+        if (typeof lucide !== 'undefined') lucide.createIcons();
+
         var usernameEl = document.getElementById('sidebarUsername');
         var avatarEl   = document.getElementById('sidebarAvatarInitial');
         if (usernameEl && avatarEl) {

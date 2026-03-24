@@ -211,4 +211,76 @@ public class ReservacionController {
             @PathVariable EstadoReservacion estado) {
         return ResponseEntity.ok(reservacionService.findByEstado(estado));
     }
+
+    // =========================================================
+   // POST /api/reservaciones/{id}/aceptar — PENDIENTE → ACEPTADA
+  // =========================================================
+    @PostMapping("/{id}/aceptar")
+    @PreAuthorize("hasAnyRole('ADMIN', 'OPERARIO', 'ADMINISTRADOR_SEDE')")
+    public ResponseEntity<?> aceptarReservacion(@PathVariable Long id) {
+        Usuario operario = getUsuarioAutenticado();
+        if (operario == null)
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                    .body(Map.of("message", "No autenticado"));
+        try {
+            Reservacion r = reservacionService.aceptarReserva(id, operario.getIdUsuario());
+            return ResponseEntity.ok(Map.of(
+                    "idReserva", r.getIdReserva(),
+                    "estado",    r.getEstado().name(),
+                    "message",   "Reserva aceptada correctamente"));
+        } catch (IllegalStateException e) {
+            return ResponseEntity.status(HttpStatus.CONFLICT)
+                    .body(Map.of("message", e.getMessage()));
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.notFound().build();
+        }
+    }
+
+    // =========================================================
+   // POST /api/reservaciones/{id}/iniciar — ACEPTADA → EN_CURSO
+  // =========================================================
+    @PostMapping("/{id}/iniciar")
+    @PreAuthorize("hasAnyRole('ADMIN', 'OPERARIO', 'ADMINISTRADOR_SEDE')")
+    public ResponseEntity<?> iniciarReservacion(@PathVariable Long id) {
+        Usuario operario = getUsuarioAutenticado();
+        if (operario == null)
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                    .body(Map.of("message", "No autenticado"));
+        try {
+            Reservacion r = reservacionService.iniciarReserva(id, operario.getIdUsuario());
+            return ResponseEntity.ok(Map.of(
+                    "idReserva", r.getIdReserva(),
+                    "estado",    r.getEstado().name(),
+                    "message",   "Reserva iniciada correctamente"));
+        } catch (IllegalStateException e) {
+            return ResponseEntity.status(HttpStatus.CONFLICT)
+                    .body(Map.of("message", e.getMessage()));
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.notFound().build();
+        }
+    }
+
+     // =========================================================
+    // POST /api/reservaciones/{id}/completar — EN_CURSO → COMPLETADA
+   // =========================================================
+    @PostMapping("/{id}/completar")
+    @PreAuthorize("hasAnyRole('ADMIN', 'OPERARIO', 'ADMINISTRADOR_SEDE')")
+    public ResponseEntity<?> completarReservacion(@PathVariable Long id) {
+        Usuario operario = getUsuarioAutenticado();
+        if (operario == null)
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                    .body(Map.of("message", "No autenticado"));
+        try {
+            Reservacion r = reservacionService.completarReserva(id, operario.getIdUsuario());
+            return ResponseEntity.ok(Map.of(
+                    "idReserva", r.getIdReserva(),
+                    "estado",    r.getEstado().name(),
+                    "message",   "Reserva completada — pendiente de cobro"));
+        } catch (IllegalStateException e) {
+            return ResponseEntity.status(HttpStatus.CONFLICT)
+                    .body(Map.of("message", e.getMessage()));
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.notFound().build();
+        }
+    }
 }

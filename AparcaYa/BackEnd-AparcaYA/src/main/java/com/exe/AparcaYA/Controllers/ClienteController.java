@@ -13,6 +13,7 @@ import com.exe.AparcaYA.Service.ReservacionService;
 import com.exe.AparcaYA.Service.SedeService;
 import com.exe.AparcaYA.Service.UsuarioService;
 import com.exe.AparcaYA.Service.VehiculoService;
+import jakarta.transaction.Transactional;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -24,6 +25,7 @@ import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -40,25 +42,22 @@ public class ClienteController {
     @Autowired private SedeService        sedeService;
     @Autowired private PagoService        pagoService;
     @Autowired private VehiculoService    vehiculoService;
-
-    // ✅ FIX-P1: inyectado para verificar y hashear contraseñas en cambiarPassword()
-    // Sin este bean, cambiarContrasena() del JS llamaba a /perfil/actualizar
-    // que ignoraba los campos de password — el botón nunca hacía nada real.
     @Autowired private PasswordEncoder    passwordEncoder;
 
     // =========================================================
     // UTILIDAD
     // =========================================================
+
     private Usuario getUsuarioAutenticado() {
         String correo = SecurityContextHolder.getContext()
-                .getAuthentication()
-                .getName();
+                .getAuthentication().getName();
         return usuarioService.findByCorreo(correo).orElse(null);
     }
 
     // =========================================================
     // DASHBOARD
     // =========================================================
+
     @GetMapping("/dashboard")
     public String mostrarDashboard(Model model) {
         Usuario usuario = getUsuarioAutenticado();
@@ -73,7 +72,8 @@ public class ClienteController {
             model.addAttribute("reservaciones", reservaciones);
 
             long reservasActivas = reservaciones.stream()
-                    .filter(r -> r.getEstado() == EstadoReservacion.ACTIVA)
+                    .filter(r -> r.getEstado() == EstadoReservacion
+                            .ACEPTADA)
                     .count();
             model.addAttribute("reservasActivas", reservasActivas);
 
@@ -95,19 +95,20 @@ public class ClienteController {
     // =========================================================
     // PERFIL — GET
     // =========================================================
+
     @GetMapping("/perfil")
     @ResponseBody
     public ResponseEntity<UsuarioDTO> obtenerPerfil() {
         Usuario usuario = getUsuarioAutenticado();
-        if (usuario == null) return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+        if (usuario == null)
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
         return ResponseEntity.ok(UsuarioDTO.fromEntity(usuario));
     }
 
     // =========================================================
     // PERFIL — Actualizar nombre y teléfono
-    // Solo procesa "nombre" y "telefono".
-    // Los campos de contraseña usan /perfil/cambiar-password.
     // =========================================================
+
     @PostMapping("/perfil/actualizar")
     @ResponseBody
     public ResponseEntity<Map<String, Object>> actualizarPerfil(
@@ -116,17 +117,17 @@ public class ClienteController {
         if (usuario == null) return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
                 .body(Map.of("success", false, "message", "No autenticado"));
         try {
-            if (campos.containsKey("nombre"))   usuario.setNombre(campos.get("nombre"));
-            if (campos.containsKey("telefono")) usuario.setTelefono(campos.get("telefono"));
             if (campos.containsKey("correo")) {
                 return ResponseEntity.status(HttpStatus.BAD_REQUEST)
                         .body(Map.of("success", false,
                                 "message", "El correo no puede modificarse desde este endpoint"));
             }
+            if (campos.containsKey("nombre"))   usuario.setNombre(campos.get("nombre"));
+            if (campos.containsKey("telefono")) usuario.setTelefono(campos.get("telefono"));
 
             usuarioService.update(usuario);
-            return ResponseEntity.ok(Map.of("success", true,
-                    "message", "Perfil actualizado correctamente"));
+            return ResponseEntity.ok(Map.of(
+                    "success", true, "message", "Perfil actualizado correctamente"));
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
                     .body(Map.of("success", false, "message", e.getMessage()));
@@ -135,47 +136,30 @@ public class ClienteController {
 
     // =========================================================
     // PERFIL — Cambiar contraseña
-    //
-    // ✅ FIX-P1: endpoint nuevo que realmente cambia la contraseña.
-    //
-    // Antes: cambiarContrasena() del JS llamaba a POST /perfil/actualizar,
-    //        que solo procesaba "nombre" y "telefono" — los campos
-    //        "passwordActual" y "passwordNueva" eran ignorados.
-    //        El botón "Actualizar contraseña" respondía success:true
-    //        sin modificar nada en la base de datos.
-    //
-    // Ahora: este endpoint verifica la contraseña actual con BCrypt,
-    //        valida la nueva, la hashea y la persiste correctamente.
     // =========================================================
+
     @PostMapping("/perfil/cambiar-password")
     @ResponseBody
     public ResponseEntity<Map<String, Object>> cambiarPassword(
             @RequestBody Map<String, String> campos) {
 
         Usuario usuario = getUsuarioAutenticado();
-        if (usuario == null) {
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
-                    .body(Map.of("success", false, "message", "No autenticado"));
-        }
+        if (usuario == null) return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                .body(Map.of("success", false, "message", "No autenticado"));
 
         String passwordActual = campos.get("passwordActual");
         String passwordNueva  = campos.get("passwordNueva");
 
-        // Validar que vengan los dos campos
-        if (passwordActual == null || passwordActual.isBlank() ||
-                passwordNueva  == null || passwordNueva.isBlank()) {
+        if (passwordActual == null || passwordActual.isBlank()
+                || passwordNueva == null || passwordNueva.isBlank()) {
             return ResponseEntity.badRequest()
                     .body(Map.of("success", false, "message", "Completa todos los campos"));
         }
-
-        // Longitud mínima — espeja la validación del frontend
         if (passwordNueva.length() < 8) {
             return ResponseEntity.badRequest()
                     .body(Map.of("success", false,
                             "message", "La nueva contraseña debe tener al menos 8 caracteres"));
         }
-
-        // Verificar que la contraseña actual sea correcta
         if (!passwordEncoder.matches(passwordActual, usuario.getContrasena())) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST)
                     .body(Map.of("success", false,
@@ -186,25 +170,26 @@ public class ClienteController {
             usuario.setContrasena(passwordEncoder.encode(passwordNueva));
             usuarioService.update(usuario);
             log.info("Contraseña actualizada — usuario={}", usuario.getIdUsuario());
-            return ResponseEntity.ok(Map.of("success", true,
-                    "message", "Contraseña actualizada correctamente"));
+            return ResponseEntity.ok(Map.of(
+                    "success", true, "message", "Contraseña actualizada correctamente"));
         } catch (Exception e) {
             log.error("Error actualizando contraseña — usuario={}: {}",
                     usuario.getIdUsuario(), e.getMessage());
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                    .body(Map.of("success", false,
-                            "message", "Error al actualizar la contraseña"));
+                    .body(Map.of("success", false, "message", "Error al actualizar la contraseña"));
         }
     }
 
     // =========================================================
     // VEHÍCULOS
     // =========================================================
+
     @GetMapping("/vehiculos")
     @ResponseBody
     public ResponseEntity<List<Map<String, Object>>> obtenerVehiculos() {
         Usuario usuario = getUsuarioAutenticado();
-        if (usuario == null) return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+        if (usuario == null)
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
 
         try {
             List<Vehiculo> vehiculos =
@@ -231,11 +216,14 @@ public class ClienteController {
     // =========================================================
     // RESERVAS — GET
     // =========================================================
+
     @GetMapping("/reservas")
+    @Transactional
     @ResponseBody
     public ResponseEntity<List<Map<String, Object>>> obtenerReservas() {
         Usuario usuario = getUsuarioAutenticado();
-        if (usuario == null) return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+        if (usuario == null)
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
 
         try {
             List<Reservacion> reservaciones =
@@ -272,23 +260,20 @@ public class ClienteController {
     // =========================================================
     // RESERVAS — Cancelar
     // =========================================================
+
     @PostMapping("/reservas/{reservaId}/cancelar")
     @ResponseBody
     public ResponseEntity<Map<String, Object>> cancelarReserva(
             @PathVariable Long reservaId) {
 
         Usuario usuario = getUsuarioAutenticado();
-        if (usuario == null) {
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
-                    .body(Map.of("success", false, "message", "No autenticado"));
-        }
+        if (usuario == null) return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                .body(Map.of("success", false, "message", "No autenticado"));
 
         try {
             reservacionService.cancelarReserva(reservaId, usuario.getIdUsuario());
             return ResponseEntity.ok(Map.of(
-                    "success", true,
-                    "message", "Reserva cancelada correctamente"
-            ));
+                    "success", true, "message", "Reserva cancelada correctamente"));
         } catch (IllegalArgumentException e) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND)
                     .body(Map.of("success", false, "message", e.getMessage()));
@@ -306,6 +291,7 @@ public class ClienteController {
     // =========================================================
     // SEDES
     // =========================================================
+
     @GetMapping("/sedes")
     @ResponseBody
     public ResponseEntity<List<SedeDTO>> obtenerSedesActivas() {
@@ -327,21 +313,34 @@ public class ClienteController {
     // =========================================================
     // PAGOS
     // =========================================================
+
     @GetMapping("/pagos")
+    @Transactional
     @ResponseBody
     public ResponseEntity<List<Map<String, Object>>> obtenerPagos() {
         Usuario usuario = getUsuarioAutenticado();
-        if (usuario == null) return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+        if (usuario == null)
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
 
         try {
-            List<Pago> pagos = pagoService.findByCliente_IdUsuario(usuario.getIdUsuario());
+            // CORRECCIÓN — findByCliente_IdUsuario fue eliminado de PagoService.
+            // Los pagos de un cliente se obtienen a través de sus reservaciones.
+            List<Reservacion> reservaciones =
+                    reservacionService.findByCliente_IdUsuario(usuario.getIdUsuario());
+
+            List<Pago> pagos = reservaciones.stream()
+                    .flatMap(r -> pagoService
+                            .findByReservacion_IdReserva(r.getIdReserva()).stream())
+                    .collect(Collectors.toList());
 
             List<Map<String, Object>> resultado = pagos.stream().map(p -> {
                 Map<String, Object> item = new LinkedHashMap<>();
-                item.put("fechaPago",   p.getFechaPago());
-                item.put("monto",       p.getMonto());
-                item.put("metodoPago",  p.getMetodoPago() != null ? p.getMetodoPago().name() : "N/A");
-                item.put("estado",      p.getEstado()     != null ? p.getEstado().name()     : "");
+                item.put("fechaPago",  p.getFechaPago());
+                item.put("monto",      p.getMonto());
+                item.put("metodoPago", p.getMetodoPago() != null
+                        ? p.getMetodoPago().name() : "N/A");
+                item.put("estado",     p.getEstado() != null
+                        ? p.getEstado().name() : "");
 
                 Long idReserva = null;
                 if (p.getReservacion() != null) {
@@ -364,6 +363,7 @@ public class ClienteController {
     // =========================================================
     // LOGOUT
     // =========================================================
+
     @GetMapping("/logout")
     public String cerrarSesion() {
         return "redirect:/logout";

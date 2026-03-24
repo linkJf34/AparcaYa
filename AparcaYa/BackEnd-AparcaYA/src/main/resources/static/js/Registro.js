@@ -883,7 +883,7 @@ document.addEventListener('DOMContentLoaded', function () {
     async function reverseGeocodificar(lat, lon) {
         setMapStatus(`${ICONS.spinner} Obteniendo dirección...`, 'loading');
 
-        const ahora = Date.now();
+        const ahora  = Date.now();
         const espera = 1050 - (ahora - lastNominatimReq);
         if (espera > 0) await new Promise(r => setTimeout(r, espera));
         lastNominatimReq = Date.now();
@@ -904,16 +904,17 @@ document.addEventListener('DOMContentLoaded', function () {
             const data = await resp.json();
 
             if (data && data.display_name) {
-                const addr   = data.address || {};
+                const addr = data.address || {};
+
+                // ── FIX: solo calle + número — sin barrio ni localidad ──
                 const partes = [
                     addr.road,
-                    addr.house_number,
-                    addr.suburb || addr.neighbourhood || addr.quarter
+                    addr.house_number
                 ].filter(Boolean);
 
                 const dirLegible = partes.length > 0
                     ? partes.join(' ')
-                    : data.display_name.split(',').slice(0, 3).join(',').trim();
+                    : data.display_name.split(',')[0].trim();
 
                 const campoDireccion = document.getElementById('direccion');
                 if (campoDireccion && dirLegible) {

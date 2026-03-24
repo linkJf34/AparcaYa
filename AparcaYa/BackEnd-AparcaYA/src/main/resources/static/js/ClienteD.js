@@ -1,40 +1,19 @@
+'use strict';
 // ============================================================
-// CLIENTED.JS — AparcaYA  v2.1
+// CLIENTED.JS — AparcaYA  v2.2
 // Ruta: /js/ClienteD.js
 //
+// v2.2 — Migración al helper centralizado:
+//   ✅ showToast() local eliminada  → delega en helper (aparca-notifications.js)
+//   ✅ showConfirm() local eliminada → delega en helper (aparca-notifications.js)
+//   ✅ cerrarModalSede() duplicada eliminada
+//   ✅ mostrarDetallesSede() corregida: asigna sedeSeleccionada antes de abrir reserva
+//
 // v2.1 — Fixes aplicados:
-//   ✅ FIX-R1: crearReserva() usa GET /api/cupos/disponibles (era /api/cupos/sede/{id})
-//              El endpoint anterior tenía @PreAuthorize(ADMIN/OPERARIO) → 403 para CLIENTE
-//              El nuevo endpoint filtra por horario y es accesible para CLIENTE
-//   ✅ FIX-R2: Formato ISO con segundos (:00) — LocalDateTime requiere HH:mm:ss
-//              El calendario generaba "2026-03-19T14:30" → Jackson lo rechazaba con 400
+//   ✅ FIX-R1: crearReserva() usa GET /api/cupos/disponibles
+//   ✅ FIX-R2: Formato ISO con segundos (:00) para LocalDateTime
 //   ✅ FIX-P1: cambiarContrasena() usa POST /cliente/perfil/cambiar-password
-//              El endpoint anterior (/perfil/actualizar) ignoraba los campos de contraseña
-//   ✅ FIX-N1: TABS_LABELS definida una sola vez (eliminada del HTML el duplicado)
-//
-// v2.0 — Mejoras integradas:
-//   ✅ FIX C-01: userId eliminado del body de reserva.
-//   ✅ FIX C-03: cancelarReserva() lee data.message del backend.
-//   ✅ FIX C-04: alert()/confirm() reemplazados por toasts y modal.
-//   ✅ FIX JS:   crearReserva() envía vehiculoId en lugar de placa.
-//   ✅ FIX LAYOUT: sidebar colapsable, handleLogout con POST /logout.
-//   ✅ CLI-J03: crearReserva() verifica cuposRes.ok antes de parsear JSON.
-//
-//   ★ NUEVO v2.0:
-//   ★ KPIs de inicio (reservas activas, total, último pago, sedes)
-//   ★ Actividad reciente (últimas 5 reservas)
-//   ★ Estado actual de reserva activa
-//   ★ Dropdown de perfil mejorado (perfil + config + logout)
-//   ★ Breadcrumb dinámico en header
-//   ★ Módulo de configuración (nombre, teléfono, contraseña)
-//   ★ Filtros de tabla — reservas (estado + fecha)
-//   ★ Filtros de tabla — pagos (estado + fecha)
-//   ★ Resumen de pagos (total pagado, pendientes)
-//   ★ Acordeón FAQ en módulo de ayuda
-//   ★ Toggle de visibilidad en campos contraseña
-//   ★ Indicador de fortaleza de contraseña
-//   ★ Contador de badge en pestañas
-//   ★ navegarA() — función de navegación programática
+//   ✅ FIX-N1: TABS_LABELS definida una sola vez
 // ============================================================
 
 
@@ -46,7 +25,6 @@ var marcadores       = [];
 var sedes            = [];
 var sedeSeleccionada = null;
 
-// Cache interno para filtros (se llena al cargar datos)
 var _cacheReservas = [];
 var _cachePagos    = [];
 
@@ -54,16 +32,9 @@ if (typeof window.sedesData !== 'undefined') {
     sedes = window.sedesData || [];
 }
 
+
 // ============================================================
-// CSRF — No aplica en este proyecto
-//
-// El proyecto usa JWT (JwtAuthFilter) como mecanismo de
-// autenticación. Con JWT, Spring Security tiene CSRF desactivado
-// — por eso ${_csrf} es null en Thymeleaf y las metas CSRF
-// causaban un error al renderizar el template.
-//
-// getCsrfHeaders() se mantiene como función vacía para que
-// los fetch POST no fallen si en algún momento se reactiva CSRF.
+// CSRF
 // ============================================================
 function getCsrfHeaders() {
     var csrfMeta   = document.querySelector('meta[name="_csrf"]');
@@ -134,9 +105,6 @@ var COORDENADAS_LOCALIDADES = {
     'KENNEDY':   { lat: 4.6280, lon: -74.1550 }
 };
 
-// ✅ FIX-N1: TABS_LABELS definida UNA SOLA VEZ aquí.
-// El bloque duplicado que existía en el script inline de DashboardCliente.html
-// fue eliminado de ese archivo para evitar sobreescritura según orden de carga.
 var TABS_LABELS = {
     'perfil':        'Inicio',
     'misreservas':   'Mis Reservas',
@@ -147,107 +115,30 @@ var TABS_LABELS = {
 
 
 // ============================================================
-// SISTEMA DE NOTIFICACIONES — Toast
-// ============================================================
-function showToast(mensaje, tipo, duracion) {
-    tipo     = tipo     || 'info';
-    duracion = duracion || 4000;
-
-    var contenedor = document.getElementById('toast-contenedor');
-    if (!contenedor) {
-        contenedor = document.createElement('div');
-        contenedor.id = 'toast-contenedor';
-        contenedor.style.cssText = [
-            'position:fixed', 'top:1.5rem', 'right:1.5rem',
-            'z-index:9999', 'display:flex', 'flex-direction:column', 'gap:0.5rem'
-        ].join(';');
-        document.body.appendChild(contenedor);
-    }
-
-    var palette = {
-        success: 'background:#f0fdf4;border:1px solid #86efac;color:#166534',
-        error:   'background:#fef2f2;border:1px solid #fca5a5;color:#991b1b',
-        warning: 'background:#fffbeb;border:1px solid #fcd34d;color:#92400e',
-        info:    'background:#eff6ff;border:1px solid #93c5fd;color:#1e40af'
-    };
-    var iconos = { success: '✅', error: '❌', warning: '⚠️', info: 'ℹ️' };
-
-    var toast = document.createElement('div');
-    toast.setAttribute('role', 'alert');
-    toast.setAttribute('aria-live', 'polite');
-    toast.style.cssText = [
-        palette[tipo] || palette.info,
-        'padding:0.75rem 1rem', 'border-radius:0.5rem',
-        'box-shadow:0 4px 12px rgba(0,0,0,.1)', 'font-size:0.875rem',
-        'display:flex', 'align-items:center', 'gap:0.5rem',
-        'max-width:360px', 'transition:opacity 0.3s'
-    ].join(';');
-    toast.innerHTML = '<span>' + (iconos[tipo] || '') + '</span><span>' + mensaje + '</span>';
-    contenedor.appendChild(toast);
-
-    setTimeout(function() {
-        toast.style.opacity = '0';
-        setTimeout(function() { toast.remove(); }, 350);
-    }, duracion);
-}
-
-
-// ============================================================
-// SISTEMA DE NOTIFICACIONES — Confirm modal
+// NOTIFICACIONES — MIGRADO al helper centralizado
+//
+// showToast() y showConfirm() locales ELIMINADAS.
+// Ahora usan las funciones de aparca-notifications.js:
+//   showSuccess(), showError(), showWarning(), showInfo()  → toasts
+//   showToast(msg, tipo)                                   → alias compatible
+//   showConfirm({ title, body, btnTexto, btnColor })       → Promise<boolean>
+//
+// Alias de compatibilidad para llamadas con firma posicional:
 // ============================================================
 function showConfirm(titulo, cuerpo, btnTexto, btnColor) {
-    btnTexto = btnTexto || 'Confirmar';
-    btnColor = btnColor || 'danger';
-
-    return new Promise(function(resolve) {
-        var overlay = document.getElementById('confirm-overlay');
-        if (!overlay) {
-            overlay = document.createElement('div');
-            overlay.id = 'confirm-overlay';
-            overlay.style.cssText = [
-                'position:fixed', 'inset:0', 'z-index:10000',
-                'background:rgba(0,0,0,0.5)',
-                'display:flex', 'align-items:center', 'justify-content:center',
-                'padding:1rem'
-            ].join(';');
-            document.body.appendChild(overlay);
-        }
-
-        var btnColors = {
-            danger:  'background:#dc2626;color:#fff',
-            warning: 'background:#f59e0b;color:#fff'
-        };
-
-        overlay.innerHTML =
-            '<div role="dialog" aria-modal="true"' +
-            '     style="background:#fff;border-radius:0.75rem;padding:2rem;max-width:420px;' +
-            '            width:100%;box-shadow:0 20px 60px rgba(0,0,0,.3);">' +
-            '    <h3 style="font-size:1.125rem;font-weight:700;color:#0f172a;margin:0 0 0.75rem;">' +
-            '        ' + titulo +
-            '    </h3>' +
-            '    <p style="font-size:0.875rem;color:#64748b;margin:0 0 1.5rem;line-height:1.6;">' +
-            '        ' + cuerpo +
-            '    </p>' +
-            '    <div style="display:flex;justify-content:flex-end;gap:0.75rem;">' +
-            '        <button id="confirm-cancel"' +
-            '                style="padding:0.5rem 1.25rem;border:1px solid #e2e8f0;' +
-            '                       border-radius:0.5rem;background:#fff;color:#374151;cursor:pointer;">' +
-            '            Cancelar' +
-            '        </button>' +
-            '        <button id="confirm-ok"' +
-            '                style="padding:0.5rem 1.25rem;border:none;border-radius:0.5rem;' +
-            '                       ' + (btnColors[btnColor] || btnColors.danger) + ';' +
-            '                       cursor:pointer;font-weight:600;">' +
-            '            ' + btnTexto +
-            '        </button>' +
-            '    </div>' +
-            '</div>';
-
-        overlay.style.display = 'flex';
-
-        document.getElementById('confirm-ok').onclick     = function() { overlay.style.display = 'none'; resolve(true);  };
-        document.getElementById('confirm-cancel').onclick = function() { overlay.style.display = 'none'; resolve(false); };
-    });
+    if (typeof titulo === 'object') {
+        return window.AparcaNotif
+            ? window.AparcaNotif.showConfirm(titulo)
+            : Promise.resolve(false);
+    }
+    return window.AparcaNotif
+        ? window.AparcaNotif.showConfirm({
+            title:    titulo,
+            body:     cuerpo     || '',
+            btnTexto: btnTexto   || 'Confirmar',
+            btnColor: btnColor   || 'danger'
+        })
+        : Promise.resolve(false);
 }
 
 
@@ -257,7 +148,7 @@ function showConfirm(titulo, cuerpo, btnTexto, btnColor) {
 document.addEventListener('DOMContentLoaded', function() {
     inicializarNavegacion();
     inicializarPerfilMenu();
-    inicializarDatepickersFiltros(); // ✅ FIX-D1: conecta AparcaDatepicker a los filtros de fecha
+    inicializarDatepickersFiltros();
     cargarDatosUsuario();
     cargarReservas();
     cargarSedesYMapa();
@@ -269,7 +160,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
 
 // ============================================================
-// NAVEGACIÓN — con breadcrumb y soporte para tab configuracion
+// NAVEGACIÓN
 // ============================================================
 function inicializarNavegacion() {
     var links = document.querySelectorAll('.aparca-sidebar-nav a');
@@ -291,15 +182,12 @@ function inicializarNavegacion() {
             this.classList.add('active');
             this.setAttribute('aria-current', 'page');
 
-            // Breadcrumb — una sola llamada, el listener duplicado del HTML fue eliminado
             actualizarBreadcrumb(targetTab);
 
-            // Invalidate mapa al volver a inicio
             if (targetTab === 'perfil' && map) {
                 setTimeout(function() { map.invalidateSize(); }, 100);
             }
 
-            // Cerrar dropdown si está abierto
             var dropdown = document.getElementById('profileDropdown');
             var btn      = document.getElementById('profileBtn');
             if (dropdown) { dropdown.classList.remove('show'); }
@@ -308,13 +196,11 @@ function inicializarNavegacion() {
     });
 }
 
-// Navegación programática (usada por botones internos y dropdown)
 function navegarA(tabId) {
     var link = document.querySelector('.aparca-sidebar-nav a[data-tab="' + tabId + '"]');
     if (link) { link.click(); }
 }
 
-// Actualiza el texto del breadcrumb en el header
 function actualizarBreadcrumb(tabId) {
     var el = document.getElementById('breadcrumbCurrent');
     if (el) { el.textContent = TABS_LABELS[tabId] || tabId; }
@@ -322,7 +208,7 @@ function actualizarBreadcrumb(tabId) {
 
 
 // ============================================================
-// MENÚ DE PERFIL — Dropdown mejorado
+// MENÚ DE PERFIL
 // ============================================================
 function inicializarPerfilMenu() {
     var profileBtn      = document.getElementById('profileBtn');
@@ -364,14 +250,14 @@ async function handleLogout() {
             getCsrfHeaders()
         );
         await fetch('/logout', { method: 'POST', headers: headers, credentials: 'same-origin' });
-    } catch (e) { /* Si falla el fetch, redirigimos igual */ }
+    } catch (e) { /* si falla el fetch, redirigimos igual */ }
 
     window.location.href = '/login';
 }
 
 
 // ============================================================
-// DATOS DEL USUARIO — Llena nombre en todos los puntos de la UI
+// DATOS DEL USUARIO
 // ============================================================
 async function cargarDatosUsuario() {
     try {
@@ -383,33 +269,27 @@ async function cargarDatosUsuario() {
                 var nom     = usuario.nombre;
                 var inicial = nom.charAt(0).toUpperCase();
 
-                // Título de bienvenida
                 var welcomeH2 = document.getElementById('heroWelcomeTitle');
                 if (welcomeH2) { welcomeH2.textContent = 'Bienvenido, ' + nom; }
 
-                // Sidebar — nombre y avatar
                 var usernameEl = document.getElementById('sidebarUsername');
                 var avatarEl   = document.getElementById('sidebarAvatarInitial');
-                if (usernameEl) { usernameEl.textContent = nom; }
+                if (usernameEl) { usernameEl.textContent = nom;     }
                 if (avatarEl)   { avatarEl.textContent   = inicial; }
 
-                // Header — avatar y nombre
                 var headerAvatar   = document.getElementById('headerAvatarInitial');
                 var headerUsername = document.getElementById('headerUsername');
                 if (headerAvatar)   { headerAvatar.textContent   = inicial; }
-                if (headerUsername) { headerUsername.textContent = nom; }
+                if (headerUsername) { headerUsername.textContent = nom;     }
 
-                // Dropdown — avatar y nombre
                 var dropAvatar   = document.getElementById('dropdownAvatarInitial');
                 var dropUsername = document.getElementById('dropdownUsername');
                 if (dropAvatar)   { dropAvatar.textContent   = inicial; }
-                if (dropUsername) { dropUsername.textContent = nom; }
+                if (dropUsername) { dropUsername.textContent = nom;     }
 
-                // Hero avatar
                 var heroAvatar = document.getElementById('heroAvatarInitial');
                 if (heroAvatar) { heroAvatar.textContent = inicial; }
 
-                // Correo en configuración
                 var correoDisplay = document.getElementById('configCorreoDisplay');
                 if (correoDisplay && usuario.correo) {
                     correoDisplay.textContent = usuario.correo;
@@ -504,14 +384,14 @@ async function cancelarReserva(reservaId) {
         var data = await res.json();
 
         if (res.ok && data.success) {
-            showToast(data.message || 'Reserva cancelada correctamente', 'success');
+            showSuccess(data.message || 'Reserva cancelada correctamente');
             cargarReservas();
         } else {
-            showToast(data.message || 'Error al cancelar la reserva', 'error');
+            showError(data.message || 'Error al cancelar la reserva');
         }
     } catch (err) {
         console.error(err);
-        showToast('Error de conexión', 'error');
+        showError('Error de conexión');
     }
 }
 
@@ -549,24 +429,18 @@ function initMap() {
 }
 
 async function agregarMarcadores() {
-    if (!map) return;
+    if (!map) { return; }
     marcadores.forEach(function(m) { m.remove(); });
     marcadores = [];
 
     for (var i = 0; i < sedes.length; i++) {
         var sede = sedes[i];
-
-        var lat = sede.latitud;
-        var lon = sede.longitud;
+        var lat  = sede.latitud;
+        var lon  = sede.longitud;
 
         if (!lat || !lon) {
-            var coords = await geocodificarDireccion(
-                sede.direccion, sede.localidad, sede.barrio
-            );
-            if (!coords) {
-                console.warn('Sin coordenadas para sede:', sede.nombre);
-                continue;
-            }
+            var coords = await geocodificarDireccion(sede.direccion, sede.localidad, sede.barrio);
+            if (!coords) { console.warn('Sin coordenadas para sede:', sede.nombre); continue; }
             lat = coords.lat;
             lon = coords.lon;
         }
@@ -579,29 +453,43 @@ async function agregarMarcadores() {
                 'border:3px solid white;box-shadow:0 4px 8px rgba(0,0,0,0.3);">' +
                 '<div style="transform:rotate(45deg);color:white;font-size:16px;' +
                 'font-weight:bold;display:flex;align-items:center;' +
-                'justify-content:center;height:100%;">P</div>' +
-                '</div>',
+                'justify-content:center;height:100%;">P</div></div>',
             iconSize:    [32, 32],
             iconAnchor:  [16, 32],
             popupAnchor: [0, -32]
         });
 
-        var marker = L.marker([lat, lon], { icon: customIcon }).addTo(map);
+        var svgPin =
+            '<svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" fill="none" ' +
+            'viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" ' +
+            'stroke-linecap="round" stroke-linejoin="round" ' +
+            'style="display:inline;vertical-align:middle;margin-right:4px;flex-shrink:0;">' +
+            '<path d="M20 10c0 4.993-5.539 10.193-7.399 11.799a1 1 0 0 1-1.202 0' +
+            'C9.539 20.193 4 14.993 4 10a8 8 0 0 1 16 0"/>' +
+            '<circle cx="12" cy="10" r="3"/></svg>';
 
+        var svgCar =
+            '<svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" fill="none" ' +
+            'viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" ' +
+            'stroke-linecap="round" stroke-linejoin="round" ' +
+            'style="display:inline;vertical-align:middle;margin-right:4px;flex-shrink:0;">' +
+            '<path d="M5 17H3v-5l2-5h14l2 5v5h-2"/>' +
+            '<circle cx="7.5" cy="17.5" r="2.5"/><circle cx="16.5" cy="17.5" r="2.5"/>' +
+            '<path d="M5 12h14"/></svg>';
+
+        var marker = L.marker([lat, lon], { icon: customIcon }).addTo(map);
         marker.bindPopup(
             '<div style="min-width:200px;">' +
-            '<h4 style="margin:0 0 8px;font-size:1rem;font-weight:700;color:#0f172a;">' +
-            sede.nombre +
-            '</h4>' +
-            '<p style="margin:4px 0;color:#64748b;font-size:.875rem;">📍 ' + sede.direccion + '</p>' +
-            '<p style="margin:4px 0;color:#64748b;font-size:.875rem;">🚗 Capacidad: ' + sede.capacidad + ' vehículos</p>' +
+            '<h4 style="margin:0 0 8px;font-size:1rem;font-weight:700;color:#0f172a;">' + sede.nombre + '</h4>' +
+            '<p style="margin:4px 0;color:#64748b;font-size:.875rem;display:flex;align-items:center;">' +
+            svgPin + sede.direccion + '</p>' +
+            '<p style="margin:4px 0;color:#64748b;font-size:.875rem;display:flex;align-items:center;">' +
+            svgCar + 'Capacidad: ' + sede.capacidad + ' vehículos</p>' +
             '<button id="btn-sede-' + sede.idSede + '"' +
             '        style="margin-top:12px;width:100%;background:#7c3aed;color:white;' +
             '               border:none;padding:8px 16px;border-radius:6px;cursor:pointer;font-weight:600;"' +
             '        onmouseover="this.style.background=\'#6d28d9\'"' +
-            '        onmouseout="this.style.background=\'#7c3aed\'">' +
-            '    Ver detalles completos' +
-            '</button>' +
+            '        onmouseout="this.style.background=\'#7c3aed\'">Ver detalles completos</button>' +
             '</div>',
             { maxWidth: 300 }
         );
@@ -680,16 +568,7 @@ async function geocodificarDireccion(direccion, localidad, barrio) {
 
 
 // ============================================================
-// ✅ FIX-D1: DATEPICKERS DE FILTROS — AparcaDatepicker
-//
-// Los botones "Desde" y "Hasta" en las secciones de Reservas y Pagos
-// usaban inputs type="hidden" sin ningún listener conectado.
-// Ahora se instancia AparcaDatepicker para cada uno, apuntando a los
-// popups que se agregaron al HTML (popDesdeReserva, popHastaReserva, etc.)
-//
-// La función limpiar() de cada instancia se invoca desde
-// limpiarFiltrosReservas() y limpiarFiltrosPagos() para resetear
-// el label y el hidden junto con el estado interno del datepicker.
+// DATEPICKERS DE FILTROS
 // ============================================================
 var _dpDesdeReserva = null;
 var _dpHastaReserva = null;
@@ -697,181 +576,368 @@ var _dpDesdePago    = null;
 var _dpHastaPago    = null;
 
 function inicializarDatepickersFiltros() {
-    // Solo inicializar si AparcaDatepicker está disponible
     if (typeof AparcaDatepicker !== 'function') {
         console.warn('AparcaDatepicker no disponible — filtros de fecha desactivados');
         return;
     }
 
-    // ── Filtro DESDE — Reservas ──────────────────────────────
     _dpDesdeReserva = new AparcaDatepicker({
-        btnId:       'btnDesdeReserva',
-        popupId:     'popDesdeReserva',
-        labelId:     'lblDesdeReserva',
-        hiddenId:    'filtroFechaDesdeReserva',
-        gridId:      'gridDesdeReserva',
-        mesId:       'mesDesdeReserva',
-        prevId:      'prevDesdeReserva',
-        nextId:      'nextDesdeReserva',
-        placeholder: 'Fecha inicio',
-        soloFuturo:  false,
-        onConfirm:   function() { filtrarReservas(); }
+        btnId: 'btnDesdeReserva', popupId: 'popDesdeReserva', labelId: 'lblDesdeReserva',
+        hiddenId: 'filtroFechaDesdeReserva', gridId: 'gridDesdeReserva',
+        mesId: 'mesDesdeReserva', prevId: 'prevDesdeReserva', nextId: 'nextDesdeReserva',
+        placeholder: 'Fecha inicio', soloFuturo: false,
+        onConfirm: function() { filtrarReservas(); }
     });
 
-    // ── Filtro HASTA — Reservas ──────────────────────────────
     _dpHastaReserva = new AparcaDatepicker({
-        btnId:       'btnHastaReserva',
-        popupId:     'popHastaReserva',
-        labelId:     'lblHastaReserva',
-        hiddenId:    'filtroFechaHastaReserva',
-        gridId:      'gridHastaReserva',
-        mesId:       'mesHastaReserva',
-        prevId:      'prevHastaReserva',
-        nextId:      'nextHastaReserva',
-        placeholder: 'Fecha fin',
-        soloFuturo:  false,
-        onConfirm:   function() { filtrarReservas(); }
+        btnId: 'btnHastaReserva', popupId: 'popHastaReserva', labelId: 'lblHastaReserva',
+        hiddenId: 'filtroFechaHastaReserva', gridId: 'gridHastaReserva',
+        mesId: 'mesHastaReserva', prevId: 'prevHastaReserva', nextId: 'nextHastaReserva',
+        placeholder: 'Fecha fin', soloFuturo: false,
+        onConfirm: function() { filtrarReservas(); }
     });
 
-    // ── Filtro DESDE — Pagos ─────────────────────────────────
     _dpDesdePago = new AparcaDatepicker({
-        btnId:       'btnDesdePago',
-        popupId:     'popDesdePago',
-        labelId:     'lblDesdePago',
-        hiddenId:    'filtroFechaDesdePago',
-        gridId:      'gridDesdePago',
-        mesId:       'mesDesdePago',
-        prevId:      'prevDesdePago',
-        nextId:      'nextDesdePago',
-        placeholder: 'Fecha inicio',
-        soloFuturo:  false,
-        onConfirm:   function() { filtrarPagos(); }
+        btnId: 'btnDesdePago', popupId: 'popDesdePago', labelId: 'lblDesdePago',
+        hiddenId: 'filtroFechaDesdePago', gridId: 'gridDesdePago',
+        mesId: 'mesDesdePago', prevId: 'prevDesdePago', nextId: 'nextDesdePago',
+        placeholder: 'Fecha inicio', soloFuturo: false,
+        onConfirm: function() { filtrarPagos(); }
     });
 
-    // ── Filtro HASTA — Pagos ─────────────────────────────────
     _dpHastaPago = new AparcaDatepicker({
-        btnId:       'btnHastaPago',
-        popupId:     'popHastaPago',
-        labelId:     'lblHastaPago',
-        hiddenId:    'filtroFechaHastaPago',
-        gridId:      'gridHastaPago',
-        mesId:       'mesHastaPago',
-        prevId:      'prevHastaPago',
-        nextId:      'nextHastaPago',
-        placeholder: 'Fecha fin',
-        soloFuturo:  false,
-        onConfirm:   function() { filtrarPagos(); }
+        btnId: 'btnHastaPago', popupId: 'popHastaPago', labelId: 'lblHastaPago',
+        hiddenId: 'filtroFechaHastaPago', gridId: 'gridHastaPago',
+        mesId: 'mesHastaPago', prevId: 'prevHastaPago', nextId: 'nextHastaPago',
+        placeholder: 'Fecha fin', soloFuturo: false,
+        onConfirm: function() { filtrarPagos(); }
     });
 }
+
 
 // ============================================================
 // BÚSQUEDA EN MAPA
 // ============================================================
-function inicializarBusquedaMapa() {
-    var searchBtn   = document.getElementById('searchBtn');
-    var searchInput = document.getElementById('searchInput');
+// ============================================================
+// BÚSQUEDA EN MAPA — v2
+// REEMPLAZA la sección "BÚSQUEDA EN MAPA" completa de ClienteD.js
+// (inicializarBusquedaMapa + buscarDireccion)
+//
+// CAMBIOS:
+//   - Autocompletado con dropdown Nominatim (debounce 600ms)
+//   - Marcador dedicado para el resultado (reemplaza el anterior)
+//   - Navegación con teclado (↑ ↓ Enter Escape)
+//   - Escribe solo la dirección (calle + número) en el input
+//   - Sin localidad, sin barrio, sin display_name completo
+//   - buscarDireccion() se mantiene como alias para el botón
+// ============================================================
 
-    if (searchBtn && searchInput) {
-        searchBtn.addEventListener('click', buscarDireccion);
-        searchInput.addEventListener('keypress', function(e) {
-            if (e.key === 'Enter') { buscarDireccion(); }
+// ── Estado del buscador ────────────────────────────────────────────
+var _cliSearchDebounce = null;
+var _cliLastNominatim  = 0;
+var _cliMarkerBusqueda = null;
+
+function inicializarBusquedaMapa() {
+    var searchInput = document.getElementById('searchInput');
+    var searchBtn   = document.getElementById('searchBtn');
+
+    // Crear dropdown si no existe
+    var dropdown = document.getElementById('searchDropdown');
+    if (!dropdown && searchInput) {
+        dropdown = document.createElement('div');
+        dropdown.id = 'searchDropdown';
+        dropdown.style.cssText =
+            'position:absolute;top:100%;left:0;right:0;z-index:9999;' +
+            'background:#fff;border:1.5px solid #e2e8f0;border-top:none;' +
+            'border-radius:0 0 .625rem .625rem;' +
+            'box-shadow:0 8px 24px rgba(0,0,0,.1);' +
+            'display:none;max-height:280px;overflow-y:auto;';
+        var wrapper = searchInput.closest('div') || searchInput.parentNode;
+        if (wrapper) {
+            wrapper.style.position = 'relative';
+            wrapper.appendChild(dropdown);
+        }
+    }
+
+    // Inyectar estilos si no existen
+    if (!document.getElementById('cli-search-style')) {
+        var s = document.createElement('style');
+        s.id = 'cli-search-style';
+        s.textContent =
+            '@keyframes cliSpin { to { transform: rotate(360deg); } }' +
+            '.cli-search-item { cursor:pointer; transition:background .15s; }' +
+            '.cli-search-item:hover,.cli-search-item.activo { background:#f0fdf4; }';
+        document.head.appendChild(s);
+    }
+
+    if (searchInput) {
+        // ── Autocompletado con debounce 600ms ────────────────────
+        searchInput.addEventListener('input', function() {
+            clearTimeout(_cliSearchDebounce);
+            var val = this.value.trim();
+            _cliOcultarDropdown();
+            if (val.length < 4) return;
+            _cliSetDropdownCargando();
+            _cliSearchDebounce = setTimeout(function() {
+                _cliBuscarNominatim(val);
+            }, 600);
         });
+
+        // ── Navegación con teclado ────────────────────────────────
+        searchInput.addEventListener('keydown', function(e) {
+            var d      = document.getElementById('searchDropdown');
+            var items  = d ? d.querySelectorAll('.cli-search-item') : [];
+            var activo = d ? d.querySelector('.cli-search-item.activo') : null;
+
+            if (e.key === 'ArrowDown') {
+                e.preventDefault();
+                if (activo) { activo.classList.remove('activo'); (activo.nextElementSibling || items[0]).classList.add('activo'); }
+                else if (items[0]) items[0].classList.add('activo');
+            } else if (e.key === 'ArrowUp') {
+                e.preventDefault();
+                if (activo) { activo.classList.remove('activo'); if (activo.previousElementSibling) activo.previousElementSibling.classList.add('activo'); }
+            } else if (e.key === 'Enter') {
+                e.preventDefault();
+                if (activo) activo.click();
+                else if (this.value.trim().length >= 3) { _cliSetDropdownCargando(); _cliBuscarNominatim(this.value.trim()); }
+            } else if (e.key === 'Escape') {
+                _cliOcultarDropdown();
+            }
+        });
+
+        // Cerrar al click fuera
+        document.addEventListener('click', function(e) {
+            var d = document.getElementById('searchDropdown');
+            if (!searchInput.contains(e.target) && !(d && d.contains(e.target))) {
+                _cliOcultarDropdown();
+            }
+        });
+    }
+
+    if (searchBtn) {
+        searchBtn.addEventListener('click', buscarDireccion);
     }
 }
 
-async function buscarDireccion() {
-    var searchInput = document.getElementById('searchInput');
-    var direccion   = searchInput.value.trim();
+// ── Botón buscar / alias ───────────────────────────────────────────
+function buscarDireccion() {
+    var inp = document.getElementById('searchInput');
+    var val = inp ? inp.value.trim() : '';
+    if (val.length < 3) { showWarning('Por favor ingresá al menos 3 caracteres'); return; }
+    clearTimeout(_cliSearchDebounce);
+    _cliSetDropdownCargando();
+    _cliBuscarNominatim(val);
+}
 
-    if (!direccion) {
-        showToast('Por favor ingresa una dirección', 'warning');
+// ── Spinner ────────────────────────────────────────────────────────
+function _cliSetDropdownCargando() {
+    var d = document.getElementById('searchDropdown');
+    if (!d) return;
+    d.style.display = 'block';
+    d.innerHTML =
+        '<div style="padding:.75rem 1rem;color:#64748b;font-size:.82rem;' +
+        'display:flex;align-items:center;gap:.5rem;">' +
+        '<svg style="width:13px;height:13px;animation:cliSpin 1s linear infinite;flex-shrink:0;" ' +
+        'xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">' +
+        '<circle style="opacity:.25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>' +
+        '<path style="opacity:.75" fill="currentColor" d="M4 12a8 8 0 018-8v8z"></path></svg>' +
+        'Buscando en Bogotá...</div>';
+}
+
+// ── Fetch Nominatim (throttle 1 req/s) ────────────────────────────
+async function _cliBuscarNominatim(query) {
+    var ahora  = Date.now();
+    var espera = 1050 - (ahora - _cliLastNominatim);
+    if (espera > 0) await new Promise(function(r) { setTimeout(r, espera); });
+    _cliLastNominatim = Date.now();
+
+    try {
+        var params = new URLSearchParams({
+            q:                 query + ', Bogotá, Colombia',
+            format:            'json',
+            limit:             '5',
+            countrycodes:      'co',
+            viewbox:           '-74.25,4.45,-73.95,4.85',
+            bounded:           '1',
+            'accept-language': 'es'
+        });
+        var resp = await fetch(
+            'https://nominatim.openstreetmap.org/search?' + params.toString(),
+            { headers: { 'User-Agent': 'AparcaYA/1.0' } }
+        );
+        if (!resp.ok) throw new Error('HTTP ' + resp.status);
+        var data = await resp.json();
+        _cliMostrarSugerencias(data);
+    } catch (err) {
+        console.warn('Búsqueda mapa cliente:', err);
+        _cliOcultarDropdown();
+        showWarning('No se pudo buscar la dirección. Verificá tu conexión.');
+    }
+}
+
+// ── Renderizar sugerencias ─────────────────────────────────────────
+function _cliMostrarSugerencias(resultados) {
+    var dropdown = document.getElementById('searchDropdown');
+    if (!dropdown) return;
+
+    // Solo resultados dentro de Bogotá
+    var dentroRango = resultados.filter(function(r) {
+        var lat = parseFloat(r.lat), lon = parseFloat(r.lon);
+        return lat >= 4.45 && lat <= 4.85 && lon >= -74.25 && lon <= -73.95;
+    });
+
+    if (dentroRango.length === 0) {
+        dropdown.innerHTML =
+            '<div style="padding:.875rem 1rem;">' +
+            '<div style="color:#d97706;font-size:.82rem;font-weight:600;margin-bottom:.25rem;">Sin resultados en Bogotá</div>' +
+            '<div style="color:#64748b;font-size:.77rem;">Intentá con otra dirección o referencia.</div></div>';
+        dropdown.style.display = 'block';
         return;
     }
 
-    try {
-        var url = 'https://nominatim.openstreetmap.org/search?format=json' +
-            '&q=' + encodeURIComponent(direccion + ', Bogotá, Colombia') + '&limit=1';
+    dropdown.innerHTML =
+        '<div style="padding:.35rem 1rem;font-size:.7rem;font-weight:700;color:#94a3b8;' +
+        'text-transform:uppercase;letter-spacing:.06em;border-bottom:1px solid #f1f5f9;">Resultados</div>';
 
-        var response = await fetch(url, { headers: { 'User-Agent': 'AparcaYA/1.0' } });
+    dentroRango.forEach(function(r) {
+        var item = document.createElement('div');
+        item.className = 'cli-search-item';
+        item.style.cssText =
+            'display:flex;align-items:flex-start;gap:.625rem;padding:.7rem 1rem;' +
+            'border-bottom:1px solid #f8fffe;';
 
-        if (response.ok) {
-            var data = await response.json();
-            if (data && data.length > 0) {
-                var lat = parseFloat(data[0].lat);
-                var lon = parseFloat(data[0].lon);
-                map.setView([lat, lon], 15);
-                L.marker([lat, lon]).addTo(map)
-                    .bindPopup('📍 ' + data[0].display_name)
-                    .openPopup();
-            } else {
-                showToast('No se encontró la dirección', 'warning');
-            }
-        }
-    } catch (error) {
-        console.error('Error en búsqueda:', error);
-        showToast('Error al buscar la dirección', 'error');
-    }
+        var addr = r.address || {};
+
+        // ── Solo dirección (calle + número) — sin barrio/localidad ──
+        var titulo = [addr.road, addr.house_number].filter(Boolean).join(' ')
+            || r.display_name.split(',')[0].trim();
+        // Referencia secundaria: solo el barrio (no la localidad ni ciudad)
+        var sub    = addr.suburb || addr.neighbourhood || addr.quarter || 'Bogotá';
+
+        item.innerHTML =
+            '<div style="width:28px;height:28px;background:#f0fdf4;border-radius:50%;' +
+            'display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:.1rem;">' +
+            '<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" ' +
+            'stroke="#059669" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" ' +
+            'style="width:13px;height:13px;">' +
+            '<path d="M20 10c0 4.993-5.539 10.193-7.399 11.799a1 1 0 0 1-1.202 0' +
+            'C9.539 20.193 4 14.993 4 10a8 8 0 0 1 16 0"/><circle cx="12" cy="10" r="3"/></svg></div>' +
+            '<div style="flex:1;min-width:0;">' +
+            '<div style="font-size:.85rem;font-weight:600;color:#1e293b;white-space:nowrap;' +
+            'overflow:hidden;text-overflow:ellipsis;">' + titulo + '</div>' +
+            '<div style="font-size:.73rem;color:#64748b;margin-top:.1rem;">' + sub + '</div></div>';
+
+        item.addEventListener('mouseenter', function() {
+            dropdown.querySelectorAll('.cli-search-item').forEach(function(el) { el.classList.remove('activo'); });
+            item.classList.add('activo');
+        });
+
+        item.addEventListener('click', function() {
+            var lat = parseFloat(r.lat), lon = parseFloat(r.lon);
+            var inp = document.getElementById('searchInput');
+
+            // ── Solo la dirección en el campo de búsqueda ─────────
+            if (inp) inp.value = titulo;
+            _cliOcultarDropdown();
+
+            if (!map) return;
+            map.setView([lat, lon], 17, { animate: true });
+
+            // Limpiar marcador anterior
+            if (_cliMarkerBusqueda) { _cliMarkerBusqueda.remove(); _cliMarkerBusqueda = null; }
+
+            var pinIcon = L.divIcon({
+                className: '',
+                html: '<div style="width:28px;height:28px;background:#7c3aed;' +
+                    'border-radius:50% 50% 50% 0;transform:rotate(-45deg);' +
+                    'border:2px solid #fff;box-shadow:0 3px 10px rgba(124,58,237,.5);">' +
+                    '<div style="width:7px;height:7px;background:#fff;border-radius:50%;' +
+                    'position:absolute;top:50%;left:50%;' +
+                    'transform:translate(-50%,-50%) rotate(45deg);"></div></div>',
+                iconSize:    [28, 28],
+                iconAnchor:  [14, 28],
+                popupAnchor: [0, -32]
+            });
+
+            _cliMarkerBusqueda = L.marker([lat, lon], { icon: pinIcon }).addTo(map);
+            _cliMarkerBusqueda.bindPopup(
+                '<div style="font-size:.82rem;font-weight:600;color:#0f172a;padding:.2rem;">' +
+                titulo + '</div>'
+            ).openPopup();
+        });
+
+        dropdown.appendChild(item);
+    });
+
+    // Pie
+    var footer = document.createElement('div');
+    footer.style.cssText =
+        'padding:.35rem 1rem;font-size:.68rem;color:#94a3b8;' +
+        'text-align:center;border-top:1px solid #f1f5f9;';
+    footer.textContent = '© OpenStreetMap contributors';
+    dropdown.appendChild(footer);
+    dropdown.style.display = 'block';
+}
+
+// ── Ocultar dropdown ───────────────────────────────────────────────
+function _cliOcultarDropdown() {
+    var d = document.getElementById('searchDropdown');
+    if (d) { d.style.display = 'none'; d.innerHTML = ''; }
 }
 
 
 // ============================================================
-// MODAL — DETALLES DE SEDE
+// MODAL DETALLE SEDE
 // ============================================================
 function mostrarDetallesSede(sedeId) {
-    var sede = sedes.find(function(s) { return s.idSede === sedeId; });
+    var lista = (typeof window.sedesData !== 'undefined' && window.sedesData.length)
+        ? window.sedesData : sedes;
+
+    var sede = lista.find(function(s) { return s.idSede == sedeId || s.id == sedeId; });
     if (!sede) { return; }
 
+    // CRÍTICO: asignar sedeSeleccionada para que abrirModalReserva() funcione
     sedeSeleccionada = sede;
-    document.getElementById('modalSedeTitle').textContent = sede.nombre;
-
-    var estadoBadge = sede.estado === 'ACTIVO'
-        ? '<span class="cli-badge cli-badge-activo">✓ Activa</span>'
-        : '<span class="cli-badge cli-badge-inactivo">✗ Inactiva</span>';
-
-    document.getElementById('modalSedeBody').innerHTML =
-        '<div class="cliente-modal-sede-grid">' +
-        '<div class="cliente-modal-sede-item cliente-modal-sede-full">' +
-        '<div class="cliente-modal-sede-label">Estado</div>' +
-        '<div class="cliente-modal-sede-value">' + estadoBadge + '</div>' +
-        '</div>' +
-        '<div class="cliente-modal-sede-item">' +
-        '<div class="cliente-modal-sede-label">🚗 Capacidad</div>' +
-        '<div class="cliente-modal-sede-value">' + sede.capacidad + ' vehículos</div>' +
-        '</div>' +
-        '<div class="cliente-modal-sede-item">' +
-        '<div class="cliente-modal-sede-label">📍 Localidad</div>' +
-        '<div class="cliente-modal-sede-value">' + (sede.localidad || 'N/A') + '</div>' +
-        '</div>' +
-        '<div class="cliente-modal-sede-item cliente-modal-sede-full">' +
-        '<div class="cliente-modal-sede-label">🏘️ Barrio</div>' +
-        '<div class="cliente-modal-sede-value">' + (sede.barrio || 'No especificado') + '</div>' +
-        '</div>' +
-        '<div class="cliente-modal-sede-item cliente-modal-sede-full">' +
-        '<div class="cliente-modal-sede-label">📌 Dirección</div>' +
-        '<div class="cliente-modal-sede-value">' + sede.direccion + '</div>' +
-        '</div>' +
-        '<div class="cliente-modal-sede-item cliente-modal-sede-full">' +
-        '<div class="cliente-modal-sede-label">💰 Tarifas</div>' +
-        '<div class="cliente-modal-sede-value cliente-modal-sede-tarifas">' +
-        '<strong>🚗 Carros:</strong><br>' +
-        '• Hora plena: $' + (sede.tarifaPlenaC  || 0).toLocaleString('es-CO') + ' COP<br>' +
-        '• Por minuto: $' + (sede.tarifaMinutoC || 0).toLocaleString('es-CO') + ' COP<br>' +
-        '<strong>🏍️ Motos:</strong><br>' +
-        '• Hora plena: $' + (sede.tarifaPlenaM  || 0).toLocaleString('es-CO') + ' COP<br>' +
-        '• Por minuto: $' + (sede.tarifaMinutoM || 0).toLocaleString('es-CO') + ' COP' +
-        '</div>' +
-        '</div>' +
-        '<div class="cliente-modal-sede-item cliente-modal-sede-full">' +
-        '<div class="cliente-modal-sede-label">🕐 Horario</div>' +
-        '<div class="cliente-modal-sede-value">' + (sede.horarioSede || 'No especificado') + '</div>' +
-        '</div>' +
-        '</div>' +
-        '<div class="cliente-modal-sede-actions">' +
-        '<button onclick="abrirModalReserva()" class="cli-btn-confirm">Reservar Ahora</button>' +
-        '<button onclick="cerrarModalSede()" class="cliente-modal-sede-btn-cerrar">Cerrar</button>' +
-        '</div>';
 
     var modal = document.getElementById('modalSede');
+    if (!modal) { return; }
+
+    var titleEl = document.getElementById('modalSedeTitle');
+    if (titleEl) { titleEl.textContent = sede.nombre; }
+
+    var estadoEl = document.getElementById('cli-detalle-estado');
+    if (estadoEl) {
+        estadoEl.textContent = sede.estado === 'ACTIVO' ? 'Disponible' : 'No disponible';
+        estadoEl.className   = 'cli-sede-badge ' +
+            (sede.estado === 'ACTIVO' ? 'cli-sede-badge--activo' : 'cli-sede-badge--inactivo');
+    }
+
+    function set(id, valor, fallback) {
+        var el = document.getElementById(id);
+        if (el) { el.textContent = valor || fallback || '—'; }
+    }
+
+    function fmt(v) { return v != null ? Number(v).toLocaleString('es-CO') : 'N/A'; }
+
+    set('cli-detalle-direccion',       sede.direccion);
+    set('cli-detalle-localidad',       sede.localidad);
+    set('cli-detalle-barrio',          sede.barrio,      'No especificado');
+    set('cli-detalle-capacidad',       sede.capacidad);
+    set('cli-detalle-horario',         sede.horarioSede, 'No especificado');
+    set('cli-detalle-tarifa-plena-c',  fmt(sede.tarifaPlenaC));
+    set('cli-detalle-tarifa-minuto-c', fmt(sede.tarifaMinutoC));
+    set('cli-detalle-tarifa-plena-m',  fmt(sede.tarifaPlenaM));
+    set('cli-detalle-tarifa-minuto-m', fmt(sede.tarifaMinutoM));
+
+    var btnReservar = document.getElementById('cli-detalle-btn-reservar');
+    if (btnReservar) {
+        btnReservar.disabled = (sede.estado !== 'ACTIVO');
+        btnReservar.onclick  = function() {
+            cerrarModalSede();
+            abrirModalReserva();
+        };
+    }
+
     modal.style.display = 'flex';
     modal.setAttribute('aria-hidden', 'false');
 }
@@ -886,7 +952,7 @@ function cerrarModalSede() {
 
 
 // ============================================================
-// MODAL — RESERVA
+// MODAL RESERVA
 // ============================================================
 async function abrirModalReserva() {
     if (!sedeSeleccionada) { return; }
@@ -896,7 +962,6 @@ async function abrirModalReserva() {
     var sedeNombreEl = document.getElementById('reservaSedeNombre');
     if (sedeNombreEl) { sedeNombreEl.textContent = sedeSeleccionada.nombre; }
 
-    // Limpiar campos ocultos de fecha
     var fechaInicioEl = document.getElementById('fechaInicio');
     var fechaFinEl    = document.getElementById('fechaFin');
     if (fechaInicioEl) { fechaInicioEl.value = ''; }
@@ -908,7 +973,6 @@ async function abrirModalReserva() {
     modal.style.display = 'flex';
     modal.setAttribute('aria-hidden', 'false');
 
-    // El onclick se asigna aquí para que siempre apunte a la función actualizada
     var reservarBtn = document.getElementById('reservarBtn');
     if (reservarBtn) { reservarBtn.onclick = crearReserva; }
 }
@@ -952,10 +1016,6 @@ function cerrarReservaModal() {
 
 // ============================================================
 // CREAR RESERVA
-//
-// ✅ FIX-R1: Usa GET /api/cupos/disponibles?sedeId=&fechaInicio=&fechaFin=
-// ✅ FIX-R2: Formato ISO con segundos (:00) para LocalDateTime
-// ✅ FIX-R3: Diagnóstico detallado en consola para facilitar debugging
 // ============================================================
 async function crearReserva() {
     var fechaInicioEl  = document.getElementById('fechaInicio');
@@ -966,80 +1026,58 @@ async function crearReserva() {
     var fechaFin    = fechaFinEl     ? fechaFinEl.value      : '';
     var vehiculoId  = vehiculoSelect ? vehiculoSelect.value  : '';
 
-    // ── Validaciones frontend ────────────────────────────────
     if (!fechaInicio || !fechaFin) {
-        showToast('Selecciona las fechas de inicio y fin', 'warning');
+        showWarning('Selecciona las fechas de inicio y fin');
         return;
     }
     if (!vehiculoId) {
-        showToast('Selecciona un vehículo', 'warning');
+        showWarning('Selecciona un vehículo');
         return;
     }
     if (new Date(fechaFin) <= new Date(fechaInicio)) {
-        showToast('La fecha de fin debe ser posterior a la de inicio', 'warning');
+        showWarning('La fecha de fin debe ser posterior a la de inicio');
         return;
     }
 
-    // ✅ FIX-R2: segundos requeridos por LocalDateTime
     if (fechaInicio.length === 16) { fechaInicio = fechaInicio + ':00'; }
     if (fechaFin.length    === 16) { fechaFin    = fechaFin    + ':00'; }
 
-    // Bloquear botón durante el proceso
     var reservarBtn = document.getElementById('reservarBtn');
     if (reservarBtn) { reservarBtn.disabled = true; reservarBtn.textContent = 'Verificando...'; }
 
     try {
-        // ── PASO 1: Consultar cupos disponibles ──────────────
+        // Paso 1: cupos disponibles
         var params = new URLSearchParams({
             sedeId:      sedeSeleccionada.idSede,
             fechaInicio: fechaInicio,
             fechaFin:    fechaFin
         });
 
-        var urlCupos = '/api/cupos/disponibles?' + params.toString();
-        console.info('[ReservaFlow] GET', urlCupos);
-
-        var cuposRes = await fetch(urlCupos);
-
-        console.info('[ReservaFlow] cupos status:', cuposRes.status);
+        var cuposRes = await fetch('/api/cupos/disponibles?' + params.toString());
 
         if (cuposRes.status === 403) {
-            showToast('Sin permisos para consultar disponibilidad (403). ' +
-                'Verifica que tu sesión esté activa.', 'error');
+            showError('Sin permisos para consultar disponibilidad. Verifica que tu sesión esté activa.');
             return;
         }
-
         if (!cuposRes.ok) {
             var cuposErrMsg = 'No se pudo consultar disponibilidad';
             try {
                 var cuposErr = await cuposRes.json();
-                console.warn('[ReservaFlow] error cupos:', cuposErr);
                 if (cuposErr && cuposErr.message) { cuposErrMsg = cuposErr.message; }
-            } catch (e) { /* respuesta no era JSON */ }
-            showToast(cuposErrMsg, 'warning');
+            } catch (e) { /* no era JSON */ }
+            showWarning(cuposErrMsg);
             return;
         }
 
         var cupos = await cuposRes.json();
-        console.info('[ReservaFlow] cupos recibidos:', cupos.length, cupos);
-
         if (!cupos || cupos.length === 0) {
-            showToast('No hay cupos disponibles en ese horario. ' +
-                'Intenta con otro rango de tiempo.', 'warning');
+            showWarning('No hay cupos disponibles en ese horario. Intenta con otro rango de tiempo.');
             return;
         }
 
-        // Tomar el primer cupo — la query del backend ya garantizó que
-        // no tiene conflicto de horario en el rango solicitado.
-        // No filtramos por estado === 'DISPONIBLE' aquí porque un cupo
-        // puede estar marcado como RESERVADO en BD por una reserva anterior
-        // ya finalizada/cancelada cuyo cupo no fue liberado correctamente,
-        // pero la query NOT EXISTS ya verificó que no hay colisión de horario.
         var cupoDisponible = cupos[0];
 
-        console.info('[ReservaFlow] cupo elegido:', cupoDisponible);
-
-        // ── PASO 2: Crear la reserva ─────────────────────────
+        // Paso 2: crear la reserva
         var reservaData = {
             cupoId:      cupoDisponible.idCupo,
             vehiculoId:  parseInt(vehiculoId),
@@ -1047,7 +1085,6 @@ async function crearReserva() {
             fechaFin:    fechaFin
         };
 
-        console.info('[ReservaFlow] POST /api/reservaciones', reservaData);
         if (reservarBtn) { reservarBtn.textContent = 'Creando reserva...'; }
 
         var response = await fetch('/api/reservaciones', {
@@ -1056,31 +1093,27 @@ async function crearReserva() {
             body:    JSON.stringify(reservaData)
         });
 
-        console.info('[ReservaFlow] reserva status:', response.status);
-
         var data = {};
         try { data = await response.json(); } catch (e) {}
-        console.info('[ReservaFlow] reserva response:', data);
 
         if (response.ok) {
-            showToast('¡Reserva creada! Está pendiente de aprobación.', 'success', 6000);
+            showSuccess('¡Reserva creada! Está pendiente de aprobación.');
             cerrarReservaModal();
             cargarReservas();
         } else if (response.status === 403) {
-            showToast('Sin permisos para crear la reserva. ' +
-                'Verifica que tu sesión esté activa.', 'error');
+            showError('Sin permisos para crear la reserva. Verifica que tu sesión esté activa.');
         } else if (response.status === 409) {
-            showToast(data.message || 'Conflicto de horario — el cupo ya fue reservado.', 'warning');
+            showWarning(data.message || 'Conflicto de horario — el cupo ya fue reservado.');
         } else {
-            showToast(data.message || 'Error al crear la reserva (status ' + response.status + ')', 'error');
+            showError(data.message || 'Error al crear la reserva (status ' + response.status + ')');
         }
 
     } catch (error) {
         console.error('[ReservaFlow] excepción:', error);
-        showToast('Error de conexión al crear la reserva', 'error');
+        showError('Error de conexión al crear la reserva');
     } finally {
         if (reservarBtn) {
-            reservarBtn.disabled = false;
+            reservarBtn.disabled    = false;
             reservarBtn.textContent = 'Confirmar reserva';
         }
     }
@@ -1158,43 +1191,38 @@ document.addEventListener('keydown', function(e) {
 
 
 // ============================================================
-// ★ KPIs — RESERVAS
+// KPIs
 // ============================================================
 function actualizarKPIsReservas(reservas) {
     var activas = (reservas || []).filter(function(r) { return r.estado === 'ACTIVA'; }).length;
     var total   = (reservas || []).length;
-
-    var elActivas = document.getElementById('kpiReservasActivas');
-    var elTotal   = document.getElementById('kpiReservasTotal');
-    if (elActivas) { elActivas.textContent = activas; }
-    if (elTotal)   { elTotal.textContent   = total;   }
+    var elA = document.getElementById('kpiReservasActivas');
+    var elT = document.getElementById('kpiReservasTotal');
+    if (elA) { elA.textContent = activas; }
+    if (elT) { elT.textContent = total;   }
 }
 
 function actualizarKPISedes() {
     var el = document.getElementById('kpiSedes');
     if (!el) { return; }
-    var numSedes = (window.sedesData && window.sedesData.length)
+    var n = (window.sedesData && window.sedesData.length)
         ? window.sedesData.length : (sedes.length || '—');
-    el.textContent = numSedes;
+    el.textContent = n;
 }
 
 function actualizarKPIUltimoPago(pagos) {
     var el = document.getElementById('kpiUltimoPago');
     if (!el) { return; }
-
     var pagados = (pagos || []).filter(function(p) { return p.estado === 'PAGADO'; });
     if (pagados.length === 0) { el.textContent = '$0'; return; }
-
     pagados.sort(function(a, b) { return new Date(b.fechaPago) - new Date(a.fechaPago); });
-    var ultimo = pagados[0];
-    el.textContent = ultimo && ultimo.monto
-        ? '$' + Number(ultimo.monto).toLocaleString('es-CO')
-        : '—';
+    var u = pagados[0];
+    el.textContent = u && u.monto ? '$' + Number(u.monto).toLocaleString('es-CO') : '—';
 }
 
 
 // ============================================================
-// ★ ACTIVIDAD RECIENTE — últimas 5 reservas
+// ACTIVIDAD RECIENTE
 // ============================================================
 function actualizarActividadReciente(reservas) {
     var ul = document.getElementById('actividadReciente');
@@ -1206,8 +1234,8 @@ function actualizarActividadReciente(reservas) {
             '<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"' +
             '     stroke-width="1.5" stroke="currentColor" style="width:18px;height:18px;">' +
             '    <path stroke-linecap="round" stroke-linejoin="round"' +
-            '          d="M12 6v6h4.5m4.5 0a9 9 0 11-18 0 9 9 0 0118 0z"/>' +
-            '</svg>No hay actividad reciente</li>';
+            '          d="M12 6v6h4.5m4.5 0a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>' +
+            'No hay actividad reciente</li>';
         return;
     }
 
@@ -1215,19 +1243,17 @@ function actualizarActividadReciente(reservas) {
         return new Date(b.fechaInicio) - new Date(a.fechaInicio);
     });
 
+    var labels = { activa:'Activa', pendiente:'Pendiente', completada:'Completada', cancelada:'Cancelada' };
+
     ul.innerHTML = ordenadas.slice(0, 5).map(function(r) {
         var fecha  = new Date(r.fechaInicio);
         var sede   = (r.cupo && r.cupo.sede && r.cupo.sede.nombre) ? r.cupo.sede.nombre : 'Sede';
         var estado = r.estado ? r.estado.toLowerCase() : 'finalizada';
-        var labels = {
-            activa: 'Activa', pendiente: 'Pendiente',
-            completada: 'Completada', cancelada: 'Cancelada'
-        };
         return '<li class="cli-activity-item">' +
             '<div class="cli-activity-dot ' + estado + '"></div>' +
             '<div class="cli-activity-info">' +
-            '    <div class="cli-activity-sede">' + sede + '</div>' +
-            '    <div class="cli-activity-fecha">' +
+            '<div class="cli-activity-sede">' + sede + '</div>' +
+            '<div class="cli-activity-fecha">' +
             fecha.toLocaleDateString('es-CO', { day: '2-digit', month: 'short', year: 'numeric' }) +
             '</div></div>' +
             '<div class="cli-activity-estado">' + (labels[estado] || estado) + '</div>' +
@@ -1237,7 +1263,7 @@ function actualizarActividadReciente(reservas) {
 
 
 // ============================================================
-// ★ ESTADO ACTUAL — primera reserva activa
+// ESTADO ACTUAL
 // ============================================================
 function actualizarEstadoActual(reservas) {
     var contenedor = document.getElementById('statusReservaContent');
@@ -1248,17 +1274,15 @@ function actualizarEstadoActual(reservas) {
     if (!activa) {
         contenedor.innerHTML =
             '<div class="cli-status-empty">' +
-            '    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"' +
-            '         stroke-width="1.5" stroke="currentColor" style="width:36px;height:36px;opacity:.35;">' +
-            '        <path stroke-linecap="round" stroke-linejoin="round"' +
-            '              d="M6.75 3v2.25M17.25 3v2.25M3 18.75V7.5a2.25 2.25 0 012.25-2.25h13.5A2.25' +
-            '              2.25 0 0121 7.5v11.25m-18 0A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021' +
-            '              18.75m-18 0v-7.5A2.25 2.25 0 015.25 9h13.5A2.25 2.25 0 0021 11.25v7.5"/>' +
-            '    </svg>' +
-            '    <p>No tienes reservas activas</p>' +
-            '    <button class="cli-btn-sm-purple" onclick="navegarA(\'misreservas\')">' +
-            '        Hacer una reserva' +
-            '    </button>' +
+            '<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"' +
+            '     stroke-width="1.5" stroke="currentColor" style="width:36px;height:36px;opacity:.35;">' +
+            '    <path stroke-linecap="round" stroke-linejoin="round"' +
+            '          d="M6.75 3v2.25M17.25 3v2.25M3 18.75V7.5a2.25 2.25 0 012.25-2.25h13.5A2.25' +
+            '          2.25 0 0121 7.5v11.25m-18 0A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021' +
+            '          18.75m-18 0v-7.5A2.25 2.25 0 015.25 9h13.5A2.25 2.25 0 0021 11.25v7.5"/>' +
+            '</svg>' +
+            '<p>No tienes reservas activas</p>' +
+            '<button class="cli-btn-sm-purple" onclick="navegarA(\'misreservas\')">Hacer una reserva</button>' +
             '</div>';
         return;
     }
@@ -1267,24 +1291,23 @@ function actualizarEstadoActual(reservas) {
     var fechaFin    = new Date(activa.fechaFin);
     var sede        = (activa.cupo && activa.cupo.sede && activa.cupo.sede.nombre)
         ? activa.cupo.sede.nombre : 'Sede';
-    var opts        = { hour: '2-digit', minute: '2-digit' };
+    var opts = { hour: '2-digit', minute: '2-digit' };
 
     contenedor.innerHTML =
         '<div class="cli-status-activa">' +
-        '    <div class="cli-status-activa-label">Reserva activa</div>' +
-        '    <div class="cli-status-activa-sede">' + sede + '</div>' +
-        '    <div class="cli-status-activa-tiempo">' +
-        '        ' + fechaInicio.toLocaleTimeString('es-CO', opts) +
-        '        → ' + fechaFin.toLocaleTimeString('es-CO', opts) +
-        '        &nbsp;·&nbsp;' +
-        '        ' + fechaInicio.toLocaleDateString('es-CO', { day: '2-digit', month: 'short' }) +
-        '    </div>' +
-        '</div>';
+        '<div class="cli-status-activa-label">Reserva activa</div>' +
+        '<div class="cli-status-activa-sede">' + sede + '</div>' +
+        '<div class="cli-status-activa-tiempo">' +
+        fechaInicio.toLocaleTimeString('es-CO', opts) +
+        ' → ' + fechaFin.toLocaleTimeString('es-CO', opts) +
+        ' &nbsp;·&nbsp; ' +
+        fechaInicio.toLocaleDateString('es-CO', { day: '2-digit', month: 'short' }) +
+        '</div></div>';
 }
 
 
 // ============================================================
-// ★ BADGE CONTADOR en tabs
+// BADGE CONTADOR
 // ============================================================
 function actualizarBadgeCount(elementId, count) {
     var el = document.getElementById(elementId);
@@ -1293,7 +1316,7 @@ function actualizarBadgeCount(elementId, count) {
 
 
 // ============================================================
-// ★ RESUMEN DE PAGOS
+// RESUMEN DE PAGOS
 // ============================================================
 function actualizarResumenPagos(pagos) {
     var totalEl      = document.getElementById('totalPagado');
@@ -1312,7 +1335,7 @@ function actualizarResumenPagos(pagos) {
 
 
 // ============================================================
-// ★ FILTROS — RESERVAS
+// FILTROS — RESERVAS
 // ============================================================
 function filtrarReservas() {
     if (!_cacheReservas.length) { return; }
@@ -1324,19 +1347,17 @@ function filtrarReservas() {
     var filtradas = _cacheReservas.filter(function(r) {
         if (estado && r.estado !== estado) { return false; }
         if (desde || hasta) {
-            var fechaR = new Date(r.fechaInicio);
-            if (desde && fechaR < new Date(desde + 'T00:00:00')) { return false; }
-            if (hasta && fechaR > new Date(hasta + 'T23:59:59')) { return false; }
+            var f = new Date(r.fechaInicio);
+            if (desde && f < new Date(desde + 'T00:00:00')) { return false; }
+            if (hasta && f > new Date(hasta + 'T23:59:59')) { return false; }
         }
         return true;
     });
 
     var emptyState = document.getElementById('reservasEmptyState');
-    var hayFiltros = estado || desde || hasta;
-
-    if (hayFiltros && filtradas.length === 0 && _cacheReservas.length > 0) {
-        var tbody = document.getElementById('reservasTableBody');
-        if (tbody) { tbody.innerHTML = ''; }
+    if ((estado || desde || hasta) && filtradas.length === 0 && _cacheReservas.length > 0) {
+        var tb = document.getElementById('reservasTableBody');
+        if (tb) { tb.innerHTML = ''; }
         if (emptyState) { emptyState.classList.remove('hidden'); }
         return;
     }
@@ -1347,19 +1368,16 @@ function filtrarReservas() {
 function limpiarFiltrosReservas() {
     ['filtroEstadoReserva', 'filtroFechaDesdeReserva', 'filtroFechaHastaReserva']
         .forEach(function(id) { var el = document.getElementById(id); if (el) { el.value = ''; } });
-
-    // ✅ FIX-D1: limpiar estado interno del datepicker (label + hidden + día seleccionado)
     if (_dpDesdeReserva) { _dpDesdeReserva.limpiar(); }
     if (_dpHastaReserva) { _dpHastaReserva.limpiar(); }
-
-    var emptyState = document.getElementById('reservasEmptyState');
-    if (emptyState) { emptyState.classList.add('hidden'); }
+    var es = document.getElementById('reservasEmptyState');
+    if (es) { es.classList.add('hidden'); }
     actualizarTablaReservas(_cacheReservas);
 }
 
 
 // ============================================================
-// ★ FILTROS — PAGOS
+// FILTROS — PAGOS
 // ============================================================
 function filtrarPagos() {
     if (!_cachePagos.length) { return; }
@@ -1371,19 +1389,17 @@ function filtrarPagos() {
     var filtrados = _cachePagos.filter(function(p) {
         if (estado && p.estado !== estado) { return false; }
         if (desde || hasta) {
-            var fechaP = new Date(p.fechaPago);
-            if (desde && fechaP < new Date(desde + 'T00:00:00')) { return false; }
-            if (hasta && fechaP > new Date(hasta + 'T23:59:59')) { return false; }
+            var f = new Date(p.fechaPago);
+            if (desde && f < new Date(desde + 'T00:00:00')) { return false; }
+            if (hasta && f > new Date(hasta + 'T23:59:59')) { return false; }
         }
         return true;
     });
 
     var emptyState = document.getElementById('pagosEmptyState');
-    var hayFiltros = estado || desde || hasta;
-
-    if (hayFiltros && filtrados.length === 0 && _cachePagos.length > 0) {
-        var tbody = document.getElementById('pagosTableBody');
-        if (tbody) { tbody.innerHTML = ''; }
+    if ((estado || desde || hasta) && filtrados.length === 0 && _cachePagos.length > 0) {
+        var tb = document.getElementById('pagosTableBody');
+        if (tb) { tb.innerHTML = ''; }
         if (emptyState) { emptyState.classList.remove('hidden'); }
         return;
     }
@@ -1394,19 +1410,16 @@ function filtrarPagos() {
 function limpiarFiltrosPagos() {
     ['filtroEstadoPago', 'filtroFechaDesdePago', 'filtroFechaHastaPago']
         .forEach(function(id) { var el = document.getElementById(id); if (el) { el.value = ''; } });
-
-    // ✅ FIX-D1: limpiar estado interno del datepicker (label + hidden + día seleccionado)
     if (_dpDesdePago) { _dpDesdePago.limpiar(); }
     if (_dpHastaPago) { _dpHastaPago.limpiar(); }
-
-    var emptyState = document.getElementById('pagosEmptyState');
-    if (emptyState) { emptyState.classList.add('hidden'); }
+    var es = document.getElementById('pagosEmptyState');
+    if (es) { es.classList.add('hidden'); }
     actualizarTablaPagos(_cachePagos);
 }
 
 
 // ============================================================
-// ★ CONFIGURACIÓN — Carga de datos del perfil
+// CONFIGURACIÓN — Cargar datos
 // ============================================================
 async function cargarDatosConfiguracion() {
     try {
@@ -1428,7 +1441,7 @@ async function cargarDatosConfiguracion() {
 
 
 // ============================================================
-// ★ CONFIGURACIÓN — Guardar perfil (nombre + teléfono)
+// CONFIGURACIÓN — Guardar perfil
 // ============================================================
 async function guardarPerfil() {
     var nombre = (document.getElementById('configNombre')   || {}).value || '';
@@ -1436,10 +1449,7 @@ async function guardarPerfil() {
     var btn    = document.getElementById('btnGuardarPerfil');
     var msg    = document.getElementById('msgPerfil');
 
-    if (!nombre.trim()) {
-        mostrarConfigMsg(msg, 'El nombre no puede estar vacío', 'error');
-        return;
-    }
+    if (!nombre.trim()) { mostrarConfigMsg(msg, 'El nombre no puede estar vacío', 'error'); return; }
 
     if (btn) { btn.disabled = true; btn.textContent = 'Guardando...'; }
 
@@ -1458,12 +1468,12 @@ async function guardarPerfil() {
             ['sidebarUsername', 'headerUsername', 'dropdownUsername'].forEach(function(id) {
                 var el = document.getElementById(id); if (el) { el.textContent = nom; }
             });
-            ['sidebarAvatarInitial', 'heroAvatarInitial',
-                'headerAvatarInitial',  'dropdownAvatarInitial'].forEach(function(id) {
-                var el = document.getElementById(id); if (el) { el.textContent = inicial; }
-            });
-            var heroTitle = document.getElementById('heroWelcomeTitle');
-            if (heroTitle) { heroTitle.textContent = 'Bienvenido, ' + nom; }
+            ['sidebarAvatarInitial','heroAvatarInitial','headerAvatarInitial','dropdownAvatarInitial']
+                .forEach(function(id) {
+                    var el = document.getElementById(id); if (el) { el.textContent = inicial; }
+                });
+            var h = document.getElementById('heroWelcomeTitle');
+            if (h) { h.textContent = 'Bienvenido, ' + nom; }
         } else {
             mostrarConfigMsg(msg, data.message || 'Error al actualizar el perfil', 'error');
         }
@@ -1471,7 +1481,7 @@ async function guardarPerfil() {
         mostrarConfigMsg(msg, 'Error de conexión', 'error');
     } finally {
         if (btn) {
-            btn.disabled = false;
+            btn.disabled  = false;
             btn.innerHTML =
                 '<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"' +
                 '     stroke-width="2" stroke="currentColor" style="width:15px;height:15px;">' +
@@ -1483,13 +1493,7 @@ async function guardarPerfil() {
 
 
 // ============================================================
-// ★ CONFIGURACIÓN — Cambiar contraseña
-//
-// ✅ FIX-P1: Usa POST /cliente/perfil/cambiar-password
-//            El endpoint anterior (/perfil/actualizar) solo procesaba
-//            campos "nombre" y "telefono" — los campos "passwordActual"
-//            y "passwordNueva" eran ignorados silenciosamente.
-//            El botón respondía success:true sin cambiar nada en BD.
+// CONFIGURACIÓN — Cambiar contraseña
 // ============================================================
 async function cambiarContrasena() {
     var actual   = (document.getElementById('configPassActual')  || {}).value || '';
@@ -1498,23 +1502,13 @@ async function cambiarContrasena() {
     var btn      = document.getElementById('btnCambiarPass');
     var msg      = document.getElementById('msgContrasena');
 
-    if (!actual || !nueva || !confirma) {
-        mostrarConfigMsg(msg, 'Completa todos los campos', 'error');
-        return;
-    }
-    if (nueva.length < 8) {
-        mostrarConfigMsg(msg, 'La contraseña debe tener al menos 8 caracteres', 'error');
-        return;
-    }
-    if (nueva !== confirma) {
-        mostrarConfigMsg(msg, 'Las contraseñas no coinciden', 'error');
-        return;
-    }
+    if (!actual || !nueva || !confirma) { mostrarConfigMsg(msg, 'Completa todos los campos', 'error'); return; }
+    if (nueva.length < 8)               { mostrarConfigMsg(msg, 'La contraseña debe tener al menos 8 caracteres', 'error'); return; }
+    if (nueva !== confirma)             { mostrarConfigMsg(msg, 'Las contraseñas no coinciden', 'error'); return; }
 
     if (btn) { btn.disabled = true; btn.textContent = 'Actualizando...'; }
 
     try {
-        // ✅ FIX-P1: endpoint correcto que verifica BCrypt y hashea la nueva contraseña
         var res  = await fetch('/cliente/perfil/cambiar-password', {
             method:  'POST',
             headers: Object.assign({ 'Content-Type': 'application/json' }, getCsrfHeaders()),
@@ -1527,8 +1521,8 @@ async function cambiarContrasena() {
             ['configPassActual', 'configPassNueva', 'configPassConfirm'].forEach(function(id) {
                 var el = document.getElementById(id); if (el) { el.value = ''; }
             });
-            var strengthBar = document.getElementById('passStrengthBar');
-            if (strengthBar) { strengthBar.classList.add('hidden'); }
+            var sb = document.getElementById('passStrengthBar');
+            if (sb) { sb.classList.add('hidden'); }
         } else {
             mostrarConfigMsg(msg, data.message || 'Error al actualizar la contraseña', 'error');
         }
@@ -1536,7 +1530,7 @@ async function cambiarContrasena() {
         mostrarConfigMsg(msg, 'Error de conexión', 'error');
     } finally {
         if (btn) {
-            btn.disabled = false;
+            btn.disabled  = false;
             btn.innerHTML =
                 '<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"' +
                 '     stroke-width="2" stroke="currentColor" style="width:15px;height:15px;">' +
@@ -1559,7 +1553,7 @@ function mostrarConfigMsg(el, texto, tipo) {
 
 
 // ============================================================
-// ★ TOGGLE VISIBILIDAD CONTRASEÑA
+// TOGGLE VISIBILIDAD CONTRASEÑA
 // ============================================================
 function togglePassword(inputId, btnEl) {
     var input = document.getElementById(inputId);
@@ -1593,7 +1587,7 @@ function togglePassword(inputId, btnEl) {
 
 
 // ============================================================
-// ★ INDICADOR DE FORTALEZA DE CONTRASEÑA
+// INDICADOR DE FORTALEZA DE CONTRASEÑA
 // ============================================================
 function evaluarFortalezaPass(valor) {
     var barra = document.getElementById('passStrengthBar');
@@ -1605,11 +1599,11 @@ function evaluarFortalezaPass(valor) {
     barra.classList.remove('hidden');
 
     var puntos = 0;
-    if (valor.length >= 8)           { puntos++; }
-    if (valor.length >= 12)          { puntos++; }
-    if (/[A-Z]/.test(valor))         { puntos++; }
-    if (/[0-9]/.test(valor))         { puntos++; }
-    if (/[^A-Za-z0-9]/.test(valor))  { puntos++; }
+    if (valor.length >= 8)          { puntos++; }
+    if (valor.length >= 12)         { puntos++; }
+    if (/[A-Z]/.test(valor))        { puntos++; }
+    if (/[0-9]/.test(valor))        { puntos++; }
+    if (/[^A-Za-z0-9]/.test(valor)) { puntos++; }
 
     var niveles = [
         { ancho: '20%',  color: '#ef4444', texto: 'Muy débil'  },
@@ -1628,7 +1622,7 @@ function evaluarFortalezaPass(valor) {
 
 
 // ============================================================
-// ★ FAQ — ACORDEÓN
+// FAQ — ACORDEÓN
 // ============================================================
 function toggleFaq(btnEl) {
     var item = btnEl.closest('.cli-faq-item');
@@ -1672,212 +1666,5 @@ window.toggleFaq              = toggleFaq;
 
 
 // ============================================================
-// ★ CALENDARIO DEL MODAL DE RESERVA
-// Funciones: resvToggle(k), resvNav(k, delta), resvOk(k)
-// Se engancha a abrirModalReserva() para limpiar al abrir.
+// CALENDARIO DEL MODAL DE RESERVA
 // ============================================================
-(function() {
-    var MESES = ['Enero','Febrero','Marzo','Abril','Mayo','Junio',
-        'Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'];
-
-    function pad(n) { return String(n).padStart(2, '0'); }
-
-    var _s = {
-        inicio: { y: 0, m: 0, day: null, hr: 8,  mn: 0 },
-        fin:    { y: 0, m: 0, day: null, hr: 9,  mn: 0 }
-    };
-
-    function initSelects(k) {
-        var hr = document.getElementById(k === 'inicio' ? 'hrInicio' : 'hrFin');
-        var mn = document.getElementById(k === 'inicio' ? 'mnInicio' : 'mnFin');
-        if (!hr || !mn) { return; }
-        hr.innerHTML = '';
-        mn.innerHTML = '';
-        for (var h = 0; h < 24; h++) {
-            var o = document.createElement('option');
-            o.value = h; o.textContent = pad(h);
-            if (h === _s[k].hr) { o.selected = true; }
-            hr.appendChild(o);
-        }
-        for (var m = 0; m < 60; m++) {
-            var o = document.createElement('option');
-            o.value = m; o.textContent = pad(m);
-            if (m === _s[k].mn) { o.selected = true; }
-            mn.appendChild(o);
-        }
-        hr.onchange = (function(key) { return function() { _s[key].hr = +this.value; }; })(k);
-        mn.onchange = (function(key) { return function() { _s[key].mn = +this.value; }; })(k);
-    }
-
-    function renderGrid(k) {
-        var s    = _s[k];
-        var lbEl = document.getElementById(k === 'inicio' ? 'lblMesInicio' : 'lblMesFin');
-        var grid = document.getElementById(k === 'inicio' ? 'gridInicio'   : 'gridFin');
-        if (!lbEl || !grid) { return; }
-
-        lbEl.textContent = MESES[s.m] + ' ' + s.y;
-        grid.innerHTML   = '';
-
-        var today    = new Date(); today.setHours(0, 0, 0, 0);
-        var firstDay = new Date(s.y, s.m, 1).getDay();
-        var offset   = firstDay === 0 ? 6 : firstDay - 1;
-        var diasMes  = new Date(s.y, s.m + 1, 0).getDate();
-
-        for (var i = 0; i < offset; i++) {
-            var sp = document.createElement('span');
-            sp.className = 'resv-day';
-            sp.setAttribute('disabled', '');
-            grid.appendChild(sp);
-        }
-
-        for (var d = 1; d <= diasMes; d++) {
-            (function(dia) {
-                var dt  = new Date(s.y, s.m, dia);
-                var btn = document.createElement('button');
-                btn.type        = 'button';
-                btn.className   = 'resv-day';
-                btn.textContent = dia;
-
-                if (dt < today) { btn.setAttribute('disabled', ''); }
-                if (dt.getTime() === today.getTime()) { btn.classList.add('resv-day-today'); }
-                if (s.day && dt.getTime() === s.day.getTime()) { btn.classList.add('resv-day-sel'); }
-
-                btn.onclick = function(e) {
-                    e.stopPropagation();
-                    if (dt < today) { return; }
-                    s.day = dt;
-                    renderGrid(k);
-                };
-                grid.appendChild(btn);
-            })(d);
-        }
-    }
-
-    window.resvToggle = function(k) {
-        var other  = k === 'inicio' ? 'fin' : 'inicio';
-        var popup  = document.getElementById(k === 'inicio' ? 'popInicio' : 'popFin');
-        var popupO = document.getElementById(other === 'inicio' ? 'popInicio' : 'popFin');
-        var trig   = document.getElementById(k === 'inicio' ? 'trigInicio' : 'trigFin');
-        var trigO  = document.getElementById(other === 'inicio' ? 'trigInicio' : 'trigFin');
-
-        if (popupO) { popupO.style.display = 'none'; }
-        if (trigO)  { trigO.classList.remove('resv-open'); }
-        if (!popup || !trig) { return; }
-
-        var open = popup.style.display === 'block';
-        if (open) {
-            popup.style.display = 'none';
-            trig.classList.remove('resv-open');
-        } else {
-            var rect = trig.getBoundingClientRect();
-            var popW = 240;
-            var top  = rect.bottom + 4;
-            var left = rect.left;
-            if (left + popW > window.innerWidth - 8) { left = rect.right - popW; }
-            if (top  + 320 > window.innerHeight)     { top  = rect.top - 324;   }
-            popup.style.top     = top  + 'px';
-            popup.style.left    = left + 'px';
-            popup.style.display = 'block';
-            trig.classList.add('resv-open');
-            renderGrid(k);
-        }
-    };
-
-    window.resvNav = function(k, delta) {
-        _s[k].m += delta;
-        if (_s[k].m > 11) { _s[k].m = 0;  _s[k].y++; }
-        if (_s[k].m < 0)  { _s[k].m = 11; _s[k].y--; }
-        renderGrid(k);
-    };
-
-    window.resvOk = function(k) {
-        var s = _s[k];
-        if (!s.day) { return; }
-
-        var hrEl = document.getElementById(k === 'inicio' ? 'hrInicio' : 'hrFin');
-        var mnEl = document.getElementById(k === 'inicio' ? 'mnInicio' : 'mnFin');
-        if (hrEl) { s.hr = +hrEl.value; }
-        if (mnEl) { s.mn = +mnEl.value; }
-
-        // ✅ FIX-R2: ISO con segundos (:00) — LocalDateTime requiere HH:mm:ss
-        // Sin los segundos, Jackson lanza 400 Bad Request al deserializar
-        var iso = s.day.getFullYear() + '-' +
-            pad(s.day.getMonth() + 1) + '-' +
-            pad(s.day.getDate()) + 'T' +
-            pad(s.hr) + ':' + pad(s.mn) + ':00';
-
-        var hiddenEl = document.getElementById(k === 'inicio' ? 'fechaInicio' : 'fechaFin');
-        if (hiddenEl) { hiddenEl.value = iso; }
-
-        var lblFecha = document.getElementById(k === 'inicio' ? 'lblFechaInicio' : 'lblFechaFin');
-        var lblHora  = document.getElementById(k === 'inicio' ? 'lblHoraInicio'  : 'lblHoraFin');
-        if (lblFecha) {
-            lblFecha.textContent = s.day.toLocaleDateString('es-CO',
-                { day: '2-digit', month: 'short', year: 'numeric' });
-            lblFecha.classList.remove('resv-dt-ph');
-        }
-        if (lblHora) { lblHora.textContent = pad(s.hr) + ':' + pad(s.mn); }
-
-        var popup = document.getElementById(k === 'inicio' ? 'popInicio' : 'popFin');
-        var trig  = document.getElementById(k === 'inicio' ? 'trigInicio' : 'trigFin');
-        if (popup) { popup.style.display = 'none'; }
-        if (trig)  { trig.classList.remove('resv-open'); }
-
-        if (k === 'inicio') {
-            _s.fin.y  = s.day.getFullYear();
-            _s.fin.m  = s.day.getMonth();
-            _s.fin.hr = Math.min(s.hr + 1, 23);
-            _s.fin.mn = s.mn;
-            initSelects('fin');
-            setTimeout(function() { window.resvToggle('fin'); }, 80);
-        }
-    };
-
-    function resvReset() {
-        var now = new Date();
-        ['inicio', 'fin'].forEach(function(k) {
-            _s[k].y   = now.getFullYear();
-            _s[k].m   = now.getMonth();
-            _s[k].day = null;
-            _s[k].hr  = k === 'inicio' ? 8 : 9;
-            _s[k].mn  = 0;
-
-            var popup = document.getElementById(k === 'inicio' ? 'popInicio' : 'popFin');
-            var trig  = document.getElementById(k === 'inicio' ? 'trigInicio' : 'trigFin');
-            if (popup) { popup.style.display = 'none'; }
-            if (trig)  { trig.classList.remove('resv-open'); }
-
-            var lblF = document.getElementById(k === 'inicio' ? 'lblFechaInicio' : 'lblFechaFin');
-            var lblH = document.getElementById(k === 'inicio' ? 'lblHoraInicio'  : 'lblHoraFin');
-            if (lblF) { lblF.textContent = 'Seleccionar'; lblF.classList.add('resv-dt-ph'); }
-            if (lblH) { lblH.textContent = 'Sin hora'; }
-
-            initSelects(k);
-        });
-    }
-
-    document.addEventListener('click', function(e) {
-        ['inicio', 'fin'].forEach(function(k) {
-            var popup = document.getElementById(k === 'inicio' ? 'popInicio' : 'popFin');
-            var trig  = document.getElementById(k === 'inicio' ? 'trigInicio' : 'trigFin');
-            if (!popup || popup.style.display !== 'block') { return; }
-            if (popup.contains(e.target) || (trig && trig.contains(e.target))) { return; }
-            popup.style.display = 'none';
-            if (trig) { trig.classList.remove('resv-open'); }
-        });
-    });
-
-    document.addEventListener('DOMContentLoaded', function() {
-        initSelects('inicio');
-        initSelects('fin');
-
-        var _orig = window.abrirModalReserva;
-        if (typeof _orig === 'function') {
-            window.abrirModalReserva = async function() {
-                await _orig.call(this);
-                resvReset();
-            };
-        }
-    });
-
-})();

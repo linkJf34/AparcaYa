@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title th:text="${asunto}">Recordatorio</title>
+    <style>
+        *{margin:0;padding:0;box-sizing:border-box;}
+        body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,'Helvetica Neue',Arial,sans-serif;background:#f4f6f9;padding:24px 16px;font-size:15px;line-height:1.65;color:#1e293b;}
+        .wrap{max-width:580px;margin:0 auto;}
+        .card{background:#fff;border-radius:10px;overflow:hidden;border:1px solid #e2e8f0;}
+        .header{background:#1e293b;padding:28px 36px;text-align:center;}
+        .header-logo{font-size:20px;font-weight:700;color:#fff;}
+        .header-logo span{color:#f59e0b;}
+        .accent{height:3px;background-color:#f59e0b;}
+        .body{padding:36px;}
+        .body h1{font-size:19px;font-weight:700;color:#1e293b;margin-bottom:10px;}
+        .body p{color:#475569;margin-bottom:14px;}
+        .info-box{background:#fffbeb;border-left:3px solid #f59e0b;border-radius:0 8px 8px 0;padding:16px 20px;margin:20px 0;color:#78350f;font-size:14px;}
+        .divider{border:none;border-top:1px solid #e2e8f0;margin:20px 0;}
+        .cta-wrap{text-align:center;margin:20px 0;}
+        .btn{display:inline-block;background-color:#f59e0b;color:#fff !important;text-decoration:none;padding:11px 26px;border-radius:7px;font-size:14px;font-weight:600;}
+        .footer{background:#f8fafc;padding:22px 36px;text-align:center;border-top:1px solid #e2e8f0;}
+        .footer p{font-size:12px;color:#94a3b8;margin-bottom:4px;}
+    </style>
+</head>
+<body>
+<div class="wrap"><div class="card">
+    <div class="header">
+        <div class="header-logo">Aparca<span>YA</span></div>
+    </div>
+    <div class="accent"></div>
+    <div class="body">
+        <h1 th:text="${asunto}">Recordatorio</h1>
+        <div class="info-box">
+            <p th:utext="${mensaje}">Tienes una actividad pendiente.</p>
+        </div>
+        <p>Accede a tu cuenta para ver los detalles y completar la accion requerida.</p>
+        <hr class="divider">
+        <div class="cta-wrap">
+            <a href="http://localhost:8080/login" class="btn">Ver en mi cuenta</a>
+        </div>
+    </div>
+    <div class="footer">
+        <p><strong style="color:#475569;">AparcaYA Parking Tech</strong></p>
+        <p>Correo automatico — no responder a esta direccion.</p>
+        <p th:text="'&copy; ' + ${anio} + ' AparcaYA.'"></p>
+    </div>
+</div></div>
+</body>
+</html>

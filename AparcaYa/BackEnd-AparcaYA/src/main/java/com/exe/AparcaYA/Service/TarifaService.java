@@ -13,8 +13,10 @@ public interface TarifaService {
     Tarifa update(Tarifa tarifa);
     void delete(Long id);
 
-    // ✅ CAMBIO #2: Creación de tarifas extraída al Service
-    // Antes: bloque de 4 tarifas inline en UsuarioController Y en SedeController (duplicado)
-    // Ahora: lógica centralizada — un único punto de verdad para las 4 tarifas
+    // Búsqueda por sede
+    List<Tarifa> findBySede(Sede sede);
+    List<Tarifa> findBySede_IdSede(Long idSede);
+
+    // Creación de tarifas al registrar una sede
     void crearTarifasParaSede(Sede sede);
 }

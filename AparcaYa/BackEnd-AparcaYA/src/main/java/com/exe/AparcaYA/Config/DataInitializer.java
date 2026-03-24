@@ -26,7 +26,6 @@ public class DataInitializer implements CommandLineRunner {
                     .cedula("0000000000")         // Cédula por defecto
                     .contrasena(passwordEncoder.encode("admin123"))  // Contraseña por defecto: admin123
                     .rol(Rolenum.ADMIN)
-                    .tipoCliente(TipoCliente.NORMAL)
                     .metodoPago(MetodoPago.EFECTIVO)
                     .estado(EstadoGeneral.ACTIVO)
                     .descripcion("Usuario administrador creado automáticamente")

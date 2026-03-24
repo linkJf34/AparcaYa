@@ -3,19 +3,13 @@ package com.exe.AparcaYA.Entity;
 import com.exe.AparcaYA.Enum.EstadoGeneral;
 import com.exe.AparcaYA.Enum.MetodoPago;
 import com.exe.AparcaYA.Enum.Rolenum;
-import com.exe.AparcaYA.Enum.TipoCliente;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
-import jakarta.validation.constraints.Email;
-import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.NotNull;
-import jakarta.validation.constraints.Pattern;
-import jakarta.validation.constraints.Size;
+import jakarta.validation.constraints.*;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-
 import java.util.ArrayList;
 import java.util.List;
 
@@ -62,14 +56,9 @@ public class Usuario {
     @Column(nullable = false)
     private Rolenum rol;
 
-    @NotNull(message = "El tipo de cliente es obligatorio")
+    // Solo aplica para clientes
     @Enumerated(EnumType.STRING)
-    @Column(nullable = false)
-    private TipoCliente tipoCliente;
-
-    @NotNull(message = "El método de pago es obligatorio")
-    @Enumerated(EnumType.STRING)
-    @Column(nullable = false)
+    @Column
     private MetodoPago metodoPago;
 
     @NotNull(message = "El estado es obligatorio")
@@ -80,16 +69,12 @@ public class Usuario {
     @Column(columnDefinition = "TEXT")
     private String descripcion;
 
-    // ✅ FetchType.EAGER — antes era LAZY, causaba proxy no inicializado cuando
-    // el JWT expiraba y el usuario se recargaba fuera de una sesión Hibernate activa.
-    // Síntoma: tras tiempo de inactividad/recarga, getSedeAsignada() retornaba null
-    // aunque la sede existía en BD — NPE en todos los endpoints del Controller.
-    // LAZY es correcto para colecciones @OneToMany, pero para este @ManyToOne simple
-    // que se necesita en casi todos los endpoints, EAGER es la opción correcta.
     @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "id_sede_asignada")
     @JsonIgnore
     private Sede sedeAsignada;
+
+    // ── Relaciones ───────────────────────────────────────────────────────────
 
     @OneToMany(mappedBy = "idUsuario", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     @JsonIgnore

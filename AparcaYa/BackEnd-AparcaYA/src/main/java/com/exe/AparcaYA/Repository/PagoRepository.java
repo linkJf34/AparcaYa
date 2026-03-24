@@ -10,12 +10,14 @@ import java.util.List;
 @Repository
 public interface PagoRepository extends JpaRepository<Pago, Long> {
 
-    // Buscar pagos por estado
     List<Pago> findByEstado(EstadoPago estado);
 
-    // Buscar pagos por reservación
+    // Pagos por reservación
     List<Pago> findByReservacion_IdReserva(Long idReserva);
 
-    // Buscar pagos de un cliente específico (a través de reservación)
+    // NUEVO — pagos por registro directo sin reservación
+    List<Pago> findByRegistro_IdRegistro(Long idRegistro);
+
+    // Pagos de un cliente a través de su reservación
     List<Pago> findByReservacion_Cliente_IdUsuario(Long idUsuario);
 }

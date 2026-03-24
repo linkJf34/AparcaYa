@@ -17,8 +17,6 @@ public interface UsuarioService {
     Usuario findByTelefono(String telefono);
     Usuario findByCedula(String cedula);
     List<Usuario> findByRolIn(List<Rolenum> roles);
-
-    // ✅ CAMBIO #2: Métodos de conteo movidos desde AdminController
     long contarActivos();
     long contarTotal();
 }

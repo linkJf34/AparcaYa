@@ -17,10 +17,8 @@
         List<Sede> findByBarrioContainingIgnoreCase(String barrio);
         List<Sede> findByEstado(EstadoGeneral estado);
         Sede findByIdUsuario(Long idUsuario);
-
-        // ✅ CAMBIO #2: Métodos de conteo movidos desde AdminController
         long contarActivas();
         long contarTotal();
-
         Optional<Sede> findFirstByAdminId(Long idUsuario);
+        List<Sede> findAllByAdminId(Long idUsuario);
     }

@@ -2,6 +2,15 @@
 // ADMIND.JS — AparcaYA
 // Ruta: /js/AdminD.js
 // ============================================
+// CAMBIOS v3:
+//   - Gráficas: paleta mejorada, dona para usuarios, barras horiz. para sedes
+//   - Gráfica nueva: Estado de Correos (dona)
+//   - PDF/Excel movidos a sección de gráficas (exportarGraficaPDF / exportarGraficaCSV)
+//   - Selector de plantillas de correo integrado
+//   - Historial de correos con filtros integrado
+//   - KPIs de correos integrados
+//   - Toda la lógica de negocio existente sin modificaciones
+// ============================================
 
 // ============================================
 // CONFIGURACIÓN Y VARIABLES GLOBALES
@@ -18,45 +27,50 @@ let marcadores = [];
 let usuarios   = [];
 let sedes      = [];
 
-// ============================================
-// SISTEMA DE NOTIFICACIONES — SweetAlert2
-// ============================================
-function showToast(mensaje, tipo = 'info', duracion = 4000) {
-    const iconMap = { success:'success', error:'error', warning:'warning', info:'info' };
-    Swal.mixin({
-        toast:             true,
-        position:          'top-end',
-        showConfirmButton: false,
-        timer:             duracion,
-        timerProgressBar:  true,
-        didOpen: (toast) => {
-            toast.addEventListener('mouseenter', Swal.stopTimer);
-            toast.addEventListener('mouseleave', Swal.resumeTimer);
-        }
-    }).fire({ icon: iconMap[tipo] || 'info', title: mensaje });
-}
+// Instancias de Chart.js — accesibles para exportación
+let chartIngresos, chartUsuarios, chartSedes, chartCorreosEstado;
 
-async function showConfirm(titulo, cuerpo, btnTexto = 'Eliminar', btnColor = 'danger') {
-    const colorMap = { danger:'#dc2626', warning:'#f59e0b' };
-    const result = await Swal.fire({
-        title:              titulo,
-        html:               cuerpo,
-        icon:               btnColor === 'warning' ? 'warning' : 'question',
-        showCancelButton:   true,
-        confirmButtonText:  btnTexto,
-        cancelButtonText:   'Cancelar',
-        confirmButtonColor: colorMap[btnColor] || colorMap.danger,
-        cancelButtonColor:  '#6b7280',
-        reverseButtons:     true,
-        focusCancel:        true,
-        customClass: {
-            popup:         'swal-aparca-popup',
-            title:         'swal-aparca-title',
-            htmlContainer: 'swal-aparca-body'
-        }
-    });
-    return result.isConfirmed;
-}
+// Estado del módulo de correos
+const EMAIL_MOD = { plantillaActiva: null, plantillaActivaMasivo: null };
+
+// ============================================
+// PALETA DE COLORES MEJORADA
+// ============================================
+const PALETA = {
+    indigo:   '#6366f1',
+    indigoA:  'rgba(99,102,241,0.82)',
+    amber:    '#f59e0b',
+    amberA:   'rgba(245,158,11,0.82)',
+    emerald:  '#10b981',
+    emeraldA: 'rgba(16,185,129,0.82)',
+    sky:      '#0ea5e9',
+    skyA:     'rgba(14,165,233,0.82)',
+    rose:     '#f43f5e',
+    roseA:    'rgba(244,63,94,0.82)',
+    slate:    '#64748b',
+    slateA:   'rgba(100,116,139,0.55)',
+};
+
+const ROL_CFG = {
+    ADMIN:              { label: 'Admin',      color: PALETA.indigoA,  border: PALETA.indigo  },
+    ADMINISTRADOR_SEDE: { label: 'Admin Sede', color: PALETA.amberA,   border: PALETA.amber   },
+    OPERARIO:           { label: 'Operario',   color: PALETA.emeraldA, border: PALETA.emerald },
+    CLIENTE:            { label: 'Cliente',    color: PALETA.skyA,     border: PALETA.sky     }
+};
+
+// Opciones base compartidas para Chart.js
+const BASE_CHART_OPTS = {
+    responsive: true,
+    maintainAspectRatio: false,
+    plugins: {
+        legend: { labels: { font: { size: 12 }, padding: 14, boxWidth: 10, boxHeight: 10 } },
+        tooltip: { padding: 10, cornerRadius: 6, titleFont: { size: 13 }, bodyFont: { size: 12 } }
+    },
+    scales: {
+        x: { grid: { display: false },          ticks: { font: { size: 11 } } },
+        y: { grid: { color: 'rgba(0,0,0,0.04)' }, ticks: { font: { size: 11 }, precision: 0 }, beginAtZero: true }
+    }
+};
 
 // ============================================
 // HELPERS — abrir/cerrar modales propios
@@ -84,6 +98,10 @@ document.addEventListener('DOMContentLoaded', () => {
     cargarSedes();
     cargarEstadisticasDonut();
     setupMailTabs();
+    inicializarSelectorPlantillas();
+    cargarContadoresCorreos();
+    cargarHistorialCorreos();
+    vincularFiltrosHistorial();
 
     const formUnitario = document.getElementById('formCorreoUnitario');
     if (formUnitario) {
@@ -111,6 +129,9 @@ document.addEventListener('DOMContentLoaded', () => {
     // Badge en tiempo real mientras el admin escribe manualmente
     var textarea = document.getElementById('emailsMassive');
     if (textarea) textarea.addEventListener('input', _adminActualizarBadge);
+
+    // Filtros de gráficas
+    vincularFiltrosGraficas();
 });
 
 // Escape cierra cualquier modal abierto
@@ -287,10 +308,7 @@ async function eliminarUsuario(id) {
     });
     if (!usuario) { showToast('Usuario no encontrado', 'error'); return; }
 
-    const confirmado = await showConfirm(
-        'Eliminar usuario',
-        `¿Estás seguro de eliminar a <strong>${usuario.nombre}</strong>?<br>Esta acción no se puede deshacer.`
-    );
+    const confirmado = await showDeleteConfirm(usuario.nombre, 'usuario');
     if (!confirmado) return;
 
     try {
@@ -325,7 +343,6 @@ function editarUsuario(id) {
     document.getElementById('edit_rol').value        = usuario.rol?.name || usuario.rol || 'CLIENTE';
     document.getElementById('edit_estado').value     = (usuario.estado  || 'ACTIVO').toUpperCase();
 
-    // ✅ CAMBIADO: showModal() → classList.add('show')
     abrirModal('modal_editar_usuario');
 }
 
@@ -354,7 +371,6 @@ async function guardarEdicion() {
         if (!response.ok) throw new Error(data.mensaje || `Error ${response.status}`);
 
         showToast(data.mensaje || 'Usuario actualizado correctamente', 'success');
-        // ✅ CAMBIADO: .close() → classList.remove('show')
         cerrarModalEdicion();
         await cargarUsuarios();
         await cargarIndicadores();
@@ -365,7 +381,6 @@ async function guardarEdicion() {
 }
 
 function cerrarModalEdicion() {
-    // ✅ CAMBIADO: .close() → classList.remove('show')
     cerrarModal('modal_editar_usuario');
     ['edit_usuario_id','edit_nombre','edit_email','edit_telefono'].forEach(id => {
         var el = document.getElementById(id); if (el) el.value = '';
@@ -451,10 +466,7 @@ async function eliminarSede(id) {
     const sede = sedes.find(s => s.id == id);
     if (!sede) { showToast('Sede no encontrada', 'error'); return; }
 
-    const confirmado = await showConfirm(
-        'Eliminar sede',
-        `¿Estás seguro de eliminar <strong>${sede.nombre}</strong>?<br>Esta acción no se puede deshacer.`
-    );
+    const confirmado = await showDeleteConfirm(sede.nombre, 'sede');
     if (!confirmado) return;
 
     try {
@@ -483,7 +495,6 @@ function editarSede(id) {
     document.getElementById('edit_sede_capacidad').value = sede.capacidad || '';
     document.getElementById('edit_sede_estado').value    = (sede.estado   || 'ACTIVO').toUpperCase();
 
-    // ✅ CAMBIADO: showModal() → classList.add('show')
     abrirModal('modal_editar_sede');
 }
 
@@ -511,7 +522,6 @@ async function guardarEdicionSede() {
         if (!response.ok) throw new Error(data.mensaje || `Error ${response.status}`);
 
         showToast(data.mensaje || 'Sede actualizada correctamente', 'success');
-        // ✅ CAMBIADO: .close() → classList.remove('show')
         cerrarModalEdicionSede();
         await cargarSedes();
         await cargarIndicadores();
@@ -522,7 +532,6 @@ async function guardarEdicionSede() {
 }
 
 function cerrarModalEdicionSede() {
-    // ✅ CAMBIADO: .close() → classList.remove('show')
     cerrarModal('modal_editar_sede');
 }
 
@@ -607,12 +616,28 @@ async function agregarMarcadores() {
                 <h4 style="margin:0 0 8px;font-size:1.125rem;font-weight:700;color:#0f172a;">
                     ${sede.nombre}
                 </h4>
-                <p style="margin:4px 0;color:#64748b;font-size:0.875rem;">📍 ${sede.direccion}</p>
-                <p style="margin:4px 0;color:#64748b;font-size:0.875rem;">🚗 Capacidad: ${sede.capacidad} vehículos</p>
+                <p style="margin:4px 0;color:#64748b;font-size:0.875rem;display:flex;align-items:center;gap:6px;">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" fill="none"
+                         viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"
+                         stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0;">
+                        <path d="M20 10c0 4.993-5.539 10.193-7.399 11.799a1 1 0 0 1-1.202 0C9.539 20.193 4 14.993 4 10a8 8 0 0 1 16 0"/>
+                        <circle cx="12" cy="10" r="3"/>
+                    </svg>
+                    ${sede.direccion}
+                </p>
+                <p style="margin:4px 0;color:#64748b;font-size:0.875rem;display:flex;align-items:center;gap:6px;">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" fill="none"
+                         viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"
+                         stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0;">
+                        <path d="M19 17H5v0a2 2 0 0 1-2-2V9a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2v6a2 2 0 0 1-2 2z"/>
+                        <circle cx="7.5" cy="17" r="1.5"/><circle cx="16.5" cy="17" r="1.5"/>
+                        <path d="M5 9h14M9 9V7a2 2 0 0 1 2-2h2a2 2 0 0 1 2 2v2"/>
+                    </svg>
+                    Capacidad: ${sede.capacidad} vehículos
+                </p>
                 <button onclick="mostrarDetallesSede(${sede.id})"
                         style="margin-top:12px;width:100%;background:#1e40af;color:white;
-                               border:none;padding:8px 16px;border-radius:6px;cursor:pointer;
-                               font-weight:600;"
+                               border:none;padding:8px 16px;border-radius:6px;cursor:pointer;font-weight:600;"
                         onmouseover="this.style.background='#1e3a8a'"
                         onmouseout="this.style.background='#1e40af'">
                     Ver detalles completos
@@ -665,60 +690,36 @@ function mostrarDetallesSede(sedeId) {
     const sede = sedes.find(s => s.id == sedeId);
     if (!sede) return;
 
-    const modalBody  = document.getElementById('modalSedeBody');
-    const modalTitle = document.getElementById('modalSedeTitle');
-    modalTitle.textContent = sede.nombre;
+    document.getElementById('modalSedeTitle').textContent = sede.nombre;
 
-    const estadoBadge = sede.estado === 'ACTIVO'
-        ? '<span class="admin-badge admin-badge-activo">✓ Activa</span>'
-        : '<span class="admin-badge admin-badge-inactivo">✗ Inactiva</span>';
+    const badgeEl = document.getElementById('detalle-sede-estado');
+    if (badgeEl) {
+        badgeEl.textContent = sede.estado === 'ACTIVO' ? 'Activa' : 'Inactiva';
+        badgeEl.className   = 'admin-badge ' + (sede.estado === 'ACTIVO' ? 'admin-badge-activo' : 'admin-badge-inactivo');
+    }
 
-    modalBody.innerHTML = `
-        <div class="admin-info-grid">
-            <div class="admin-info-item admin-info-full">
-                <div class="admin-info-label">Estado</div>
-                <div class="admin-info-value">${estadoBadge}</div>
-            </div>
-            <div class="admin-info-item">
-                <div class="admin-info-label">📋 NIT</div>
-                <div class="admin-info-value">${sede.nit || 'N/A'}</div>
-            </div>
-            <div class="admin-info-item">
-                <div class="admin-info-label">🚗 Capacidad</div>
-                <div class="admin-info-value">${sede.capacidad} vehículos</div>
-            </div>
-            <div class="admin-info-item">
-                <div class="admin-info-label">📍 Localidad</div>
-                <div class="admin-info-value">${sede.localidad || 'N/A'}</div>
-            </div>
-            <div class="admin-info-item admin-info-full">
-                <div class="admin-info-label">🏘️ Barrio</div>
-                <div class="admin-info-value">${sede.barrio || 'No especificado'}</div>
-            </div>
-            <div class="admin-info-item admin-info-full">
-                <div class="admin-info-label">📌 Dirección</div>
-                <div class="admin-info-value">${sede.direccion}</div>
-            </div>
-            <div class="admin-info-item admin-info-full">
-                <div class="admin-info-label">💰 Tarifas</div>
-                <div class="admin-info-value admin-modal-sede-tarifas">
-                    <strong>🚗 Carros:</strong>
-                    &nbsp;&nbsp;• Hora plena: $${sede.tarifaPlenaC?.toLocaleString('es-CO') || 'N/A'} COP<br>
-                    &nbsp;&nbsp;• Por minuto: $${sede.tarifaMinutoC?.toLocaleString('es-CO') || 'N/A'} COP<br>
-                    <strong>🏍️ Motos:</strong>
-                    &nbsp;&nbsp;• Hora plena: $${sede.tarifaPlenaM?.toLocaleString('es-CO') || 'N/A'} COP<br>
-                    &nbsp;&nbsp;• Por minuto: $${sede.tarifaMinutoM?.toLocaleString('es-CO') || 'N/A'} COP
-                </div>
-            </div>
-            <div class="admin-info-item admin-info-full">
-                <div class="admin-info-label">🕐 Horario</div>
-                <div class="admin-info-value">${sede.horarioSede || 'No especificado'}</div>
-            </div>
-        </div>
-        <div class="admin-modal-sede-actions">
-            <button class="adm-btn-outline" onclick="editarSede(${sede.id}); cerrarModalSede();">Editar Sede</button>
-            <button class="adm-btn-danger"  onclick="cerrarModalSede(); eliminarSede(${sede.id});">Eliminar</button>
-        </div>`;
+    const set = (id, valor, fallback) => {
+        const el = document.getElementById(id);
+        if (el) el.textContent = valor || fallback || '—';
+    };
+
+    set('detalle-sede-nit',           sede.nit);
+    set('detalle-sede-capacidad',     sede.capacidad);
+    set('detalle-sede-localidad',     sede.localidad);
+    set('detalle-sede-barrio',        sede.barrio,      'No especificado');
+    set('detalle-sede-direccion',     sede.direccion);
+    set('detalle-sede-horario',       sede.horarioSede, 'No especificado');
+
+    const fmt = v => v != null ? v.toLocaleString('es-CO') : 'N/A';
+    set('detalle-sede-tarifa-plena-c',  fmt(sede.tarifaPlenaC));
+    set('detalle-sede-tarifa-minuto-c', fmt(sede.tarifaMinutoC));
+    set('detalle-sede-tarifa-plena-m',  fmt(sede.tarifaPlenaM));
+    set('detalle-sede-tarifa-minuto-m', fmt(sede.tarifaMinutoM));
+
+    const btnEditar   = document.getElementById('detalle-sede-btn-editar');
+    const btnEliminar = document.getElementById('detalle-sede-btn-eliminar');
+    if (btnEditar)   btnEditar.onclick   = () => { editarSede(sede.id);  cerrarModalSede(); };
+    if (btnEliminar) btnEliminar.onclick = () => { cerrarModalSede(); eliminarSede(sede.id); };
 
     abrirModal('modalSede');
 }
@@ -728,22 +729,14 @@ function cerrarModalSede() {
 }
 
 // ============================================
-// GRÁFICAS
+// GRÁFICAS — v3 con paleta mejorada
 // ============================================
-let chartIngresos, chartUsuarios, chartSedes;
-
 async function inicializarGraficas() {
     await cargarGraficaIngresos();
     await cargarGraficaUsuarios();
     await cargarGraficaSedes();
+    await cargarGraficaCorreos();
 }
-
-const ROL_CONFIG = {
-    ADMIN:              { label: 'Admin',      color: '#6366f1' },
-    ADMINISTRADOR_SEDE: { label: 'Admin Sede', color: '#f59e0b' },
-    OPERARIO:           { label: 'Operario',   color: '#10b981' },
-    CLIENTE:            { label: 'Cliente',    color: '#3b82f6' }
-};
 
 async function cargarGraficaIngresos() {
     try {
@@ -751,31 +744,32 @@ async function cargarGraficaIngresos() {
         if (!response.ok) throw new Error('Error cargando gráfica de accesos');
         const data = await response.json();
 
+        // KPIs
         const kpiActual   = document.getElementById('kpiIngresosActual');
         const kpiAnterior = document.getElementById('kpiIngresosAnterior');
         const kpiAnio     = document.getElementById('kpiIngresosAnio');
-        if (kpiAnterior) kpiAnterior.textContent = data.mesAnterior.toLocaleString('es-CO');
-        if (kpiAnio)     kpiAnio.textContent     = data.acumuladoAnio.toLocaleString('es-CO');
+        if (kpiAnterior) kpiAnterior.textContent = (data.mesAnterior || 0).toLocaleString('es-CO');
+        if (kpiAnio)     kpiAnio.textContent     = (data.acumuladoAnio || 0).toLocaleString('es-CO');
         if (kpiActual) {
             const signo  = data.variacion >= 0 ? '+' : '';
             const sufijo = data.variacion !== 0 ? ` (${signo}${data.variacion}%)` : '';
-            kpiActual.textContent = data.mesActual.toLocaleString('es-CO') + sufijo;
+            kpiActual.textContent = (data.mesActual || 0).toLocaleString('es-CO') + sufijo;
             kpiActual.className   = 'admin-kpi-value';
             if (data.variacion > 0)      kpiActual.classList.add('positive');
             else if (data.variacion < 0) kpiActual.classList.add('negative');
             else                         kpiActual.classList.add('accent');
         }
 
+        // Leyenda por rol
         const legendContainer = document.getElementById('legendAccesos');
         if (legendContainer && data.porRol) {
             legendContainer.innerHTML = Object.entries(data.porRol)
-                .filter(([rol]) => ROL_CONFIG[rol])
+                .filter(([rol]) => ROL_CFG[rol])
                 .map(([rol, serie]) => {
-                    const cfg   = ROL_CONFIG[rol];
+                    const cfg   = ROL_CFG[rol];
                     const total = serie.reduce((a, b) => a + b, 0);
-                    return `
-                    <span class="admin-legend-item">
-                        <span class="admin-legend-dot" style="background:${cfg.color}"></span>
+                    return `<span class="admin-legend-item">
+                        <span class="admin-legend-dot" style="background:${cfg.border}"></span>
                         ${cfg.label} <strong>${total.toLocaleString('es-CO')}</strong>
                     </span>`;
                 }).join('');
@@ -785,12 +779,13 @@ async function cargarGraficaIngresos() {
         const canvas = document.getElementById('chartIngresos');
         if (!canvas) return;
 
-        const datasets = Object.entries(ROL_CONFIG).map(([rol, cfg]) => ({
+        const datasets = Object.entries(ROL_CFG).map(([rol, cfg]) => ({
             label:           cfg.label,
             data:            data.porRol?.[rol] || Array(12).fill(0),
             backgroundColor: cfg.color,
-            borderRadius:    2,
-            borderWidth:     0,
+            borderColor:     cfg.border,
+            borderWidth:     1,
+            borderRadius:    3,
             stack:           'accesos'
         }));
 
@@ -798,10 +793,12 @@ async function cargarGraficaIngresos() {
             type: 'bar',
             data: { labels: data.labels, datasets },
             options: {
-                responsive: true, maintainAspectRatio: false,
+                ...BASE_CHART_OPTS,
                 plugins: {
+                    ...BASE_CHART_OPTS.plugins,
                     legend: { display: false },
                     tooltip: {
+                        ...BASE_CHART_OPTS.plugins.tooltip,
                         callbacks: {
                             label:  ctx => ` ${ctx.dataset.label}: ${ctx.parsed.y.toLocaleString('es-CO')} accesos`,
                             footer: items => 'Total mes: ' + items.reduce((s, i) => s + i.parsed.y, 0).toLocaleString('es-CO')
@@ -809,8 +806,8 @@ async function cargarGraficaIngresos() {
                     }
                 },
                 scales: {
-                    x: { stacked: true, grid: { display: false }, ticks: { autoSkip: false } },
-                    y: { stacked: true, beginAtZero: true, grid: { color: 'rgba(0,0,0,0.05)' }, ticks: { precision: 0 } }
+                    x: { ...BASE_CHART_OPTS.scales.x, stacked: true },
+                    y: { ...BASE_CHART_OPTS.scales.y, stacked: true }
                 }
             }
         });
@@ -826,28 +823,43 @@ async function cargarGraficaUsuarios() {
         const response = await fetch(`${API_BASE_URL}/grafica/usuarios-rol`);
         if (!response.ok) throw new Error();
         const data = await response.json();
+
         if (chartUsuarios) chartUsuarios.destroy();
         const canvas = document.getElementById('chartUsuarios');
         if (!canvas) return;
 
-        const PALETA = { ADMIN:'#6366f1', ADMINISTRADOR_SEDE:'#f59e0b', OPERARIO:'#10b981', CLIENTE:'#3b82f6' };
-        const colores = data.labels.map(l => PALETA[l] || '#94a3b8');
-        const total   = data.data.reduce((a, b) => a + b, 0);
-        const kpiT    = document.getElementById('kpiUsuariosTotal');
-        if (kpiT) kpiT.textContent = total;
+        const colores  = data.labels.map(l => ROL_CFG[l]?.color  || PALETA.slateA);
+        const bordes   = data.labels.map(l => ROL_CFG[l]?.border || PALETA.slate);
+        const total    = data.data.reduce((a, b) => a + b, 0);
+
+        const kpiT = document.getElementById('kpiUsuariosTotal');
+        if (kpiT) kpiT.textContent = total.toLocaleString('es-CO');
 
         chartUsuarios = new Chart(canvas, {
-            type: 'bar',
+            type: 'doughnut',
             data: {
-                labels:   data.labels.map(l => ROL_LABELS[l] || l),
-                datasets: [{ label:'Usuarios', data:data.data, backgroundColor:colores, borderRadius:6, borderWidth:0 }]
+                labels: data.labels.map(l => ROL_CFG[l]?.label || ROL_LABELS[l] || l),
+                datasets: [{
+                    data:            data.data,
+                    backgroundColor: colores,
+                    borderColor:     bordes,
+                    borderWidth:     2,
+                    hoverOffset:     6
+                }]
             },
             options: {
-                responsive: true, maintainAspectRatio: false,
-                plugins: { legend:{ display:false }, tooltip:{ callbacks:{ label: ctx => ` ${ctx.parsed.y} usuarios` } } },
-                scales: {
-                    y: { beginAtZero:true, grid:{ color:'rgba(0,0,0,0.05)' }, ticks:{ precision:0 } },
-                    x: { grid:{ display:false } }
+                responsive: true,
+                maintainAspectRatio: false,
+                cutout: '62%',
+                plugins: {
+                    legend: {
+                        position: 'bottom',
+                        labels: { font: { size: 11 }, padding: 10, boxWidth: 10, boxHeight: 10 }
+                    },
+                    tooltip: {
+                        ...BASE_CHART_OPTS.plugins.tooltip,
+                        callbacks: { label: ctx => ` ${ctx.label}: ${ctx.parsed} usuarios` }
+                    }
                 }
             }
         });
@@ -859,11 +871,15 @@ async function cargarGraficaSedes() {
         const response = await fetch(`${API_BASE_URL}/grafica/sedes`);
         if (!response.ok) throw new Error();
         const data = await response.json();
+
         if (chartSedes) chartSedes.destroy();
         const canvas = document.getElementById('chartSedes');
         if (!canvas) return;
 
         const capacidadTotal = data.data.reduce((a, b) => a + b, 0);
+        const maxVal         = Math.max(...data.data);
+        const colores        = data.data.map(v => v === maxVal ? PALETA.amberA : 'rgba(245,158,11,0.38)');
+
         const kpiCap = document.getElementById('kpiSedesCapacidad');
         const kpiST  = document.getElementById('kpiSedesTotal');
         if (kpiCap) kpiCap.textContent = capacidadTotal.toLocaleString('es-CO');
@@ -872,19 +888,150 @@ async function cargarGraficaSedes() {
         chartSedes = new Chart(canvas, {
             type: 'bar',
             data: {
-                labels:   data.labels,
-                datasets: [{ label:'Capacidad (vehículos)', data:data.data, backgroundColor:'#f59e0b', borderRadius:6, borderWidth:0 }]
+                labels: data.labels,
+                datasets: [{
+                    label:           'Capacidad (vehículos)',
+                    data:            data.data,
+                    backgroundColor: colores,
+                    borderColor:     PALETA.amber,
+                    borderWidth:     1,
+                    borderRadius:    5,
+                    borderSkipped:   false
+                }]
             },
             options: {
-                responsive: true, maintainAspectRatio: false,
-                plugins: { legend:{ display:false }, tooltip:{ callbacks:{ label: ctx => ` ${ctx.parsed.y} vehículos` } } },
+                ...BASE_CHART_OPTS,
+                indexAxis: 'y',
+                plugins: {
+                    ...BASE_CHART_OPTS.plugins,
+                    legend: { display: false },
+                    tooltip: { callbacks: { label: ctx => ` ${ctx.parsed.x} vehículos` } }
+                },
                 scales: {
-                    y: { beginAtZero:true, grid:{ color:'rgba(0,0,0,0.05)' }, ticks:{ precision:0, callback: v => v + ' v.' } },
-                    x: { grid:{ display:false }, ticks:{ maxRotation:35, autoSkip:false } }
+                    x: { ...BASE_CHART_OPTS.scales.x, grid: { color: 'rgba(0,0,0,0.04)' } },
+                    y: { ...BASE_CHART_OPTS.scales.y, grid: { display: false } }
                 }
             }
         });
     } catch (e) { console.error('Error gráfica sedes:', e); }
+}
+
+// NUEVA — Gráfica de estado de correos
+async function cargarGraficaCorreos() {
+    const canvas = document.getElementById('chartCorreosEstado');
+    if (!canvas) return;
+
+    try {
+        const resp = await fetch(`${API_BASE_URL}/correos/estadisticas`);
+        if (!resp.ok) return;
+        const data = await resp.json();
+
+        const enviados   = Number(data.totalEnviados   || 0);
+        const errores    = Number(data.totalErrores    || 0);
+        const pendientes = Number(data.totalPendientes || 0);
+
+        // KPIs de la tarjeta de gráfica (ids con sufijo 2 para no colisionar con los de la sección correos)
+        const kpiE = document.getElementById('kpiCorreosEnviados2');
+        const kpiR = document.getElementById('kpiCorreosErrores2');
+        if (kpiE) kpiE.textContent = enviados.toLocaleString('es-CO');
+        if (kpiR) kpiR.textContent = errores.toLocaleString('es-CO');
+
+        if (chartCorreosEstado) chartCorreosEstado.destroy();
+
+        chartCorreosEstado = new Chart(canvas, {
+            type: 'doughnut',
+            data: {
+                labels:   ['Enviados', 'Errores', 'Pendientes'],
+                datasets: [{
+                    data:            [enviados, errores, pendientes],
+                    backgroundColor: [PALETA.emeraldA, PALETA.roseA,    PALETA.amberA ],
+                    borderColor:     [PALETA.emerald,  PALETA.rose,     PALETA.amber  ],
+                    borderWidth:     2,
+                    hoverOffset:     5
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                cutout: '60%',
+                plugins: {
+                    legend: { position: 'bottom', labels: { font: { size: 11 }, padding: 10 } },
+                    tooltip: { ...BASE_CHART_OPTS.plugins.tooltip }
+                }
+            }
+        });
+    } catch (e) { console.warn('Error gráfica correos:', e); }
+}
+
+// ============================================
+// FILTROS DE GRÁFICAS
+// ============================================
+function vincularFiltrosGraficas() {
+    const btnAplicar = document.getElementById('btnAplicarFiltroGraficas');
+    if (btnAplicar) {
+        btnAplicar.addEventListener('click', async () => {
+            await inicializarGraficas();
+            showToast('Gráficas actualizadas', 'info');
+        });
+    }
+    const btnLimpiar = document.getElementById('btnLimpiarFiltroGraficas');
+    if (btnLimpiar) {
+        btnLimpiar.addEventListener('click', () => {
+            ['filtroGraficaDesde','filtroGraficaHasta','filtroGraficaSede'].forEach(id => {
+                const el = document.getElementById(id); if (el) el.value = '';
+            });
+            inicializarGraficas();
+        });
+    }
+}
+
+// ============================================
+// EXPORTACIÓN DE GRÁFICAS (PDF y CSV)
+// ============================================
+function exportarGraficaPDF(canvasId, titulo) {
+    const canvas = document.getElementById(canvasId);
+    if (!canvas) { showToast('Gráfica no disponible', 'warning'); return; }
+
+    const imgSrc = canvas.toDataURL('image/png', 1.0);
+    const win    = window.open('', '_blank');
+    if (!win) { showToast('Permite ventanas emergentes para exportar', 'warning'); return; }
+
+    win.document.write(`<!DOCTYPE html><html><head><title>${titulo}</title>
+        <style>body{margin:24px;font-family:system-ui,sans-serif;}h2{font-size:18px;color:#1e293b;margin-bottom:16px;font-weight:600;}img{max-width:100%;border:1px solid #e2e8f0;border-radius:8px;}p{margin-top:12px;font-size:12px;color:#94a3b8;}</style>
+        </head><body>
+        <h2>${titulo}</h2>
+        <img src="${imgSrc}">
+        <p>AparcaYA Parking Tech — Exportado el ${new Date().toLocaleString('es-CO')}</p>
+        <script>window.onload=()=>{window.print();}<\/script>
+        </body></html>`);
+    win.document.close();
+}
+
+function exportarGraficaCSV(canvasId, nombre) {
+    const chart = [chartIngresos, chartUsuarios, chartSedes, chartCorreosEstado]
+        .filter(Boolean)
+        .find(c => c.canvas?.id === canvasId);
+
+    if (!chart) { showToast('Datos no disponibles para exportar', 'warning'); return; }
+
+    const labels   = chart.data.labels   || [];
+    const datasets = chart.data.datasets || [];
+    const cabecera = ['Etiqueta', ...datasets.map(d => d.label || 'Valor')].join(',');
+    const filas    = labels.map((lbl, i) =>
+        [lbl, ...datasets.map(d => d.data?.[i] ?? 0)].join(',')
+    );
+
+    const csv  = [cabecera, ...filas].join('\n');
+    const blob = new Blob(['\uFEFF' + csv], { type: 'text/csv;charset=utf-8;' });
+    const url  = URL.createObjectURL(blob);
+    const a    = document.createElement('a');
+    a.href     = url;
+    a.download = `${nombre}_${Date.now()}.csv`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+    showToast('Archivo CSV descargado', 'success');
 }
 
 // ============================================
@@ -1017,10 +1164,15 @@ function enviarCorreoUnitario(form) {
     const originalText = btn.innerHTML;
     setBtnLoadingMail(btn, true);
 
-    const formData = new URLSearchParams();
-    formData.append('correo', email); formData.append('asunto', subject); formData.append('mensaje', message);
+    // Si hay plantilla activa usar el endpoint con plantilla, si no el unitario normal
+    const endpoint  = EMAIL_MOD.plantillaActiva ? '/admin/correo/con-plantilla' : '/admin/correo/unitario';
+    const formData  = new URLSearchParams();
+    formData.append('correo',  email);
+    formData.append('asunto',  subject);
+    formData.append('mensaje', message);
+    if (EMAIL_MOD.plantillaActiva) formData.append('tipoPlantilla', EMAIL_MOD.plantillaActiva);
 
-    fetch('/admin/correo/unitario', {
+    fetch(endpoint, {
         method: 'POST', headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
         body: formData.toString()
     })
@@ -1031,6 +1183,13 @@ function enviarCorreoUnitario(form) {
                 ['emailSingle','subjectSingle','messageSingle'].forEach(id => {
                     var el = document.getElementById(id); if (el) el.value = '';
                 });
+                // Limpiar plantilla seleccionada
+                EMAIL_MOD.plantillaActiva = null;
+                document.querySelectorAll('[data-plantilla]').forEach(c => c.classList.remove('plantilla-activa'));
+                const badge = document.getElementById('plantillaSeleccionadaBadge');
+                if (badge) badge.style.display = 'none';
+                // Refrescar historial
+                setTimeout(cargarHistorialCorreos, 800);
             } else {
                 showToast(data.message || 'Error al enviar correo', 'error');
             }
@@ -1056,9 +1215,13 @@ function enviarCorreoMasivo(form) {
     const originalText = btn.innerHTML;
     setBtnLoadingMail(btn, true);
 
-    const formData = new URLSearchParams();
+    // Si hay plantilla activa en masivo usar endpoint con plantilla
+    // endpoint siempre es masivo — tipoPlantilla se pasa como param opcional
+    const formData  = new URLSearchParams();
     emailList.forEach(email => formData.append('seleccionados', email));
-    formData.append('asunto', subject); formData.append('mensaje', message);
+    formData.append('asunto',  subject);
+    formData.append('mensaje', message);
+    if (EMAIL_MOD.plantillaActivaMasivo) formData.append('tipoPlantilla', EMAIL_MOD.plantillaActivaMasivo);
 
     fetch('/admin/correo/masivo', {
         method: 'POST', headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
@@ -1071,12 +1234,221 @@ function enviarCorreoMasivo(form) {
                 ['emailsMassive','subjectMassive','messageMassive'].forEach(id => {
                     var el = document.getElementById(id); if (el) el.value = '';
                 });
+                EMAIL_MOD.plantillaActivaMasivo = null;
+                document.querySelectorAll('[data-plantilla-masivo]').forEach(c => c.classList.remove('plantilla-activa'));
+                const badgeM = document.getElementById('plantillaSeleccionadaBadgeMasivo');
+                if (badgeM) badgeM.style.display = 'none';
+                setTimeout(cargarHistorialCorreos, 800);
             } else {
                 showToast(data.message || 'Error al enviar correos', 'error');
             }
         })
         .catch(() => showToast('Error de conexión. Intenta de nuevo.', 'error'))
         .finally(() => setBtnLoadingMail(btn, false, originalText));
+}
+
+// ============================================
+// SELECTOR DE PLANTILLAS DE CORREO
+// ============================================
+function inicializarSelectorPlantillas() {
+    document.querySelectorAll('[data-plantilla]').forEach(card => {
+        card.addEventListener('click', () => seleccionarPlantilla(card));
+    });
+}
+
+async function seleccionarPlantilla(card) {
+    const tipo = card.dataset.plantilla;
+    if (!tipo) return;
+
+    document.querySelectorAll('[data-plantilla]').forEach(c => {
+        c.classList.remove('plantilla-activa');
+        c.setAttribute('aria-pressed', 'false');
+    });
+    card.classList.add('plantilla-activa');
+    card.setAttribute('aria-pressed', 'true');
+
+    EMAIL_MOD.plantillaActiva = tipo;
+
+    const labels = {
+        BIENVENIDA:   'Bienvenida',
+        RECORDATORIO: 'Recordatorio',
+        PROMOCION:    'Promocion',
+        NOTIFICACION: 'Notificacion'
+    };
+
+    const badge = document.getElementById('plantillaSeleccionadaBadge');
+    if (badge) {
+        badge.textContent  = labels[tipo] || tipo;
+        badge.style.display = 'inline';
+    }
+
+    // Cargar preview del servidor solo si los campos están vacíos
+    try {
+        const resp = await fetch(`${API_BASE_URL}/correos/plantilla-preview?tipo=${tipo}`);
+        if (!resp.ok) return;
+        const data = await resp.json();
+
+        const subjectField = document.getElementById('subjectSingle');
+        const messageField = document.getElementById('messageSingle');
+        if (subjectField && !subjectField.value.trim()) subjectField.value = data.asunto;
+        if (messageField && !messageField.value.trim()) messageField.value = data.mensaje;
+    } catch (e) {
+        console.warn('No se pudo cargar preview de plantilla:', e);
+    }
+}
+
+// Selector de plantillas para envío MASIVO
+async function seleccionarPlantillaMasivo(card) {
+    const tipo = card.dataset.plantillaMasivo;
+    if (!tipo) return;
+
+    document.querySelectorAll('[data-plantilla-masivo]').forEach(c => {
+        c.classList.remove('plantilla-activa');
+        c.setAttribute('aria-pressed', 'false');
+    });
+    card.classList.add('plantilla-activa');
+    card.setAttribute('aria-pressed', 'true');
+
+    EMAIL_MOD.plantillaActivaMasivo = tipo;
+
+    const labels = {
+        BIENVENIDA:   'Bienvenida',
+        RECORDATORIO: 'Recordatorio',
+        PROMOCION:    'Promocion',
+        NOTIFICACION: 'Notificacion'
+    };
+
+    const badge = document.getElementById('plantillaSeleccionadaBadgeMasivo');
+    if (badge) {
+        badge.textContent   = labels[tipo] || tipo;
+        badge.style.display = 'inline';
+    }
+
+    // Cargar preview solo si los campos están vacíos
+    try {
+        const resp = await fetch(`${API_BASE_URL}/correos/plantilla-preview?tipo=${tipo}`);
+        if (!resp.ok) return;
+        const data = await resp.json();
+
+        const subjectField = document.getElementById('subjectMassive');
+        const messageField = document.getElementById('messageMassive');
+        if (subjectField && !subjectField.value.trim()) subjectField.value = data.asunto;
+        if (messageField && !messageField.value.trim()) messageField.value = data.mensaje;
+    } catch (e) {
+        console.warn('No se pudo cargar preview de plantilla masiva:', e);
+    }
+}
+
+// ============================================
+// KPIs DE CORREOS
+// ============================================
+async function cargarContadoresCorreos() {
+    try {
+        const resp = await fetch(`${API_BASE_URL}/correos/estadisticas`);
+        if (!resp.ok) return;
+        const data = await resp.json();
+
+        const set = (id, val) => { const el = document.getElementById(id); if (el) el.textContent = (val ?? 0).toLocaleString('es-CO'); };
+        set('kpiCorreosEnviados',   data.totalEnviados);
+        set('kpiCorreosPendientes', data.totalPendientes);
+        set('kpiCorreosErrores',    data.totalErrores);
+        set('kpiCorreosTotal',      data.total);
+    } catch (e) {
+        console.warn('No se pudieron cargar contadores de correos:', e);
+    }
+}
+
+// ============================================
+// HISTORIAL DE CORREOS CON FILTROS
+// ============================================
+async function cargarHistorialCorreos(filtros = {}) {
+    const tbody = document.getElementById('tbodyHistorialCorreos');
+    if (!tbody) return;
+
+    tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;color:#94a3b8;padding:16px;font-size:13px;">Cargando...</td></tr>';
+
+    const params = new URLSearchParams();
+    if (filtros.estado) params.set('estado', filtros.estado);
+    if (filtros.tipo)   params.set('tipo',   filtros.tipo);
+    if (filtros.desde)  params.set('desde',  filtros.desde);
+    if (filtros.hasta)  params.set('hasta',  filtros.hasta);
+
+    try {
+        const resp = await fetch(`${API_BASE_URL}/correos/historial?${params}`);
+        if (!resp.ok) throw new Error(`Error ${resp.status}`);
+        const logs = await resp.json();
+
+        const contEl = document.getElementById('historialContador');
+        if (contEl) contEl.textContent = logs.length;
+
+        if (!logs || logs.length === 0) {
+            tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;color:#94a3b8;padding:20px;font-size:13px;">Sin registros para los filtros seleccionados</td></tr>';
+            return;
+        }
+
+        const ESTADO_CFG = {
+            ENVIADO:   { clase: 'enviado',   label: 'Enviado'   },
+            ERROR:     { clase: 'error',     label: 'Error'     },
+            PENDIENTE: { clase: 'pendiente', label: 'Pendiente' }
+        };
+
+        const TIPO_LABELS_H = {
+            BIENVENIDA: 'Bienvenida', RECORDATORIO: 'Recordatorio',
+            PROMOCION:  'Promocion',  NOTIFICACION: 'Notificacion', CUSTOM: 'Personalizado'
+        };
+
+        tbody.innerHTML = logs.map(log => {
+            const cfg   = ESTADO_CFG[log.estado] || { clase: '', label: log.estado };
+            const fecha = log.fechaEnvio
+                ? new Date(log.fechaEnvio).toLocaleString('es-CO', { dateStyle:'short', timeStyle:'short' })
+                : '—';
+            const errorTip = log.mensajeError
+                ? `<span title="${_esc(log.mensajeError)}" style="cursor:help;color:#dc2626;font-size:11px;margin-left:4px;">ver error</span>`
+                : '';
+
+            return `<tr>
+                <td style="padding:9px 12px;font-size:13px;color:#334155;">${_esc(log.destinatario)}</td>
+                <td style="padding:9px 12px;font-size:13px;color:#475569;max-width:180px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;" title="${_esc(log.asunto)}">${_esc(log.asunto)}</td>
+                <td style="padding:9px 12px;">
+                    <span style="font-size:11px;background:#f1f5f9;color:#64748b;padding:2px 8px;border-radius:999px;">
+                        ${TIPO_LABELS_H[log.tipo] || log.tipo}
+                    </span>
+                </td>
+                <td style="padding:9px 12px;">
+                    <span class="historial-badge ${cfg.clase}">${cfg.label}</span>${errorTip}
+                </td>
+                <td style="padding:9px 12px;font-size:12px;color:#94a3b8;">${fecha}</td>
+            </tr>`;
+        }).join('');
+
+    } catch (e) {
+        console.error('Error cargando historial:', e);
+        tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;color:#ef4444;padding:16px;font-size:13px;">Error al cargar el historial</td></tr>';
+    }
+}
+
+function vincularFiltrosHistorial() {
+    const btnFiltrar = document.getElementById('btnFiltrarHistorial');
+    if (btnFiltrar) {
+        btnFiltrar.addEventListener('click', () => {
+            cargarHistorialCorreos({
+                estado: document.getElementById('filtroHistorialEstado')?.value || '',
+                tipo:   document.getElementById('filtroHistorialTipo')?.value   || '',
+                desde:  document.getElementById('filtroHistorialDesde')?.value  || '',
+                hasta:  document.getElementById('filtroHistorialHasta')?.value  || ''
+            });
+        });
+    }
+    const btnLimpiar = document.getElementById('btnLimpiarHistorial');
+    if (btnLimpiar) {
+        btnLimpiar.addEventListener('click', () => {
+            ['filtroHistorialEstado','filtroHistorialTipo',
+                'filtroHistorialDesde', 'filtroHistorialHasta'].forEach(id => {
+                const el = document.getElementById(id); if (el) el.value = '';
+            });
+            cargarHistorialCorreos();
+        });
+    }
 }
 
 // ============================================
@@ -1125,19 +1497,10 @@ async function adminCargarDestinatarios() {
                     <input type="checkbox" class="admin-dest-check" data-correo="${d.correo}"
                            style="width:16px;height:16px;cursor:pointer;accent-color:#1e40af;" checked/>
                     <div style="flex:1;min-width:0;">
-                        <div style="font-weight:600;font-size:.875rem;color:#1e293b;
-                                    white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">
-                            ${d.nombre || '(sin nombre)'}
-                        </div>
-                        <div style="font-size:.8rem;color:#64748b;
-                                    white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">
-                            ${d.correo}
-                        </div>
+                        <div style="font-weight:600;font-size:.875rem;color:#1e293b;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${d.nombre || '(sin nombre)'}</div>
+                        <div style="font-size:.8rem;color:#64748b;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${d.correo}</div>
                     </div>
-                    <span style="font-size:.72rem;background:#dbeafe;color:#1e40af;
-                                 border-radius:9999px;padding:.15rem .5rem;white-space:nowrap;">
-                        ${_adminRolLabel(d.rol)}
-                    </span>
+                    <span style="font-size:.72rem;background:#dbeafe;color:#1e40af;border-radius:9999px;padding:.15rem .5rem;white-space:nowrap;">${_adminRolLabel(d.rol)}</span>
                 </label>
             `).join('');
         }
@@ -1184,7 +1547,7 @@ function adminAgregarSeleccionados() {
     const lista = document.getElementById('adminListaDestinatarios');
     if (lista) lista.style.display = 'none';
     const estadoEl = document.getElementById('adminEstadoFiltro');
-    if (estadoEl) estadoEl.textContent = `✓ ${seleccionados.length} destinatario(s) cargados desde BD.`;
+    if (estadoEl) estadoEl.textContent = `${seleccionados.length} destinatario(s) cargados desde base de datos.`;
 }
 
 function _adminActualizarBadge() {
@@ -1195,6 +1558,15 @@ function _adminActualizarBadge() {
         .filter(e => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(e)).length;
     badge.textContent   = count;
     badge.style.display = count > 0 ? 'inline' : 'none';
+}
+
+// ============================================
+// HELPERS INTERNOS
+// ============================================
+function _esc(str) {
+    if (!str) return '';
+    return str.replace(/&/g,'&amp;').replace(/</g,'&lt;')
+        .replace(/>/g,'&gt;').replace(/"/g,'&quot;');
 }
 
 // ============================================
@@ -1256,3 +1628,8 @@ window.toggleSidebar             = toggleSidebar;
 window.adminCargarDestinatarios  = adminCargarDestinatarios;
 window.adminSeleccionarTodos     = adminSeleccionarTodos;
 window.adminAgregarSeleccionados = adminAgregarSeleccionados;
+window.seleccionarPlantilla      = seleccionarPlantilla;
+window.seleccionarPlantillaMasivo = seleccionarPlantillaMasivo;
+window.cargarHistorialCorreos    = cargarHistorialCorreos;
+window.exportarGraficaPDF        = exportarGraficaPDF;
+window.exportarGraficaCSV        = exportarGraficaCSV;

@@ -2,6 +2,7 @@ package com.exe.AparcaYA.Service;
 
 import com.exe.AparcaYA.Entity.Pago;
 import com.exe.AparcaYA.Enum.EstadoPago;
+import com.exe.AparcaYA.Enum.MetodoPago;
 
 import java.util.List;
 import java.util.Optional;
@@ -12,12 +13,14 @@ public interface PagoService {
     Optional<Pago> findById(Long id);
     Pago update(Pago pago);
     void delete(Long id);
-    List<Pago> findByCliente_IdUsuario(Long idUsuario);
     List<Pago> findByEstado(EstadoPago estado);
 
-    // ✅ C6: Eliminado findByReserva_IdReserva (nombre incorrecto sin "cion")
-    // Era idéntico a findByReservacion_IdReserva — generaba confusión silenciosa:
-    // cualquier llamante podía usar cualquiera de los dos sin saber cuál era el correcto.
-    // Se conserva solo el nombre que coincide con la entidad (Reservacion).
+    // Pagos asociados a una reservación
     List<Pago> findByReservacion_IdReserva(Long idReserva);
+
+    // Pagos asociados a un registro directo sin reservación
+    List<Pago> findByRegistro_IdRegistro(Long idRegistro);
+
+    List<Pago> findByReservacion_Cliente_IdUsuario(Long idUsuario);
+    Pago cobrarReserva(Long idReserva, MetodoPago metodoPago, Long idOperario);
 }

@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <title>Bienvenido a AparcaYA</title>
+    <style>
+        *  { margin:0; padding:0; box-sizing:border-box; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto,
+            'Helvetica Neue', Arial, sans-serif;
+            background-color: #f4f6f9;
+            padding: 24px 16px;
+            font-size: 15px;
+            line-height: 1.65;
+            color: #1e293b;
+        }
+        .wrap   { max-width: 580px; margin: 0 auto; }
+        .card   {
+            background: #ffffff;
+            border-radius: 10px;
+            overflow: hidden;
+            border: 1px solid #e2e8f0;
+        }
+        /* Header */
+        .header {
+            background-color: #1e293b;
+            padding: 32px 36px;
+            text-align: center;
+        }
+        .header-logo {
+            font-size: 22px;
+            font-weight: 700;
+            color: #ffffff;
+            letter-spacing: 0.3px;
+        }
+        .header-logo span { color: #6366f1; }
+        .header-tagline {
+            margin-top: 6px;
+            font-size: 13px;
+            color: rgba(255,255,255,0.55);
+            letter-spacing: 0.5px;
+        }
+        /* Banda de color */
+        .accent { height: 3px; background-color: #6366f1; }
+        /* Body */
+        .body { padding: 36px 36px 28px; }
+        .body h1 {
+            font-size: 20px;
+            font-weight: 700;
+            color: #1e293b;
+            margin-bottom: 10px;
+        }
+        .body p { color: #475569; margin-bottom: 14px; font-size: 15px; }
+        /* Info box */
+        .info-box {
+            background: #f8fafc;
+            border-left: 3px solid #6366f1;
+            border-radius: 0 8px 8px 0;
+            padding: 16px 20px;
+            margin: 20px 0;
+        }
+        .info-row {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 8px;
+            font-size: 14px;
+            color: #334155;
+        }
+        .info-row:last-child { margin-bottom: 0; }
+        .info-label { font-weight: 600; color: #1e293b; min-width: 80px; }
+        /* CTA */
+        .cta-wrap  { text-align: center; margin: 24px 0 16px; }
+        .btn {
+            display: inline-block;
+            background-color: #6366f1;
+            color: #ffffff !important;
+            text-decoration: none;
+            padding: 12px 28px;
+            border-radius: 7px;
+            font-size: 14px;
+            font-weight: 600;
+        }
+        /* Divider */
+        .divider { border: none; border-top: 1px solid #e2e8f0; margin: 20px 0; }
+        /* Footer */
+        .footer {
+            background: #f8fafc;
+            padding: 24px 36px;
+            text-align: center;
+            border-top: 1px solid #e2e8f0;
+        }
+        .footer p { font-size: 12px; color: #94a3b8; margin-bottom: 5px; }
+        .footer a  { color: #6366f1; text-decoration: none; font-size: 12px; }
+        /* Iconos redes sociales */
+        .social { margin: 14px 0 10px; }
+        .social a {
+            display: inline-block;
+            margin: 0 5px;
+            opacity: 0.7;
+        }
+        .social img { width: 28px; height: 28px; display: block; }
+        @media (max-width: 600px) {
+            .body   { padding: 24px 20px; }
+            .footer { padding: 20px; }
+            .header { padding: 24px 20px; }
+        }
+    </style>
+</head>
+<body>
+<div class="wrap">
+    <div class="card">
+
+        <div class="header">
+            <div class="header-logo">Aparca<span>YA</span></div>
+            <div class="header-tagline">Parking Tech — Bogota, Colombia</div>
+        </div>
+        <div class="accent"></div>
+
+        <div class="body">
+            <h1>Bienvenido, <span th:text="${nombre}">Usuario</span></h1>
+
+            <p>
+                Tu cuenta ha sido creada exitosamente en <strong>AparcaYA</strong>.
+                A continuacion encontraras los detalles de tu registro.
+            </p>
+
+            <div class="info-box">
+                <div class="info-row">
+                    <span class="info-label">Correo</span>
+                    <span th:text="${correo}">usuario@ejemplo.com</span>
+                </div>
+                <div class="info-row">
+                    <span class="info-label">Rol</span>
+                    <span th:text="${rol}">Cliente</span>
+                </div>
+            </div>
+
+            <p th:text="${mensaje}">
+                Ya puedes acceder al sistema con tu correo y contrasena.
+            </p>
+
+            <hr class="divider">
+
+            <div class="cta-wrap">
+                <a href="http://localhost:8080/login" class="btn">Iniciar sesion</a>
+            </div>
+
+            <p style="font-size:13px; color:#94a3b8; text-align:center;">
+                Si no creaste esta cuenta, ignora este mensaje o contacta a soporte.
+            </p>
+        </div>
+
+        <div class="footer">
+            <div class="social">
+                <a href="https://www.facebook.com/aparcaya" target="_blank">
+                    <img src="https://cdn-icons-png.flaticon.com/512/124/124010.png" alt="Facebook">
+                </a>
+                <a href="https://www.instagram.com/aparcaya" target="_blank">
+                    <img src="https://cdn-icons-png.flaticon.com/512/174/174855.png" alt="Instagram">
+                </a>
+                <a href="https://www.linkedin.com/company/aparcaya" target="_blank">
+                    <img src="https://cdn-icons-png.flaticon.com/512/174/174857.png" alt="LinkedIn">
+                </a>
+            </div>
+            <p><strong style="color:#475569;">AparcaYA Parking Tech</strong></p>
+            <p>Este correo fue generado automaticamente. Por favor no responder.</p>
+            <p style="margin-top:8px;">
+                <a href="#">Politica de privacidad</a>
+                &nbsp;&middot;&nbsp;
+                <a href="mailto:soporte@aparcaya.com">Soporte</a>
+            </p>
+            <p style="margin-top:10px;"
+               th:text="'&copy; ' + ${anio} + ' AparcaYA Parking Tech. Todos los derechos reservados.'">
+                &copy; 2025 AparcaYA.
+            </p>
+        </div>
+
+    </div>
+</div>
+</body>
+</html>

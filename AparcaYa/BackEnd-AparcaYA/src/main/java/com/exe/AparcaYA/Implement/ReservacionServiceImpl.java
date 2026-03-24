@@ -104,7 +104,7 @@ public class ReservacionServiceImpl implements ReservacionService {
 
     @Override
     public List<Reservacion> findByEstado(EstadoReservacion estado) {
-        return reservacionRepository.findByEstado(estado.name());
+        return reservacionRepository.findByEstado(estado);
     }
 
     // ═══════════════════════════════════════════════════════════════════════
@@ -168,7 +168,7 @@ public class ReservacionServiceImpl implements ReservacionService {
         // ── 5. Verificar límite de reservas activas del cliente ───────────
         List<String> estadosActivos = List.of(
                 EstadoReservacion.PENDIENTE.name(),
-                EstadoReservacion.ACTIVA.name()
+                EstadoReservacion.ACEPTADA.name()
         );
         long reservasActivas = reservacionRepository
                 .countReservacionesActivasPorEstados(
@@ -217,7 +217,7 @@ public class ReservacionServiceImpl implements ReservacionService {
                                           LocalDateTime fin) {
         List<String> estadosActivos = List.of(
                 EstadoReservacion.PENDIENTE.name(),
-                EstadoReservacion.ACTIVA.name()
+                EstadoReservacion.ACEPTADA.name()
         );
         List<Reservacion> conflictos = reservacionRepository.findConflictosHorario(
                 cupoId,
@@ -251,7 +251,7 @@ public class ReservacionServiceImpl implements ReservacionService {
 
         // 3. Verificar que el estado permite cancelación
         if (reservacion.getEstado() != EstadoReservacion.PENDIENTE &&
-                reservacion.getEstado() != EstadoReservacion.ACTIVA) {
+                reservacion.getEstado() != EstadoReservacion.ACEPTADA) {
             throw new IllegalStateException(
                     "Solo se pueden cancelar reservas PENDIENTES o ACTIVAS. " +
                             "Estado actual: " + reservacion.getEstado().name());
@@ -272,5 +272,90 @@ public class ReservacionServiceImpl implements ReservacionService {
         }
 
         return cancelada;
+    }
+    // ═══════════════════════════════════════════════════════════════════
+// TAREA 1 — TRANSICIONES DE ESTADO EXPLÍCITAS
+// ═══════════════════════════════════════════════════════════════════
+
+    /**
+     * PENDIENTE → ACEPTADA
+     * El operario/admin aprueba la reserva. El vehículo aún no ha llegado.
+     * No inicia la reserva automáticamente.
+     */
+    @Override
+    @Transactional
+    public Reservacion aceptarReserva(Long idReserva, Long idOperario) {
+        Reservacion reservacion = reservacionRepository.findById(idReserva)
+                .orElseThrow(() -> new IllegalArgumentException(
+                        "Reserva no encontrada: " + idReserva));
+
+        if (reservacion.getEstado() != EstadoReservacion.PENDIENTE) {
+            throw new IllegalStateException(
+                    "Solo se pueden aceptar reservas PENDIENTES. Estado actual: "
+                            + reservacion.getEstado().name());
+        }
+
+        reservacion.setEstado(EstadoReservacion.ACEPTADA);
+        Reservacion saved = reservacionRepository.save(reservacion);
+        log.info("Reserva {} ACEPTADA por operario {}", idReserva, idOperario);
+        return saved;
+    }
+
+    /**
+     * ACEPTADA → EN_CURSO
+     * El operario confirma que el vehículo entró físicamente al parqueadero.
+     */
+    @Override
+    @Transactional
+    public Reservacion iniciarReserva(Long idReserva, Long idOperario) {
+        Reservacion reservacion = reservacionRepository.findById(idReserva)
+                .orElseThrow(() -> new IllegalArgumentException(
+                        "Reserva no encontrada: " + idReserva));
+
+        if (reservacion.getEstado() != EstadoReservacion.ACEPTADA) {
+            throw new IllegalStateException(
+                    "Solo se pueden iniciar reservas ACEPTADAS. Estado actual: "
+                            + reservacion.getEstado().name());
+        }
+
+        reservacion.setEstado(EstadoReservacion.EN_CURSO);
+        Reservacion saved = reservacionRepository.save(reservacion);
+        log.info("Reserva {} EN_CURSO — vehículo ingresó, operario {}",
+                idReserva, idOperario);
+        return saved;
+    }
+
+    /**
+     * EN_CURSO → COMPLETADA
+     * El vehículo salió. La reserva queda pendiente de cobro.
+     * El cupo se libera en este momento.
+     */
+    @Override
+    @Transactional
+    public Reservacion completarReserva(Long idReserva, Long idOperario) {
+        Reservacion reservacion = reservacionRepository.findById(idReserva)
+                .orElseThrow(() -> new IllegalArgumentException(
+                        "Reserva no encontrada: " + idReserva));
+
+        if (reservacion.getEstado() != EstadoReservacion.EN_CURSO) {
+            throw new IllegalStateException(
+                    "Solo se pueden completar reservas EN_CURSO. Estado actual: "
+                            + reservacion.getEstado().name());
+        }
+
+        reservacion.setEstado(EstadoReservacion.COMPLETADA);
+        Reservacion saved = reservacionRepository.save(reservacion);
+
+        // Liberar cupo al terminar el uso físico
+        Cupo cupo = saved.getCupo();
+        if (cupo != null) {
+            cupo.setEstado(EstadoCupo.DISPONIBLE);
+            cupoRepository.save(cupo);
+            log.info("Cupo {} liberado — reserva {} completada", cupo.getCodigo(), idReserva);
+        }
+
+        log.info("Reserva {} COMPLETADA — pendiente de cobro, operario {}",
+                idReserva, idOperario);
+        return saved;
     }
 }

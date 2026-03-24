@@ -62,35 +62,38 @@ public class CupoServiceImpl implements CupoService {
         return cupoRepository.findBySedeAndEstado(sede, estadoCupo);
     }
 
-    /**
-     * ✅ CAMBIO #6: Creación de cupos extraída de UsuarioController
-     * Antes: bucle for con new Cupo() repetido inline en el Controller
-     * Ahora: lógica centralizada en el Service, reutilizable
-     */
+    // CORRECCIÓN — antes creaba N cupos individuales por capacidad.
+    // Ahora Cupo tiene cuposCarro/Moto/Bicicleta como contadores.
+    // Se crea un único Cupo por sede con contadores en 0,
+    // el admin los configura después desde mi-configuracion.
     @Override
     public void crearCuposParaSede(Sede sede) {
-        for (int i = 1; i <= sede.getCapacidad(); i++) {
-            Cupo cupo = new Cupo();
-            cupo.setCodigo("CUPO-" + sede.getIdSede() + "-" + i);
-            cupo.setEstado(EstadoCupo.DISPONIBLE);
-            cupo.setSede(sede);
-            cupoRepository.save(cupo);
-        }
+        Cupo cupo = Cupo.builder()
+                .codigo("CUPO-" + sede.getIdSede())
+                .estado(EstadoCupo.DISPONIBLE)
+                .cuposCarro(0)
+                .cuposMoto(0)
+                .cuposBicicleta(0)
+                .sede(sede)
+                .build();
+        cupoRepository.save(cupo);
     }
+
+    // NUEVO — reemplaza sede.getCuposCarro/Moto/Bicicleta()
+    @Override
+    public Integer contarCuposPorTipo(Long idSede, String tipo) {
+        return cupoRepository.contarCuposPorTipo(idSede, tipo);
+    }
+
     @Override
     public List<Cupo> findCuposDisponiblesEnRango(Long sedeId,
                                                   LocalDateTime fechaInicio,
                                                   LocalDateTime fechaFin) {
-        // Pasa los estados como String — coincide con @Enumerated(EnumType.STRING)
         List<String> estadosActivos = List.of(
                 EstadoReservacion.PENDIENTE.name(),
-                EstadoReservacion.ACTIVA.name()
+                EstadoReservacion.ACEPTADA.name()
         );
         return cupoRepository.findCuposDisponiblesEnRango(
-                sedeId,
-                fechaInicio,
-                fechaFin,
-                estadosActivos
-        );
+                sedeId, fechaInicio, fechaFin, estadosActivos);
     }
 }
