@@ -1,5 +1,7 @@
 package com.exe.AparcaYA.Controllers;
 
+import com.exe.AparcaYA.Config.CustomUserDetailsService;
+import com.exe.AparcaYA.Config.JwtUtil;
 import com.exe.AparcaYA.Dto.RegistroRequest;
 import com.exe.AparcaYA.Entity.*;
 import com.exe.AparcaYA.Enum.*;
@@ -7,28 +9,21 @@ import com.exe.AparcaYA.Repository.EmailLogRepository;
 import com.exe.AparcaYA.Repository.SedeRepository;
 import com.exe.AparcaYA.Repository.VehiculoRepository;
 import com.exe.AparcaYA.Service.*;
-import jakarta.mail.MessagingException;
-import jakarta.mail.internet.MimeMessage;
-import jakarta.servlet.http.HttpServletRequest;
-import jakarta.servlet.http.HttpSession;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.dao.DataIntegrityViolationException;
-import org.springframework.mail.javamail.JavaMailSender;
-import org.springframework.mail.javamail.MimeMessageHelper;
-import org.springframework.security.authentication.AuthenticationManager;
-import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.crypto.password.PasswordEncoder;
-import org.springframework.security.web.context.HttpSessionSecurityContextRepository;
 import org.springframework.stereotype.Controller;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import java.time.LocalDateTime;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
 
@@ -38,16 +33,17 @@ import java.util.Optional;
 @CrossOrigin(origins = "${app.cors.allowed-origins:http://localhost:8080}")
 public class UsuarioController {
 
-    private final UsuarioService        usuarioService;
-    private final VehiculoService       vehiculoService;
-    private final SedeService           sedeService;
-    private final CupoService           cupoService;
-    private final TarifaService         tarifaService;
-    private final PasswordEncoder       passwordEncoder;
-    private final AuthenticationManager authenticationManager;
-    private final SedeRepository        sedeRepository;
-    private final VehiculoRepository    vehiculoRepository;
-    private final IEmailService         emailService;
+    private final UsuarioService           usuarioService;
+    private final VehiculoService          vehiculoService;
+    private final SedeService              sedeService;
+    private final CupoService              cupoService;
+    private final TarifaService            tarifaService;
+    private final PasswordEncoder          passwordEncoder;
+    private final SedeRepository           sedeRepository;
+    private final VehiculoRepository       vehiculoRepository;
+    private final IEmailService            emailService;
+    private final JwtUtil                  jwtUtil;                  // ← AÑADIDO
+    private final CustomUserDetailsService customUserDetailsService; // ← AÑADIDO
 
     // =====================================================================
     // REGISTRO
@@ -55,10 +51,9 @@ public class UsuarioController {
 
     @PostMapping("/registrar")
     @Transactional(rollbackFor = Exception.class)
-    public String registrarUsuario(
-            @ModelAttribute RegistroRequest request,
-            RedirectAttributes redirectAttributes,
-            HttpServletRequest httpRequest) {
+    @ResponseBody                                                     // ← CAMBIO
+    public ResponseEntity<Map<String, Object>> registrarUsuario(     // ← CAMBIO
+                                                                     @RequestBody RegistroRequest request) {                  // ← CAMBIO
 
         log.info("Iniciando registro para correo: {}", request.getCorreo());
 
@@ -73,64 +68,56 @@ public class UsuarioController {
                 request.getTelefono()   == null || request.getTelefono().isBlank()   ||
                 request.getContrasena() == null || request.getContrasena().isBlank() ||
                 request.getRol()        == null) {
-            redirectAttributes.addFlashAttribute("error", "Campos obligatorios faltantes");
-            return "redirect:/registro";
+            return ResponseEntity.badRequest().body(Map.of(
+                    "success", false, "message", "Campos obligatorios faltantes"));
         }
 
         // ── 1.2 Formatos ─────────────────────────────────────────────────────
-        if (!request.getCorreo().matches("^[^\\s@]+@[^\\s@]+\\.[^\\s@]+$")) {
-            redirectAttributes.addFlashAttribute("error", "Formato de correo inválido");
-            return "redirect:/registro";
-        }
-        if (!request.getTelefono().matches("[0-9]{10}")) {
-            redirectAttributes.addFlashAttribute("error",
-                    "El teléfono debe tener exactamente 10 dígitos");
-            return "redirect:/registro";
-        }
-        if (!request.getCedula().matches("[0-9]{10}")) {
-            redirectAttributes.addFlashAttribute("error",
-                    "La cédula debe tener exactamente 10 dígitos");
-            return "redirect:/registro";
-        }
-        if (request.getContrasena().length() < 8) {
-            redirectAttributes.addFlashAttribute("error",
-                    "La contraseña debe tener al menos 8 caracteres");
-            return "redirect:/registro";
-        }
+        if (!request.getCorreo().matches("^[^\\s@]+@[^\\s@]+\\.[^\\s@]+$"))
+            return ResponseEntity.badRequest().body(Map.of(
+                    "success", false, "message", "Formato de correo inválido"));
 
-        // ── 1.3 Duplicados de usuario ────────────────────────────────────────
-        if (usuarioService.findByCorreo(request.getCorreo()).isPresent()) {
-            redirectAttributes.addFlashAttribute("error", "El correo ya está registrado");
-            return "redirect:/registro";
-        }
-        if (usuarioService.findByTelefono(request.getTelefono()) != null) {
-            redirectAttributes.addFlashAttribute("error", "El teléfono ya está registrado");
-            return "redirect:/registro";
-        }
-        if (usuarioService.findByCedula(request.getCedula()) != null) {
-            redirectAttributes.addFlashAttribute("error", "La cédula ya está registrada");
-            return "redirect:/registro";
-        }
+        if (!request.getTelefono().matches("[0-9]{10}"))
+            return ResponseEntity.badRequest().body(Map.of(
+                    "success", false, "message", "El teléfono debe tener exactamente 10 dígitos"));
+
+        if (!request.getCedula().matches("[0-9]{10}"))
+            return ResponseEntity.badRequest().body(Map.of(
+                    "success", false, "message", "La cédula debe tener exactamente 10 dígitos"));
+
+        if (request.getContrasena().length() < 8)
+            return ResponseEntity.badRequest().body(Map.of(
+                    "success", false, "message", "La contraseña debe tener al menos 8 caracteres"));
+
+        // ── 1.3 Duplicados ───────────────────────────────────────────────────
+        if (usuarioService.findByCorreo(request.getCorreo()).isPresent())
+            return ResponseEntity.badRequest().body(Map.of(
+                    "success", false, "message", "El correo ya está registrado"));
+
+        if (usuarioService.findByTelefono(request.getTelefono()) != null)
+            return ResponseEntity.badRequest().body(Map.of(
+                    "success", false, "message", "El teléfono ya está registrado"));
+
+        if (usuarioService.findByCedula(request.getCedula()) != null)
+            return ResponseEntity.badRequest().body(Map.of(
+                    "success", false, "message", "La cédula ya está registrada"));
 
         // ── 1.4 Validaciones por rol ─────────────────────────────────────────
-
         if (request.getRol() == Rolenum.CLIENTE) {
 
-            if (request.getPlaca() == null || request.getPlaca().isBlank()) {
-                redirectAttributes.addFlashAttribute("error",
-                        "La placa del vehículo es obligatoria");
-                return "redirect:/registro";
-            }
+            if (request.getPlaca() == null || request.getPlaca().isBlank())
+                return ResponseEntity.badRequest().body(Map.of(
+                        "success", false, "message", "La placa del vehículo es obligatoria"));
+
             String placaNormalizada = request.getPlaca().trim().toUpperCase();
-            if (!placaNormalizada.matches("[A-Z]{3}[0-9]{3}")) {
-                redirectAttributes.addFlashAttribute("error",
-                        "Formato de placa inválido (ej. ABC123)");
-                return "redirect:/registro";
-            }
-            if (vehiculoRepository.existsByPlaca(placaNormalizada)) {
-                redirectAttributes.addFlashAttribute("error", "La placa ya está registrada");
-                return "redirect:/registro";
-            }
+            if (!placaNormalizada.matches("[A-Z]{3}[0-9]{3}"))
+                return ResponseEntity.badRequest().body(Map.of(
+                        "success", false, "message", "Formato de placa inválido (ej. ABC123)"));
+
+            if (vehiculoRepository.existsByPlaca(placaNormalizada))
+                return ResponseEntity.badRequest().body(Map.of(
+                        "success", false, "message", "La placa ya está registrada"));
+
             request.setPlaca(placaNormalizada);
 
         } else if (request.getRol() == Rolenum.ADMINISTRADOR_SEDE) {
@@ -140,52 +127,47 @@ public class UsuarioController {
                     request.getHiddenBarrio()      == null || request.getHiddenCuposTotales() == null ||
                     request.getTarifaPlenaC()      == null || request.getTarifaPlenaM()       == null ||
                     request.getTarifaMinutoC()     == null || request.getTarifaMinutoM()      == null ||
-                    request.getHiddenHorarioSede() == null) {
-                redirectAttributes.addFlashAttribute("error",
-                        "Faltan datos obligatorios de la sede");
-                return "redirect:/registro";
-            }
-            if (!request.getHiddenNit().matches("[0-9]{9}-[0-9]")) {
-                redirectAttributes.addFlashAttribute("error",
-                        "Formato de NIT inválido (ej. 123456789-0)");
-                return "redirect:/registro";
-            }
-            if (sedeRepository.existsByNit(request.getHiddenNit())) {
-                redirectAttributes.addFlashAttribute("error", "El NIT ya está registrado");
-                return "redirect:/registro";
-            }
-            if (request.getHiddenLatitud() == null || request.getHiddenLongitud() == null) {
-                redirectAttributes.addFlashAttribute("error",
-                        "Debes confirmar la ubicación en el mapa antes de registrarte");
-                return "redirect:/registro";
-            }
+                    request.getHiddenHorarioSede() == null)
+                return ResponseEntity.badRequest().body(Map.of(
+                        "success", false, "message", "Faltan datos obligatorios de la sede"));
+
+            if (!request.getHiddenNit().matches("[0-9]{9}-[0-9]"))
+                return ResponseEntity.badRequest().body(Map.of(
+                        "success", false, "message", "Formato de NIT inválido (ej. 123456789-0)"));
+
+            if (sedeRepository.existsByNit(request.getHiddenNit()))
+                return ResponseEntity.badRequest().body(Map.of(
+                        "success", false, "message", "El NIT ya está registrado"));
+
+            if (request.getHiddenLatitud() == null || request.getHiddenLongitud() == null)
+                return ResponseEntity.badRequest().body(Map.of(
+                        "success", false, "message",
+                        "Debes confirmar la ubicación en el mapa antes de registrarte"));
+
             double lat = request.getHiddenLatitud();
             double lon = request.getHiddenLongitud();
-            if (lat < 4.45 || lat > 4.85 || lon < -74.25 || lon > -73.95) {
-                redirectAttributes.addFlashAttribute("error",
-                        "La ubicación debe estar dentro de Bogotá");
-                return "redirect:/registro";
-            }
-            String barrio = request.getHiddenBarrio();
+            if (lat < 4.45 || lat > 4.85 || lon < -74.25 || lon > -73.95)
+                return ResponseEntity.badRequest().body(Map.of(
+                        "success", false, "message",
+                        "La ubicación debe estar dentro de Bogotá"));
+
             try {
                 boolean barrioValido = Arrays.asList(
                         Localidad.valueOf(request.getHiddenLocalidad()).getBarrios()
-                ).contains(barrio);
-                if (!barrioValido) {
-                    redirectAttributes.addFlashAttribute("error",
-                            "Barrio inválido para la localidad seleccionada");
-                    return "redirect:/registro";
-                }
+                ).contains(request.getHiddenBarrio());
+                if (!barrioValido)
+                    return ResponseEntity.badRequest().body(Map.of(
+                            "success", false, "message",
+                            "Barrio inválido para la localidad seleccionada"));
             } catch (IllegalArgumentException e) {
-                redirectAttributes.addFlashAttribute("error", "Localidad inválida");
-                return "redirect:/registro";
+                return ResponseEntity.badRequest().body(Map.of(
+                        "success", false, "message", "Localidad inválida"));
             }
         }
 
         // =====================================================================
         // FASE 2 — GUARDADO ATÓMICO
         // =====================================================================
-
         try {
             // ── 2.1 Guardar usuario ──────────────────────────────────────────
             Usuario usuario = new Usuario();
@@ -198,27 +180,22 @@ public class UsuarioController {
             usuario.setDescripcion("");
             usuario.setContrasena(passwordEncoder.encode(request.getContrasena()));
 
-            // metodoPago solo aplica para CLIENTE
+            // FIX BUG #1 — metodo_pago solo para CLIENTE; null para los demás
+            // La columna en BD ya no tiene NOT NULL (ver ALTER TABLE ejecutado en Render)
             if (request.getRol() == Rolenum.CLIENTE) {
                 usuario.setMetodoPago(MetodoPago.EFECTIVO);
             }
 
-            // ELIMINADO: usuario.setTipoCliente() — ya no existe en Usuario
-
             Usuario guardado = usuarioService.save(usuario);
-            log.info("Usuario guardado: id={} rol={}",
-                    guardado.getIdUsuario(), guardado.getRol());
+            log.info("Usuario guardado: id={} rol={}", guardado.getIdUsuario(), guardado.getRol());
 
             // ── 2.2 OPERARIO — asignar sede del admin autenticado ────────────
             if (request.getRol() == Rolenum.OPERARIO) {
                 try {
-                    Authentication auth = SecurityContextHolder.getContext()
-                            .getAuthentication();
-                    Optional<Usuario> adminOpt = usuarioService
-                            .findByCorreo(auth.getName());
+                    Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+                    Optional<Usuario> adminOpt = usuarioService.findByCorreo(auth.getName());
                     if (adminOpt.isPresent()) {
-                        Sede sedeAdmin = sedeService
-                                .findByIdUsuario(adminOpt.get().getIdUsuario());
+                        Sede sedeAdmin = sedeService.findByIdUsuario(adminOpt.get().getIdUsuario());
                         if (sedeAdmin != null) {
                             guardado.setSedeAsignada(sedeAdmin);
                             usuarioService.save(guardado);
@@ -234,7 +211,6 @@ public class UsuarioController {
             // ── 2.3 ADMINISTRADOR_SEDE — guardar sede + cupos + tarifas ─────
             if (request.getRol() == Rolenum.ADMINISTRADOR_SEDE) {
 
-                // Sede — sin campos de tarifa ni cupos (ya no existen ahí)
                 Sede sede = new Sede();
                 sede.setNombre(request.getHiddenNombreSede());
                 sede.setNit(request.getHiddenNit());
@@ -252,12 +228,9 @@ public class UsuarioController {
                 Sede sedeGuardada = sedeService.save(sede);
                 log.info("Sede guardada: id={}", sedeGuardada.getIdSede());
 
-                // Cupos — un Cupo por sede con contadores en 0
                 cupoService.crearCuposParaSede(sedeGuardada);
                 log.info("Cupo inicial creado para sede id={}", sedeGuardada.getIdSede());
 
-                // Tarifa — una Tarifa por sede con los valores del request
-                // CORRECCIÓN: los precios vienen del request, no de Sede
                 Tarifa tarifa = Tarifa.builder()
                         .tipoTarifa("GENERAL")
                         .tarifaPlenaC(request.getTarifaPlenaC())
@@ -284,7 +257,6 @@ public class UsuarioController {
                 vehiculo.setColor(request.getColor());
                 vehiculo.setAnio(request.getAnio());
                 vehiculo.setIdUsuario(guardado);
-
                 Vehiculo vehiculoGuardado = vehiculoService.save(vehiculo);
                 log.info("Vehículo guardado: id={} placa={}",
                         vehiculoGuardado.getIdVehiculo(), vehiculoGuardado.getPlaca());
@@ -297,34 +269,25 @@ public class UsuarioController {
                     guardado.getRol()
             );
 
-            // ── 2.6 Autenticación automática post-registro ───────────────────
-            try {
-                Authentication authentication = authenticationManager.authenticate(
-                        new UsernamePasswordAuthenticationToken(
-                                guardado.getCorreo(), request.getContrasena())
-                );
-                SecurityContextHolder.getContext().setAuthentication(authentication);
-                HttpSession session = httpRequest.getSession(true);
-                session.setAttribute(
-                        HttpSessionSecurityContextRepository
-                                .SPRING_SECURITY_CONTEXT_KEY,
-                        SecurityContextHolder.getContext()
-                );
-            } catch (Exception e) {
-                log.error("Error autenticando usuario tras registro: {}",
-                        e.getMessage());
-                return "redirect:/login";
+            // ── 2.6 FIX BUG #2 — Generar JWT igual que /api/auth/login ──────
+            // Reemplaza el bloque de sesión HTTP que era inútil en modo STATELESS
+            UserDetails userDetails = customUserDetailsService
+                    .loadUserByUsername(guardado.getCorreo());
+
+            Long sedeId = null;
+            if (guardado.getRol() == Rolenum.ADMINISTRADOR_SEDE) {
+                Sede s = sedeService.findByIdUsuario(guardado.getIdUsuario());
+                if (s != null) sedeId = s.getIdSede();
+            } else if (guardado.getRol() == Rolenum.OPERARIO) {
+                if (guardado.getSedeAsignada() != null)
+                    sedeId = guardado.getSedeAsignada().getIdSede();
             }
 
-            // ── 2.7 Redirect al dashboard ────────────────────────────────────
-            String extra = switch (guardado.getRol()) {
-                case CLIENTE            -> " con vehículo";
-                case ADMINISTRADOR_SEDE -> " con sede, cupos y tarifa";
-                default                 -> "";
-            };
-            redirectAttributes.addFlashAttribute("success",
-                    "Usuario registrado exitosamente" + extra);
+            String token = jwtUtil.generateToken(
+                    userDetails, guardado.getRol().name(), sedeId);
+            log.info("JWT generado post-registro para: {}", guardado.getCorreo());
 
+            // ── 2.7 Respuesta JSON con token y redirectUrl ───────────────────
             String redirectUrl = switch (guardado.getRol()) {
                 case ADMIN              -> "/dashboard/administradorGeneral";
                 case ADMINISTRADOR_SEDE -> "/dashboard/administradorSede";
@@ -334,19 +297,27 @@ public class UsuarioController {
             };
 
             log.info("Registro completado. Redirigiendo a: {}", redirectUrl);
-            return "redirect:" + redirectUrl;
+
+            Map<String, Object> respuesta = new HashMap<>();
+            respuesta.put("success",     true);
+            respuesta.put("token",       token);
+            respuesta.put("rol",         guardado.getRol().name());
+            respuesta.put("redirectUrl", redirectUrl);
+            respuesta.put("nombre",      guardado.getNombre());
+            if (sedeId != null) respuesta.put("sedeId", sedeId);
+
+            return ResponseEntity.ok(respuesta);
 
         } catch (DataIntegrityViolationException e) {
             log.error("Race condition en registro: {}", e.getMessage());
-            redirectAttributes.addFlashAttribute("error",
-                    "Datos duplicados detectados. Intenta nuevamente.");
-            return "redirect:/registro";
+            return ResponseEntity.badRequest().body(Map.of(
+                    "success", false,
+                    "message", "Datos duplicados detectados. Intenta nuevamente."));
 
         } catch (Exception e) {
             log.error("Error general en registro: {}", e.getMessage(), e);
-            redirectAttributes.addFlashAttribute("error",
-                    "Error interno del sistema");
-            return "redirect:/registro";
+            return ResponseEntity.internalServerError().body(Map.of(
+                    "success", false, "message", "Error interno del sistema"));
         }
     }
 
@@ -359,8 +330,7 @@ public class UsuarioController {
     public Map<String, Object> checkCorreo(@RequestParam String value) {
         boolean disponible = usuarioService.findByCorreo(value.trim()).isEmpty();
         return Map.of("disponible", disponible,
-                "mensaje", disponible
-                        ? "Correo disponible" : "El correo ya está registrado");
+                "mensaje", disponible ? "Correo disponible" : "El correo ya está registrado");
     }
 
     @GetMapping("/check/cedula")
@@ -368,8 +338,7 @@ public class UsuarioController {
     public Map<String, Object> checkCedula(@RequestParam String value) {
         boolean disponible = (usuarioService.findByCedula(value.trim()) == null);
         return Map.of("disponible", disponible,
-                "mensaje", disponible
-                        ? "Cédula disponible" : "La cédula ya está registrada");
+                "mensaje", disponible ? "Cédula disponible" : "La cédula ya está registrada");
     }
 
     @GetMapping("/check/telefono")
@@ -377,8 +346,7 @@ public class UsuarioController {
     public Map<String, Object> checkTelefono(@RequestParam String value) {
         boolean disponible = (usuarioService.findByTelefono(value.trim()) == null);
         return Map.of("disponible", disponible,
-                "mensaje", disponible
-                        ? "Teléfono disponible" : "El teléfono ya está registrado");
+                "mensaje", disponible ? "Teléfono disponible" : "El teléfono ya está registrado");
     }
 
     @GetMapping("/check/nit")
@@ -386,15 +354,8 @@ public class UsuarioController {
     public Map<String, Object> checkNit(@RequestParam String value) {
         boolean disponible = !sedeRepository.existsByNit(value.trim());
         return Map.of("disponible", disponible,
-                "mensaje", disponible
-                        ? "NIT disponible" : "El NIT ya está registrado");
+                "mensaje", disponible ? "NIT disponible" : "El NIT ya está registrado");
     }
-
-    // =====================================================================
-    // CORREO DE BIENVENIDA
-    // =====================================================================
-
-
 
     // =====================================================================
     // DASHBOARDS POR ROL
