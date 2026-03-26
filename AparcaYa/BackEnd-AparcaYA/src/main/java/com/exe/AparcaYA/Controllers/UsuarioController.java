@@ -262,15 +262,7 @@ public class UsuarioController {
                         vehiculoGuardado.getIdVehiculo(), vehiculoGuardado.getPlaca());
             }
 
-            // ── 2.5 Correo de bienvenida ─────────────────────────────────────
-            emailService.enviarBienvenida(
-                    guardado.getCorreo(),
-                    guardado.getNombre(),
-                    guardado.getRol()
-            );
-
-            // ── 2.6 FIX BUG #2 — Generar JWT igual que /api/auth/login ──────
-            // Reemplaza el bloque de sesión HTTP que era inútil en modo STATELESS
+            // ── 2.5 FIX: Generar JWT ANTES del email ────────────────────────
             UserDetails userDetails = customUserDetailsService
                     .loadUserByUsername(guardado.getCorreo());
 
@@ -287,7 +279,6 @@ public class UsuarioController {
                     userDetails, guardado.getRol().name(), sedeId);
             log.info("JWT generado post-registro para: {}", guardado.getCorreo());
 
-            // ── 2.7 Respuesta JSON con token y redirectUrl ───────────────────
             String redirectUrl = switch (guardado.getRol()) {
                 case ADMIN              -> "/dashboard/administradorGeneral";
                 case ADMINISTRADOR_SEDE -> "/dashboard/administradorSede";
@@ -296,8 +287,7 @@ public class UsuarioController {
                 default                 -> "/login";
             };
 
-            log.info("Registro completado. Redirigiendo a: {}", redirectUrl);
-
+            // Preparar respuesta ANTES de intentar el email
             Map<String, Object> respuesta = new HashMap<>();
             respuesta.put("success",     true);
             respuesta.put("token",       token);
@@ -306,6 +296,19 @@ public class UsuarioController {
             respuesta.put("nombre",      guardado.getNombre());
             if (sedeId != null) respuesta.put("sedeId", sedeId);
 
+            // ── 2.6 Email de bienvenida — fallo NO revierte el registro ──────
+            try {
+                emailService.enviarBienvenida(
+                        guardado.getCorreo(),
+                        guardado.getNombre(),
+                        guardado.getRol()
+                );
+            } catch (Exception emailEx) {
+                // Solo loguear — el usuario ya está guardado y el JWT ya está listo
+                log.error("Email de bienvenida falló (no crítico): {}", emailEx.getMessage());
+            }
+
+            log.info("Registro completado. Redirigiendo a: {}", redirectUrl);
             return ResponseEntity.ok(respuesta);
 
         } catch (DataIntegrityViolationException e) {
