@@ -23,4 +23,6 @@ public interface ReservacionService {
     Reservacion aceptarReserva(Long idReserva, Long idOperario);
     Reservacion iniciarReserva(Long idReserva, Long idOperario);
     Reservacion completarReserva(Long idReserva, Long idOperario);
+    List<Reservacion> findByCupoSedeId(Long sedeId);
+    Optional<Reservacion> findByVehiculoAndEstado(Long vehiculoId, EstadoReservacion estado);
 }

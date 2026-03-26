@@ -18,6 +18,156 @@ let periodoActual = 'hoy';
 let periodoDesde  = null;
 let periodoHasta  = null;
 
+var _GEO_AUTOFILL = {
+
+    // ── Mapa localidad: texto Nominatim → value del <select> ──
+    LOCALIDADES: {
+        // USAQUEN
+        'usaquén':            'USAQUEN',
+        'usaquen':            'USAQUEN',
+        // CHAPINERO
+        'chapinero':          'CHAPINERO',
+        // SANTA FE
+        'santa fe':           'SANTA_FE',
+        'santafé':            'SANTA_FE',
+        'santafe':            'SANTA_FE',
+        // SAN CRISTOBAL
+        'san cristóbal':      'SAN_CRISTOBAL',
+        'san cristobal':      'SAN_CRISTOBAL',
+        // USME
+        'usme':               'USME',
+        // TUNJUELITO
+        'tunjuelito':         'TUNJUELITO',
+        // BOSA
+        'bosa':               'BOSA',
+        // KENNEDY
+        'kennedy':            'KENNEDY',
+        // FONTIBON
+        'fontibón':           'FONTIBON',
+        'fontibon':           'FONTIBON',
+        // ENGATIVA
+        'engativá':           'ENGATIVA',
+        'engativa':           'ENGATIVA',
+        // SUBA
+        'suba':               'SUBA',
+        // BARRIOS UNIDOS
+        'barrios unidos':     'BARRIOS_UNIDOS',
+        // TEUSAQUILLO
+        'teusaquillo':        'TEUSAQUILLO',
+        // MARTIRES
+        'los mártires':       'MARTIRES',
+        'los martires':       'MARTIRES',
+        'mártires':           'MARTIRES',
+        'martires':           'MARTIRES',
+        // ANTONIO NARINO
+        'antonio nariño':     'ANTONIO_NARINO',
+        'antonio narino':     'ANTONIO_NARINO',
+        // PUENTE ARANDA
+        'puente aranda':      'PUENTE_ARANDA',
+        // CANDELARIA
+        'la candelaria':      'CANDELARIA',
+        'candelaria':         'CANDELARIA',
+        // RAFAEL URIBE
+        'rafael uribe uribe': 'RAFAEL_URIBE_URIBE',
+        'rafael uribe':       'RAFAEL_URIBE_URIBE',
+        // CIUDAD BOLIVAR
+        'ciudad bolívar':     'CIUDAD_BOLIVAR',
+        'ciudad bolivar':     'CIUDAD_BOLIVAR',
+        // SUMAPAZ
+        'sumapaz':            'SUMAPAZ'
+    },
+
+    // ── Mapa barrio: texto Nominatim → barrio normalizado ─────
+    // (solo los más frecuentes; si no hay match exacto se usa
+    //  el valor crudo limpio)
+    BARRIOS: {
+        'cedritos':              'Cedritos',
+        'molinos norte':         'Molinos Norte',
+        'la calleja':            'La Calleja',
+        'barrancas':             'Barrancas',
+        'santa bárbara':         'Santa Bárbara',
+        'santa barbara':         'Santa Bárbara',
+        'usaquén':               'Usaquén',
+        'chicó':                 'Chicó',
+        'chico':                 'Chicó',
+        'el lago':               'El Lago',
+        'lago gaitán':           'El Lago',
+        'rosales':               'Rosales',
+        'los rosales':           'Rosales',
+        'chapinero alto':        'Chapinero Alto',
+        'antiguo country':       'Antiguo Country',
+        'la cabrera':            'La Cabrera',
+        'las aguas':             'Las Aguas',
+        'la perseverancia':      'La Perseverancia',
+        'san diego':             'San Diego',
+        'san cristóbal norte':   'San Cristóbal Norte',
+        'san cristobal norte':   'San Cristóbal Norte',
+        'san blas':              'San Blas',
+        'la victoria':           'La Victoria',
+        'usme pueblo':           'Usme Pueblo',
+        'yomasa':                'Yomasa',
+        'parque el tunal':       'Parque El Tunal',
+        'venecia':               'Venecia',
+        'bosa central':          'Bosa Central',
+        'bosa laureles':         'Bosa Laureles',
+        'el porvenir':           'El Porvenir',
+        'tintal':                'Tintal',
+        'timiza':                'Timiza',
+        'mandalay':              'Mandalay',
+        'carvajal':              'Carvajal',
+        'patio bonito':          'Patio Bonito',
+        'kennedy central':       'Kennedy Central',
+        'techo':                 'Techo',
+        'capellanía':            'Capellanía',
+        'capellania':            'Capellanía',
+        'fontibón centro':       'Fontibón Centro',
+        'fontibon centro':       'Fontibón Centro',
+        'modelia':               'Modelia',
+        'ferias':                'Ferias',
+        'boyacá real':           'Boyacá Real',
+        'boyaca real':           'Boyacá Real',
+        'minuto de dios':        'Minuto de Dios',
+        'tibabuyes':             'Tibabuyes',
+        'niza':                  'Niza',
+        'suba centro':           'Suba Centro',
+        'la campiña':            'La Campiña',
+        'la campina':            'La Campiña',
+        'la alhambra':           'La Alhambra',
+        'el rincón':             'El Rincón',
+        'el rincon':             'El Rincón',
+        'lista':                 'Lisboa',
+        'lisboa':                'Lisboa',
+        '7 de agosto':           '7 de Agosto',
+        'doce de octubre':       'Doce de Octubre',
+        'san felipe':            'San Felipe',
+        'los andes':             'Los Andes',
+        'la soledad':            'La Soledad',
+        'quesada':               'Quesada',
+        'campín':                'Campín',
+        'campin':                'Campín',
+        'palermo':               'Palermo',
+        'santa isabel':          'Santa Isabel',
+        'eduardo santos':        'Eduardo Santos',
+        'restrepo':              'Restrepo',
+        'policarpa':             'Policarpa',
+        'ciudad montes':         'Ciudad Montes',
+        'muzú':                  'Muzú',
+        'muzu':                  'Muzú',
+        'la catedral':           'La Catedral',
+        'egipto':                'Egipto',
+        'bravo páez':            'Bravo Páez',
+        'bravo paez':            'Bravo Páez',
+        'marruecos':             'Marruecos',
+        'quiroga':               'Quiroga',
+        'meissen':               'Meissen',
+        'jerusalén':             'Jerusalén',
+        'jerusalem':             'Jerusalén',
+        'paraíso':               'Paraíso',
+        'paraiso':               'Paraíso',
+        'nazareth':              'Nazareth'
+    }
+};
+
 const marcasPorTipo = {
     CARRO:['RENAULT','KIA','TOYOTA','CHEVROLET','MAZDA','NISSAN','VOLKSWAGEN','FORD','HYUNDAI',
         'BMW','MERCEDES_BENZ','AUDI','PEUGEOT','CITROEN','FIAT','VOLVO','JEEP','LAND_ROVER',
@@ -830,15 +980,27 @@ function cerrarModalSalida(){
     if(m){m.classList.remove('open');m.setAttribute('aria-hidden','true');}
     currentSalidaRegistroId=null;
 }
-async function confirmarSalida(){
-    if(!currentSalidaRegistroId) return;
+async function confirmarSalida() {
+    if (!currentSalidaRegistroId) { return; }
     try {
         showInfo('Registrando salida...');
-        var r=await fetch(API_BASE_URL+'/registrar-salida/'+currentSalidaRegistroId,{method:'POST',headers:{'Content-Type':'application/json'}});
-        if(!r.ok){var err=await r.json();throw new Error(err.error||'Error');}
+        var response = await fetch(
+            API_BASE_URL + '/registrar-salida/' + currentSalidaRegistroId,
+            { method: 'POST', headers: { 'Content-Type': 'application/json' } }
+        );
+        if (!response.ok) {
+            var err = await response.json();
+            throw new Error(err.error || 'Error');
+        }
         showSuccess('Salida registrada. Proceda a cobrar.');
-        cerrarModalSalida();await loadVehiculosActivos();await loadPendientesCobro();
-    } catch(e){showError(e.message);}
+        cerrarModalSalida();
+        await loadVehiculosActivos();
+        await loadPendientesCobro();
+        await loadReservaciones();   // ← AGREGAR esta línea
+        await cargarEstadisticas();  // ← AGREGAR esta línea
+    } catch (error) {
+        showError(error.message);
+    }
 }
 
 // ==================== PENDIENTES COBRO ====================
@@ -889,20 +1051,34 @@ function cerrarModalCobro(){
     currentCobroRegistroId=null;opcionesTarifa=null;
     var c=document.getElementById('tarifaSelectorContainer');if(c)c.innerHTML='';
 }
-async function procesarCobro(){
-    if(!currentCobroRegistroId) return;
+async function procesarCobro() {
+    if (!currentCobroRegistroId) { return; }
     try {
-        var mp=document.getElementById('metodoPago');
-        var metodoPago=mp?mp.value:'EFECTIVO';
-        var tt=document.querySelector('input[name="tipoTarifa"]:checked');
-        if(!tt){showWarning('Seleccione una tarifa');return;}
+        var metodoPagoEl = document.getElementById('metodoPago');
+        var metodoPago   = metodoPagoEl ? metodoPagoEl.value : 'EFECTIVO';
+        var tipoTarifa   = document.querySelector('input[name="tipoTarifa"]:checked');
+        if (!tipoTarifa) { showWarning('Seleccione una tarifa'); return; }
         showInfo('Procesando cobro...');
-        var r=await fetch(API_BASE_URL+'/confirmar-cobro/'+currentCobroRegistroId,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({metodoPago:metodoPago,tipoTarifa:tt.value})});
-        if(!r.ok){var err=await r.json();throw new Error(err.error||'Error');}
-        var data=await r.json();
-        showSuccess('Cobro: $'+formatNumber(data.precio)+' — '+data.tipoTarifaAplicada);
-        cerrarModalCobro();await loadPendientesCobro();
-    } catch(e){showError(e.message);}
+        var response = await fetch(API_BASE_URL + '/confirmar-cobro/' + currentCobroRegistroId, {
+            method:  'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body:    JSON.stringify({ metodoPago: metodoPago, tipoTarifa: tipoTarifa.value })
+        });
+        if (!response.ok) {
+            var err = await response.json();
+            throw new Error(err.error || 'Error');
+        }
+        var data = await response.json();
+        showSuccess('Cobro: $' + formatNumber(data.precio) + ' — ' + data.tipoTarifaAplicada);
+        cerrarModalCobro();
+        await loadPendientesCobro();
+        await loadVehiculosActivos();
+        await loadReservaciones();   // ← AGREGAR
+        await cargarEstadisticas();  // SedeD.js
+        // await loadIndicadores();  // TrabajadorD.js
+    } catch (error) {
+        showError(error.message);
+    }
 }
 
 // ==================== HISTORIAL ====================
@@ -963,7 +1139,7 @@ async function loadReservaciones() {
                 '<td>' + formatDateTime(r.horaFin) + '</td>' +
                 '<td><span class="trab-badge trab-badge-info">' + r.cupo + '</span></td>' +
                 '<td>' + renderBadgeEstado(r.estado) + '</td>' +
-                '<td>' + renderAccionesReserva(r.id, r.estado) + '</td>' +
+                '<td>' + renderAccionesReserva(r.id, r.estado, r.registroId) + '</td>' +
                 '</tr>';
         }).join('');
     } catch (error) {
@@ -986,7 +1162,7 @@ function renderBadgeEstado(estado) {
 }
 
 // Botones según el estado actual — solo la acción válida siguiente
-function renderAccionesReserva(id, estado) {
+function renderAccionesReserva(id, estado, registroId) {
     switch (estado) {
         case 'PENDIENTE':
             return '<button class="sede-btn-success btn-aceptar" data-id="' + id + '" style="font-size:.8rem;padding:.35rem .75rem;margin-right:.25rem;">Aceptar</button>' +
@@ -994,9 +1170,12 @@ function renderAccionesReserva(id, estado) {
         case 'ACEPTADA':
             return '<button class="sede-btn-primary btn-iniciar" data-id="' + id + '" style="font-size:.8rem;padding:.35rem .75rem;">Iniciar entrada</button>';
         case 'EN_CURSO':
-            return '<button class="sede-btn-warning btn-completar" data-id="' + id + '" style="font-size:.8rem;padding:.35rem .75rem;">Registrar salida</button>';
+            // usa registroId para abrir el modal de salida — mismo flujo que Gestión de Vehículos
+            var rid = registroId || id;
+            return '<button class="sede-btn-warning sede-btn-salida" data-id="' + rid + '" style="font-size:.8rem;padding:.35rem .75rem;">Registrar salida</button>';
         case 'COMPLETADA':
-            return '<button class="sede-btn-success btn-cobrar-reserva" data-id="' + id + '" style="font-size:.8rem;padding:.35rem .75rem;">Cobrar</button>';
+            // el vehículo ya salió — aparece en Pendientes de Cobro automáticamente
+            return '<span style="font-size:.8rem;color:#059669;font-weight:600;">En pendientes de cobro</span>';
         default:
             return '<span style="color:#94a3b8;font-size:.8rem;">—</span>';
     }
@@ -1021,7 +1200,7 @@ async function aceptarReservacion(id) {
         }
         showSuccess('Reservación aceptada — el cliente será notificado');
         await loadReservaciones();
-        await loadIndicadores();
+        await cargarEstadisticas();
     } catch (error) {
         showError(error.message);
     }
@@ -1057,17 +1236,20 @@ async function iniciarReservacion(id) {
     );
     if (!ok) { return; }
     try {
-        var response = await fetch('/api/reservaciones/' + id + '/iniciar', {
+        // ANTES apuntaba a /api/reservaciones/{id}/iniciar
+        // AHORA apunta al endpoint de sede que crea el RegistroEntradaSalida
+        var response = await fetch('/api/sede/iniciar-reservacion/' + id, {
             method: 'POST', headers: { 'Content-Type': 'application/json' }
         });
         if (!response.ok) {
             var err = await response.json();
-            throw new Error(err.message || 'Error');
+            throw new Error(err.error || err.message || 'Error');
         }
-        showSuccess('Reservación iniciada — vehículo en curso');
+        showSuccess('Vehículo ingresado — aparece en Gestión de Vehículos');
         await loadReservaciones();
-        await loadVehiculosActivos();
-        await loadIndicadores();
+        await loadVehiculosActivos();   // ← recargar para mostrar el temporizador
+        await loadPendientesCobro();
+        await cargarEstadisticas();     // ← en SedeD.js se llama así, no loadIndicadores
     } catch (error) {
         showError(error.message);
     }
@@ -1091,7 +1273,7 @@ async function completarReservacion(id) {
         showSuccess('Salida registrada — reserva pendiente de cobro');
         await loadReservaciones();
         await loadPendientesCobro();
-        await loadIndicadores();
+        await cargarEstadisticas();
     } catch (error) {
         showError(error.message);
     }
@@ -1120,7 +1302,7 @@ async function cobrarReservacion(id) {
         var data = await response.json();
         showSuccess('Cobro registrado — $' + formatNumber(data.monto));
         await loadReservaciones();
-        await loadIndicadores();
+        await cargarEstadisticas();
     } catch (error) {
         showError(error.message);
     }
@@ -1217,8 +1399,8 @@ function mostrarArchivoSeleccionado(){
 // ==================== DELEGACIÓN DE EVENTOS ====================
 function setupGlobalEventDelegation() {
     document.body.addEventListener('click', function(e) {
-        var salida        = e.target.closest('.btn-salida');
-        var cobrar        = e.target.closest('.btn-cobrar');
+        var salida        = e.target.closest('.sede-btn-salida');
+        var cobrar        = e.target.closest('.sede-btn-cobrar');
         var aceptar       = e.target.closest('.btn-aceptar');
         var rechazar      = e.target.closest('.btn-rechazar');
         // NUEVOS
@@ -1976,6 +2158,106 @@ async function rsGeocodificarDireccion(direccion, localidad, barrio) {
     return await resp.json();
 }
 
+
+function _inferirLocalidadBarrio(addr, idLocalidad, idBarrio, barrios_por_localidad) {
+    if (!addr) return;
+
+    var localidadSelect = document.getElementById(idLocalidad);
+    var barrioSelect    = document.getElementById(idBarrio);
+    if (!localidadSelect || !barrioSelect) return;
+
+    // ── Inferir localidad ──────────────────────────────────────
+    // Nominatim puede traerla en city_district, suburb o quarter
+    var candidatosLoc = [
+        addr.city_district,
+        addr.suburb,
+        addr.quarter,
+        addr.neighbourhood
+    ].filter(Boolean);
+
+    var localidadValue = null;
+    for (var i = 0; i < candidatosLoc.length; i++) {
+        var clave = candidatosLoc[i].toLowerCase().trim();
+        if (_GEO_AUTOFILL.LOCALIDADES[clave]) {
+            localidadValue = _GEO_AUTOFILL.LOCALIDADES[clave];
+            break;
+        }
+    }
+
+    if (!localidadValue) return; // no se pudo inferir — no tocar los selects
+
+    // Setear localidad si existe como option
+    var optionExiste = Array.from(localidadSelect.options)
+        .some(function(o) { return o.value === localidadValue; });
+    if (!optionExiste) return;
+
+    localidadSelect.value = localidadValue;
+
+    // Disparar change para poblar el select de barrios
+    _poblarBarrioSelect(localidadValue, idBarrio, barrios_por_localidad);
+
+    // ── Inferir barrio ─────────────────────────────────────────
+    // Nominatim puede traerlo en neighbourhood, quarter o suburb
+    var candidatosBar = [
+        addr.neighbourhood,
+        addr.quarter,
+        addr.suburb
+    ].filter(Boolean);
+
+    var barrioTexto = null;
+    for (var j = 0; j < candidatosBar.length; j++) {
+        var bc = candidatosBar[j].toLowerCase().trim();
+        if (_GEO_AUTOFILL.BARRIOS[bc]) {
+            barrioTexto = _GEO_AUTOFILL.BARRIOS[bc];
+            break;
+        }
+        // Si no hay match exacto, usar el valor crudo capitalizado
+        if (!barrioTexto) {
+            barrioTexto = candidatosBar[j].trim();
+        }
+    }
+
+    if (!barrioTexto) return;
+
+    // Buscar el barrio en las options (match exacto o parcial)
+    var optBarrio = Array.from(barrioSelect.options).find(function(o) {
+        return o.value.toLowerCase() === barrioTexto.toLowerCase() ||
+            o.textContent.toLowerCase() === barrioTexto.toLowerCase();
+    });
+
+    // Si no hay match exacto intentar match parcial
+    if (!optBarrio) {
+        var barTextoLow = barrioTexto.toLowerCase();
+        optBarrio = Array.from(barrioSelect.options).find(function(o) {
+            return o.value.toLowerCase().includes(barTextoLow) ||
+                barTextoLow.includes(o.value.toLowerCase());
+        });
+    }
+
+    if (optBarrio) {
+        barrioSelect.value = optBarrio.value;
+    }
+}
+
+
+// ============================================================
+// 3. POBLAR SELECT DE BARRIOS
+//    Rellena el <select> de barrio con los barrios de la
+//    localidad detectada, usando el mapa de barrios del JS.
+// ============================================================
+function _poblarBarrioSelect(localidadValue, idBarrio, barrios_por_localidad) {
+    var barrioSelect = document.getElementById(idBarrio);
+    if (!barrioSelect || !barrios_por_localidad) return;
+
+    var lista = barrios_por_localidad[localidadValue] || [];
+    barrioSelect.innerHTML = '<option value="">Selecciona un barrio</option>';
+    lista.forEach(function(b) {
+        var opt = document.createElement('option');
+        opt.value = b; opt.textContent = b;
+        barrioSelect.appendChild(opt);
+    });
+}
+
 async function rsReverseGeocodificar(lat, lon) {
     rsSetMapStatus('Obteniendo dirección...', 'loading');
 
@@ -2000,9 +2282,9 @@ async function rsReverseGeocodificar(lat, lon) {
         var data = await resp.json();
 
         if (data && data.display_name) {
-            var addr   = data.address || {};
+            var addr = data.address || {};
 
-            // ── FIX: solo calle + número — sin barrio ni localidad ──
+            // ── FIX GPS: solo calle + número en el campo dirección ─
             var partes = [
                 addr.road,
                 addr.house_number
@@ -2016,6 +2298,14 @@ async function rsReverseGeocodificar(lat, lon) {
             if (campoDireccion && dirLegible) {
                 campoDireccion.value = dirLegible;
             }
+
+            // ── NUEVO: autorellenar localidad y barrio ─────────────
+            _inferirLocalidadBarrio(
+                addr,
+                'rsLocalidad',   // ID select localidad en modal sede
+                'rsBarrio',      // ID select barrio en modal sede
+                RS_BARRIOS       // objeto ya definido en SedeD.js
+            );
         }
 
         rsSetMapStatus('Ubicación confirmada — arrastrá el pin para ajustar', 'ok');

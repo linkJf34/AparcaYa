@@ -1,19 +1,17 @@
 'use strict';
 // ============================================================
-// CLIENTED.JS — AparcaYA  v2.2
+// CLIENTED.JS — AparcaYA  v3.0
 // Ruta: /js/ClienteD.js
 //
-// v2.2 — Migración al helper centralizado:
-//   ✅ showToast() local eliminada  → delega en helper (aparca-notifications.js)
-//   ✅ showConfirm() local eliminada → delega en helper (aparca-notifications.js)
-//   ✅ cerrarModalSede() duplicada eliminada
-//   ✅ mostrarDetallesSede() corregida: asigna sedeSeleccionada antes de abrir reserva
-//
-// v2.1 — Fixes aplicados:
-//   ✅ FIX-R1: crearReserva() usa GET /api/cupos/disponibles
-//   ✅ FIX-R2: Formato ISO con segundos (:00) para LocalDateTime
-//   ✅ FIX-P1: cambiarContrasena() usa POST /cliente/perfil/cambiar-password
-//   ✅ FIX-N1: TABS_LABELS definida una sola vez
+// v3.0 — Cambios sobre v2.2:
+//   ✅ irAlMapa() agregada — botones "Nueva reserva" y
+//      "Hacer reserva" redirigen al mapa de sedes
+//   ✅ abrirModalReserva() conecta con resvValidarYConf
+//      si Flatpickr está disponible, fallback a crearReserva
+//   ✅ actualizarEstadoActual() — botón usa irAlMapa()
+//   ✅ IIFE vacío del calendario eliminado
+//   ✅ window.irAlMapa expuesto globalmente
+//   ✅ Colores violeta preservados en todo el archivo
 // ============================================================
 
 
@@ -201,6 +199,33 @@ function navegarA(tabId) {
     if (link) { link.click(); }
 }
 
+// ============================================================
+// CAMBIO v3.0 — irAlMapa()
+// Los botones "Nueva reserva" y "Hacer reserva" llevan al mapa
+// de sedes en la sección Inicio, NO a Mis Reservas.
+// Color del destello: violeta #7c3aed
+// ============================================================
+function irAlMapa() {
+    var seccionActual = document.querySelector('.aparca-content-section:not(.hidden)');
+    var esInicio = seccionActual && seccionActual.id === 'perfil';
+
+    if (!esInicio) {
+        var linkInicio = document.querySelector('.aparca-sidebar-nav a[data-tab="perfil"]');
+        if (linkInicio) { linkInicio.click(); }
+    }
+
+    setTimeout(function() {
+        var mapSection = document.querySelector('.cli-map-section');
+        if (mapSection) {
+            mapSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            mapSection.style.transition = 'box-shadow .25s';
+            mapSection.style.boxShadow  = '0 0 0 3px #7c3aed, 0 8px 32px rgba(124,58,237,.22)';
+            setTimeout(function() { mapSection.style.boxShadow = ''; }, 1800);
+        }
+        if (map) { map.invalidateSize(); }
+    }, esInicio ? 20 : 120);
+}
+
 function actualizarBreadcrumb(tabId) {
     var el = document.getElementById('breadcrumbCurrent');
     if (el) { el.textContent = TABS_LABELS[tabId] || tabId; }
@@ -244,15 +269,25 @@ async function handleLogout() {
     );
     if (!ok) { return; }
 
-    try {
-        var headers = Object.assign(
-            { 'Content-Type': 'application/x-www-form-urlencoded' },
-            getCsrfHeaders()
-        );
-        await fetch('/logout', { method: 'POST', headers: headers, credentials: 'same-origin' });
-    } catch (e) { /* si falla el fetch, redirigimos igual */ }
+    // Crear un form temporal y submitearlo — el browser maneja
+    // el redirect HTML sin bloqueo de MIME type
+    var form = document.createElement('form');
+    form.method = 'POST';
+    form.action = '/logout';
 
-    window.location.href = '/login';
+    // Incluir CSRF token si existe
+    var csrfMeta  = document.querySelector('meta[name="_csrf"]');
+    var csrfHMeta = document.querySelector('meta[name="_csrf_header"]');
+    if (csrfMeta) {
+        var input = document.createElement('input');
+        input.type  = 'hidden';
+        input.name  = csrfHMeta ? csrfHMeta.getAttribute('content') : '_csrf';
+        input.value = csrfMeta.getAttribute('content');
+        form.appendChild(input);
+    }
+
+    document.body.appendChild(form);
+    form.submit();
 }
 
 
@@ -616,23 +651,9 @@ function inicializarDatepickersFiltros() {
 
 
 // ============================================================
-// BÚSQUEDA EN MAPA
-// ============================================================
-// ============================================================
 // BÚSQUEDA EN MAPA — v2
-// REEMPLAZA la sección "BÚSQUEDA EN MAPA" completa de ClienteD.js
-// (inicializarBusquedaMapa + buscarDireccion)
-//
-// CAMBIOS:
-//   - Autocompletado con dropdown Nominatim (debounce 600ms)
-//   - Marcador dedicado para el resultado (reemplaza el anterior)
-//   - Navegación con teclado (↑ ↓ Enter Escape)
-//   - Escribe solo la dirección (calle + número) en el input
-//   - Sin localidad, sin barrio, sin display_name completo
-//   - buscarDireccion() se mantiene como alias para el botón
 // ============================================================
 
-// ── Estado del buscador ────────────────────────────────────────────
 var _cliSearchDebounce = null;
 var _cliLastNominatim  = 0;
 var _cliMarkerBusqueda = null;
@@ -641,7 +662,6 @@ function inicializarBusquedaMapa() {
     var searchInput = document.getElementById('searchInput');
     var searchBtn   = document.getElementById('searchBtn');
 
-    // Crear dropdown si no existe
     var dropdown = document.getElementById('searchDropdown');
     if (!dropdown && searchInput) {
         dropdown = document.createElement('div');
@@ -659,7 +679,6 @@ function inicializarBusquedaMapa() {
         }
     }
 
-    // Inyectar estilos si no existen
     if (!document.getElementById('cli-search-style')) {
         var s = document.createElement('style');
         s.id = 'cli-search-style';
@@ -671,7 +690,6 @@ function inicializarBusquedaMapa() {
     }
 
     if (searchInput) {
-        // ── Autocompletado con debounce 600ms ────────────────────
         searchInput.addEventListener('input', function() {
             clearTimeout(_cliSearchDebounce);
             var val = this.value.trim();
@@ -683,7 +701,6 @@ function inicializarBusquedaMapa() {
             }, 600);
         });
 
-        // ── Navegación con teclado ────────────────────────────────
         searchInput.addEventListener('keydown', function(e) {
             var d      = document.getElementById('searchDropdown');
             var items  = d ? d.querySelectorAll('.cli-search-item') : [];
@@ -705,7 +722,6 @@ function inicializarBusquedaMapa() {
             }
         });
 
-        // Cerrar al click fuera
         document.addEventListener('click', function(e) {
             var d = document.getElementById('searchDropdown');
             if (!searchInput.contains(e.target) && !(d && d.contains(e.target))) {
@@ -719,7 +735,6 @@ function inicializarBusquedaMapa() {
     }
 }
 
-// ── Botón buscar / alias ───────────────────────────────────────────
 function buscarDireccion() {
     var inp = document.getElementById('searchInput');
     var val = inp ? inp.value.trim() : '';
@@ -729,7 +744,6 @@ function buscarDireccion() {
     _cliBuscarNominatim(val);
 }
 
-// ── Spinner ────────────────────────────────────────────────────────
 function _cliSetDropdownCargando() {
     var d = document.getElementById('searchDropdown');
     if (!d) return;
@@ -744,7 +758,6 @@ function _cliSetDropdownCargando() {
         'Buscando en Bogotá...</div>';
 }
 
-// ── Fetch Nominatim (throttle 1 req/s) ────────────────────────────
 async function _cliBuscarNominatim(query) {
     var ahora  = Date.now();
     var espera = 1050 - (ahora - _cliLastNominatim);
@@ -775,12 +788,10 @@ async function _cliBuscarNominatim(query) {
     }
 }
 
-// ── Renderizar sugerencias ─────────────────────────────────────────
 function _cliMostrarSugerencias(resultados) {
     var dropdown = document.getElementById('searchDropdown');
     if (!dropdown) return;
 
-    // Solo resultados dentro de Bogotá
     var dentroRango = resultados.filter(function(r) {
         var lat = parseFloat(r.lat), lon = parseFloat(r.lon);
         return lat >= 4.45 && lat <= 4.85 && lon >= -74.25 && lon <= -73.95;
@@ -806,12 +817,9 @@ function _cliMostrarSugerencias(resultados) {
             'display:flex;align-items:flex-start;gap:.625rem;padding:.7rem 1rem;' +
             'border-bottom:1px solid #f8fffe;';
 
-        var addr = r.address || {};
-
-        // ── Solo dirección (calle + número) — sin barrio/localidad ──
+        var addr   = r.address || {};
         var titulo = [addr.road, addr.house_number].filter(Boolean).join(' ')
             || r.display_name.split(',')[0].trim();
-        // Referencia secundaria: solo el barrio (no la localidad ni ciudad)
         var sub    = addr.suburb || addr.neighbourhood || addr.quarter || 'Bogotá';
 
         item.innerHTML =
@@ -835,15 +843,12 @@ function _cliMostrarSugerencias(resultados) {
         item.addEventListener('click', function() {
             var lat = parseFloat(r.lat), lon = parseFloat(r.lon);
             var inp = document.getElementById('searchInput');
-
-            // ── Solo la dirección en el campo de búsqueda ─────────
             if (inp) inp.value = titulo;
             _cliOcultarDropdown();
 
             if (!map) return;
             map.setView([lat, lon], 17, { animate: true });
 
-            // Limpiar marcador anterior
             if (_cliMarkerBusqueda) { _cliMarkerBusqueda.remove(); _cliMarkerBusqueda = null; }
 
             var pinIcon = L.divIcon({
@@ -869,7 +874,6 @@ function _cliMostrarSugerencias(resultados) {
         dropdown.appendChild(item);
     });
 
-    // Pie
     var footer = document.createElement('div');
     footer.style.cssText =
         'padding:.35rem 1rem;font-size:.68rem;color:#94a3b8;' +
@@ -879,7 +883,6 @@ function _cliMostrarSugerencias(resultados) {
     dropdown.style.display = 'block';
 }
 
-// ── Ocultar dropdown ───────────────────────────────────────────────
 function _cliOcultarDropdown() {
     var d = document.getElementById('searchDropdown');
     if (d) { d.style.display = 'none'; d.innerHTML = ''; }
@@ -896,7 +899,6 @@ function mostrarDetallesSede(sedeId) {
     var sede = lista.find(function(s) { return s.idSede == sedeId || s.id == sedeId; });
     if (!sede) { return; }
 
-    // CRÍTICO: asignar sedeSeleccionada para que abrirModalReserva() funcione
     sedeSeleccionada = sede;
 
     var modal = document.getElementById('modalSede');
@@ -970,11 +972,18 @@ async function abrirModalReserva() {
     await cargarVehiculosSelect();
 
     var modal = document.getElementById('reservaModal');
-    modal.style.display = 'flex';
-    modal.setAttribute('aria-hidden', 'false');
+    if (modal) {
+        modal.style.display = 'flex';
+        modal.setAttribute('aria-hidden', 'false');
+    }
 
+    // CAMBIO v3.0: conecta con resvValidarYConf si Flatpickr está cargado
     var reservarBtn = document.getElementById('reservarBtn');
-    if (reservarBtn) { reservarBtn.onclick = crearReserva; }
+    if (reservarBtn) {
+        reservarBtn.onclick = typeof window.resvValidarYConf === 'function'
+            ? window.resvValidarYConf
+            : crearReserva;
+    }
 }
 
 async function cargarVehiculosSelect() {
@@ -1046,7 +1055,6 @@ async function crearReserva() {
     if (reservarBtn) { reservarBtn.disabled = true; reservarBtn.textContent = 'Verificando...'; }
 
     try {
-        // Paso 1: cupos disponibles
         var params = new URLSearchParams({
             sedeId:      sedeSeleccionada.idSede,
             fechaInicio: fechaInicio,
@@ -1077,7 +1085,6 @@ async function crearReserva() {
 
         var cupoDisponible = cupos[0];
 
-        // Paso 2: crear la reserva
         var reservaData = {
             cupoId:      cupoDisponible.idCupo,
             vehiculoId:  parseInt(vehiculoId),
@@ -1097,8 +1104,10 @@ async function crearReserva() {
         try { data = await response.json(); } catch (e) {}
 
         if (response.ok) {
-            showSuccess('¡Reserva creada! Está pendiente de aprobación.');
+            // FIX: cerrar el modal PRIMERO, antes de cargarReservas()
+            // para que no dependa de que la recarga sea exitosa
             cerrarReservaModal();
+            showSuccess(data.message || '¡Reserva creada! Está pendiente de aprobación.');
             cargarReservas();
         } else if (response.status === 403) {
             showError('Sin permisos para crear la reserva. Verifica que tu sesión esté activa.');
@@ -1282,7 +1291,7 @@ function actualizarEstadoActual(reservas) {
             '          18.75m-18 0v-7.5A2.25 2.25 0 015.25 9h13.5A2.25 2.25 0 0021 11.25v7.5"/>' +
             '</svg>' +
             '<p>No tienes reservas activas</p>' +
-            '<button class="cli-btn-sm-purple" onclick="navegarA(\'misreservas\')">Hacer una reserva</button>' +
+            '<button class="cli-btn-sm-purple" onclick="irAlMapa()">Hacer una reserva</button>' +
             '</div>';
         return;
     }
@@ -1654,6 +1663,7 @@ window.cerrarModalSede        = cerrarModalSede;
 window.cerrarReservaModal     = cerrarReservaModal;
 window.abrirModalReserva      = abrirModalReserva;
 window.navegarA               = navegarA;
+window.irAlMapa               = irAlMapa;
 window.filtrarReservas        = filtrarReservas;
 window.limpiarFiltrosReservas = limpiarFiltrosReservas;
 window.filtrarPagos           = filtrarPagos;
@@ -1663,8 +1673,3 @@ window.cambiarContrasena      = cambiarContrasena;
 window.togglePassword         = togglePassword;
 window.evaluarFortalezaPass   = evaluarFortalezaPass;
 window.toggleFaq              = toggleFaq;
-
-
-// ============================================================
-// CALENDARIO DEL MODAL DE RESERVA
-// ============================================================

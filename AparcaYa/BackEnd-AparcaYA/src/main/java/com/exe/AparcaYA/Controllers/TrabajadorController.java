@@ -3,6 +3,8 @@ package com.exe.AparcaYA.Controllers;
 import com.exe.AparcaYA.Entity.*;
 import com.exe.AparcaYA.Enum.*;
 import com.exe.AparcaYA.Service.*;
+import jakarta.servlet.http.HttpServletRequest;
+import org.springframework.transaction.annotation.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.poi.ss.usermodel.*;
@@ -41,6 +43,7 @@ public class TrabajadorController {
     private final CupoService                  cupoService;
     private final TarifaService                tarifaService;
     private final PasswordEncoder              passwordEncoder;
+
 
     // =========================================================
     // MÉTODOS AUXILIARES
@@ -499,8 +502,6 @@ public class TrabajadorController {
                     .orElseThrow(() -> new RuntimeException("Registro no encontrado"));
 
             if (!registroExistente.getSede().getIdSede().equals(sede.getIdSede())) {
-                log.warn("Operario de sede {} intentó cobrar registro {} (sede {})",
-                        sede.getIdSede(), registroId, registroExistente.getSede().getIdSede());
                 return ResponseEntity.status(HttpStatus.FORBIDDEN)
                         .body(Map.of("error", "No tiene permisos para operar sobre este registro"));
             }
@@ -512,18 +513,33 @@ public class TrabajadorController {
                     && !tipoTarifa.equalsIgnoreCase("MINUTO")
                     && !tipoTarifa.equalsIgnoreCase("HORA")) {
                 return ResponseEntity.badRequest()
-                        .body(Map.of("error",
-                                "Tipo de tarifa inválido. Debe ser PLENA, MINUTO u HORA"));
+                        .body(Map.of("error", "Tipo de tarifa inválido. Debe ser PLENA, MINUTO u HORA"));
             }
 
             RegistroEntradaSalida registro =
                     registroService.confirmarCobroConTarifa(registroId, metodoPago, tipoTarifa);
 
+            // ← try-catch separado — el cobro ya se completó, esto es opcional
+            try {
+                reservacionService
+                        .findByVehiculoAndEstado(
+                                registro.getVehiculo().getIdVehiculo(),
+                                EstadoReservacion.COMPLETADA)
+                        .ifPresent(r -> {
+                            r.setEstado(EstadoReservacion.PAGADA);
+                            reservacionService.save(r);
+                            log.info("Reservacion {} marcada PAGADA tras cobro registro {}",
+                                    r.getIdReserva(), registroId);
+                        });
+            } catch (Exception ex) {
+                log.warn("No se pudo actualizar reservación tras cobro {}: {}",
+                        registroId, ex.getMessage());
+            }
+
             Map<String, Object> response = new HashMap<>();
             response.put("mensaje",            "Cobro confirmado exitosamente");
             response.put("registroId",         registro.getIdRegistro());
             response.put("placa",              registro.getVehiculo().getPlaca());
-            // CORRECCIÓN — precio desde Pago asociado
             response.put("precio",             registro.getPago() != null
                     ? registro.getPago().getMonto() : null);
             response.put("metodoPago",         metodoPago);
@@ -532,6 +548,7 @@ public class TrabajadorController {
 
             log.info("Cobro confirmado: registroId={} tarifa={}", registroId, tipoTarifa);
             return ResponseEntity.ok(response);
+
         } catch (Exception e) {
             log.error("Error al confirmar cobro {}: {}", registroId, e.getMessage(), e);
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
@@ -611,14 +628,20 @@ public class TrabajadorController {
     // =========================================================
 
     @GetMapping("/reservaciones")
+    @Transactional(readOnly = true)
     public ResponseEntity<?> getReservaciones() {
         try {
             Sede sede = getSedeDelUsuarioAutenticado();
-            List<Map<String, Object>> reservas = reservacionService.findAll().stream()
-                    .filter(r -> r.getCupo() != null
-                            && r.getCupo().getSede() != null
-                            && r.getCupo().getSede().getIdSede().equals(sede.getIdSede()))
-                    .filter(r -> r.getEstado() == EstadoReservacion.PENDIENTE)
+            if (sede == null) return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                    .body(Map.of("error", "No se encontró una sede asignada"));
+
+            List<Map<String, Object>> reservas = reservacionService
+                    .findByCupoSedeId(sede.getIdSede())
+                    .stream()
+                    .filter(r -> r.getEstado() == EstadoReservacion.PENDIENTE
+                            || r.getEstado() == EstadoReservacion.ACEPTADA
+                            || r.getEstado() == EstadoReservacion.EN_CURSO
+                            || r.getEstado() == EstadoReservacion.COMPLETADA)
                     .map(reserva -> {
                         Map<String, Object> r = new HashMap<>();
                         r.put("id",              reserva.getIdReserva());
@@ -633,6 +656,7 @@ public class TrabajadorController {
                         r.put("estado",          reserva.getEstado().toString());
                         return r;
                     }).collect(Collectors.toList());
+
             return ResponseEntity.ok(reservas);
         } catch (Exception e) {
             log.error("Error al cargar reservaciones: {}", e.getMessage(), e);
@@ -645,37 +669,73 @@ public class TrabajadorController {
     public ResponseEntity<Map<String, Object>> aceptarReservacion(
             @PathVariable Long reservacionId) {
         try {
-            Sede sede          = getSedeDelUsuarioAutenticado();
+            Sede    sede       = getSedeDelUsuarioAutenticado(); // ← correcto
             Usuario trabajador = getUsuarioAutenticado();
 
             Reservacion reservacion = reservacionService.findById(reservacionId)
                     .orElseThrow(() -> new RuntimeException("Reservación no encontrada"));
 
             if (!reservacion.getCupo().getSede().getIdSede().equals(sede.getIdSede())) {
-                log.warn("Operario de sede {} intentó aceptar reservación {} (sede {})",
-                        sede.getIdSede(), reservacionId,
-                        reservacion.getCupo().getSede().getIdSede());
                 return ResponseEntity.status(HttpStatus.FORBIDDEN)
-                        .body(Map.of("error",
-                                "No tiene permisos para operar sobre esta reservación"));
+                        .body(Map.of("error", "Sin permisos sobre esta reservación"));
             }
 
             reservacion.setEstado(EstadoReservacion.ACEPTADA);
             reservacionService.save(reservacion);
 
+            return ResponseEntity.ok(Map.of(
+                    "mensaje",       "Reservación aceptada — esperando llegada del vehículo",
+                    "reservacionId", reservacionId,
+                    "estado",        "ACEPTADA"
+            ));
+        } catch (Exception e) {
+            log.error("Error al aceptar reservacion {}: {}", reservacionId, e.getMessage(), e);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(Map.of("error", e.getMessage()));
+        }
+    }
+
+    @PostMapping("/iniciar-reservacion/{reservacionId}")
+    public ResponseEntity<Map<String, Object>> iniciarReservacion(
+            @PathVariable Long reservacionId) {
+        try {
+            Sede    sede       = getSedeDelUsuarioAutenticado();
+            Usuario trabajador = getUsuarioAutenticado();
+
+            Reservacion reservacion = reservacionService.findById(reservacionId)
+                    .orElseThrow(() -> new RuntimeException("Reservación no encontrada"));
+
+            if (!reservacion.getCupo().getSede().getIdSede().equals(sede.getIdSede())) {
+                return ResponseEntity.status(HttpStatus.FORBIDDEN)
+                        .body(Map.of("error", "Sin permisos sobre esta reservación"));
+            }
+
+            if (reservacion.getEstado() != EstadoReservacion.ACEPTADA) {
+                return ResponseEntity.status(HttpStatus.CONFLICT)
+                        .body(Map.of("error", "Solo se pueden iniciar reservaciones ACEPTADAS. Estado actual: "
+                                + reservacion.getEstado().name()));
+            }
+
+            reservacion.setEstado(EstadoReservacion.EN_CURSO);
+            reservacionService.save(reservacion);
+
+            // registroService ← nombre correcto en TrabajadorController
             RegistroEntradaSalida registro = registroService.registrarEntrada(
                     reservacion.getVehiculo(), sede, reservacion.getCupo(), trabajador);
 
-            Map<String, Object> response = new HashMap<>();
-            response.put("mensaje",       "Reservación aceptada y vehículo registrado");
-            response.put("reservacionId", reservacionId);
-            response.put("registroId",    registro.getIdRegistro());
-            response.put("placa",         reservacion.getVehiculo().getPlaca());
-            response.put("clienteNombre", reservacion.getCliente().getNombre());
-            response.put("horaEntrada",   registro.getFechaHoraEntrada().toString());
-            return ResponseEntity.ok(response);
+            log.info("Reservacion {} iniciada — registro={} placa={}",
+                    reservacionId, registro.getIdRegistro(),
+                    reservacion.getVehiculo().getPlaca());
+
+            return ResponseEntity.ok(Map.of(
+                    "mensaje",       "Vehículo ingresado — temporizador iniciado",
+                    "reservacionId", reservacionId,
+                    "registroId",    registro.getIdRegistro(),
+                    "estado",        "EN_CURSO",
+                    "horaEntrada",   registro.getFechaHoraEntrada().toString()
+            ));
         } catch (Exception e) {
-            log.error("Error al aceptar reservacion {}: {}", reservacionId, e.getMessage(), e);
+            log.error("Error al iniciar reservacion {}: {}", reservacionId, e.getMessage(), e);
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
                     .body(Map.of("error", e.getMessage()));
         }
@@ -713,6 +773,8 @@ public class TrabajadorController {
                     .body(Map.of("error", e.getMessage()));
         }
     }
+
+
 
     // =========================================================
     // CARGA MASIVA

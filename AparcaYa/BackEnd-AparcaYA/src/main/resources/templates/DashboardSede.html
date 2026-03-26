@@ -546,156 +546,414 @@
     <!-- ════════════════════════════════════════════════
          CORREO
          ════════════════════════════════════════════════ -->
+
     <section id="correo" class="aparca-content-section hidden"
              aria-labelledby="h2-correo">
+
         <h2 id="h2-correo">Enviar Correo</h2>
 
-        <div class="sede-tabs" role="tablist">
+        <!-- ── KPIs rápidos (solo contadores, sin historial complejo) ── -->
+        <div class="sede-mail-kpi-row">
+
+            <div class="sede-mail-kpi sede-mail-kpi--enviados">
+                <div class="sede-mail-kpi__label">Enviados</div>
+                <div class="sede-mail-kpi__valor" id="sedeKpiEnviados">—</div>
+            </div>
+
+            <div class="sede-mail-kpi sede-mail-kpi--errores">
+                <div class="sede-mail-kpi__label">Errores</div>
+                <div class="sede-mail-kpi__valor" id="sedeKpiErrores">—</div>
+            </div>
+
+            <div class="sede-mail-kpi sede-mail-kpi--total">
+                <div class="sede-mail-kpi__label">Total enviados</div>
+                <div class="sede-mail-kpi__valor" id="sedeKpiTotal">—</div>
+            </div>
+
+        </div>
+
+        <!-- ── Tabs ── -->
+        <div class="sede-tabs" role="tablist" id="sedeMailTabs">
+
             <button id="tab-mailuno" class="active"
-                    role="tab" aria-selected="true" type="button">
-                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4"
-                     fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    role="tab" aria-selected="true"
+                    aria-controls="correoUno" type="button">
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none"
+                     viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
                     <path stroke-linecap="round" stroke-linejoin="round"
-                          stroke-width="2"
-                          d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14
-                          a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10
-                          a2 2 0 002 2z"/>
+                          d="M21.75 6.75v10.5a2.25 2.25 0 01-2.25 2.25h-15
+                         a2.25 2.25 0 01-2.25-2.25V6.75m19.5 0A2.25 2.25
+                         0 0019.5 4.5h-15a2.25 2.25 0 00-2.25 2.25m19.5
+                         0v.243a2.25 2.25 0 01-1.07 1.916l-7.5 4.615a2.25
+                         2.25 0 01-2.36 0L3.32 8.91a2.25 2.25 0
+                         01-1.07-1.916V6.75"/>
                 </svg>
-                Correo Uno a Uno
+                Uno a Uno
             </button>
+
             <button id="tab-mailmasivo"
-                    role="tab" aria-selected="false" type="button">
-                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4"
-                     fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    role="tab" aria-selected="false"
+                    aria-controls="correoMasivo" type="button">
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none"
+                     viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
                     <path stroke-linecap="round" stroke-linejoin="round"
-                          stroke-width="2"
-                          d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10
-                          0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3
-                          0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857
-                          m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3
-                          3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2
-                          2 0 11-4 0 2 2 0 014 0z"/>
+                          d="M18 18.72a9.094 9.094 0 003.741-.479 3 3 0
+                         00-4.682-2.72m.94 3.198l.001.031c0 .225-.012.447
+                         -.037.666A11.944 11.944 0 0112 21c-2.17 0-4.207
+                         -.576-5.963-1.584A6.062 6.062 0 016 18.719m12 0
+                         a5.971 5.971 0 00-.941-3.197m0 0A5.995 5.995 0
+                         0012 12.75a5.995 5.995 0 00-5.058 2.772m0 0a3 3
+                         0 00-4.681 2.72 8.986 8.986 0 003.74.477m.94-3.197
+                         a5.971 5.971 0 00-.94 3.197M15 6.75a3 3 0 11-6 0
+                         3 3 0 016 0zm6 3a2.25 2.25 0 11-4.5 0 2.25 2.25
+                         0 014.5 0zm-13.5 0a2.25 2.25 0 11-4.5 0 2.25
+                         2.25 0 014.5 0z"/>
                 </svg>
-                Correo Masivo
+                Masivo
             </button>
+
         </div>
 
-        <div id="correoUno">
-            <form onsubmit="event.preventDefault();enviarCorreoUno();">
-                <div class="sede-form-control">
-                    <label for="emailSingle">Correo del destinatario</label>
-                    <input type="email" id="emailSingle"
-                           placeholder="ejemplo@correo.com" required/>
-                </div>
-                <div class="sede-form-control">
-                    <label for="subjectSingle">Asunto</label>
-                    <input type="text" id="subjectSingle"
-                           placeholder="Asunto del correo" required/>
-                </div>
-                <div class="sede-form-control">
-                    <label for="messageSingle">Mensaje</label>
-                    <textarea id="messageSingle" rows="6"
-                              placeholder="Escribe el contenido del correo..."
-                              required></textarea>
-                </div>
-                <button type="submit" class="sede-btn-primary">
-                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4"
-                         fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round"
-                              stroke-width="2"
-                              d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8"/>
-                    </svg>
-                    Enviar Correo
-                </button>
-            </form>
-        </div>
 
-        <div id="correoMasivo" hidden>
-            <form onsubmit="event.preventDefault();enviarCorreoMasivo();">
-                <div class="sede-form-control">
-                    <label>Agregar destinatarios desde base de datos</label>
-                    <div style="display:flex;gap:.75rem;flex-wrap:wrap;
-                                align-items:center;margin-bottom:.75rem;">
-                        <select id="sedeFiltroRol"
-                                style="flex:1;min-width:160px;padding:.5rem .75rem;
-                                       border:1px solid #e2e8f0;border-radius:.5rem;
-                                       font-size:.875rem;background:#fff;">
-                            <option value="">— Seleccionar grupo —</option>
-                            <option value="clientes">Clientes</option>
-                            <option value="trabajadores">Trabajadores de mi sede</option>
-                        </select>
-                        <button type="button" class="sede-btn-primary"
-                                id="btnSedeCargar" style="white-space:nowrap;"
-                                onclick="sedeCargarDestinatarios()">
-                            Consultar
+        <!-- ══════════════════════════════════════════════
+             TAB: UNO A UNO
+             ══════════════════════════════════════════════ -->
+        <div id="correoUno" role="tabpanel" aria-labelledby="tab-mailuno">
+
+            <form id="formCorreoUno" novalidate>
+                <div class="sede-mail-card">
+
+                    <!-- Selector de plantillas -->
+                    <div class="sede-mail-plantillas-wrap">
+
+                        <div class="sede-mail-plantillas-header">
+                            <svg xmlns="http://www.w3.org/2000/svg" fill="none"
+                                 viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round"
+                                      d="M3.75 12h16.5m-16.5 3.75h16.5M3.75
+                                     19.5h16.5M5.625 4.5h12.75a1.875 1.875
+                                     0 010 3.75H5.625a1.875 1.875 0 010-3.75z"/>
+                            </svg>
+                            <span>Plantilla de correo</span>
+                            <span id="sedePlantillaBadge" class="sede-plantilla-badge"></span>
+                        </div>
+
+                        <div class="sede-plantillas-grid">
+
+                            <button type="button"
+                                    data-plantilla="BIENVENIDA"
+                                    class="sede-plantilla-btn"
+                                    onclick="sedeSelectorPlantilla(this)">
+                            <span class="sede-plantilla-icono" style="background:#f0fdfa;">
+                                <svg width="16" height="16" fill="none"
+                                     stroke="#0d9488" stroke-width="2" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round"
+                                          d="M16 7a4 4 0 11-8 0 4 4 0 018 0z
+                                             M12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/>
+                                </svg>
+                            </span>
+                                <div class="sede-plantilla-info">
+                                    <div class="sede-plantilla-titulo">Bienvenida</div>
+                                    <div class="sede-plantilla-sub">Nuevos usuarios</div>
+                                </div>
+                            </button>
+
+                            <button type="button"
+                                    data-plantilla="RECORDATORIO"
+                                    class="sede-plantilla-btn"
+                                    onclick="sedeSelectorPlantilla(this)">
+                            <span class="sede-plantilla-icono" style="background:#fef9c3;">
+                                <svg width="16" height="16" fill="none"
+                                     stroke="#a16207" stroke-width="2" viewBox="0 0 24 24">
+                                    <circle cx="12" cy="12" r="10"/>
+                                    <path stroke-linecap="round" d="M12 6v6l4 2"/>
+                                </svg>
+                            </span>
+                                <div class="sede-plantilla-info">
+                                    <div class="sede-plantilla-titulo">Recordatorio</div>
+                                    <div class="sede-plantilla-sub">Actividad pendiente</div>
+                                </div>
+                            </button>
+
+                            <button type="button"
+                                    data-plantilla="PROMOCION"
+                                    class="sede-plantilla-btn"
+                                    onclick="sedeSelectorPlantilla(this)">
+                            <span class="sede-plantilla-icono" style="background:#dcfce7;">
+                                <svg width="16" height="16" fill="none"
+                                     stroke="#15803d" stroke-width="2" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round"
+                                          d="M7 7h.01M7 3h5l7 7-7 7-7-7V3z"/>
+                                </svg>
+                            </span>
+                                <div class="sede-plantilla-info">
+                                    <div class="sede-plantilla-titulo">Promoción</div>
+                                    <div class="sede-plantilla-sub">Ofertas y campañas</div>
+                                </div>
+                            </button>
+
+                            <button type="button"
+                                    data-plantilla="NOTIFICACION"
+                                    class="sede-plantilla-btn"
+                                    onclick="sedeSelectorPlantilla(this)">
+                            <span class="sede-plantilla-icono" style="background:#f0fdfa;">
+                                <svg width="16" height="16" fill="none"
+                                     stroke="#0d9488" stroke-width="2" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round"
+                                          d="M15 17h5l-1.4-1.4A2 2 0 0118
+                                             14.2V11a6 6 0 00-4-5.66V5a2 2
+                                             0 10-4 0v.34A6 6 0 006 11v3.2
+                                             c0 .53-.21 1.04-.6 1.4L4 17h5
+                                             m6 0a3 3 0 11-6 0"/>
+                                </svg>
+                            </span>
+                                <div class="sede-plantilla-info">
+                                    <div class="sede-plantilla-titulo">Notificación</div>
+                                    <div class="sede-plantilla-sub">Alertas del sistema</div>
+                                </div>
+                            </button>
+
+                        </div>
+                    </div>
+
+                    <!-- Campos -->
+                    <div class="sede-form-control">
+                        <label for="emailSingle">Para</label>
+                        <input type="email" id="emailSingle"
+                               placeholder="destinatario@correo.com" required/>
+                    </div>
+
+                    <div class="sede-form-control">
+                        <label for="subjectSingle">Asunto</label>
+                        <input type="text" id="subjectSingle"
+                               placeholder="¿De qué trata este correo?" required/>
+                    </div>
+
+                    <div class="sede-form-control">
+                        <label for="messageSingle">Mensaje</label>
+                        <textarea id="messageSingle" rows="5"
+                                  placeholder="Escribe el contenido del correo..."
+                                  required></textarea>
+                    </div>
+
+                    <div class="sede-mail-footer">
+                        <button type="submit" class="sede-btn-primary">
+                            <svg xmlns="http://www.w3.org/2000/svg" fill="none"
+                                 viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"
+                                 style="width:16px;height:16px;">
+                                <path stroke-linecap="round" stroke-linejoin="round"
+                                      d="M6 12L3.269 3.126A59.768 59.768 0
+                                     0121.485 12 59.77 59.77 0 013.27
+                                     20.876L5.999 12zm0 0h7.5"/>
+                            </svg>
+                            Enviar Correo
                         </button>
                     </div>
-                    <div id="sedeListaDestinatarios" style="display:none;">
-                        <div style="display:flex;justify-content:space-between;
-                                    align-items:center;margin-bottom:.5rem;">
+
+                </div>
+            </form>
+
+        </div>
+
+
+        <!-- ══════════════════════════════════════════════
+             TAB: MASIVO
+             ══════════════════════════════════════════════ -->
+        <div id="correoMasivo" hidden
+             role="tabpanel" aria-labelledby="tab-mailmasivo">
+
+            <form id="formCorreoMasivo" novalidate>
+                <div class="sede-mail-card">
+
+                    <!-- Selector de plantillas masivo -->
+                    <div class="sede-mail-plantillas-wrap">
+
+                        <div class="sede-mail-plantillas-header">
+                            <svg xmlns="http://www.w3.org/2000/svg" fill="none"
+                                 viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round"
+                                      d="M3.75 12h16.5m-16.5 3.75h16.5M3.75
+                                     19.5h16.5M5.625 4.5h12.75a1.875 1.875
+                                     0 010 3.75H5.625a1.875 1.875 0 010-3.75z"/>
+                            </svg>
+                            <span>Plantilla de correo</span>
+                            <span id="sedePlantillaBadgeMasivo" class="sede-plantilla-badge"></span>
+                        </div>
+
+                        <div class="sede-plantillas-grid">
+
+                            <button type="button"
+                                    data-plantilla-masivo="BIENVENIDA"
+                                    class="sede-plantilla-btn"
+                                    onclick="sedeSelectorPlantillaMasivo(this)">
+                            <span class="sede-plantilla-icono" style="background:#f0fdfa;">
+                                <svg width="16" height="16" fill="none"
+                                     stroke="#0d9488" stroke-width="2" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round"
+                                          d="M16 7a4 4 0 11-8 0 4 4 0 018 0z
+                                             M12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/>
+                                </svg>
+                            </span>
+                                <div class="sede-plantilla-info">
+                                    <div class="sede-plantilla-titulo">Bienvenida</div>
+                                    <div class="sede-plantilla-sub">Nuevos usuarios</div>
+                                </div>
+                            </button>
+
+                            <button type="button"
+                                    data-plantilla-masivo="RECORDATORIO"
+                                    class="sede-plantilla-btn"
+                                    onclick="sedeSelectorPlantillaMasivo(this)">
+                            <span class="sede-plantilla-icono" style="background:#fef9c3;">
+                                <svg width="16" height="16" fill="none"
+                                     stroke="#a16207" stroke-width="2" viewBox="0 0 24 24">
+                                    <circle cx="12" cy="12" r="10"/>
+                                    <path stroke-linecap="round" d="M12 6v6l4 2"/>
+                                </svg>
+                            </span>
+                                <div class="sede-plantilla-info">
+                                    <div class="sede-plantilla-titulo">Recordatorio</div>
+                                    <div class="sede-plantilla-sub">Actividad pendiente</div>
+                                </div>
+                            </button>
+
+                            <button type="button"
+                                    data-plantilla-masivo="PROMOCION"
+                                    class="sede-plantilla-btn"
+                                    onclick="sedeSelectorPlantillaMasivo(this)">
+                            <span class="sede-plantilla-icono" style="background:#dcfce7;">
+                                <svg width="16" height="16" fill="none"
+                                     stroke="#15803d" stroke-width="2" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round"
+                                          d="M7 7h.01M7 3h5l7 7-7 7-7-7V3z"/>
+                                </svg>
+                            </span>
+                                <div class="sede-plantilla-info">
+                                    <div class="sede-plantilla-titulo">Promoción</div>
+                                    <div class="sede-plantilla-sub">Ofertas y campañas</div>
+                                </div>
+                            </button>
+
+                            <button type="button"
+                                    data-plantilla-masivo="NOTIFICACION"
+                                    class="sede-plantilla-btn"
+                                    onclick="sedeSelectorPlantillaMasivo(this)">
+                            <span class="sede-plantilla-icono" style="background:#f0fdfa;">
+                                <svg width="16" height="16" fill="none"
+                                     stroke="#0d9488" stroke-width="2" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round"
+                                          d="M15 17h5l-1.4-1.4A2 2 0 0118
+                                             14.2V11a6 6 0 00-4-5.66V5a2 2
+                                             0 10-4 0v.34A6 6 0 006 11v3.2
+                                             c0 .53-.21 1.04-.6 1.4L4 17h5
+                                             m6 0a3 3 0 11-6 0"/>
+                                </svg>
+                            </span>
+                                <div class="sede-plantilla-info">
+                                    <div class="sede-plantilla-titulo">Notificación</div>
+                                    <div class="sede-plantilla-sub">Alertas del sistema</div>
+                                </div>
+                            </button>
+
+                        </div>
+                    </div>
+
+                    <!-- Filtro de destinatarios desde BD -->
+                    <div class="sede-form-control">
+                        <label>Agregar destinatarios desde base de datos</label>
+                        <div class="sede-mail-filtro-row">
+                            <select id="sedeFiltroRol" class="sede-mail-filtro-select">
+                                <option value="">— Seleccionar grupo —</option>
+                                <option value="clientes">Clientes</option>
+                                <option value="trabajadores">Trabajadores de mi sede</option>
+                            </select>
+                            <button type="button" class="sede-btn-primary"
+                                    id="btnSedeCargar"
+                                    onclick="sedeCargarDestinatarios()"
+                                    style="white-space:nowrap;">
+                                Consultar
+                            </button>
+                        </div>
+
+                        <div id="sedeListaDestinatarios" style="display:none;margin-top:.75rem;">
+                            <div class="sede-mail-lista-header">
                             <span id="sedeContadorLista"
                                   style="font-size:.8rem;color:#64748b;"></span>
-                            <div style="display:flex;gap:.5rem;">
-                                <button type="button" class="sede-btn-outline"
-                                        style="font-size:.75rem;padding:.25rem .75rem;"
-                                        onclick="sedeSeleccionarTodos(true)">Todos</button>
-                                <button type="button" class="sede-btn-outline"
-                                        style="font-size:.75rem;padding:.25rem .75rem;"
-                                        onclick="sedeSeleccionarTodos(false)">Ninguno</button>
+                                <div style="display:flex;gap:.5rem;">
+                                    <button type="button" class="sede-btn-outline"
+                                            style="font-size:.75rem;padding:.25rem .75rem;"
+                                            onclick="sedeSeleccionarTodos(true)">Todos</button>
+                                    <button type="button" class="sede-btn-outline"
+                                            style="font-size:.75rem;padding:.25rem .75rem;"
+                                            onclick="sedeSeleccionarTodos(false)">Ninguno</button>
+                                </div>
                             </div>
+                            <div id="sedeTablaDestinatarios"
+                                 class="sede-mail-dest-tabla"></div>
+                            <button type="button" class="sede-btn-success"
+                                    style="margin-top:.75rem;width:100%;
+                                       display:flex;align-items:center;
+                                       justify-content:center;gap:.5rem;"
+                                    onclick="sedeAgregarSeleccionados()">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16"
+                                     fill="none" viewBox="0 0 24 24" stroke="currentColor"
+                                     stroke-width="2">
+                                    <path d="M5 12h14"/><path d="M12 5v14"/>
+                                </svg>
+                                Agregar al envío
+                            </button>
                         </div>
-                        <div id="sedeTablaDestinatarios"
-                             style="max-height:200px;overflow-y:auto;
-                                    border:1px solid #e2e8f0;border-radius:.5rem;
-                                    background:#fff;"></div>
-                        <button type="button" class="sede-btn-success"
-                                style="margin-top:.75rem;width:100%;"
-                                onclick="sedeAgregarSeleccionados()">
-                            ➕ Agregar al envío
+
+                        <div id="sedeEstadoFiltro"
+                             style="font-size:.85rem;color:#94a3b8;padding:.5rem 0;">
+                            Selecciona un grupo y presiona Consultar.
+                        </div>
+                    </div>
+
+                    <!-- Destinatarios textarea -->
+                    <div class="sede-form-control">
+                        <label for="emailsMassive">
+                            Destinatarios
+                            <span id="sedeBadgeConteo"
+                                  class="sede-mail-badge-conteo"
+                                  style="display:none;">0</span>
+                        </label>
+                        <textarea id="emailsMassive" rows="3" required
+                                  placeholder="correo1@ejemplo.com, correo2@ejemplo.com"></textarea>
+                    </div>
+
+                    <div class="sede-form-control">
+                        <label for="subjectMassive">Asunto</label>
+                        <input type="text" id="subjectMassive"
+                               placeholder="¿De qué trata este correo?" required/>
+                    </div>
+
+                    <div class="sede-form-control">
+                        <label for="messageMassive">Mensaje</label>
+                        <textarea id="messageMassive" rows="5" required
+                                  placeholder="Escribe el contenido del correo..."></textarea>
+                    </div>
+
+                    <div class="sede-mail-footer">
+                        <button type="submit" class="sede-btn-primary">
+                            <svg xmlns="http://www.w3.org/2000/svg" fill="none"
+                                 viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"
+                                 style="width:16px;height:16px;">
+                                <path stroke-linecap="round" stroke-linejoin="round"
+                                      d="M6 12L3.269 3.126A59.768 59.768 0
+                                     0121.485 12 59.77 59.77 0 013.27
+                                     20.876L5.999 12zm0 0h7.5"/>
+                            </svg>
+                            Enviar Masivamente
                         </button>
                     </div>
-                    <div id="sedeEstadoFiltro"
-                         style="font-size:.85rem;color:#94a3b8;padding:.5rem 0;">
-                        Selecciona un grupo y presiona Consultar.
-                    </div>
-                </div>
-                <div class="sede-form-control">
-                    <label for="emailsMassive">
-                        Lista de correos
-                        <span id="sedeBadgeConteo"
-                              style="margin-left:.5rem;background:#0d9488;
-                                     color:white;border-radius:9999px;
-                                     padding:.1rem .6rem;font-size:.75rem;
-                                     display:none;">0</span>
-                    </label>
-                    <textarea id="emailsMassive" rows="4"
-                              placeholder="correo1@ejemplo.com, correo2@ejemplo.com"
-                              required></textarea>
-                </div>
-                <div class="sede-form-control">
-                    <label for="subjectMassive">Asunto</label>
-                    <input type="text" id="subjectMassive"
-                           placeholder="Asunto del correo" required/>
-                </div>
-                <div class="sede-form-control">
-                    <label for="messageMassive">Mensaje</label>
-                    <textarea id="messageMassive" rows="6"
-                              placeholder="Escribe el contenido del correo..."
-                              required></textarea>
-                </div>
-                <button type="submit" class="sede-btn-primary">
-                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4"
-                         fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round"
-                              stroke-width="2"
-                              d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8"/>
-                    </svg>
-                    Enviar Masivamente
-                </button>
-            </form>
-        </div>
-    </section>
 
+                </div>
+            </form>
+
+        </div>
+
+    </section>
 
     <!-- ════════════════════════════════════════════════
          GRÁFICAS
@@ -1208,6 +1466,7 @@
 <script src="/js/aparca-notifications.js"></script>
 <script src="/js/sessionHandler.js"></script>
 <script src="/js/SedeD.js"></script>
+<script src="/js/SedeD-email.js"></script>
 
 <script>
     /* ── Sidebar toggle ── */

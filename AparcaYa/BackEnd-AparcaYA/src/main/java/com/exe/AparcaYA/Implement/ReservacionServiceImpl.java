@@ -107,6 +107,21 @@ public class ReservacionServiceImpl implements ReservacionService {
         return reservacionRepository.findByEstado(estado);
     }
 
+    @Override
+    @Transactional(readOnly = true)
+    public List<Reservacion> findByCupoSedeId(Long sedeId) {
+        return reservacionRepository.findByCupoSedeId(sedeId);
+    }
+
+
+    @Override
+    public Optional<Reservacion> findByVehiculoAndEstado(
+            Long vehiculoId, EstadoReservacion estado) {
+        List<Reservacion> resultados = reservacionRepository
+                .findByVehiculoIdAndEstado(vehiculoId, estado);
+        // Toma el más reciente — el primero porque el query ordena DESC
+        return resultados.isEmpty() ? Optional.empty() : Optional.of(resultados.get(0));
+    }
     // ═══════════════════════════════════════════════════════════════════════
     // CREAR RESERVA
     // ═══════════════════════════════════════════════════════════════════════

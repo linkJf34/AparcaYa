@@ -6,6 +6,7 @@ import com.exe.AparcaYA.Dto.TarifaDTO;
 import com.exe.AparcaYA.Dto.UsuarioDTO;
 import com.exe.AparcaYA.Entity.*;
 import com.exe.AparcaYA.Enum.*;
+import com.exe.AparcaYA.Repository.EmailLogRepository;
 import com.exe.AparcaYA.Service.*;
 import jakarta.mail.MessagingException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -14,6 +15,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.poi.ss.usermodel.*;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
+import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -22,6 +24,7 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -58,6 +61,7 @@ public class SedeController {
     private final ReservacionService           reservacionService;
     private final CupoService                  cupoService;
     private final JwtUtil                      jwtUtil;
+    private final EmailLogRepository            emailLogRepository;
 
     // =========================================================
     // MÉTODOS AUXILIARES
@@ -533,81 +537,293 @@ public class SedeController {
         }
     }
 
-    // =========================================================
-    // CORREOS
-    // =========================================================
+    // =====================================================================
+    // CORREOS — ENVÍO
+    // =====================================================================
 
     @PostMapping("/correo/unitario")
+    @ResponseBody
     public ResponseEntity<Map<String, String>> enviarCorreoUnitario(
             @RequestParam String correo,
             @RequestParam String asunto,
             @RequestParam String mensaje) {
+
+        Map<String, String> response = new HashMap<>();
         try {
             emailService.enviarCorreoUnitario(correo, asunto, mensaje);
-            return ResponseEntity.ok(Map.of("status", "success",
-                    "message", "Correo enviado correctamente a " + correo));
+            response.put("status",  "success");
+            response.put("message", "Correo enviado correctamente a " + correo);
+            return ResponseEntity.ok(response);
         } catch (MessagingException e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                    .body(Map.of("status", "error",
-                            "message", "Error al enviar el correo: " + e.getMessage()));
+            response.put("status",  "error");
+            response.put("message", "Error al enviar el correo: " + e.getMessage());
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(response);
         }
     }
 
+    /**
+     * Envío masivo sin plantilla — BCC a todos los destinatarios.
+     * Acepta tipoPlantilla como parámetro OPCIONAL.
+     * Si viene tipoPlantilla, usa la plantilla Thymeleaf correspondiente.
+     * Si no viene, usa la plantilla estándar (comportamiento original).
+     */
     @PostMapping("/correo/masivo")
+    @ResponseBody
     public ResponseEntity<Map<String, String>> enviarCorreoMasivo(
             @RequestParam(name = "seleccionados", required = false) List<String> seleccionados,
             @RequestParam String asunto,
-            @RequestParam String mensaje) {
+            @RequestParam String mensaje,
+            @RequestParam(required = false) String tipoPlantilla) {
+
+        Map<String, String> response = new HashMap<>();
+
         if (seleccionados == null || seleccionados.isEmpty()) {
-            return ResponseEntity.badRequest()
-                    .body(Map.of("status", "error", "message", "No se seleccionó ningún correo."));
+            response.put("status",  "error");
+            response.put("message", "No se seleccionó ningún correo.");
+            return ResponseEntity.badRequest().body(response);
         }
+
         try {
-            emailService.enviarCorreoMasivo(seleccionados, asunto, mensaje);
-            return ResponseEntity.ok(Map.of("status", "success",
-                    "message", "Correos enviados a " + seleccionados.size() + " destinatarios"));
+            if (tipoPlantilla != null && !tipoPlantilla.isBlank()) {
+                // Envío masivo con plantilla — un correo por destinatario
+                for (String dest : seleccionados) {
+                    try {
+                        emailService.enviarConPlantilla(dest, asunto, mensaje, tipoPlantilla);
+                    } catch (MessagingException e) {
+                        // Continuar con el siguiente si uno falla
+                    }
+                }
+            } else {
+                // Envío masivo sin plantilla — BCC (comportamiento original)
+                emailService.enviarCorreoMasivo(seleccionados, asunto, mensaje);
+            }
+
+            response.put("status",  "success");
+            response.put("message", "Correos enviados correctamente a " +
+                    seleccionados.size() + " destinatarios");
+            return ResponseEntity.ok(response);
+
         } catch (MessagingException e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                    .body(Map.of("status", "error",
-                            "message", "No fue posible enviar: " + e.getMessage()));
+            response.put("status",  "error");
+            response.put("message", "No fue posible enviar la notificación: " + e.getMessage());
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(response);
         }
     }
 
-    @GetMapping("/correos/clientes")
-    public ResponseEntity<List<Map<String, String>>> getCorreosClientesSede() {
+    /**
+     * Envío unitario con plantilla Thymeleaf específica.
+     * Usado por el selector de plantillas del tab "Uno a Uno".
+     */
+    @PostMapping("/correo/con-plantilla")
+    @ResponseBody
+    public ResponseEntity<Map<String, String>> enviarConPlantilla(
+            @RequestParam String correo,
+            @RequestParam String asunto,
+            @RequestParam String mensaje,
+            @RequestParam(defaultValue = "CUSTOM") String tipoPlantilla) {
+
+        Map<String, String> response = new HashMap<>();
         try {
-            List<Map<String, String>> resultado = usuarioService
-                    .findByRolIn(List.of(Rolenum.CLIENTE)).stream()
+            emailService.enviarConPlantilla(correo, asunto, mensaje, tipoPlantilla);
+            response.put("status",  "success");
+            response.put("message", "Correo enviado correctamente a " + correo);
+            return ResponseEntity.ok(response);
+        } catch (MessagingException e) {
+            response.put("status",  "error");
+            response.put("message", "Error al enviar: " + e.getMessage());
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(response);
+        }
+    }
+
+    // =====================================================================
+    // CORREOS — FILTRO DE DESTINATARIOS
+    // =====================================================================
+
+    @GetMapping("/correos/clientes")
+    @ResponseBody
+    public ResponseEntity<List<Map<String, String>>> getCorreosClientes() {
+        try {
+            return ResponseEntity.ok(usuarioService.findAll().stream()
+                    .filter(u -> u.getRol() == Rolenum.CLIENTE)
                     .map(u -> Map.of(
                             "nombre", u.getNombre() != null ? u.getNombre() : "",
                             "correo", u.getCorreo() != null ? u.getCorreo() : "",
                             "rol",    "CLIENTE"))
-                    .collect(Collectors.toList());
-            return ResponseEntity.ok(resultado);
+                    .collect(Collectors.toList()));
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+        }
+    }
+
+    @GetMapping("/correos/sedes")
+    @ResponseBody
+    public ResponseEntity<List<Map<String, String>>> getCorreosSedes() {
+        try {
+            return ResponseEntity.ok(usuarioService.findAll().stream()
+                    .filter(u -> u.getRol() == Rolenum.ADMINISTRADOR_SEDE)
+                    .map(u -> Map.of(
+                            "nombre", u.getNombre() != null ? u.getNombre() : "",
+                            "correo", u.getCorreo() != null ? u.getCorreo() : "",
+                            "rol",    "ADMINISTRADOR_SEDE"))
+                    .collect(Collectors.toList()));
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
         }
     }
 
     @GetMapping("/correos/trabajadores")
-    public ResponseEntity<List<Map<String, String>>> getCorreosTrabajadoresSede(
-            HttpServletRequest request) {
+    @ResponseBody
+    public ResponseEntity<List<Map<String, String>>> getCorreosTrabajadores() {
         try {
-            Sede sede = getSedeActiva(request);  // ✅
-            if (sede == null) return ResponseEntity.ok(List.of());
-            List<Map<String, String>> resultado = usuarioService
-                    .findByRolIn(List.of(Rolenum.OPERARIO)).stream()
-                    .filter(u -> u.getSedeAsignada() != null
-                            && u.getSedeAsignada().getIdSede().equals(sede.getIdSede()))
+            return ResponseEntity.ok(usuarioService.findAll().stream()
+                    .filter(u -> u.getRol() == Rolenum.OPERARIO)
                     .map(u -> Map.of(
                             "nombre", u.getNombre() != null ? u.getNombre() : "",
                             "correo", u.getCorreo() != null ? u.getCorreo() : "",
                             "rol",    "OPERARIO"))
-                    .collect(Collectors.toList());
-            return ResponseEntity.ok(resultado);
+                    .collect(Collectors.toList()));
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
         }
+    }
+
+    // =====================================================================
+    // CORREOS — HISTORIAL, ESTADÍSTICAS Y PLANTILLAS
+    // =====================================================================
+
+    @GetMapping("/correos/historial")
+    @ResponseBody
+    public ResponseEntity<List<EmailLog>> getHistorialCorreos(
+            @RequestParam(required = false) String estado,
+            @RequestParam(required = false) String tipo,
+            @RequestParam(required = false)
+            @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime desde,
+            @RequestParam(required = false)
+            @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime hasta) {
+
+        try {
+            // Convertir strings a enums solo si vienen con valor
+            EmailLog.EstadoEmail estadoEnum = (estado != null && !estado.isBlank())
+                    ? EmailLog.EstadoEmail.valueOf(estado) : null;
+            EmailLog.TipoEmail tipoEnum = (tipo != null && !tipo.isBlank())
+                    ? EmailLog.TipoEmail.valueOf(tipo) : null;
+
+            boolean tieneEstado = estadoEnum != null;
+            boolean tieneTipo   = tipoEnum   != null;
+            boolean tieneDesde  = desde      != null;
+            boolean tieneHasta  = hasta      != null;
+
+            List<EmailLog> logs;
+
+            // Elegir el método de Spring Data según los filtros presentes
+            // Ningún parámetro opcional → PostgreSQL nunca ve un NULL sin tipo
+            if (!tieneEstado && !tieneTipo && !tieneDesde && !tieneHasta) {
+                logs = emailLogRepository.findAllByOrderByFechaCreacionDesc();
+
+            } else if (tieneEstado && tieneTipo && tieneDesde && tieneHasta) {
+                logs = emailLogRepository.findByEstadoAndTipoAndFechaCreacionBetweenOrderByFechaCreacionDesc(estadoEnum, tipoEnum, desde, hasta);
+
+            } else if (tieneEstado && tieneTipo && tieneDesde) {
+                logs = emailLogRepository.findByEstadoAndTipoAndFechaCreacionAfterOrderByFechaCreacionDesc(estadoEnum, tipoEnum, desde);
+
+            } else if (tieneEstado && tieneTipo && tieneHasta) {
+                logs = emailLogRepository.findByEstadoAndTipoAndFechaCreacionBeforeOrderByFechaCreacionDesc(estadoEnum, tipoEnum, hasta);
+
+            } else if (tieneEstado && tieneTipo) {
+                logs = emailLogRepository.findByEstadoAndTipoOrderByFechaCreacionDesc(estadoEnum, tipoEnum);
+
+            } else if (tieneEstado && tieneDesde && tieneHasta) {
+                logs = emailLogRepository.findByEstadoAndFechaCreacionBetweenOrderByFechaCreacionDesc(estadoEnum, desde, hasta);
+
+            } else if (tieneEstado && tieneDesde) {
+                logs = emailLogRepository.findByEstadoAndFechaCreacionAfterOrderByFechaCreacionDesc(estadoEnum, desde);
+
+            } else if (tieneEstado && tieneHasta) {
+                logs = emailLogRepository.findByEstadoAndFechaCreacionBeforeOrderByFechaCreacionDesc(estadoEnum, hasta);
+
+            } else if (tieneEstado) {
+                logs = emailLogRepository.findByEstadoOrderByFechaCreacionDesc(estadoEnum);
+
+            } else if (tieneTipo && tieneDesde && tieneHasta) {
+                logs = emailLogRepository.findByTipoAndFechaCreacionBetweenOrderByFechaCreacionDesc(tipoEnum, desde, hasta);
+
+            } else if (tieneTipo && tieneDesde) {
+                logs = emailLogRepository.findByTipoAndFechaCreacionAfterOrderByFechaCreacionDesc(tipoEnum, desde);
+
+            } else if (tieneTipo && tieneHasta) {
+                logs = emailLogRepository.findByTipoAndFechaCreacionBeforeOrderByFechaCreacionDesc(tipoEnum, hasta);
+
+            } else if (tieneTipo) {
+                logs = emailLogRepository.findByTipoOrderByFechaCreacionDesc(tipoEnum);
+
+            } else if (tieneDesde && tieneHasta) {
+                logs = emailLogRepository.findByFechaCreacionBetweenOrderByFechaCreacionDesc(desde, hasta);
+
+            } else if (tieneDesde) {
+                logs = emailLogRepository.findByFechaCreacionAfterOrderByFechaCreacionDesc(desde);
+
+            } else {
+                logs = emailLogRepository.findByFechaCreacionBeforeOrderByFechaCreacionDesc(hasta);
+            }
+
+            return ResponseEntity.ok(logs);
+
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.badRequest().build();
+        } catch (Exception e) {
+            e.printStackTrace();
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+        }
+    }
+
+    @GetMapping("/correos/estadisticas")
+    @ResponseBody
+    public ResponseEntity<Map<String, Object>> getEstadisticasCorreos() {
+        try {
+            Map<String, Object> stats = new HashMap<>();
+            stats.put("totalEnviados",   emailLogRepository.countByEstado(EmailLog.EstadoEmail.ENVIADO));
+            stats.put("totalErrores",    emailLogRepository.countByEstado(EmailLog.EstadoEmail.ERROR));
+            stats.put("totalPendientes", emailLogRepository.countByEstado(EmailLog.EstadoEmail.PENDIENTE));
+            stats.put("total",           emailLogRepository.count());
+            stats.put("porTipo",         emailLogRepository.countPorTipo());
+            stats.put("porEstado",       emailLogRepository.countPorEstado());
+            stats.put("ultimos7dias",    emailLogRepository
+                    .conteoUltimos7Dias(LocalDateTime.now().minusDays(7)));
+            return ResponseEntity.ok(stats);
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+        }
+    }
+
+    @GetMapping("/correos/plantilla-preview")
+    @ResponseBody
+    public ResponseEntity<Map<String, String>> getPlantillaPreview(
+            @RequestParam String tipo) {
+
+        record Plantilla(String asunto, String mensaje) {}
+
+        Map<String, Plantilla> plantillas = Map.of(
+                "BIENVENIDA",   new Plantilla(
+                        "Bienvenido a AparcaYA",
+                        "Tu cuenta ha sido creada exitosamente. Ya puedes acceder al sistema."),
+                "RECORDATORIO", new Plantilla(
+                        "Recordatorio importante",
+                        "Tienes una actividad pendiente en tu cuenta que requiere atencion."),
+                "PROMOCION",    new Plantilla(
+                        "Oferta especial para ti",
+                        "Tenemos una oferta exclusiva disponible por tiempo limitado."),
+                "NOTIFICACION", new Plantilla(
+                        "Notificacion del sistema",
+                        "El sistema ha generado una notificacion que requiere tu atencion.")
+        );
+
+        Plantilla p = plantillas.get(tipo.toUpperCase());
+        if (p == null) return ResponseEntity.badRequest().build();
+
+        return ResponseEntity.ok(Map.of(
+                "asunto",  p.asunto(),
+                "mensaje", p.mensaje()
+        ));
     }
 
     // =========================================================
@@ -961,7 +1177,7 @@ public class SedeController {
             @PathVariable Long registroId,
             HttpServletRequest request) {
         try {
-            Sede sede = getSedeActiva(request);  // ✅
+            Sede sede = getSedeActiva(request);
             RegistroEntradaSalida registroExistente = registroEntradaSalidaService
                     .findById(registroId)
                     .orElseThrow(() -> new RuntimeException("Registro no encontrado"));
@@ -972,6 +1188,19 @@ public class SedeController {
             }
 
             RegistroEntradaSalida registro = registroEntradaSalidaService.registrarSalida(registroId);
+
+            // ← REEMPLAZAR findAll() por búsqueda directa por vehículo y estado
+            reservacionService
+                    .findByVehiculoAndEstado(
+                            registro.getVehiculo().getIdVehiculo(),
+                            EstadoReservacion.EN_CURSO)
+                    .ifPresent(r -> {
+                        r.setEstado(EstadoReservacion.COMPLETADA);
+                        reservacionService.save(r);
+                        log.info("Reservacion {} marcada COMPLETADA tras salida registro {}",
+                                r.getIdReserva(), registroId);
+                    });
+
             Duration duracion = Duration.between(
                     registro.getFechaHoraEntrada(), registro.getFechaHoraSalida());
 
@@ -1024,6 +1253,17 @@ public class SedeController {
 
             RegistroEntradaSalida registro =
                     registroEntradaSalidaService.confirmarCobroConTarifa(registroId, metodoPago, tipoTarifa);
+
+            reservacionService
+                    .findByVehiculoAndEstado(
+                            registro.getVehiculo().getIdVehiculo(),
+                            EstadoReservacion.COMPLETADA)
+                    .ifPresent(r -> {
+                        r.setEstado(EstadoReservacion.PAGADA);
+                        reservacionService.save(r);
+                        log.info("Reservacion {} marcada PAGADA tras cobro registro {}",
+                                r.getIdReserva(), registroId);
+                    });
 
             Map<String, Object> response = new HashMap<>();
             response.put("mensaje",            "Cobro confirmado exitosamente");
@@ -1112,13 +1352,20 @@ public class SedeController {
     // =========================================================
 
     @GetMapping("/reservaciones")
+    @Transactional(readOnly = true)
     public ResponseEntity<?> getReservaciones(HttpServletRequest request) {
         try {
-            Sede sede = getSedeActiva(request);  // ✅
-            List<Map<String, Object>> reservas = reservacionService.findAll().stream()
-                    .filter(r -> r.getCupo() != null && r.getCupo().getSede() != null
-                            && r.getCupo().getSede().getIdSede().equals(sede.getIdSede()))
-                    .filter(r -> r.getEstado() == EstadoReservacion.PENDIENTE)
+            Sede sede = getSedeActiva(request);
+            if (sede == null) return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                    .body(Map.of("error", "No se encontró una sede asignada"));
+
+            List<Map<String, Object>> reservas = reservacionService
+                    .findByCupoSedeId(sede.getIdSede())
+                    .stream()
+                    .filter(r -> r.getEstado() == EstadoReservacion.PENDIENTE
+                            || r.getEstado() == EstadoReservacion.ACEPTADA
+                            || r.getEstado() == EstadoReservacion.EN_CURSO
+                            || r.getEstado() == EstadoReservacion.COMPLETADA)
                     .map(reserva -> {
                         Map<String, Object> r = new HashMap<>();
                         r.put("id",              reserva.getIdReserva());
@@ -1131,8 +1378,16 @@ public class SedeController {
                         r.put("horaFin",         reserva.getFechaFin().toString());
                         r.put("cupo",            reserva.getCupo().getCodigo());
                         r.put("estado",          reserva.getEstado().toString());
+                        // Agregar el registroId cuando el vehículo ya está físicamente adentro
+                        if (reserva.getEstado() == EstadoReservacion.EN_CURSO ||
+                                reserva.getEstado() == EstadoReservacion.COMPLETADA) {
+                            registroEntradaSalidaService
+                                    .findVehiculoActivo(reserva.getVehiculo())
+                                    .ifPresent(reg -> r.put("registroId", reg.getIdRegistro()));
+                        }
                         return r;
                     }).collect(Collectors.toList());
+
             return ResponseEntity.ok(reservas);
         } catch (Exception e) {
             log.error("Error al cargar reservaciones: {}", e.getMessage(), e);
@@ -1146,7 +1401,7 @@ public class SedeController {
             @PathVariable Long reservacionId,
             HttpServletRequest request) {
         try {
-            Sede    sede       = getSedeActiva(request);  // ✅
+            Sede    sede       = getSedeActiva(request);
             Usuario trabajador = getUsuarioAutenticado();
 
             Reservacion reservacion = reservacionService.findById(reservacionId)
@@ -1154,23 +1409,18 @@ public class SedeController {
 
             if (!reservacion.getCupo().getSede().getIdSede().equals(sede.getIdSede())) {
                 return ResponseEntity.status(HttpStatus.FORBIDDEN)
-                        .body(Map.of("error", "No tiene permisos para operar sobre esta reservación"));
+                        .body(Map.of("error", "Sin permisos sobre esta reservación"));
             }
 
+            // SOLO cambia estado — el vehículo aún no ha llegado físicamente
             reservacion.setEstado(EstadoReservacion.ACEPTADA);
             reservacionService.save(reservacion);
 
-            RegistroEntradaSalida registro = registroEntradaSalidaService.registrarEntrada(
-                    reservacion.getVehiculo(), sede, reservacion.getCupo(), trabajador);
-
-            Map<String, Object> response = new HashMap<>();
-            response.put("mensaje",       "Reservación aceptada y vehículo registrado");
-            response.put("reservacionId", reservacionId);
-            response.put("registroId",    registro.getIdRegistro());
-            response.put("placa",         reservacion.getVehiculo().getPlaca());
-            response.put("clienteNombre", reservacion.getCliente().getNombre());
-            response.put("horaEntrada",   registro.getFechaHoraEntrada().toString());
-            return ResponseEntity.ok(response);
+            return ResponseEntity.ok(Map.of(
+                    "mensaje",       "Reservación aceptada — esperando llegada del vehículo",
+                    "reservacionId", reservacionId,
+                    "estado",        "ACEPTADA"
+            ));
         } catch (Exception e) {
             log.error("Error al aceptar reservacion {}: {}", reservacionId, e.getMessage(), e);
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
@@ -1206,6 +1456,53 @@ public class SedeController {
                     .body(Map.of("error", e.getMessage()));
         }
     }
+    @PostMapping("/iniciar-reservacion/{reservacionId}")
+    public ResponseEntity<Map<String, Object>> iniciarReservacion(
+            @PathVariable Long reservacionId,
+            HttpServletRequest request) {
+        try {
+            Sede    sede       = getSedeActiva(request);
+            Usuario trabajador = getUsuarioAutenticado();
+
+            Reservacion reservacion = reservacionService.findById(reservacionId)
+                    .orElseThrow(() -> new RuntimeException("Reservación no encontrada"));
+
+            if (!reservacion.getCupo().getSede().getIdSede().equals(sede.getIdSede())) {
+                return ResponseEntity.status(HttpStatus.FORBIDDEN)
+                        .body(Map.of("error", "Sin permisos sobre esta reservación"));
+            }
+
+            if (reservacion.getEstado() != EstadoReservacion.ACEPTADA) {
+                return ResponseEntity.status(HttpStatus.CONFLICT)
+                        .body(Map.of("error", "Solo se pueden iniciar reservaciones ACEPTADAS. Estado actual: "
+                                + reservacion.getEstado().name()));
+            }
+
+            // Cambiar estado de la reserva
+            reservacion.setEstado(EstadoReservacion.EN_CURSO);
+            reservacionService.save(reservacion);
+
+            // Crear el RegistroEntradaSalida real — ESTO es lo que aparece en Gestión de Vehículos
+            RegistroEntradaSalida registro = registroEntradaSalidaService.registrarEntrada(
+                    reservacion.getVehiculo(), sede, reservacion.getCupo(), trabajador);
+
+            log.info("Reservacion {} iniciada — registro={} placa={}",
+                    reservacionId, registro.getIdRegistro(), reservacion.getVehiculo().getPlaca());
+
+            return ResponseEntity.ok(Map.of(
+                    "mensaje",       "Vehículo ingresado — temporizador iniciado",
+                    "reservacionId", reservacionId,
+                    "registroId",    registro.getIdRegistro(),
+                    "estado",        "EN_CURSO",
+                    "horaEntrada",   registro.getFechaHoraEntrada().toString()
+            ));
+        } catch (Exception e) {
+            log.error("Error al iniciar reservacion {}: {}", reservacionId, e.getMessage(), e);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(Map.of("error", e.getMessage()));
+        }
+    }
+
 
     // =========================================================
     // CARGA MASIVA

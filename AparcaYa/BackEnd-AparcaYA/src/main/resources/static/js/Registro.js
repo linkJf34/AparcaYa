@@ -23,6 +23,157 @@ document.addEventListener('DOMContentLoaded', function () {
     const tipoVehiculoSelect = document.getElementById('tipoVehiculo');
     const marcaSelect        = document.getElementById('marca');
 
+
+    var _GEO_AUTOFILL = {
+
+        // ── Mapa localidad: texto Nominatim → value del <select> ──
+        LOCALIDADES: {
+            // USAQUEN
+            'usaquén':            'USAQUEN',
+            'usaquen':            'USAQUEN',
+            // CHAPINERO
+            'chapinero':          'CHAPINERO',
+            // SANTA FE
+            'santa fe':           'SANTA_FE',
+            'santafé':            'SANTA_FE',
+            'santafe':            'SANTA_FE',
+            // SAN CRISTOBAL
+            'san cristóbal':      'SAN_CRISTOBAL',
+            'san cristobal':      'SAN_CRISTOBAL',
+            // USME
+            'usme':               'USME',
+            // TUNJUELITO
+            'tunjuelito':         'TUNJUELITO',
+            // BOSA
+            'bosa':               'BOSA',
+            // KENNEDY
+            'kennedy':            'KENNEDY',
+            // FONTIBON
+            'fontibón':           'FONTIBON',
+            'fontibon':           'FONTIBON',
+            // ENGATIVA
+            'engativá':           'ENGATIVA',
+            'engativa':           'ENGATIVA',
+            // SUBA
+            'suba':               'SUBA',
+            // BARRIOS UNIDOS
+            'barrios unidos':     'BARRIOS_UNIDOS',
+            // TEUSAQUILLO
+            'teusaquillo':        'TEUSAQUILLO',
+            // MARTIRES
+            'los mártires':       'MARTIRES',
+            'los martires':       'MARTIRES',
+            'mártires':           'MARTIRES',
+            'martires':           'MARTIRES',
+            // ANTONIO NARINO
+            'antonio nariño':     'ANTONIO_NARINO',
+            'antonio narino':     'ANTONIO_NARINO',
+            // PUENTE ARANDA
+            'puente aranda':      'PUENTE_ARANDA',
+            // CANDELARIA
+            'la candelaria':      'CANDELARIA',
+            'candelaria':         'CANDELARIA',
+            // RAFAEL URIBE
+            'rafael uribe uribe': 'RAFAEL_URIBE_URIBE',
+            'rafael uribe':       'RAFAEL_URIBE_URIBE',
+            // CIUDAD BOLIVAR
+            'ciudad bolívar':     'CIUDAD_BOLIVAR',
+            'ciudad bolivar':     'CIUDAD_BOLIVAR',
+            // SUMAPAZ
+            'sumapaz':            'SUMAPAZ'
+        },
+
+        // ── Mapa barrio: texto Nominatim → barrio normalizado ─────
+        // (solo los más frecuentes; si no hay match exacto se usa
+        //  el valor crudo limpio)
+        BARRIOS: {
+            'cedritos':              'Cedritos',
+            'molinos norte':         'Molinos Norte',
+            'la calleja':            'La Calleja',
+            'barrancas':             'Barrancas',
+            'santa bárbara':         'Santa Bárbara',
+            'santa barbara':         'Santa Bárbara',
+            'usaquén':               'Usaquén',
+            'chicó':                 'Chicó',
+            'chico':                 'Chicó',
+            'el lago':               'El Lago',
+            'lago gaitán':           'El Lago',
+            'rosales':               'Rosales',
+            'los rosales':           'Rosales',
+            'chapinero alto':        'Chapinero Alto',
+            'antiguo country':       'Antiguo Country',
+            'la cabrera':            'La Cabrera',
+            'las aguas':             'Las Aguas',
+            'la perseverancia':      'La Perseverancia',
+            'san diego':             'San Diego',
+            'san cristóbal norte':   'San Cristóbal Norte',
+            'san cristobal norte':   'San Cristóbal Norte',
+            'san blas':              'San Blas',
+            'la victoria':           'La Victoria',
+            'usme pueblo':           'Usme Pueblo',
+            'yomasa':                'Yomasa',
+            'parque el tunal':       'Parque El Tunal',
+            'venecia':               'Venecia',
+            'bosa central':          'Bosa Central',
+            'bosa laureles':         'Bosa Laureles',
+            'el porvenir':           'El Porvenir',
+            'tintal':                'Tintal',
+            'timiza':                'Timiza',
+            'mandalay':              'Mandalay',
+            'carvajal':              'Carvajal',
+            'patio bonito':          'Patio Bonito',
+            'kennedy central':       'Kennedy Central',
+            'techo':                 'Techo',
+            'capellanía':            'Capellanía',
+            'capellania':            'Capellanía',
+            'fontibón centro':       'Fontibón Centro',
+            'fontibon centro':       'Fontibón Centro',
+            'modelia':               'Modelia',
+            'ferias':                'Ferias',
+            'boyacá real':           'Boyacá Real',
+            'boyaca real':           'Boyacá Real',
+            'minuto de dios':        'Minuto de Dios',
+            'tibabuyes':             'Tibabuyes',
+            'niza':                  'Niza',
+            'suba centro':           'Suba Centro',
+            'la campiña':            'La Campiña',
+            'la campina':            'La Campiña',
+            'la alhambra':           'La Alhambra',
+            'el rincón':             'El Rincón',
+            'el rincon':             'El Rincón',
+            'lista':                 'Lisboa',
+            'lisboa':                'Lisboa',
+            '7 de agosto':           '7 de Agosto',
+            'doce de octubre':       'Doce de Octubre',
+            'san felipe':            'San Felipe',
+            'los andes':             'Los Andes',
+            'la soledad':            'La Soledad',
+            'quesada':               'Quesada',
+            'campín':                'Campín',
+            'campin':                'Campín',
+            'palermo':               'Palermo',
+            'santa isabel':          'Santa Isabel',
+            'eduardo santos':        'Eduardo Santos',
+            'restrepo':              'Restrepo',
+            'policarpa':             'Policarpa',
+            'ciudad montes':         'Ciudad Montes',
+            'muzú':                  'Muzú',
+            'muzu':                  'Muzú',
+            'la catedral':           'La Catedral',
+            'egipto':                'Egipto',
+            'bravo páez':            'Bravo Páez',
+            'bravo paez':            'Bravo Páez',
+            'marruecos':             'Marruecos',
+            'quiroga':               'Quiroga',
+            'meissen':               'Meissen',
+            'jerusalén':             'Jerusalén',
+            'jerusalem':             'Jerusalén',
+            'paraíso':               'Paraíso',
+            'paraiso':               'Paraíso',
+            'nazareth':              'Nazareth'
+        }
+    };
+
     // =========================================================
     // ICONOS LUCIDE SVG INLINE (para toasts y UI dinámica)
     // =========================================================
@@ -877,6 +1028,105 @@ document.addEventListener('DOMContentLoaded', function () {
         return await resp.json();
     }
 
+    function _inferirLocalidadBarrio(addr, idLocalidad, idBarrio, barrios_por_localidad) {
+        if (!addr) return;
+
+        var localidadSelect = document.getElementById(idLocalidad);
+        var barrioSelect    = document.getElementById(idBarrio);
+        if (!localidadSelect || !barrioSelect) return;
+
+        // ── Inferir localidad ──────────────────────────────────────
+        // Nominatim puede traerla en city_district, suburb o quarter
+        var candidatosLoc = [
+            addr.city_district,
+            addr.suburb,
+            addr.quarter,
+            addr.neighbourhood
+        ].filter(Boolean);
+
+        var localidadValue = null;
+        for (var i = 0; i < candidatosLoc.length; i++) {
+            var clave = candidatosLoc[i].toLowerCase().trim();
+            if (_GEO_AUTOFILL.LOCALIDADES[clave]) {
+                localidadValue = _GEO_AUTOFILL.LOCALIDADES[clave];
+                break;
+            }
+        }
+
+        if (!localidadValue) return; // no se pudo inferir — no tocar los selects
+
+        // Setear localidad si existe como option
+        var optionExiste = Array.from(localidadSelect.options)
+            .some(function(o) { return o.value === localidadValue; });
+        if (!optionExiste) return;
+
+        localidadSelect.value = localidadValue;
+
+        // Disparar change para poblar el select de barrios
+        _poblarBarrioSelect(localidadValue, idBarrio, barrios_por_localidad);
+
+        // ── Inferir barrio ─────────────────────────────────────────
+        // Nominatim puede traerlo en neighbourhood, quarter o suburb
+        var candidatosBar = [
+            addr.neighbourhood,
+            addr.quarter,
+            addr.suburb
+        ].filter(Boolean);
+
+        var barrioTexto = null;
+        for (var j = 0; j < candidatosBar.length; j++) {
+            var bc = candidatosBar[j].toLowerCase().trim();
+            if (_GEO_AUTOFILL.BARRIOS[bc]) {
+                barrioTexto = _GEO_AUTOFILL.BARRIOS[bc];
+                break;
+            }
+            // Si no hay match exacto, usar el valor crudo capitalizado
+            if (!barrioTexto) {
+                barrioTexto = candidatosBar[j].trim();
+            }
+        }
+
+        if (!barrioTexto) return;
+
+        // Buscar el barrio en las options (match exacto o parcial)
+        var optBarrio = Array.from(barrioSelect.options).find(function(o) {
+            return o.value.toLowerCase() === barrioTexto.toLowerCase() ||
+                o.textContent.toLowerCase() === barrioTexto.toLowerCase();
+        });
+
+        // Si no hay match exacto intentar match parcial
+        if (!optBarrio) {
+            var barTextoLow = barrioTexto.toLowerCase();
+            optBarrio = Array.from(barrioSelect.options).find(function(o) {
+                return o.value.toLowerCase().includes(barTextoLow) ||
+                    barTextoLow.includes(o.value.toLowerCase());
+            });
+        }
+
+        if (optBarrio) {
+            barrioSelect.value = optBarrio.value;
+        }
+    }
+
+
+// ============================================================
+// 3. POBLAR SELECT DE BARRIOS
+//    Rellena el <select> de barrio con los barrios de la
+//    localidad detectada, usando el mapa de barrios del JS.
+// ============================================================
+    function _poblarBarrioSelect(localidadValue, idBarrio, barrios_por_localidad) {
+        var barrioSelect = document.getElementById(idBarrio);
+        if (!barrioSelect || !barrios_por_localidad) return;
+
+        var lista = barrios_por_localidad[localidadValue] || [];
+        barrioSelect.innerHTML = '<option value="">Selecciona un barrio</option>';
+        lista.forEach(function(b) {
+            var opt = document.createElement('option');
+            opt.value = b; opt.textContent = b;
+            barrioSelect.appendChild(opt);
+        });
+    }
+
     // =========================================================
     // REVERSE GEOCODIFICACIÓN — coordenadas → dirección
     // =========================================================
@@ -906,7 +1156,7 @@ document.addEventListener('DOMContentLoaded', function () {
             if (data && data.display_name) {
                 const addr = data.address || {};
 
-                // ── FIX: solo calle + número — sin barrio ni localidad ──
+                // ── FIX GPS: solo calle + número en el campo dirección ─
                 const partes = [
                     addr.road,
                     addr.house_number
@@ -922,6 +1172,14 @@ document.addEventListener('DOMContentLoaded', function () {
                     const hDir = document.getElementById('hiddenDireccion');
                     if (hDir) hDir.value = dirLegible;
                 }
+
+                // ── NUEVO: autorellenar localidad y barrio ─────────────
+                _inferirLocalidadBarrio(
+                    addr,
+                    'localidad',          // ID select localidad en registro
+                    'barrio',             // ID select barrio en registro
+                    localidadesBarrios    // objeto ya definido en Registro.js
+                );
             }
 
             setMapStatus('Ubicación confirmada — arrastrá el pin para ajustar', 'ok');

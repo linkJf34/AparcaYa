@@ -1,15 +1,8 @@
 package com.exe.AparcaYA.Implement;
 
 import com.exe.AparcaYA.Entity.*;
-import com.exe.AparcaYA.Enum.EstadoCupo;
-import com.exe.AparcaYA.Enum.EstadoPago;
-import com.exe.AparcaYA.Enum.EstadoRegistro;
-import com.exe.AparcaYA.Enum.MetodoPago;
-import com.exe.AparcaYA.Enum.TipoVehiculo;
-import com.exe.AparcaYA.Repository.CupoRepository;
-import com.exe.AparcaYA.Repository.PagoRepository;
-import com.exe.AparcaYA.Repository.RegistroEntradaSalidaRepository;
-import com.exe.AparcaYA.Repository.TarifaRepository;
+import com.exe.AparcaYA.Enum.*;
+import com.exe.AparcaYA.Repository.*;
 import com.exe.AparcaYA.Service.RegistroEntradaSalidaService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -32,11 +25,7 @@ public class RegistroEntradaSalidaServiceImpl implements RegistroEntradaSalidaSe
     private final RegistroEntradaSalidaRepository registroRepository;
     private final CupoRepository                  cupoRepository;
     private final TarifaRepository                tarifaRepository;
-    // ✅ FIX: PagoRepository inyectado — antes no estaba, por eso
-    //         confirmarCobroConTarifa calculaba el precio pero nunca
-    //         creaba ni persistía el Pago, dejando registro.getPago() = null
-    //         en todos los cobros. Eso hacía que precio, ingresos del día
-    //         y gráficas siempre mostraran $0 o null.
+    private final ReservacionRepository           reservacionRepository;
     private final PagoRepository                  pagoRepository;
 
     // ── CRUD básico ───────────────────────────────────────────
@@ -202,16 +191,7 @@ public class RegistroEntradaSalidaServiceImpl implements RegistroEntradaSalidaSe
         return confirmarCobroConTarifa(registroId, metodoPago, "MINUTO");
     }
 
-    // ✅ FIX PRINCIPAL — antes: calculaba precio pero nunca creaba Pago.
-    //    Ahora:
-    //    1. Calcula el precio según tipo de tarifa (igual que antes)
-    //    2. Crea la entidad Pago con monto, metodoPago y estado PAGADO
-    //    3. Persiste el Pago con pagoRepository.save()
-    //    4. Asigna pago al registro con registro.setPago(pago)
-    //    5. Persiste el registro actualizado
-    //
-    //    Con esto registro.getPago().getMonto() deja de ser null y
-    //    sumIngresosEntreFechas() empieza a sumar correctamente.
+
     @Override
     public RegistroEntradaSalida confirmarCobroConTarifa(Long registroId,
                                                          String metodoPago,
@@ -287,7 +267,7 @@ public class RegistroEntradaSalidaServiceImpl implements RegistroEntradaSalidaSe
                     + ". Debe ser PLENA, MINUTO u HORA");
         }
 
-        // ✅ FIX: Resolver MetodoPago — el frontend envía String, convertir a enum
+
         MetodoPago metodo;
         try {
             metodo = MetodoPago.valueOf(metodoPago.toUpperCase());
@@ -295,7 +275,7 @@ public class RegistroEntradaSalidaServiceImpl implements RegistroEntradaSalidaSe
             metodo = MetodoPago.EFECTIVO; // fallback seguro
         }
 
-        // ✅ FIX: Crear y persistir Pago ANTES de actualizar el registro
+
         Pago pago = Pago.builder()
                 .registro(registro)
                 .monto(precio.doubleValue())
@@ -306,9 +286,18 @@ public class RegistroEntradaSalidaServiceImpl implements RegistroEntradaSalidaSe
                         + " | Vehículo: " + registro.getVehiculo().getPlaca()
                         + " | Tipo: " + tipo)
                 .build();
+
+        reservacionRepository
+                .findByVehiculoIdAndEstado(
+                        registro.getVehiculo().getIdVehiculo(),
+                        EstadoReservacion.COMPLETADA)
+                .stream()
+                .findFirst()
+                .ifPresent(pago::setReservacion);
+
         Pago pagoGuardado = pagoRepository.save(pago);
 
-        // ✅ FIX: Asignar el Pago al Registro para que registro.getPago() != null
+
         registro.setPago(pagoGuardado);
         registro.setEstado(EstadoRegistro.COBRADO);
         registro.setObservaciones("Tarifa: " + tipoTarifa

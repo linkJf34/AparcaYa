@@ -80,7 +80,7 @@ public class PagoController {
     // POST /api/pagos/cobrar-reserva
     // TAREA 2 — Registra pago Y actualiza reserva a PAGADA
     // =========================================================
-    @PostMapping("/cobrar-reserva")
+    /*@PostMapping("/cobrar-reserva")
     @PreAuthorize("hasAnyRole('ADMIN', 'OPERARIO', 'ADMINISTRADOR_SEDE')")
     public ResponseEntity<?> cobrarReserva(
             @RequestBody Map<String, Object> body) {
@@ -138,5 +138,5 @@ public class PagoController {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
                     .body(Map.of("message", "Error interno al procesar el cobro"));
         }
-    }
+    }*/
 }

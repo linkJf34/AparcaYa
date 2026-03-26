@@ -499,7 +499,7 @@ async function loadVehiculosActivos() {
                 '<div><strong>Plena:</strong> $' + formatNumber(v.cobroEstimadoPlena) + '</div>' +
                 '<div style="color:#059669;"><strong>Minuto:</strong> $' + formatNumber(v.cobroEstimadoMinuto) + '</div>' +
                 '</div></td>' +
-                '<td><button class="sede-btn-warning btn-salida" data-id="' + v.registroId + '" style="font-size:.8rem;padding:.35rem .75rem;">Salida</button></td>' +
+                '<td><button class="sede-btn-warning sede-btn-salida" data-id="' + v.registroId + '" style="font-size:.8rem;padding:.35rem .75rem;">Salida</button></td>' +
                 '</tr>';
         }).join('');
 
@@ -584,6 +584,7 @@ async function confirmarSalida() {
         cerrarModalSalida();
         await loadVehiculosActivos();
         await loadPendientesCobro();
+        await loadReservaciones();
         await loadIndicadores();
     } catch (error) {
         showError(error.message);
@@ -613,7 +614,7 @@ async function loadPendientesCobro() {
                 '<td>' + formatDateTime(p.horaSalida) + '</td>' +
                 '<td>' + p.tiempoTotal + '</td>' +
                 '<td style="font-weight:700;color:#059669;">$' + formatNumber(p.precio) + '</td>' +
-                '<td><button class="sede-btn-primary btn-cobrar" data-id="' + p.registroId + '" style="font-size:.8rem;padding:.35rem .75rem;">Cobrar</button></td>' +
+                '<td><button class="sede-btn-primary sede-btn-cobrar" data-id="' + p.registroId + '" style="font-size:.8rem;padding:.35rem .75rem;">Cobrar</button></td>' +
                 '</tr>';
         }).join('');
     } catch (error) {
@@ -704,7 +705,10 @@ async function procesarCobro() {
         showSuccess('Cobro: $' + formatNumber(data.precio) + ' — ' + data.tipoTarifaAplicada);
         cerrarModalCobro();
         await loadPendientesCobro();
-        await loadIndicadores();
+        await loadVehiculosActivos();
+        await loadReservaciones();   // ← AGREGAR
+        //await cargarEstadisticas();  // SedeD.js
+        await loadIndicadores();  // TrabajadorD.js
     } catch (error) {
         showError(error.message);
     }
@@ -780,7 +784,7 @@ async function loadReservaciones() {
                 '<td>' + formatDateTime(r.horaFin) + '</td>' +
                 '<td><span class="trab-badge trab-badge-info">' + r.cupo + '</span></td>' +
                 '<td>' + renderBadgeEstado(r.estado) + '</td>' +
-                '<td>' + renderAccionesReserva(r.id, r.estado) + '</td>' +
+                '<td>' + renderAccionesReserva(r.id, r.estado, r.registroId) + '</td>' +
                 '</tr>';
         }).join('');
     } catch (error) {
@@ -803,7 +807,7 @@ function renderBadgeEstado(estado) {
 }
 
 // Botones según el estado actual — solo la acción válida siguiente
-function renderAccionesReserva(id, estado) {
+function renderAccionesReserva(id, estado, registroId) {
     switch (estado) {
         case 'PENDIENTE':
             return '<button class="sede-btn-success btn-aceptar" data-id="' + id + '" style="font-size:.8rem;padding:.35rem .75rem;margin-right:.25rem;">Aceptar</button>' +
@@ -811,14 +815,38 @@ function renderAccionesReserva(id, estado) {
         case 'ACEPTADA':
             return '<button class="sede-btn-primary btn-iniciar" data-id="' + id + '" style="font-size:.8rem;padding:.35rem .75rem;">Iniciar entrada</button>';
         case 'EN_CURSO':
-            return '<button class="sede-btn-warning btn-completar" data-id="' + id + '" style="font-size:.8rem;padding:.35rem .75rem;">Registrar salida</button>';
+            var rid = registroId || id;
+            return '<button class="sede-btn-warning sede-btn-salida" data-id="' + rid + '" style="font-size:.8rem;padding:.35rem .75rem;">Registrar salida</button>';
         case 'COMPLETADA':
-            return '<button class="sede-btn-success btn-cobrar-reserva" data-id="' + id + '" style="font-size:.8rem;padding:.35rem .75rem;">Cobrar</button>';
+            return '<span style="font-size:.8rem;color:#059669;font-weight:600;">En pendientes de cobro</span>';
         default:
             return '<span style="color:#94a3b8;font-size:.8rem;">—</span>';
     }
 }
 
+
+async function aceptarReservacion(id) {
+    var ok = await showConfirm(
+        'Aceptar reservación',
+        '¿Confirmas que deseas aceptar esta reservación?',
+        'Aceptar', 'warning'
+    );
+    if (!ok) { return; }
+    try {
+        var response = await fetch(API_BASE_URL + '/aceptar-reservacion/' + id, {
+            method: 'POST', headers: { 'Content-Type': 'application/json' }
+        });
+        if (!response.ok) {
+            var err = await response.json();
+            throw new Error(err.error || 'Error al aceptar la reservación');
+        }
+        showSuccess('Reservación aceptada — esperando llegada del vehículo');
+        await loadReservaciones();
+        await loadIndicadores();
+    } catch (error) {
+        showError(error.message);
+    }
+}
 
 async function rechazarReservacion(id) {
     var ok = await showConfirm(
@@ -828,13 +856,10 @@ async function rechazarReservacion(id) {
     );
     if (!ok) { return; }
     try {
-        var response = await fetch('/api/reservaciones/' + id + '/cancelar', {
+        var response = await fetch(API_BASE_URL + '/rechazar-reservacion/' + id, {
             method: 'POST', headers: { 'Content-Type': 'application/json' }
         });
-        if (!response.ok) {
-            var err = await response.json();
-            throw new Error(err.message || 'Error al rechazar');
-        }
+        if (!response.ok) { throw new Error('Error'); }
         showSuccess('Reservación rechazada');
         await loadReservaciones();
     } catch (error) {
@@ -850,16 +875,17 @@ async function iniciarReservacion(id) {
     );
     if (!ok) { return; }
     try {
-        var response = await fetch('/api/reservaciones/' + id + '/iniciar', {
+        var response = await fetch(API_BASE_URL + '/iniciar-reservacion/' + id, {
             method: 'POST', headers: { 'Content-Type': 'application/json' }
         });
         if (!response.ok) {
             var err = await response.json();
-            throw new Error(err.message || 'Error');
+            throw new Error(err.error || err.message || 'Error');
         }
-        showSuccess('Reservación iniciada — vehículo en curso');
+        showSuccess('Vehículo ingresado — aparece en Gestión de Vehículos');
         await loadReservaciones();
         await loadVehiculosActivos();
+        await loadPendientesCobro();
         await loadIndicadores();
     } catch (error) {
         showError(error.message);
@@ -1081,22 +1107,17 @@ function mostrarResultadosCarga(data) {
 // ==================== DELEGACIÓN DE EVENTOS ====================
 function setupGlobalEventDelegation() {
     document.body.addEventListener('click', function(e) {
-        var salida        = e.target.closest('.btn-salida');
-        var cobrar        = e.target.closest('.btn-cobrar');
-        var aceptar       = e.target.closest('.btn-aceptar');
-        var rechazar      = e.target.closest('.btn-rechazar');
-        // NUEVOS
-        var iniciar       = e.target.closest('.btn-iniciar');
-        var completar     = e.target.closest('.btn-completar');
-        var cobrarReserva = e.target.closest('.btn-cobrar-reserva');
+        var salida   = e.target.closest('.sede-btn-salida');  // ← corregido
+        var cobrar   = e.target.closest('.sede-btn-cobrar');  // ← corregido
+        var aceptar  = e.target.closest('.btn-aceptar');
+        var rechazar = e.target.closest('.btn-rechazar');
+        var iniciar  = e.target.closest('.btn-iniciar');
 
-        if (salida)        { e.preventDefault(); abrirModalSalida(parseInt(salida.dataset.id));        return; }
-        if (cobrar)        { e.preventDefault(); abrirModalCobro(parseInt(cobrar.dataset.id));         return; }
-        if (aceptar)       { e.preventDefault(); aceptarReservacion(aceptar.dataset.id);               return; }
-        if (rechazar)      { e.preventDefault(); rechazarReservacion(rechazar.dataset.id);             return; }
-        if (iniciar)       { e.preventDefault(); iniciarReservacion(iniciar.dataset.id);               return; }
-        if (completar)     { e.preventDefault(); completarReservacion(completar.dataset.id);           return; }
-        if (cobrarReserva) { e.preventDefault(); cobrarReservacion(cobrarReserva.dataset.id);          return; }
+        if (salida)  { e.preventDefault(); abrirModalSalida(parseInt(salida.dataset.id));  return; }
+        if (cobrar)  { e.preventDefault(); abrirModalCobro(parseInt(cobrar.dataset.id));   return; }
+        if (aceptar) { e.preventDefault(); aceptarReservacion(aceptar.dataset.id);         return; }
+        if (rechazar){ e.preventDefault(); rechazarReservacion(rechazar.dataset.id);       return; }
+        if (iniciar) { e.preventDefault(); iniciarReservacion(iniciar.dataset.id);         return; }
     });
 }
 
@@ -1158,8 +1179,8 @@ window.mostrarArchivoSeleccionado      = mostrarArchivoSeleccionado;
 window.cargarExcel                     = cargarExcel;
 window.descargarPlantillaCompleta      = descargarPlantillaCompleta;
 window.descargarPlantillaVehiculosSolo = descargarPlantillaVehiculosSolo;
-window.iniciarReservacion    = iniciarReservacion;
-window.completarReservacion  = completarReservacion;
-window.cobrarReservacion     = cobrarReservacion;
-window.renderBadgeEstado     = renderBadgeEstado;
-window.renderAccionesReserva = renderAccionesReserva;
+window.aceptarReservacion              = aceptarReservacion;
+window.rechazarReservacion             = rechazarReservacion;
+window.iniciarReservacion              = iniciarReservacion;
+window.renderBadgeEstado               = renderBadgeEstado;
+window.renderAccionesReserva           = renderAccionesReserva;
