@@ -51,9 +51,9 @@ public class UsuarioController {
 
     @PostMapping("/registrar")
     @Transactional(rollbackFor = Exception.class)
-    @ResponseBody                                                     // ← CAMBIO
-    public ResponseEntity<Map<String, Object>> registrarUsuario(     // ← CAMBIO
-                                                                     @RequestBody RegistroRequest request) {                  // ← CAMBIO
+    @ResponseBody
+    public ResponseEntity<Map<String, Object>> registrarUsuario(
+            @RequestBody RegistroRequest request) {
 
         log.info("Iniciando registro para correo: {}", request.getCorreo());
 
