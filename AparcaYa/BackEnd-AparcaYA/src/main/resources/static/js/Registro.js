@@ -1611,19 +1611,50 @@ document.addEventListener('DOMContentLoaded', function () {
     // =========================================================
     // SUBMIT
     // =========================================================
-    document.getElementById("registroForm").onsubmit = function (e) {
+    document.getElementById("registroForm").addEventListener('submit', async function (e) {
+        e.preventDefault();
+
+        // Validación barrio para ADMINISTRADOR_SEDE
         if (rol === "ADMINISTRADOR_SEDE") {
-            const selectedLocalidad = localidadSelect.value;
-            const selectedBarrio    = barrioSelect.value;
-            if (selectedLocalidad && !selectedBarrio) {
-                e.preventDefault();
+            if (localidadSelect.value && !barrioSelect.value) {
                 document.getElementById('barrio-error').textContent = 'Debes seleccionar un barrio.';
                 showStep("stepSede3");
                 showAlert("Debes seleccionar un barrio antes de continuar.", 'warning');
-                return false;
+                return;
             }
         }
+
         limpiarFormulario();
-    };
+
+        const btn = form.querySelector('button[type="submit"]');
+        if (btn) { btn.disabled = true; btn.textContent = 'Registrando...'; }
+
+        const data = Object.fromEntries(new FormData(this).entries());
+
+        try {
+            const res = await fetch('/registrar', {
+                method:  'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body:    JSON.stringify(data)
+            });
+
+            const json = await res.json();
+
+            if (json.success && json.token) {
+                localStorage.setItem('token',  json.token);
+                localStorage.setItem('rol',    json.rol);
+                localStorage.setItem('nombre', json.nombre);
+                if (json.sedeId) localStorage.setItem('sedeId', String(json.sedeId));
+                window.location.href = json.redirectUrl;
+            } else {
+                showAlert(json.message || 'Error al registrar', 'error');
+                if (btn) { btn.disabled = false; btn.textContent = 'Registrar cuenta'; }
+            }
+        } catch (err) {
+            console.error('Error en registro:', err);
+            showAlert('Error de conexión. Intenta nuevamente.', 'error');
+            if (btn) { btn.disabled = false; btn.textContent = 'Registrar cuenta'; }
+        }
+    });
 
 });
