@@ -27,7 +27,6 @@ import java.util.stream.Collectors;
 
 @Controller
 @RequestMapping("/admin")
-@CrossOrigin(origins = "https://aparcaya.com")
 @PreAuthorize("hasRole('ADMIN')")
 public class AdminController {
 

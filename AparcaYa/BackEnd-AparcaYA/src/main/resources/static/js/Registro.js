@@ -1657,7 +1657,7 @@ document.addEventListener('DOMContentLoaded', function () {
         if (data.hiddenLongitud) data.hiddenLongitud = Number(data.hiddenLongitud);
 
         try {
-            const res = await fetch('https://aparcaya.azurewebsites.net/registrar', {
+            const res = await fetch('https://aparcaya.onrender.com/registrar', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',

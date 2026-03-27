@@ -32,7 +32,6 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 @RequestMapping("/api/trabajador")
 @PreAuthorize("hasRole('OPERARIO')")
-@CrossOrigin(origins = "${app.cors.allowed-origins:http://localhost:8080}")
 public class TrabajadorController {
 
     private final VehiculoService              vehiculoService;
