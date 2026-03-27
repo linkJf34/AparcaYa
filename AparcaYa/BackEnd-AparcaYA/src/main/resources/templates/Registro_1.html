@@ -1116,66 +1116,54 @@
 
 
 
-<!-- Sincroniza selects de horario → input hidden -->
 <script>
-    <!-- Interceptor de registro — convierte form submit en fetch + guarda JWT -->
-
-        (function () {
+    (function () {
         const form = document.getElementById('registroForm');
         if (!form) return;
 
         form.addEventListener('submit', async function (e) {
-        e.preventDefault();
+            e.preventDefault();
 
-        const btn = form.querySelector('button[type="submit"]');
-        if (btn) { btn.disabled = true; btn.textContent = 'Registrando...'; }
+            const btn = form.querySelector('button[type="submit"]');
+            if (btn) { btn.disabled = true; btn.textContent = 'Registrando...'; }
 
-        // Recoger todos los campos del form (inputs + hiddens) como JSON
-        const data = Object.fromEntries(new FormData(form).entries());
+            const data = Object.fromEntries(new FormData(form).entries());
 
-        try {
-        const res = await fetch('/registrar', {
-        method:  'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body:    JSON.stringify(data)
-    });
+            try {
+                const res = await fetch('/registrar', {
+                    method:  'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body:    JSON.stringify(data)
+                });
 
-        const json = await res.json();
+                const json = await res.json();
 
-        if (json.success && json.token) {
-        // Guardar token igual que lo hace Login.js
-        localStorage.setItem('token',  json.token);
-        localStorage.setItem('rol',    json.rol);
-        localStorage.setItem('nombre', json.nombre);
-        if (json.sedeId) localStorage.setItem('sedeId', String(json.sedeId));
-
-        window.location.href = json.redirectUrl;
-    } else {
-        const msgEl = document.getElementById('mensajeJS');
-        if (msgEl) {
-        msgEl.innerHTML =
-        '<div class="rg-alert rg-alert-error">' +
-        (json.message || 'Error al registrar') + '</div>';
-        msgEl.scrollIntoView({ behavior: 'smooth', block: 'center' });
-    }
-        if (btn) {
-        btn.disabled    = false;
-        btn.textContent = 'Registrar cuenta';
-    }
-    }
-    } catch (err) {
-        console.error('Error en registro:', err);
-        const msgEl = document.getElementById('mensajeJS');
-        if (msgEl) {
-        msgEl.innerHTML =
-        '<div class="rg-alert rg-alert-error">Error de conexión. Intenta nuevamente.</div>';
-    }
-        if (btn) {
-        btn.disabled    = false;
-        btn.textContent = 'Registrar cuenta';
-    }
-    }
-    });
+                if (json.success && json.token) {
+                    localStorage.setItem('token',  json.token);
+                    localStorage.setItem('rol',    json.rol);
+                    localStorage.setItem('nombre', json.nombre);
+                    if (json.sedeId) localStorage.setItem('sedeId', String(json.sedeId));
+                    window.location.href = json.redirectUrl;
+                } else {
+                    const msgEl = document.getElementById('mensajeJS');
+                    if (msgEl) {
+                        msgEl.innerHTML =
+                            '<div class="rg-alert rg-alert-error">' +
+                            (json.message || 'Error al registrar') + '</div>';
+                        msgEl.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                    }
+                    if (btn) { btn.disabled = false; btn.textContent = 'Registrar cuenta'; }
+                }
+            } catch (err) {
+                console.error('Error en registro:', err);
+                const msgEl = document.getElementById('mensajeJS');
+                if (msgEl) {
+                    msgEl.innerHTML =
+                        '<div class="rg-alert rg-alert-error">Error de conexión. Intenta nuevamente.</div>';
+                }
+                if (btn) { btn.disabled = false; btn.textContent = 'Registrar cuenta'; }
+            }
+        });
     })();
 
     (function () {
@@ -1188,7 +1176,7 @@
             var h = parseInt(v, 10);
             if (v === '23:59') return '11:59 PM';
             if (h === 0)  return '12:00 AM';
-            if (h < 12)   return h  + ':00 AM';
+            if (h < 12)   return h + ':00 AM';
             if (h === 12) return '12:00 PM';
             return (h - 12) + ':00 PM';
         }
@@ -1203,6 +1191,5 @@
         sync();
     })();
 </script>
-
 </body>
 </html>
