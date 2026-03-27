@@ -1626,7 +1626,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
         limpiarFormulario();
 
-        const btn = form.querySelector('button[type="submit"]');
+        const btn = this.querySelector('button[type="submit"]');
         if (btn) { btn.disabled = true; btn.textContent = 'Registrando...'; }
 
         const data = Object.fromEntries(new FormData(this).entries());
