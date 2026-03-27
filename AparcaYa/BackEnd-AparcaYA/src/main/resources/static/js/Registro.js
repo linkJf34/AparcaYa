@@ -1631,12 +1631,48 @@ document.addEventListener('DOMContentLoaded', function () {
 
         const data = Object.fromEntries(new FormData(this).entries());
 
+        data.rol = data.rol?.toUpperCase();
+
+        // 🔧 Normalizar datos para backend
+
+           // Enum (muy importante)
+        if (data.rol) {
+            data.rol = data.rol.toUpperCase();
+        }
+
+        // Números (porque FormData los manda como string)
+        if (data.anio) data.anio = Number(data.anio);
+
+        if (data.tarifaPlenaC) data.tarifaPlenaC = Number(data.tarifaPlenaC);
+        if (data.tarifaPlenaM) data.tarifaPlenaM = Number(data.tarifaPlenaM);
+
+        if (data.tarifaMinutoC) data.tarifaMinutoC = Number(data.tarifaMinutoC);
+        if (data.tarifaMinutoM) data.tarifaMinutoM = Number(data.tarifaMinutoM);
+
+        // Cupos sede
+        if (data.hiddenCuposTotales) data.hiddenCuposTotales = Number(data.hiddenCuposTotales);
+
+        // Coordenadas (MUY importante si usas mapa)
+        if (data.hiddenLatitud) data.hiddenLatitud = Number(data.hiddenLatitud);
+        if (data.hiddenLongitud) data.hiddenLongitud = Number(data.hiddenLongitud);
+
         try {
-            const res = await fetch('/registrar', {
-                method:  'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body:    JSON.stringify(data)
+            const res = await fetch('https://aparcaya.azurewebsites.net/registrar', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Accept': 'application/json'
+                },
+                body: JSON.stringify(data)
             });
+
+            const contentType = res.headers.get("content-type");
+
+            if (!contentType || !contentType.includes("application/json")) {
+                const text = await res.text();
+                console.error("Respuesta no JSON:", text);
+                throw new Error("El servidor no devolvió JSON");
+            }
 
             const json = await res.json();
 
@@ -1656,5 +1692,4 @@ document.addEventListener('DOMContentLoaded', function () {
             if (btn) { btn.disabled = false; btn.textContent = 'Registrar cuenta'; }
         }
     });
-
 });
