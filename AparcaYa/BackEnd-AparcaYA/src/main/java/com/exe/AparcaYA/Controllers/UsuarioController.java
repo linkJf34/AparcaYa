@@ -295,17 +295,6 @@ public class UsuarioController {
             respuesta.put("nombre",      guardado.getNombre());
             if (sedeId != null) respuesta.put("sedeId", sedeId);
 
-            // ── 2.6 Email de bienvenida — fallo NO revierte el registro ──────
-            try {
-                emailService.enviarBienvenida(
-                        guardado.getCorreo(),
-                        guardado.getNombre(),
-                        guardado.getRol()
-                );
-            } catch (Exception emailEx) {
-                // Solo loguear — el usuario ya está guardado y el JWT ya está listo
-                log.error("Email de bienvenida falló (no crítico): {}", emailEx.getMessage());
-            }
 
             log.info("Registro completado. Redirigiendo a: {}", redirectUrl);
             return ResponseEntity.ok(respuesta);
@@ -322,6 +311,29 @@ public class UsuarioController {
                     "success", false, "message", "Error interno del sistema"));
         }
     }
+
+   /* @PostMapping("/registrar")
+    @ResponseBody
+    public ResponseEntity<Map<String, Object>> registrarUsuario(
+            @RequestBody RegistroRequest request) {
+
+        Usuario guardado = registrarEnBD(request);
+
+
+        // ── 2.6 Email de bienvenida — fallo NO revierte el registro ──────
+        try {
+            emailService.enviarBienvenida(
+                    guardado.getCorreo(),
+                    guardado.getNombre(),
+                    guardado.getRol()
+            );
+        } catch (Exception emailEx) {
+            // Solo loguear — el usuario ya está guardado y el JWT ya está listo
+            log.error("Email de bienvenida falló (no crítico): {}", emailEx.getMessage());
+        }
+
+        return ResponseEntity.ok(...);
+    }*/
 
     // =====================================================================
     // VERIFICACIÓN DE DUPLICADOS
