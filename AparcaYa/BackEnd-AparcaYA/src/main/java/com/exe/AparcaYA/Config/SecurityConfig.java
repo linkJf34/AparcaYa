@@ -87,8 +87,9 @@ public class SecurityConfig {
                 .exceptionHandling(ex -> ex
                         .authenticationEntryPoint((request, response, authException) -> {
                             String path = request.getRequestURI();
-                            if (path.startsWith("/api/") ||
-                                    request.getHeader("Authorization") != null) {
+                            if (path.startsWith("/api/")
+                                     || path.equals("/registrar")   
+                                     || request.getHeader("Authorization") != null) {
                                 response.setStatus(401);
                                 response.setContentType("application/json");
                                 response.getWriter()
