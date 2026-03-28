@@ -1633,27 +1633,48 @@ document.addEventListener('DOMContentLoaded', function () {
 
         data.rol = data.rol?.toUpperCase();
 
-        // 🔧 Normalizar datos para backend
-
-           // Enum (muy importante)
-        if (data.rol) {
-            data.rol = data.rol.toUpperCase();
+// Limpiar campos que NO corresponden al rol actual
+        if (data.rol === 'CLIENTE') {
+            delete data.hiddenNombreSede;
+            delete data.hiddenNit;
+            delete data.hiddenDireccion;
+            delete data.hiddenLocalidad;
+            delete data.hiddenBarrio;
+            delete data.hiddenCuposTotales;
+            delete data.hiddenLatitud;
+            delete data.hiddenLongitud;
+            delete data.hiddenHorarioSede;
+            delete data.hiddenTarifaPlenaC;
+            delete data.hiddenTarifaPlenaM;
+            delete data.hiddenTarifaMinutoC;
+            delete data.hiddenTarifaMinutoM;
+            delete data.tarifaPlenaC;
+            delete data.tarifaPlenaM;
+            delete data.tarifaMinutoC;
+            delete data.tarifaMinutoM;
+        } else if (data.rol === 'ADMINISTRADOR_SEDE') {
+            delete data.placa;
+            delete data.tipoVehiculo;
+            delete data.marca;
+            delete data.color;
+            delete data.anio;
         }
 
-        // Números (porque FormData los manda como string)
+// 🔧 Normalizar datos para backend
+
+// Números (porque FormData los manda como string)
         if (data.anio) data.anio = Number(data.anio);
 
-        if (data.tarifaPlenaC) data.tarifaPlenaC = Number(data.tarifaPlenaC);
-        if (data.tarifaPlenaM) data.tarifaPlenaM = Number(data.tarifaPlenaM);
-
+        if (data.tarifaPlenaC)  data.tarifaPlenaC  = Number(data.tarifaPlenaC);
+        if (data.tarifaPlenaM)  data.tarifaPlenaM  = Number(data.tarifaPlenaM);
         if (data.tarifaMinutoC) data.tarifaMinutoC = Number(data.tarifaMinutoC);
         if (data.tarifaMinutoM) data.tarifaMinutoM = Number(data.tarifaMinutoM);
 
-        // Cupos sede
+// Cupos sede
         if (data.hiddenCuposTotales) data.hiddenCuposTotales = Number(data.hiddenCuposTotales);
 
-        // Coordenadas (MUY importante si usas mapa)
-        if (data.hiddenLatitud) data.hiddenLatitud = Number(data.hiddenLatitud);
+// Coordenadas
+        if (data.hiddenLatitud)  data.hiddenLatitud  = Number(data.hiddenLatitud);
         if (data.hiddenLongitud) data.hiddenLongitud = Number(data.hiddenLongitud);
 
         try {
@@ -1677,10 +1698,10 @@ document.addEventListener('DOMContentLoaded', function () {
             const json = await res.json();
 
             if (json.success && json.token) {
-                localStorage.setItem('token',  json.token);
-                localStorage.setItem('rol',    json.rol);
-                localStorage.setItem('nombre', json.nombre);
-                if (json.sedeId) localStorage.setItem('sedeId', String(json.sedeId));
+                sessionStorage.setItem('token', json.token);
+                sessionStorage.setItem('rol',        json.rol);
+                sessionStorage.setItem('nombre',     json.nombre);
+                if (json.sedeId) sessionStorage.setItem('sedeId', String(json.sedeId));
                 window.location.href = json.redirectUrl;
             } else {
                 showAlert(json.message || 'Error al registrar', 'error');
