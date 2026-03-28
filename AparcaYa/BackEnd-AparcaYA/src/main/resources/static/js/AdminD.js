@@ -789,7 +789,8 @@ async function cargarGraficaIngresos() {
             stack:           'accesos'
         }));
 
-        chartIngresos = new Chart(canvas, {
+        window.chartInstances = window.chartInstances || {};
+        chartIngresos = window.chartInstances['chartIngresos'] = new Chart(canvas, {
             type: 'bar',
             data: { labels: data.labels, datasets },
             options: {
@@ -835,7 +836,7 @@ async function cargarGraficaUsuarios() {
         const kpiT = document.getElementById('kpiUsuariosTotal');
         if (kpiT) kpiT.textContent = total.toLocaleString('es-CO');
 
-        chartUsuarios = new Chart(canvas, {
+        chartUsuarios = window.chartInstances['chartUsuarios'] = new Chart(canvas, {
             type: 'doughnut',
             data: {
                 labels: data.labels.map(l => ROL_CFG[l]?.label || ROL_LABELS[l] || l),
@@ -885,7 +886,7 @@ async function cargarGraficaSedes() {
         if (kpiCap) kpiCap.textContent = capacidadTotal.toLocaleString('es-CO');
         if (kpiST)  kpiST.textContent  = data.labels.length;
 
-        chartSedes = new Chart(canvas, {
+        chartSedes = window.chartInstances['chartSedes'] = new Chart(canvas, {
             type: 'bar',
             data: {
                 labels: data.labels,
@@ -938,7 +939,7 @@ async function cargarGraficaCorreos() {
 
         if (chartCorreosEstado) chartCorreosEstado.destroy();
 
-        chartCorreosEstado = new Chart(canvas, {
+        chartCorreosEstado = window.chartInstances['chartCorreosEstado'] = new Chart(canvas, {
             type: 'doughnut',
             data: {
                 labels:   ['Enviados', 'Errores', 'Pendientes'],
@@ -1078,47 +1079,114 @@ function animarDonut(selector, valorActual, valorMaximo) {
     }, 100);
 }
 
+function obtenerFiltrosActivos() {
+    return {
+        fechaInicio: document.getElementById('filtroGraficaDesde')?.value || '',
+        fechaFin:    document.getElementById('filtroGraficaHasta')?.value || '',
+        sedeId:      document.getElementById('filtroGraficaSede')?.value  || ''
+    };
+}
+
+function capturarGraficasComoImagenes() {
+    window.chartInstances = window.chartInstances || {};
+    const ids = ['chartIngresos','chartUsuarios','chartSedes','chartCorreosEstado'];
+    const imagenes = {};
+    ids.forEach(id => {
+        const inst = window.chartInstances[id];
+        if (inst) {
+            imagenes[id] = inst.toBase64Image('image/png', 1.0);
+        } else {
+            const canvas = document.getElementById(id);
+            if (canvas) imagenes[id] = canvas.toDataURL('image/png');
+        }
+    });
+    return imagenes;
+}
+
+function capturarKpisDOM() {
+    const t = id => document.getElementById(id)?.textContent?.trim() || '0';
+    return {
+        ingresosActual:    t('kpiIngresosActual'),
+        ingresosAnterior:  t('kpiIngresosAnterior'),
+        ingresosAnio:      t('kpiIngresosAnio'),
+        usuariosTotal:     t('kpiUsuariosTotal'),
+        usuariosActivos:   t('kpiUsuariosActivos'),
+        sedesTotal:        t('kpiSedesTotal'),
+        sedesCapacidad:    t('kpiSedesCapacidad'),
+        correosEnviados:   t('kpiCorreosEnviados2'),
+        correosErrores:    t('kpiCorreosErrores2'),
+        totalUsuariosCard: t('totalUsuarios'),
+        totalSedesCard:    t('totalSedes')
+    };
+}
+
 // ============================================
 // REPORTES
 // ============================================
 async function generarPDF() {
+    const filtros  = obtenerFiltrosActivos();
+    const graficas = capturarGraficasComoImagenes();
+    const kpis     = capturarKpisDOM();
+
+    if (filtros.fechaInicio && filtros.fechaFin &&
+        new Date(filtros.fechaInicio) > new Date(filtros.fechaFin)) {
+        showToast('La fecha inicio no puede ser mayor a la fecha fin', 'warning');
+        return;
+    }
+
+    const btnPdf = document.querySelector('.graficas-reporte-btn.pdf');
+    if (btnPdf) { btnPdf.disabled = true; btnPdf.textContent = 'Generando PDF...'; }
+
     try {
-        const response    = await fetch('/admin/reporte/usuarios/pdf');
-        if (!response.ok) throw new Error('Error generando PDF');
-        const contentType = response.headers.get('Content-Type') || '';
-        if (contentType.includes('text/html')) {
-            showToast('Tu sesión expiró. Por favor inicia sesión nuevamente.', 'warning', 5000);
-            setTimeout(() => { window.location.href = '/login'; }, 2000);
-            return;
-        }
-        const blob = await response.blob();
-        const url  = window.URL.createObjectURL(blob);
+        const res = await fetch('/admin/reportes/pdf', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ tipo: 'pdf', filtros, kpis, graficas })
+        });
+        if (!res.ok) throw new Error('Error HTTP ' + res.status);
+        const blob = await res.blob();
+        const url  = URL.createObjectURL(blob);
         const a    = document.createElement('a');
-        a.href = url; a.download = `reporte_usuarios_${Date.now()}.pdf`;
+        a.href     = url;
+        a.download = `reporte-aparcaya-${new Date().toISOString().slice(0,10)}.pdf`;
         document.body.appendChild(a); a.click();
-        window.URL.revokeObjectURL(url); document.body.removeChild(a);
+        document.body.removeChild(a); URL.revokeObjectURL(url);
         showToast('PDF generado correctamente', 'success');
-    } catch (error) { showToast('Error al generar el PDF', 'error'); console.error(error); }
+    } catch (err) {
+        showToast('Error al generar el PDF: ' + err.message, 'error');
+    } finally {
+        if (btnPdf) { btnPdf.disabled = false; btnPdf.textContent = 'PDF Usuarios'; }
+    }
 }
 
 async function generarExcel() {
+    const filtros  = obtenerFiltrosActivos();
+    const graficas = capturarGraficasComoImagenes();
+    const kpis     = capturarKpisDOM();
+
+    const btnExcel = document.querySelector('.graficas-reporte-btn.excel');
+    if (btnExcel) { btnExcel.disabled = true; btnExcel.textContent = 'Generando Excel...'; }
+
     try {
-        const response    = await fetch('/admin/reporte/usuarios/excel');
-        if (!response.ok) throw new Error('Error generando Excel');
-        const contentType = response.headers.get('Content-Type') || '';
-        if (contentType.includes('text/html')) {
-            showToast('Tu sesión expiró. Por favor inicia sesión nuevamente.', 'warning', 5000);
-            setTimeout(() => { window.location.href = '/login'; }, 2000);
-            return;
-        }
-        const blob = await response.blob();
-        const url  = window.URL.createObjectURL(blob);
+        const res = await fetch('/admin/reportes/excel', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ tipo: 'excel', filtros, kpis, graficas })
+        });
+        if (!res.ok) throw new Error('Error HTTP ' + res.status);
+        const blob = await res.blob();
+        const url  = URL.createObjectURL(blob);
         const a    = document.createElement('a');
-        a.href = url; a.download = `reporte_usuarios_${Date.now()}.xlsx`;
+        a.href     = url;
+        a.download = `reporte-aparcaya-${new Date().toISOString().slice(0,10)}.xlsx`;
         document.body.appendChild(a); a.click();
-        window.URL.revokeObjectURL(url); document.body.removeChild(a);
+        document.body.removeChild(a); URL.revokeObjectURL(url);
         showToast('Excel generado correctamente', 'success');
-    } catch (error) { showToast('Error al generar el Excel', 'error'); console.error(error); }
+    } catch (err) {
+        showToast('Error al generar el Excel: ' + err.message, 'error');
+    } finally {
+        if (btnExcel) { btnExcel.disabled = false; btnExcel.textContent = 'Excel Usuarios'; }
+    }
 }
 
 // ============================================

@@ -5,6 +5,7 @@ import com.exe.AparcaYA.Enum.*;
 import com.exe.AparcaYA.Repository.*;
 import com.exe.AparcaYA.Service.RegistroEntradaSalidaService;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -16,7 +17,7 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
-
+@Slf4j
 @Service
 @Transactional
 @RequiredArgsConstructor
@@ -27,6 +28,7 @@ public class RegistroEntradaSalidaServiceImpl implements RegistroEntradaSalidaSe
     private final TarifaRepository                tarifaRepository;
     private final ReservacionRepository           reservacionRepository;
     private final PagoRepository                  pagoRepository;
+
 
     // ── CRUD básico ───────────────────────────────────────────
 
@@ -208,17 +210,14 @@ public class RegistroEntradaSalidaServiceImpl implements RegistroEntradaSalidaSe
             throw new RuntimeException("No se ha registrado la salida");
         }
 
-        // Obtener tarifa desde la entidad Tarifa
         List<Tarifa> tarifas = tarifaRepository
                 .findBySede_IdSede(registro.getSede().getIdSede());
         if (tarifas.isEmpty()) {
-            throw new RuntimeException(
-                    "No hay tarifas configuradas para la sede");
+            throw new RuntimeException("No hay tarifas configuradas para la sede");
         }
         Tarifa tarifa = tarifas.get(0);
         TipoVehiculo tipo = registro.getVehiculo().getTipo();
 
-        // Calcular precio según tipo de tarifa
         BigDecimal precio;
 
         if ("PLENA".equalsIgnoreCase(tipoTarifa)) {
@@ -226,7 +225,7 @@ public class RegistroEntradaSalidaServiceImpl implements RegistroEntradaSalidaSe
                 case CARRO     -> tarifa.getTarifaPlenaC();
                 case MOTO      -> tarifa.getTarifaPlenaM();
                 case BICICLETA -> tarifa.getTarifaPlenaB();
-                case OTRO      -> tarifa.getTarifaPlenaC(); // fallback
+                case OTRO      -> tarifa.getTarifaPlenaC();
             };
             if (valor == null) throw new RuntimeException(
                     "Tarifa plena no configurada para: " + tipo);
@@ -237,7 +236,7 @@ public class RegistroEntradaSalidaServiceImpl implements RegistroEntradaSalidaSe
                 case CARRO     -> tarifa.getTarifaMinutoC();
                 case MOTO      -> tarifa.getTarifaMinutoM();
                 case BICICLETA -> tarifa.getTarifaMinutoB();
-                case OTRO      -> tarifa.getTarifaMinutoC(); // fallback
+                case OTRO      -> tarifa.getTarifaMinutoC();
             };
             if (valorMinuto == null) throw new RuntimeException(
                     "Tarifa por minuto no configurada para: " + tipo);
@@ -252,14 +251,23 @@ public class RegistroEntradaSalidaServiceImpl implements RegistroEntradaSalidaSe
                 case CARRO     -> tarifa.getTarifaHoraC();
                 case MOTO      -> tarifa.getTarifaHoraM();
                 case BICICLETA -> tarifa.getTarifaHoraB();
-                case OTRO      -> tarifa.getTarifaHoraC(); // fallback
+                case OTRO      -> tarifa.getTarifaHoraC();
             };
-            if (valorHora == null) throw new RuntimeException(
-                    "Tarifa por hora no configurada para: " + tipo);
-            long horas = Math.max(1, Duration.between(
+            if (valorHora == null || valorHora == 0.0) {
+                // Fallback: si tarifa hora no está configurada, usar minuto * 60
+                Double valorMinuto = switch (tipo) {
+                    case CARRO     -> tarifa.getTarifaMinutoC();
+                    case MOTO      -> tarifa.getTarifaMinutoM();
+                    case BICICLETA -> tarifa.getTarifaMinutoB();
+                    case OTRO      -> tarifa.getTarifaMinutoC();
+                };
+                valorHora = valorMinuto != null ? valorMinuto * 60 : 0.0;
+            }
+            long minutosTotal = Math.max(1, Duration.between(
                     registro.getFechaHoraEntrada(),
-                    registro.getFechaHoraSalida()).toHours());
-            precio = BigDecimal.valueOf(horas * valorHora)
+                    registro.getFechaHoraSalida()).toMinutes());
+            long horasRedondeadas = Math.max(1, (long) Math.ceil(minutosTotal / 60.0));
+            precio = BigDecimal.valueOf(horasRedondeadas * valorHora)
                     .setScale(2, RoundingMode.HALF_UP);
 
         } else {
@@ -267,14 +275,12 @@ public class RegistroEntradaSalidaServiceImpl implements RegistroEntradaSalidaSe
                     + ". Debe ser PLENA, MINUTO u HORA");
         }
 
-
         MetodoPago metodo;
         try {
             metodo = MetodoPago.valueOf(metodoPago.toUpperCase());
         } catch (IllegalArgumentException e) {
-            metodo = MetodoPago.EFECTIVO; // fallback seguro
+            metodo = MetodoPago.EFECTIVO;
         }
-
 
         Pago pago = Pago.builder()
                 .registro(registro)
@@ -287,16 +293,21 @@ public class RegistroEntradaSalidaServiceImpl implements RegistroEntradaSalidaSe
                         + " | Tipo: " + tipo)
                 .build();
 
-        reservacionRepository
-                .findByVehiculoIdAndEstado(
-                        registro.getVehiculo().getIdVehiculo(),
-                        EstadoReservacion.COMPLETADA)
-                .stream()
-                .findFirst()
-                .ifPresent(pago::setReservacion);
+        // Vincular pago a reservación si existe — para que aparezca en "Mis Pagos"
+        try {
+            reservacionRepository
+                    .findByVehiculoIdAndEstado(
+                            registro.getVehiculo().getIdVehiculo(),
+                            EstadoReservacion.COMPLETADA)
+                    .stream()
+                    .findFirst()
+                    .ifPresent(pago::setReservacion);
+        } catch (Exception ex) {
+            log.warn("No se pudo vincular pago a reservación registro={}: {}",
+                    registroId, ex.getMessage());
+        }
 
         Pago pagoGuardado = pagoRepository.save(pago);
-
 
         registro.setPago(pagoGuardado);
         registro.setEstado(EstadoRegistro.COBRADO);
@@ -304,7 +315,6 @@ public class RegistroEntradaSalidaServiceImpl implements RegistroEntradaSalidaSe
                 + (registro.getObservaciones() != null
                 ? " | " + registro.getObservaciones() : ""));
 
-        // Liberar cupo
         if (registro.getCupo() != null) {
             registro.getCupo().setEstado(EstadoCupo.DISPONIBLE);
             cupoRepository.save(registro.getCupo());

@@ -15,12 +15,18 @@
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 
+    <link rel="stylesheet"
+          href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css"/>
+    <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+
+    <!-- Tema AparcaYA para flatpickr -->
+    <link rel="stylesheet" href="/css/pages/aparca-calendar.css"/>
     <link rel="stylesheet" href="/css/base/aparca-animations.css"/>
     <link rel="stylesheet" href="/css/components/aparca-components.css"/>
     <link rel="stylesheet" href="/css/pages/Sede.css"/>
     <link rel="stylesheet" href="/css/modals/sede-modal-dinamico.css"/>
 </head>
-<body>
+<body data-dashboard="sede">
 
 <!-- ======================================================
      SIDEBAR
@@ -1463,6 +1469,7 @@
 <div th:replace="modals/sede-modal-configuracion :: modal"></div>
 <div th:replace="modals/sede-modal-registrar-sede :: modal"></div>
 
+<script src="/js/aparca-calendar.js" defer></script>
 <script src="/js/aparca-notifications.js"></script>
 <script src="/js/sessionHandler.js"></script>
 <script src="/js/SedeD.js"></script>

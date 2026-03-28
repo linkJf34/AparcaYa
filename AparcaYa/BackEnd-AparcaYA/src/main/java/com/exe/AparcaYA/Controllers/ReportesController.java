@@ -91,4 +91,51 @@ public class ReportesController {
                 .contentType(MediaType.APPLICATION_PDF)
                 .body(pdf);
     }
+
+    // ── PDF reporte de ingresos sede ───────────────────────────────
+    @PostMapping("/sede/pdf")
+    public ResponseEntity<byte[]> generarPdfSede(
+            @RequestBody ReportePayloadDTO payload) throws Exception {
+
+        ReporteDataDTO data = reportesService.construirDatosSede(
+                payload.getFiltros(), payload.getKpis());
+        data.setGraficasBase64(payload.getGraficas());
+        data.setKpisDOM(payload.getKpis());
+
+        byte[] pdf = pdfBuilder.generarReporteSede(data);
+
+        String nombre = "reporte-sede-"
+                + LocalDate.now().format(DateTimeFormatter.ofPattern("yyyyMMdd"))
+                + ".pdf";
+
+        return ResponseEntity.ok()
+                .header(HttpHeaders.CONTENT_DISPOSITION,
+                        "attachment; filename=\"" + nombre + "\"")
+                .contentType(MediaType.APPLICATION_PDF)
+                .body(pdf);
+    }
+
+    // ── Excel reporte de ingresos sede ────────────────────────────
+    @PostMapping("/sede/excel")
+    public ResponseEntity<byte[]> generarExcelSede(
+            @RequestBody ReportePayloadDTO payload) throws Exception {
+
+        ReporteDataDTO data = reportesService.construirDatosSede(
+                payload.getFiltros(), payload.getKpis());
+        data.setGraficasBase64(payload.getGraficas());
+        data.setKpisDOM(payload.getKpis());
+
+        byte[] excel = excelBuilder.generarReporteSede(data);
+
+        String nombre = "reporte-sede-"
+                + LocalDate.now().format(DateTimeFormatter.ofPattern("yyyyMMdd"))
+                + ".xlsx";
+
+        return ResponseEntity.ok()
+                .header(HttpHeaders.CONTENT_DISPOSITION,
+                        "attachment; filename=\"" + nombre + "\"")
+                .contentType(MediaType.parseMediaType(
+                        "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"))
+                .body(excel);
+    }
 }

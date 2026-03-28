@@ -18,7 +18,12 @@
     <script src="https://cdn.jsdelivr.net/npm/chart.js"              defer></script>
     <script src="https://cdn.jsdelivr.net/npm/lucide@latest/dist/umd/lucide.min.js" defer></script>
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"   defer></script>
+    <link rel="stylesheet"
+          href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css"/>
+    <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
 
+    <!-- Tema AparcaYA para flatpickr -->
+    <link rel="stylesheet" href="/css/pages/aparca-calendar.css"/>
     <!-- CSS propio -->
     <link rel="stylesheet" href="/css/base/aparca-animations.css">
     <link rel="stylesheet" href="/css/components/aparca-components.css">
@@ -512,7 +517,7 @@
     </style>
 </head>
 
-<body>
+<body data-dashboard="admin">
 
 <!-- ═══════════════════════════════════════════════════════════
      OVERLAY — fondo oscuro en móvil al abrir sidebar
@@ -1869,6 +1874,7 @@
 <!-- ═══════════════════════════════════════════════════════════
      SCRIPTS
      ═══════════════════════════════════════════════════════════ -->
+<script src="/js/aparca-calendar.js" defer></script>
 <script src="/js/aparca-notifications.js"></script>
 <script src="/js/sessionHandler.js"></script>
 <script src="/js/AdminD.js"></script>

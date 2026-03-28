@@ -1278,7 +1278,11 @@ function actualizarEstadoActual(reservas) {
     var contenedor = document.getElementById('statusReservaContent');
     if (!contenedor) { return; }
 
-    var activa = (reservas || []).find(function(r) { return r.estado === 'ACTIVA'; });
+    var activa = (reservas || []).find(function(r) {
+        return r.estado === 'PENDIENTE'
+            || r.estado === 'ACEPTADA'
+            || r.estado === 'EN_CURSO';
+    });
 
     if (!activa) {
         contenedor.innerHTML =
@@ -1304,7 +1308,7 @@ function actualizarEstadoActual(reservas) {
 
     contenedor.innerHTML =
         '<div class="cli-status-activa">' +
-        '<div class="cli-status-activa-label">Reserva activa</div>' +
+        '<div class="cli-status-activa-label">' + traducirEstado(activa.estado) + '</div>' +
         '<div class="cli-status-activa-sede">' + sede + '</div>' +
         '<div class="cli-status-activa-tiempo">' +
         fechaInicio.toLocaleTimeString('es-CO', opts) +
@@ -1312,6 +1316,19 @@ function actualizarEstadoActual(reservas) {
         ' &nbsp;·&nbsp; ' +
         fechaInicio.toLocaleDateString('es-CO', { day: '2-digit', month: 'short' }) +
         '</div></div>';
+}
+
+
+function traducirEstado(estado) {
+    var map = {
+        'PENDIENTE':  'Reserva pendiente de aprobación',
+        'ACEPTADA':   'Reserva aceptada — esperando llegada',
+        'EN_CURSO':   'Vehículo en el parqueadero',
+        'COMPLETADA': 'Reserva completada',
+        'PAGADA':     'Reserva pagada',
+        'CANCELADA':  'Reserva cancelada'
+    };
+    return map[estado] || estado;
 }
 
 

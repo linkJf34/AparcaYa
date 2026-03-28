@@ -23,4 +23,5 @@ public interface PagoService {
 
     List<Pago> findByReservacion_Cliente_IdUsuario(Long idUsuario);
     Pago cobrarReserva(Long idReserva, MetodoPago metodoPago, Long idOperario);
+    List<Pago> findByRegistro_Vehiculo_IdUsuario(Long idUsuario);
 }

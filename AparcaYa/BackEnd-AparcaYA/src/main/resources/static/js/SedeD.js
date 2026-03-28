@@ -495,7 +495,7 @@ function renderChartIngresos(data, rango){
         labels  = ['Hoy','Este Mes','Este Año'];
         valores = [parseFloat(data.ingresosHoy||0),parseFloat(data.ingresosMes||0),parseFloat(data.ingresosAnio||0)];
     }
-    chartIngresos = new Chart(canvas,{
+    chartIngresos = window.sedeChartInstances['chartIngresos'] = new Chart(canvas,{
         type:'bar',
         data:{labels:labels, datasets:[{
                 label:'Ingresos (COP)', data:valores,
@@ -523,7 +523,7 @@ function renderChartOcupacion(data){
     var mot=oc.moto||{activos:0,capacidad:0};
     var bic=oc.bicicleta||{activos:0,capacidad:0};
     // CAMBIO: emojis 🚗 🏍️ 🚲 → texto plano
-    chartOcupacion = new Chart(canvas,{
+    chartOcupacion = window.sedeChartInstances['chartOcupacion'] = new Chart(canvas,{
         type:'bar',
         data:{
             labels:['Carros','Motos','Bicicletas'],
@@ -2776,6 +2776,112 @@ function rsIniciarListenersUbicacion() {
         });
     }
 }
+
+// ═══════════════════════════════════════════════════════════
+// MODULO DE REPORTES — SEDE
+// ═══════════════════════════════════════════════════════════
+
+window.sedeChartInstances = window.sedeChartInstances || {};
+
+function obtenerFiltrosSede() {
+    return {
+        fechaInicio: document.getElementById('periodoDesde')?.value || '',
+        fechaFin:    document.getElementById('periodoHasta')?.value || '',
+        sedeId:      window.SEDE_ID ? String(window.SEDE_ID) : ''
+    };
+}
+
+function capturarGraficasSede() {
+    const ids = ['chartIngresos', 'chartOcupacion'];
+    const imagenes = {};
+    ids.forEach(id => {
+        const inst = window.sedeChartInstances?.[id];
+        if (inst) {
+            imagenes[id] = inst.toBase64Image('image/png', 1.0);
+        } else {
+            const canvas = document.getElementById(id);
+            if (canvas) imagenes[id] = canvas.toDataURL('image/png');
+        }
+    });
+    return imagenes;
+}
+
+function capturarKpisSede() {
+    const t = id => document.getElementById(id)?.textContent?.trim() || '$0';
+    return {
+        ingresosHoy:      t('ingresosHoy'),
+        ingresosMes:      t('ingresosMes'),
+        ingresosAnio:     t('ingresosAnio'),
+        ingresosPeriodo:  t('ingresosPeriodo')
+    };
+}
+
+function setEstadoBotonesSede(cargando, tipo) {
+    const btnPdf   = document.querySelector(
+        '.graficas-reporte-bar .sede-btn-primary');
+    const btnExcel = document.querySelector(
+        '.graficas-reporte-bar .sede-btn-outline');
+    if (!btnPdf || !btnExcel) return;
+    btnPdf.disabled   = cargando;
+    btnExcel.disabled = cargando;
+    if (cargando) {
+        if (tipo === 'pdf')   btnPdf.textContent   = 'Generando PDF...';
+        if (tipo === 'excel') btnExcel.textContent = 'Generando Excel...';
+    } else {
+        btnPdf.textContent   = 'Exportar PDF';
+        btnExcel.textContent = 'Exportar Excel';
+    }
+}
+
+async function dispararReporteSede(tipo) {
+    const filtros  = obtenerFiltrosSede();
+    const graficas = capturarGraficasSede();
+    const kpis     = capturarKpisSede();
+
+    setEstadoBotonesSede(true, tipo);
+
+    try {
+        const res = await fetch(`/admin/reportes/sede/${tipo}`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ tipo, filtros, kpis, graficas })
+        });
+
+        if (!res.ok) throw new Error('Error HTTP ' + res.status);
+
+        const blob = await res.blob();
+        const ext  = tipo === 'pdf' ? 'pdf' : 'xlsx';
+        const url  = URL.createObjectURL(blob);
+        const a    = document.createElement('a');
+        a.href     = url;
+        a.download = `reporte-sede-${new Date().toISOString().slice(0, 10)}.${ext}`;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+
+        Swal.fire({
+            icon: 'success',
+            title: 'Reporte generado',
+            text: 'El archivo se descargo correctamente.',
+            timer: 3000,
+            showConfirmButton: false
+        });
+
+    } catch (err) {
+        Swal.fire({
+            icon: 'error',
+            title: 'Error al generar',
+            text: err.message,
+            confirmButtonColor: '#0d9488'
+        });
+    } finally {
+        setEstadoBotonesSede(false, tipo);
+    }
+}
+
+function exportarReportePDF()   { dispararReporteSede('pdf');   }
+function exportarReporteExcel() { dispararReporteSede('excel'); }
 
 // ==================== EXPONER GLOBALES ====================
 window.setPeriodo               = setPeriodo;

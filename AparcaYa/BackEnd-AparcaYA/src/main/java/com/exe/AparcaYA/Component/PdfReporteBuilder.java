@@ -356,4 +356,116 @@ public class PdfReporteBuilder {
                     ps.getWidth() - 40, 9, 0);
         }
     }
+
+    public byte[] generarReporteSede(ReporteDataDTO data) throws Exception {
+
+        ByteArrayOutputStream baos = new ByteArrayOutputStream();
+        Document doc = new Document(PageSize.A4, 40, 40, 60, 50);
+        PdfWriter writer = PdfWriter.getInstance(doc, baos);
+        writer.setPageEvent(new HeaderFooterEvent(data.getPeriodoReporte()));
+        doc.open();
+
+        // ── Portada ────────────────────────────────────────────────
+        PdfPTable banda = new PdfPTable(1);
+        banda.setWidthPercentage(100);
+        PdfPCell celda = new PdfPCell();
+        celda.setBackgroundColor(VERDE);
+        celda.setBorder(Rectangle.NO_BORDER);
+        celda.setPadding(24);
+        celda.addElement(new Paragraph(
+                "REPORTE DE INGRESOS — " + data.getSedeNombre().toUpperCase(), F_TITULO));
+        celda.addElement(new Paragraph(
+                "Sistema de Gestion de Parqueaderos AparcaYA",
+                FontFactory.getFont(FontFactory.HELVETICA, 12, new Color(167, 243, 208))
+        ));
+        banda.addCell(celda);
+        doc.add(banda);
+        doc.add(Chunk.NEWLINE);
+
+        // ── Metadata ───────────────────────────────────────────────
+        PdfPTable meta = new PdfPTable(2);
+        meta.setWidthPercentage(100);
+        meta.setWidths(new float[]{1, 1});
+        agregarMetaItem(meta, "Sede",        data.getSedeNombre());
+        agregarMetaItem(meta, "Periodo",     data.getPeriodoReporte());
+        agregarMetaItem(meta, "Generado el",
+                LocalDateTime.now().format(DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm")));
+        agregarMetaItem(meta, "Sistema",     "AparcaYA Sede v1.0");
+        doc.add(meta);
+
+        doc.newPage();
+
+        // ── KPIs ───────────────────────────────────────────────────
+        doc.add(new Paragraph("Resumen de Ingresos", F_SECCION));
+        doc.add(Chunk.NEWLINE);
+
+        Map<String, String> kpis = data.getKpisDOM();
+        if (kpis != null && !kpis.isEmpty()) {
+            PdfPTable tablaKpi = new PdfPTable(3);
+            tablaKpi.setWidthPercentage(100);
+            tablaKpi.setSpacingBefore(8);
+            agregarKpiCard(tablaKpi, "Ingresos Hoy",
+                    kpis.getOrDefault("ingresosHoy",     "$0"), VERDE);
+            agregarKpiCard(tablaKpi, "Ingresos Este Mes",
+                    kpis.getOrDefault("ingresosMes",     "$0"), AZUL);
+            agregarKpiCard(tablaKpi, "Ingresos Este Ano",
+                    kpis.getOrDefault("ingresosAnio",    "$0"), new Color(124, 58, 237));
+            doc.add(tablaKpi);
+        }
+
+        agregarSeparador(doc);
+
+        // ── Graficas ───────────────────────────────────────────────
+        Map<String, String> g = data.getGraficasBase64();
+        if (g != null && !g.isEmpty()) {
+            doc.add(new Paragraph("Graficas del Periodo", F_SECCION));
+            doc.add(Chunk.NEWLINE);
+
+            Image imgIngresos = imagenDesdeBase64(g.get("chartIngresos"), 520, 250);
+            if (imgIngresos != null) doc.add(imgIngresos);
+
+            doc.add(Chunk.NEWLINE);
+
+            Image imgOcupacion = imagenDesdeBase64(g.get("chartOcupacion"), 400, 220);
+            if (imgOcupacion != null) {
+                imgOcupacion.setAlignment(Element.ALIGN_CENTER);
+                doc.add(imgOcupacion);
+            }
+            agregarSeparador(doc);
+        }
+
+        // ── Tabla de reservaciones ─────────────────────────────────
+        agregarTabla(doc, "Reservaciones del Periodo", data.getUsuarios(),
+                new String[]{"cliente", "vehiculo", "inicio", "fin", "estado"}, VERDE);
+
+        agregarSeparador(doc);
+
+        // ── Tabla de pagos ─────────────────────────────────────────
+        agregarTabla(doc, "Pagos Registrados", data.getCorreos(),
+                new String[]{"id", "monto", "estado", "fecha"},
+                new Color(5, 150, 105));
+
+
+        // ── Tablas de datos ────────────────────────────────────────────
+        agregarSeparador(doc);
+
+        agregarTabla(doc, "Reservaciones del Periodo", data.getUsuarios(),
+                new String[]{"cliente", "vehiculo", "inicio", "fin", "estado"},
+                VERDE);
+
+        agregarSeparador(doc);
+
+        agregarTabla(doc, "Historial de Registros", data.getSedes(),
+                new String[]{"placa", "cliente", "entrada", "salida", "estado"},
+                AZUL);
+
+        agregarSeparador(doc);
+
+        agregarTabla(doc, "Pagos Registrados", data.getCorreos(),
+                new String[]{"id", "monto", "estado", "fecha"},
+                new Color(124, 58, 237));
+
+        doc.close();
+        return baos.toByteArray();
+    }
 }

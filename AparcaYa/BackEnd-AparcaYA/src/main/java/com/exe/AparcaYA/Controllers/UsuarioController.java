@@ -297,6 +297,21 @@ public class UsuarioController {
 
 
             log.info("Registro completado. Redirigiendo a: {}", redirectUrl);
+
+            // ── 2.6 Email de bienvenida — FUERA de la transacción ───────────
+            // @Async en EmailServiceImpl: no bloquea este hilo
+            // try-catch independiente: fallo de correo NO revierte el registro
+            try {
+                emailService.enviarBienvenida(
+                        guardado.getCorreo(),
+                        guardado.getNombre(),
+                        guardado.getRol()
+                );
+            } catch (Exception emailEx) {
+                // Solo loguear — el usuario ya está guardado y el JWT ya está listo
+                log.warn("Email de bienvenida falló (no crítico): {}", emailEx.getMessage());
+            }
+
             return ResponseEntity.ok(respuesta);
 
         } catch (DataIntegrityViolationException e) {

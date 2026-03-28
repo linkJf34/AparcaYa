@@ -50,6 +50,11 @@ public class PagoServiceImpl implements PagoService {
     }
 
     @Override
+    public List<Pago> findByRegistro_Vehiculo_IdUsuario(Long idUsuario) {
+        return pagoRepository.findByRegistro_Vehiculo_IdUsuario(idUsuario);
+    }
+
+    @Override
     public void delete(Long id) {
         pagoRepository.deleteById(id);
     }

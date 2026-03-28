@@ -315,45 +315,58 @@ public class ClienteController {
     // =========================================================
 
     @GetMapping("/pagos")
-    @Transactional
     @ResponseBody
+    @Transactional
     public ResponseEntity<List<Map<String, Object>>> obtenerPagos() {
         Usuario usuario = getUsuarioAutenticado();
         if (usuario == null)
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
 
         try {
-            // CORRECCIÓN — findByCliente_IdUsuario fue eliminado de PagoService.
-            // Los pagos de un cliente se obtienen a través de sus reservaciones.
+            List<Pago> pagos = new ArrayList<>();
+
+            // Método 1 — pagos por reservación
             List<Reservacion> reservaciones =
                     reservacionService.findByCliente_IdUsuario(usuario.getIdUsuario());
+            reservaciones.forEach(r ->
+                    pagos.addAll(pagoService.findByReservacion_IdReserva(r.getIdReserva()))
+            );
 
-            List<Pago> pagos = reservaciones.stream()
-                    .flatMap(r -> pagoService
-                            .findByReservacion_IdReserva(r.getIdReserva()).stream())
-                    .collect(Collectors.toList());
+            // Método 2 — pagos por registro directo sin reservación
+            pagos.addAll(
+                    pagoService.findByRegistro_Vehiculo_IdUsuario(usuario.getIdUsuario())
+            );
 
-            List<Map<String, Object>> resultado = pagos.stream().map(p -> {
+            // Eliminar duplicados por idPago
+            List<Pago> pagosSinDuplicados = pagos.stream()
+                    .collect(Collectors.collectingAndThen(
+                            Collectors.toMap(
+                                    Pago::getIdPago,
+                                    p -> p,
+                                    (a, b) -> a,
+                                    java.util.LinkedHashMap::new),
+                            m -> new ArrayList<>(m.values())
+                    ));
+
+            List<Map<String, Object>> resultado = pagosSinDuplicados.stream().map(p -> {
                 Map<String, Object> item = new LinkedHashMap<>();
                 item.put("fechaPago",  p.getFechaPago());
                 item.put("monto",      p.getMonto());
                 item.put("metodoPago", p.getMetodoPago() != null
                         ? p.getMetodoPago().name() : "N/A");
-                item.put("estado",     p.getEstado() != null
+                item.put("estado", p.getEstado() != null
                         ? p.getEstado().name() : "");
-
                 Long idReserva = null;
-                if (p.getReservacion() != null) {
+                if (p.getReservacion() != null)
                     idReserva = p.getReservacion().getIdReserva();
-                }
                 Map<String, Object> reservacion = new LinkedHashMap<>();
                 reservacion.put("idReserva", idReserva);
                 item.put("reservacion", reservacion);
-
                 return item;
             }).collect(Collectors.toList());
 
             return ResponseEntity.ok(resultado);
+
         } catch (Exception e) {
             log.error("Error cargando pagos del cliente: {}", e.getMessage());
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();

@@ -333,4 +333,83 @@ public class ExcelReporteBuilder {
             s.setBorderRight(BorderStyle.HAIR);  s.setRightBorderColor(c);
         }
     }
+
+    public byte[] generarReporteSede(ReporteDataDTO data) throws Exception {
+        try (XSSFWorkbook wb = new XSSFWorkbook()) {
+            Estilos e = new Estilos(wb);
+
+            // ── Hoja Resumen ───────────────────────────────────────
+            XSSFSheet resumen = wb.createSheet("Resumen");
+            resumen.setColumnWidth(0, 5000);
+            resumen.setColumnWidth(1, 7000);
+            resumen.setColumnWidth(2, 5000);
+            resumen.setColumnWidth(3, 7000);
+
+            int f = 0;
+            Row rt = resumen.createRow(f++);
+            rt.setHeightInPoints(32);
+            Cell ct = rt.createCell(0);
+            ct.setCellValue("REPORTE DE INGRESOS — " + data.getSedeNombre().toUpperCase());
+            ct.setCellStyle(e.titulo());
+            resumen.addMergedRegion(new CellRangeAddress(0, 0, 0, 3));
+
+            Row rs = resumen.createRow(f++);
+            rs.setHeightInPoints(20);
+            Cell cs = rs.createCell(0);
+            cs.setCellValue("Periodo: " + data.getPeriodoReporte()
+                    + "  |  Generado: "
+                    + LocalDateTime.now().format(
+                    DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm")));
+            cs.setCellStyle(e.subtitulo());
+            resumen.addMergedRegion(new CellRangeAddress(1, 1, 0, 3));
+
+            f++;
+
+            Row rh = resumen.createRow(f++);
+            rh.setHeightInPoints(18);
+            Cell ch = rh.createCell(0);
+            ch.setCellValue("INDICADORES DE INGRESOS");
+            ch.setCellStyle(e.seccion());
+            resumen.addMergedRegion(new CellRangeAddress(f - 1, f - 1, 0, 3));
+
+            Map<String, String> kpis = data.getKpisDOM();
+            if (kpis != null) {
+                f = agregarFilaKpi(resumen, e, f,
+                        "Ingresos Hoy",      kpis.getOrDefault("ingresosHoy",  "$0"),
+                        "Ingresos Este Mes", kpis.getOrDefault("ingresosMes",  "$0"));
+                f = agregarFilaKpi(resumen, e, f,
+                        "Ingresos Este Ano", kpis.getOrDefault("ingresosAnio", "$0"),
+                        "Periodo Actual",    kpis.getOrDefault("ingresosPeriodo", "$0"));
+            }
+
+            // ── Hoja Reservaciones ─────────────────────────────────
+            crearHojaDatos(wb, e, "Reservaciones", data.getUsuarios(),
+                    new String[]{"cliente", "vehiculo", "inicio", "fin", "estado"},
+                    new int[]{6000, 4000, 6000, 6000, 4000});
+
+            // ── Hoja Pagos ─────────────────────────────────────────
+            crearHojaDatos(wb, e, "Pagos", data.getCorreos(),
+                    new String[]{"id", "monto", "estado", "fecha"},
+                    new int[]{3000, 5000, 4000, 6000});
+
+            ByteArrayOutputStream baos = new ByteArrayOutputStream();
+
+            // ── Hojas de datos ─────────────────────────────────────────────
+            crearHojaDatos(wb, e, "Reservaciones", data.getUsuarios(),
+                    new String[]{"cliente", "vehiculo", "inicio", "fin", "estado"},
+                    new int[]{6000, 4000, 6000, 6000, 4000});
+
+            crearHojaDatos(wb, e, "Historial", data.getSedes(),
+                    new String[]{"placa", "cliente", "entrada", "salida", "estado"},
+                    new int[]{4000, 6000, 6000, 6000, 4000});
+
+            crearHojaDatos(wb, e, "Pagos", data.getCorreos(),
+                    new String[]{"id", "monto", "estado", "fecha"},
+                    new int[]{3000, 5000, 4000, 6000});
+
+
+            wb.write(baos);
+            return baos.toByteArray();
+        }
+    }
 }

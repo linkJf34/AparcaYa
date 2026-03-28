@@ -1,0 +1,261 @@
+/* =====================================================================
+   aparca-calendar.css — AparcaYA
+   TAREA 2 — Estilos de calendarios flatpickr por dashboard
+   ===================================================================== */
+
+/* ── BASE: override de flatpickr para AparcaYA ──────────────────────── */
+.flatpickr-calendar {
+    font-family: 'Plus Jakarta Sans', system-ui, sans-serif !important;
+    border-radius: 0.875rem !important;
+    border: 1px solid #e2e8f0 !important;
+    box-shadow: 0 8px 32px rgba(0,0,0,.12), 0 2px 8px rgba(0,0,0,.06) !important;
+    padding: 0.25rem !important;
+    overflow: hidden;
+}
+
+.flatpickr-months {
+    border-radius: 0.75rem 0.75rem 0 0;
+    padding: 0.5rem 0.25rem 0.25rem;
+}
+
+.flatpickr-month {
+    height: 36px !important;
+}
+
+.flatpickr-current-month {
+    font-size: 0.9rem !important;
+    font-weight: 700 !important;
+    padding-top: 6px !important;
+}
+
+.flatpickr-day {
+    border-radius: 0.5rem !important;
+    font-size: 0.8125rem !important;
+    font-weight: 500 !important;
+    height: 34px !important;
+    line-height: 34px !important;
+    width: 34px !important;
+    max-width: 34px !important;
+    margin: 1px !important;
+    transition: background 0.15s, color 0.15s !important;
+}
+
+.flatpickr-day.today {
+    font-weight: 700 !important;
+    border-width: 2px !important;
+}
+
+.flatpickr-day.today:not(.selected) {
+    background: transparent !important;
+}
+
+/* Botón de los filtros de fecha en DashboardCliente */
+.cli-filter-date-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.375rem;
+    padding: 0.4rem 0.75rem;
+    border: 1px solid #e2e8f0;
+    border-radius: 0.5rem;
+    background: #ffffff;
+    font-size: 0.8125rem;
+    font-weight: 500;
+    color: #374151;
+    cursor: pointer;
+    transition: border-color 0.15s, box-shadow 0.15s;
+    white-space: nowrap;
+}
+
+.cli-filter-date-btn:hover {
+    border-color: #a78bfa;
+    box-shadow: 0 0 0 3px rgba(167,139,250,0.15);
+}
+
+.cli-filter-date-btn.has-value {
+    border-color: #7c3aed;
+    color: #5b21b6;
+    background: #faf5ff;
+}
+
+/* ── TEMA ÍNDIGO — Dashboard Cliente ────────────────────────────────── */
+.aparca-theme-indigo .flatpickr-calendar,
+body[data-dashboard="cliente"] .flatpickr-calendar {
+    --fp-accent: #7c3aed;
+    --fp-accent-light: #ede9fe;
+    --fp-accent-dark: #5b21b6;
+}
+
+.aparca-theme-indigo .flatpickr-months,
+body[data-dashboard="cliente"] .flatpickr-months {
+    background: #7c3aed !important;
+    color: white !important;
+}
+
+.aparca-theme-indigo .flatpickr-month,
+body[data-dashboard="cliente"] .flatpickr-month {
+    color: white !important;
+    fill: white !important;
+}
+
+.aparca-theme-indigo .flatpickr-day.selected,
+.aparca-theme-indigo .flatpickr-day.selected:hover,
+body[data-dashboard="cliente"] .flatpickr-day.selected,
+body[data-dashboard="cliente"] .flatpickr-day.selected:hover {
+    background: #7c3aed !important;
+    border-color: #7c3aed !important;
+    color: white !important;
+}
+
+.aparca-theme-indigo .flatpickr-day:hover:not(.selected),
+body[data-dashboard="cliente"] .flatpickr-day:hover:not(.selected) {
+    background: #ede9fe !important;
+    color: #5b21b6 !important;
+}
+
+.aparca-theme-indigo .flatpickr-day.today,
+body[data-dashboard="cliente"] .flatpickr-day.today {
+    border-color: #7c3aed !important;
+    color: #7c3aed !important;
+}
+
+.aparca-theme-indigo .flatpickr-prev-month svg,
+.aparca-theme-indigo .flatpickr-next-month svg,
+body[data-dashboard="cliente"] .flatpickr-prev-month svg,
+body[data-dashboard="cliente"] .flatpickr-next-month svg {
+    fill: white !important;
+}
+
+/* ── TEMA TEAL — Dashboard Sede y Trabajador ────────────────────────── */
+.aparca-theme-teal .flatpickr-calendar,
+body[data-dashboard="sede"] .flatpickr-calendar,
+body[data-dashboard="trabajador"] .flatpickr-calendar {
+    --fp-accent: #0d9488;
+    --fp-accent-light: #ccfbf1;
+    --fp-accent-dark: #0f766e;
+}
+
+.aparca-theme-teal .flatpickr-months,
+body[data-dashboard="sede"] .flatpickr-months,
+body[data-dashboard="trabajador"] .flatpickr-months {
+    background: #0d9488 !important;
+    color: white !important;
+}
+
+.aparca-theme-teal .flatpickr-month,
+body[data-dashboard="sede"] .flatpickr-month,
+body[data-dashboard="trabajador"] .flatpickr-month {
+    color: white !important;
+    fill: white !important;
+}
+
+.aparca-theme-teal .flatpickr-day.selected,
+.aparca-theme-teal .flatpickr-day.selected:hover,
+body[data-dashboard="sede"] .flatpickr-day.selected,
+body[data-dashboard="sede"] .flatpickr-day.selected:hover,
+body[data-dashboard="trabajador"] .flatpickr-day.selected,
+body[data-dashboard="trabajador"] .flatpickr-day.selected:hover {
+    background: #0d9488 !important;
+    border-color: #0d9488 !important;
+    color: white !important;
+}
+
+.aparca-theme-teal .flatpickr-day:hover:not(.selected),
+body[data-dashboard="sede"] .flatpickr-day:hover:not(.selected),
+body[data-dashboard="trabajador"] .flatpickr-day:hover:not(.selected) {
+    background: #ccfbf1 !important;
+    color: #0f766e !important;
+}
+
+.aparca-theme-teal .flatpickr-day.today,
+body[data-dashboard="sede"] .flatpickr-day.today,
+body[data-dashboard="trabajador"] .flatpickr-day.today {
+    border-color: #0d9488 !important;
+    color: #0d9488 !important;
+}
+
+.aparca-theme-teal .flatpickr-prev-month svg,
+.aparca-theme-teal .flatpickr-next-month svg,
+body[data-dashboard="sede"] .flatpickr-prev-month svg,
+body[data-dashboard="sede"] .flatpickr-next-month svg,
+body[data-dashboard="trabajador"] .flatpickr-prev-month svg,
+body[data-dashboard="trabajador"] .flatpickr-next-month svg {
+    fill: white !important;
+}
+
+/* Input de fecha de historial en Sede — estilo mejorado */
+.historial-date-input {
+    padding: 0.4rem 0.75rem;
+    border: 1px solid #e2e8f0;
+    border-radius: 0.5rem;
+    font-size: 0.8125rem;
+    font-weight: 500;
+    color: #374151;
+    background: white;
+    cursor: pointer;
+    transition: border-color 0.15s, box-shadow 0.15s;
+    min-width: 130px;
+}
+
+.historial-date-input:focus {
+    outline: none;
+    border-color: #0d9488;
+    box-shadow: 0 0 0 3px rgba(13,148,136,0.15);
+}
+
+/* ── TEMA ADMIN — Dashboard Administrador General ───────────────────── */
+body[data-dashboard="admin"] .flatpickr-months {
+    background: #1e3a8a !important;
+    color: white !important;
+}
+
+body[data-dashboard="admin"] .flatpickr-month {
+    color: white !important;
+    fill: white !important;
+}
+
+body[data-dashboard="admin"] .flatpickr-day.selected,
+body[data-dashboard="admin"] .flatpickr-day.selected:hover {
+    background: #1d4ed8 !important;
+    border-color: #1d4ed8 !important;
+    color: white !important;
+}
+
+body[data-dashboard="admin"] .flatpickr-day:hover:not(.selected) {
+    background: #dbeafe !important;
+    color: #1e40af !important;
+}
+
+body[data-dashboard="admin"] .flatpickr-day.today {
+    border-color: #1d4ed8 !important;
+    color: #1d4ed8 !important;
+}
+
+body[data-dashboard="admin"] .flatpickr-prev-month svg,
+body[data-dashboard="admin"] .flatpickr-next-month svg {
+    fill: white !important;
+}
+
+/* ── RESPONSIVE: en móvil usar picker nativo ────────────────────────── */
+@media (max-width: 767px) {
+    /* flatpickr con disableMobile:false usa el picker nativo en móvil
+       — no se necesita CSS adicional. El botón sigue siendo visible. */
+
+    .cli-filter-date-btn {
+        font-size: 0.75rem;
+        padding: 0.375rem 0.625rem;
+    }
+
+    .historial-date-input {
+        min-width: 110px;
+    }
+}
+
+/* ── ANIMACIÓN DE APERTURA ──────────────────────────────────────────── */
+.flatpickr-calendar.open {
+    animation: fpFadeIn 0.18s ease;
+}
+
+@keyframes fpFadeIn {
+    from { opacity: 0; transform: translateY(-6px) scale(0.98); }
+    to   { opacity: 1; transform: translateY(0) scale(1); }
+}

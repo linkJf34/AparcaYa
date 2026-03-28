@@ -44,9 +44,10 @@ public interface RegistroEntradaSalidaRepository
 
     // AJUSTE — precio ya no está en RegistroEntradaSalida
     // se calcula desde Pago asociado al registro
+    // En RegistroEntradaSalidaRepository
     @Query("SELECT COALESCE(SUM(p.monto), 0) FROM Pago p " +
             "WHERE p.registro.sede = :sede " +
-            "AND p.estado = 'PAGADO' " +
+            "AND p.estado = com.exe.AparcaYA.Enum.EstadoPago.PAGADO " +
             "AND p.registro.fechaHoraEntrada >= :inicio " +
             "AND p.registro.fechaHoraEntrada < :fin")
     BigDecimal sumIngresosEntreFechas(

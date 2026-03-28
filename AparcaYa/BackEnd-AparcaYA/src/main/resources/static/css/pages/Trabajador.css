@@ -315,6 +315,33 @@ body {
 }
 .trab-btn-danger:hover { background: #dc2626; transform: translateY(-1px); }
 
+.sede-btn-warning {
+    display: inline-flex; align-items: center; gap: 0.4rem;
+    padding: 0.5rem 1rem; background: #f59e0b; color: white;
+    border: none; border-radius: 0.5rem; font-weight: 600;
+    font-size: 0.875rem; cursor: pointer;
+    transition: background-color 0.2s, transform 0.15s;
+}
+.sede-btn-warning:hover { background: #d97706; transform: translateY(-1px); }
+
+.sede-btn-cobrar {
+    display: inline-flex; align-items: center; gap: 0.4rem;
+    padding: 0.5rem 1rem; background: #10b981; color: white;
+    border: none; border-radius: 0.5rem; font-weight: 600;
+    font-size: 0.875rem; cursor: pointer;
+    transition: background-color 0.2s, transform 0.15s;
+}
+.sede-btn-cobrar:hover { background: #059669; transform: translateY(-1px); }
+
+.sede-btn-salida {
+    display: inline-flex; align-items: center; gap: 0.4rem;
+    padding: 0.5rem 1rem; background: #f59e0b; color: white;
+    border: none; border-radius: 0.5rem; font-weight: 600;
+    font-size: 0.875rem; cursor: pointer;
+    transition: background-color 0.2s, transform 0.15s;
+}
+.sede-btn-salida:hover { background: #d97706; transform: translateY(-1px); }
+
 
 /* ------------------------------------------------------------
    8. FORMULARIOS — mismo patrón que Sede
